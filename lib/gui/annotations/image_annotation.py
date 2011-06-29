@@ -267,21 +267,3 @@ class ImageAnnotation(object) :
         
         self._update_shape()
         self._update_label()
-
-def main() :
-    import sys
-    import numpy
-    import medipy.base 
-    from medipy.components.io import load
-    
-    image = load(sys.argv[1])
-    
-    annotation = medipy.base.ImageAnnotation((1,1,1), "foo", )
-    
-    world_to_slice = numpy.identity(3)
-    display_coordinates = "physical"
-    origin = (0,0,0)
-    spacing = (1,1,1)
-    
-    gui_annotation = ImageAnnotation(annotation, world_to_slice, display_coordinates, origin, spacing)
-    
