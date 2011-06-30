@@ -650,29 +650,3 @@ class Image(wx.Panel, PropertySynchronized):
         else :
             for where, label in informations.items() :
                 self._slices[0].set_label(where, label)
-    
-
-def main():
-    import sys
-    
-    from medipy.components.io import load
-    
-    app = wx.PySimpleApp()
-    frame = wx.Frame(None)
-    
-    loaded_image = load(sys.argv[1])
-    
-    image = Image(frame, "axial", [{"image" : loaded_image}], loaded_image.annotations)
-    image.SetMinSize((500,500))
-#    image.append_layer(load(sys.argv[1]))
-    image.reset_view()
-    
-    sizer = wx.BoxSizer()
-    sizer.Add(image, 1, wx.EXPAND)
-    frame.SetSizer(sizer)
-    sizer.SetSizeHints(frame)
-    
-    app.MainLoop()
-
-if __name__ == "__main__" :
-    main()
