@@ -15,7 +15,7 @@ from medipy.io.ipb import IPB
 from medipy.io.wx_image import WXImage
 # Nifti is quite verbose when testing if an image can be loaded, so let's test
 # it last
-io_classes = [IPB, Dicom, WXImage, Nmr2D, Sur2D, Nifti]
+io_classes = [IPB, WXImage, Nifti]
 
 def get_loader(filename, report_progress=None) :
     """Search for a loader in io_classes"""
