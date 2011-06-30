@@ -16,7 +16,7 @@ from struct import pack
 
 import numpy
 
-from medipy.base import Metadata, ImageAnnotation
+from medipy.base import ImageAnnotation
 from medipy.io.io_base import IOBase
 
 encoding_char = "+"

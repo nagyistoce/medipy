@@ -8,7 +8,7 @@
 
 import logging
 
-from medipy.base import Observable
+from observable import Observable
 
 class ImageAnnotation(Observable):
     """ Annotation localized on an image. Position is in mm, expressed as 
@@ -48,9 +48,6 @@ class ImageAnnotation(Observable):
         self.depth = depth or 0
         self.comment = comment or ""
     
-    def __del__(self):
-        logging.debug("medipy.base.ImageAnnotation.__del__(%x)"%id(self))
-        
     def __setattr__(self, attr, value):
         if attr in ["position", "label", "shape", "size", "color", "filled", "depth", "comment"] :
             old_value = getattr(self, attr, None) 

@@ -8,7 +8,7 @@
 
 import weakref
 
-from medipy.base import Observable
+from observable import Observable
 
 class PropertySynchronized(Observable) :
     """ A PropertySynchronized object will replicate any event to a child.

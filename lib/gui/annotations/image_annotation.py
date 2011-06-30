@@ -9,6 +9,7 @@
 import numpy
 from vtk import vtkTextActor
 
+import medipy.base
 import medipy.gui.shapes
 
 class ImageAnnotation(object) :

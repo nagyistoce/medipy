@@ -13,7 +13,7 @@ from vtk.util import vtkConstants
 
 from wx import GetTranslation as _
 
-from medipy.vtk_addons import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
+from medipy.vtk import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
 
 def get_vtk_array_type(numeric_array_type) :
     """Return a VTK typecode from a numpy array."""

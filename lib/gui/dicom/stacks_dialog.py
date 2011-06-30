@@ -11,8 +11,6 @@ import sys
 import numpy
 import wx
 
-from medipy.dicom import stacks
-
 class StacksDialog(wx.Dialog):
     """ Display a dialog for all stacks of a DICOM series (i.e. sets of images
         having a coherent orientation).

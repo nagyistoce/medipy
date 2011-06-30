@@ -10,7 +10,8 @@ import copy
 
 import numpy
 
-from medipy.base import Observable, ObservableList
+from observable import Observable
+from observable_list import ObservableList
 
 class Image(Observable):
     """ n-dimensional image class, based on numpy.ndarray. An image contains
