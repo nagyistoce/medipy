@@ -104,41 +104,18 @@ class Environment(SConsEnvironment) :
     # Libraries #
     #############
     
-    def HasITK(self):
-        """ Test if ITK is usable
+    def Has(self, lib):
+        """ Test if library is available
         """
-        return len(self._configuration_variables["itk"])>0
+        
+        return len(self._configuration_variables[lib])>0
+        
+    def Use(self, lib):
+        """ Add configuration variables to the environment
+        """
+        
+        self.AppendUnique(**self._configuration_variables[lib])
     
-    def UseITK(self):
-        """ Add the configuration variables for ITK to the environment
-        """
-        for key, value in self._configuration_variables["itk"].items() :
-            for entry in value :
-                if entry not in self[key] :
-                    self[key].append(entry)
-    
-    def UseOpenMP(self):
-        """ Add the configuration variables for OpenMP to the environment
-        """
-        for key, value in self._configuration_variables["openmp"].items() :
-            for entry in value :
-                if entry not in self[key] :
-                    self[key].append(entry)
-    
-    def UseVTK(self) : 
-        """ Add the configuration variables for VTK to the environment
-        """
-        for key, value in self._configuration_variables["vtk"].items() :
-            if key in self :
-                for entry in value :
-                    if entry not in self[key] :
-                        self[key].append(entry)
-    
-    def HasVTK(self):
-        """ Test if VTK is usable
-        """
-        return len(self._configuration_variables["vtk"])>0
-
     #####################
     # Private interface #
     #####################
