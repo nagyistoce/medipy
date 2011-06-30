@@ -1,0 +1,6 @@
+Import("env")
+env = env.Clone()
+
+env.Glob("*.py")
+env.Use("itk")
+env.PythonModule("_parse", ["parse.i", "parse.cpp"])

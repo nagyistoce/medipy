@@ -1,0 +1,9 @@
+Import("env")
+env = env.Clone()
+
+env.vtkPythonModule("vtk_addons", 
+    [ "vtkColorTransferFunctionWithAlpha", "vtkEnhancedLookupTable",
+      "vtkOrientationAnnotation", 
+    ], "hints")
+
+env.Glob("*.py")
