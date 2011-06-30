@@ -9,9 +9,9 @@
 #ifndef _7dbfbe3c_7822_11e0_a61c_0010188057be
 #define _7dbfbe3c_7822_11e0_a61c_0010188057be
 
-#include <string>
-
 #include <Python.h>
+
+#include <string>
 
 /** @brief Parse a file. Return a dictionary containing the DICOM elements or
  *         None if the file is not readable.
