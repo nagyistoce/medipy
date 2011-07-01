@@ -14,7 +14,9 @@ import warnings
 import wx
 
 class Application(wx.PySimpleApp):
-    def __init__(self):
+    def __init__(self, extra_options=None):
+        
+        extra_options = extra_options or []
         
         levels = {"debug": logging.DEBUG,
                   "info": logging.INFO,
@@ -30,12 +32,14 @@ class Application(wx.PySimpleApp):
         parser.add_option("-r", "--redirect-to-console", dest="redirect", 
                           action="store_false", default=True,
                           help="Redirect all messages to the console")
-        options = parser.parse_args()[0]
+        for args, kwargs in extra_options :
+            parser.add_option(*args, **kwargs)
+        self.options = parser.parse_args()[0]
         
-        if options.debug is not None :
-            level = levels.get(options.debug, None)
+        if self.options.debug is not None :
+            level = levels.get(self.options.debug, None)
             if level is None :
-                raise Exception("Warning : unknown logging level %s" % options.debug)
+                raise Exception("Warning : unknown logging level %s" % self.options.debug)
             
             logging_format = ("[%(asctime)s] {%(pathname)s:%(lineno)d} "
                               "%(levelname)s - %(message)s")
@@ -52,7 +56,7 @@ class Application(wx.PySimpleApp):
             # Disable deprecation warnings
             warnings.simplefilter("ignore", DeprecationWarning)
         
-        wx.PySimpleApp.__init__(self, redirect=options.redirect)
+        wx.PySimpleApp.__init__(self, redirect=self.options.redirect)
     
         if sys.platform.startswith("win") :
             import vtk
