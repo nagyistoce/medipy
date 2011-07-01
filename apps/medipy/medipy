@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+
+##########################################################################
+# MediPy - Copyright (C) Universite de Strasbourg, 2011             
+# Distributed under the terms of the CeCILL-B license, as published by 
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
+# for details.                                                      
+##########################################################################
+
+import logging
+import wx
+
+try :
+#    import logging
+#    import sys
+#    import os.path
+#    import warnings
+#    from optparse import OptionParser
+#    
+#    LEVELS = {'debug': logging.DEBUG,
+#              'info': logging.INFO,
+#              'warning': logging.WARNING,
+#              'error': logging.ERROR,
+#              'critical': logging.CRITICAL}
+#    
+#    parser = OptionParser()
+#    parser.add_option("-f", "--file", dest="filename",
+#                      help="Load script from FILE and run it", metavar="FILE")
+#    parser.add_option("-d", "--debug", dest="debug",
+#                      help="Set the logging level (debug, info, warning, error, or critical", metavar="LEVEL")
+#    parser.add_option("-m", "--menu-file", dest="menu_file",
+#                      help="Menu file to use. If not present, api.py files will be used", metavar="FILE")
+#    parser.add_option("-r", "--redirect-to-console", dest="redirect", 
+#                      action="store_false", default=True,
+#                      help="Redirect all messages to the console")
+#    
+#    (options, args) = parser.parse_args()
+#    
+#    if options.debug is not None :
+#        level = LEVELS.get(options.debug, None)
+#        if level is None :
+#            raise Exception("Warning : unknown logging level %s" % options.debug)
+#        format = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
+#        datefmt = "%Y-%m-%d %H:%M:%S"
+#        logging.basicConfig(level=level, format=format,datefmt=datefmt)
+#        if level != logging.DEBUG :
+#            # Disable deprecation warnings
+#            warnings.simplefilter("ignore", DeprecationWarning)
+#    else :
+#        logging.basicConfig(level=logging.ERROR)
+#        # Disable deprecation warnings
+#        warnings.simplefilter("ignore", DeprecationWarning)
+
+    app = wx.App()
+    from importer_dialog import preimport
+    nb_imported = preimport()
+    logging.debug("%i modules imported"%nb_imported)
+    del app
+    
+    from medipy_app import MediPyApp
+    from medipy.base import find_resource
+    
+    app = MediPyApp(".", 
+        [[("-f", "--file"), {"dest":"filename", 
+                             "help":"Load script from FILE and run it", 
+                             "metavar":"FILE"}]])
+    
+#    if sys.platform == "win32" and options.debug is None :
+#        import vtk
+#        vtk.vtkObject.GlobalWarningDisplayOff()
+    
+    if app.options.filename is not None :
+        dialog = wx.ProgressDialog("Loading script",
+                "Loading script ...",
+                style = wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|wx.PD_SMOOTH)
+        dialog.Update(0, 'Loading script ...')
+        dialog.Show()
+        # Use an empty globals dictionary to avoid memory leak. If using 
+        # globals() instead of {}, any image allocated in globals will be 
+        # referenced by globals() /and/ MediPyApp, and as such will not be 
+        # deleted when MediPyApp.close_image is called
+        execfile(options.filename, {})
+        dialog.Hide()
+        dialog.Destroy()
+except :
+    import sys
+    import traceback
+    
+    exc_info = sys.exc_info()
+    trace = "".join(traceback.format_exception(*exc_info))
+    
+    logging.error(trace)
+
+    message = "Could not launch MediPy : " + str(exc_info[1])
+    if wx.GetApp() is None :
+        app = wx.App()
+    
+    dialog = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+    button_sizer = dialog.CreateButtonSizer(wx.OK)
+    dialog.SetTitle("Could not launch MediPy !")
+    
+    traceback_widget = wx.TextCtrl(dialog, value=trace, style=wx.TE_READONLY|wx.TE_MULTILINE)
+    
+    traceback_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    traceback_sizer.Add(wx.StaticText(dialog, label="Traceback : "))
+    traceback_sizer.Add(traceback_widget, 1, flag=wx.EXPAND)
+    
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    
+    sizer.Add(wx.StaticText(dialog, label=message))
+    sizer.Add(traceback_sizer, 1, flag=wx.EXPAND)
+    sizer.Add(button_sizer)
+    
+    dialog.SetSizer(sizer)
+    sizer.SetSizeHints(dialog)
+    
+    dialog.ShowModal()
+else :
+    app.MainLoop()
