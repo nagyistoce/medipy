@@ -8,6 +8,7 @@
 
 import itk
 import numpy
+import medipy.base
 
 itk_to_dtype_table = [
     # Unsigned int types (char, short, long)
@@ -170,7 +171,8 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
     """ Modify a medipy.base.Image to match the contents and type of given ITK image. If
         transferOwnership is True, then the image will own the data, and the
         itk.Image will not. Otherwise, the image does not own the data, and the 
-        itk.Image is unchanged.
+        itk.Image is unchanged. If medipy_image is None, then a new image is 
+        created. In any case, the medipy Image is returned
     
         >>> import medipy.base
         >>> import medipy.itk
@@ -195,6 +197,10 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
         (40, 128, 128, 6) float32 vector
     """
     
+    if medipy_image is None :
+        medipy_image = medipy.base.Image(shape=(1,),
+            dtype=itk_to_dtype[itk.template(itk_image)[1][0]])
+    
     if itk_image.GetNameOfClass() == "Image" :
         if not itk.NumpyBridge[itk_image].IsBufferShared(medipy_image.data, itk_image) :
             medipy_image.data = itk_image_to_array(itk_image, transferOwnership)
@@ -212,3 +218,5 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
     
     medipy_image.origin =  [x for x in reversed(itk_image.GetOrigin())]
     medipy_image.spacing = [x for x in reversed(itk_image.GetSpacing())]
+
+    return medipy_image

@@ -194,7 +194,7 @@ NumpyBridge<TImage>
 {
     if(!PyArray_ISCONTIGUOUS(obj))
    {
-       throw std::runtime_error("Cannot convert a non C-contiguous array");
+       return false;
    }
 
     unsigned int arrayDimension=0;
@@ -212,12 +212,16 @@ NumpyBridge<TImage>
     }
     else
     {
-        throw std::runtime_error(std::string("Cannot convert object of type") + image->GetNameOfClass());
+        return false;
     }
 
     // Get the array object
     int element_type = GetPyType();
     PyArrayObject * array = (PyArrayObject *) PyArray_ContiguousFromAny(obj, element_type, arrayDimension, arrayDimension);
+    if(array == NULL)
+    {
+        return false;
+    }
 
     // has been Py_INCREF'ed in PyArray_FromArray, called by PyArray_FromAny,
     // called by PyArray_ContiguousFromObject

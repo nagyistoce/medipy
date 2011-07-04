@@ -28,14 +28,13 @@ MatrixBridge<TMatrix>
     PyObject * obj = PyArray_New(&PyArray_Type, 2, dimensions, item_type, NULL, NULL, 0,
                                  NPY_CARRAY, NULL);
 
-    unsigned int const number_of_items = matrix.ColumnDimensions*matrix.RowDimensions;
     for(int r=0; r<matrix.RowDimensions; ++r)
+    {
+        for(int c=0; c<matrix.ColumnDimensions; ++c)
         {
-            for(int c=0; c<matrix.ColumnDimensions; ++c)
-            {
-                *reinterpret_cast<typename TMatrix::ValueType*>(PyArray_GETPTR2(obj, r, c)) = matrix(r,c);
-            }
+            *reinterpret_cast<typename TMatrix::ValueType*>(PyArray_GETPTR2(obj, r, c)) = matrix(r,c);
         }
+    }
 
     return obj;
 }
