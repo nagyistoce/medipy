@@ -6,5 +6,6 @@
 # for details.                                                      
 ##########################################################################
 
+from cine_3d_dialog import Cine3dDialog 
 from colormaps import colormaps, get_colormap_from_name, stage_colormaps
 from periodic_progress_dialog import PeriodicProgressDialog, WorkerThread
