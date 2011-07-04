@@ -9,49 +9,10 @@
 ##########################################################################
 
 import logging
+import os
 import wx
 
 try :
-#    import logging
-#    import sys
-#    import os.path
-#    import warnings
-#    from optparse import OptionParser
-#    
-#    LEVELS = {'debug': logging.DEBUG,
-#              'info': logging.INFO,
-#              'warning': logging.WARNING,
-#              'error': logging.ERROR,
-#              'critical': logging.CRITICAL}
-#    
-#    parser = OptionParser()
-#    parser.add_option("-f", "--file", dest="filename",
-#                      help="Load script from FILE and run it", metavar="FILE")
-#    parser.add_option("-d", "--debug", dest="debug",
-#                      help="Set the logging level (debug, info, warning, error, or critical", metavar="LEVEL")
-#    parser.add_option("-m", "--menu-file", dest="menu_file",
-#                      help="Menu file to use. If not present, api.py files will be used", metavar="FILE")
-#    parser.add_option("-r", "--redirect-to-console", dest="redirect", 
-#                      action="store_false", default=True,
-#                      help="Redirect all messages to the console")
-#    
-#    (options, args) = parser.parse_args()
-#    
-#    if options.debug is not None :
-#        level = LEVELS.get(options.debug, None)
-#        if level is None :
-#            raise Exception("Warning : unknown logging level %s" % options.debug)
-#        format = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
-#        datefmt = "%Y-%m-%d %H:%M:%S"
-#        logging.basicConfig(level=level, format=format,datefmt=datefmt)
-#        if level != logging.DEBUG :
-#            # Disable deprecation warnings
-#            warnings.simplefilter("ignore", DeprecationWarning)
-#    else :
-#        logging.basicConfig(level=logging.ERROR)
-#        # Disable deprecation warnings
-#        warnings.simplefilter("ignore", DeprecationWarning)
-
     app = wx.App()
     from importer_dialog import preimport
     nb_imported = preimport()
@@ -61,14 +22,15 @@ try :
     from medipy_app import MediPyApp
     from medipy.base import find_resource
     
-    app = MediPyApp(".", 
-        [[("-f", "--file"), {"dest":"filename", 
+    app = MediPyApp( 
+        [[("-m", "--menu-file"), {"dest" : "menu_file", "default" : None,
+                                  "help" : "File containing a menu to display "
+                                           "on the left side. If not specified, "
+                                           "use all plugins in MEDIPY_PLUGINS_PATH",
+                                  "metavar" : "MENU_FILE" }],
+         [("-f", "--file"), {"dest" : "filename", 
                              "help":"Load script from FILE and run it", 
                              "metavar":"FILE"}]])
-    
-#    if sys.platform == "win32" and options.debug is None :
-#        import vtk
-#        vtk.vtkObject.GlobalWarningDisplayOff()
     
     if app.options.filename is not None :
         dialog = wx.ProgressDialog("Loading script",

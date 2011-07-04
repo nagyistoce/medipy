@@ -6,12 +6,12 @@
 # for details.                                                      
 ##########################################################################
 
+import os
+
 from vtk import (vtkDataReader, vtkPolyDataReader, vtkPolyDataWriter,
     vtkRectilinearGridReader, vtkStructuredGridReader, 
     vtkUnstructuredGridReader, vtkVRMLImporter,)
-
 import wx
-_ = wx.GetTranslation
 
 import medipy.base
 import medipy.gui.image
@@ -27,10 +27,11 @@ from medipy.gui.image.tools import MouseTool
 from medipy.base import ObservableList, Object3D
 
 from main_frame import MainFrame
+import menu_builder
 
 class MediPyApp(Application) :
     
-    def __init__(self, functions_path, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         
         # Public interface
         self.images = ObservableList()
@@ -42,7 +43,6 @@ class MediPyApp(Application) :
         
         # Private interface
         self._frame = None
-        self._functions_path = functions_path
         self._active_image_index = None
         self._full_screen = False
         self._cine_dialog = None
@@ -361,16 +361,22 @@ class MediPyApp(Application) :
     # Event handlers #
     ##################
     def OnInit(self) :
-        self.SetAppName(_("MediPy"))
+        self.SetAppName("MediPy")
         
         for attribute in ["cursor_position", "center", "zoom", "display_range"] :
             config_entry = "SynchronizeImages_%s"%attribute
             value = wx.ConfigBase_Get().ReadBool(config_entry) or False
             self.set_synchronize_images(attribute, value)
         
-        self._frame = MainFrame(parent=None, id=-1, 
-                                  title=_("MediPy"), size=(1000,800),
-                                  functions_path = self._functions_path)
+        if self.options.menu_file is not None :
+            menu = menu_builder.from_file.build_menu(self.options.menu_file)
+        else :
+            menu = []
+            for directory in os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep) :
+                menu.extend(menu_builder.from_api.build_menu(directory))
+        
+        self._frame = MainFrame(None, wx.ID_ANY, menu, 
+                                title="MediPy", size=(1000,800))
         self._frame.application = self
         self._frame.Show()
         self.SetTopWindow(self._frame)

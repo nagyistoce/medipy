@@ -16,19 +16,19 @@ import xml.dom.minidom
 import numpy
 import wx
 import wx.xrc
-_ = wx.GetTranslation
-
-import menu_builder
 
 from medipy.base import find_resource, ObservableList
 import medipy.io 
 import medipy.gui.io
 from medipy.gui import xrc_wrapper
-#from medipy.gui.viewer_3d_frame import Viewer3DFrame
+from medipy.gui.viewer_3d_frame import Viewer3DFrame
 from medipy.gui.utilities import underscore_to_camel_case, remove_access_letter_from_menu
 
+from medipy.gui.function_gui_builder import FunctionGUIBuilder
+import menu_builder
+
 class MainFrame(xrc_wrapper.Frame):
-    def __init__(self, parent=None, functions_path=None, *args, **kwargs):
+    def __init__(self, parent, id_, left_menu, *args, **kwargs):
         
         self._current_ui = None
         self._full_screen_frame = None
@@ -50,7 +50,7 @@ class MainFrame(xrc_wrapper.Frame):
         resource = wx.xrc.XmlResource(filename)
         
         frame = resource.LoadFrame(parent, "medipy_frame")
-        xrc_wrapper.Frame.__init__(self, frame, *args, **kwargs)
+        xrc_wrapper.Frame.__init__(self, frame, id_, *args, **kwargs)
         
         # Get controls
         controls = ["menu_treectrl", "function_ui_panel", "images_panel"]
@@ -88,11 +88,7 @@ class MainFrame(xrc_wrapper.Frame):
                         self.GetMenuBar().EnableTop(index, False)
         
         # Fill function menu
-        if os.path.isdir(functions_path) :
-            menu = menu_builder.from_api.build_menu(functions_path)
-        elif os.path.isfile(functions_path) : 
-            menu = menu_builder.from_file.build_menu(functions_path)
-        menu_builder.fill_treectrl(menu, self._menu_treectrl)
+        menu_builder.fill_treectrl(left_menu, self._menu_treectrl)
         
         # Disable item that should not be active when no image is loaded
         for item in self._menus_active_when_image_loaded :
@@ -263,7 +259,6 @@ class MainFrame(xrc_wrapper.Frame):
         if item_data is not None : 
             if inspect.isfunction(item_data) :
                 function = item_data
-                from medipy.gui.function_gui_builder.FunctionGUIBuilder import FunctionGUIBuilder
                 function_gui=FunctionGUIBuilder(self._function_ui_panel,function,
                                                 wx.GetApp().images, wx.GetApp().viewer_3ds)
                 self._current_ui = function_gui
