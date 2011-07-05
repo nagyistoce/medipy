@@ -52,10 +52,10 @@ def build_hierarchy(lines, root, top_level, first_children, first_siblings, path
         display_name = " ".join(display_name)
     
     if not sub_items :
-        module_name = (".".join(["medipy", "components"]+path)
-                       if not leaf.startswith("medipy.components.") 
+        module_name = (".".join(["medipy"]+path)
+                       if not leaf.startswith("medipy.") 
                        else ".".join(leaf.split(".")[:-1]))
-        function_name = (leaf if not leaf.startswith("medipy.components.") 
+        function_name = (leaf if not leaf.startswith("medipy.") 
                          else leaf.split(".")[-1])
         
         namespace = {}
