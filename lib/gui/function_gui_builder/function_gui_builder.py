@@ -1,4 +1,8 @@
+import logging
 import re
+import sys
+import traceback
+
 import numpy
 import wx
 
@@ -187,7 +191,7 @@ class FunctionGUIBuilder(object):
                     if i%2 == 0 :
                         initializer += elements[i]
                     else : # i%2 == 1
-                        initializer += "self._controls[{0}].value".format(elements[i])
+                        initializer += "self._controls[\"{0}\"].value".format(elements[i])
             # Create the control
             expression = "medipy.gui.control.%s(self.panel"%parameter["type"]
             
@@ -203,7 +207,10 @@ class FunctionGUIBuilder(object):
             try :
                 control = eval(expression)
                 self._controls[parameter["name"]] = control
-            except : 
+            except :
+                logging.error("Could not create control from expression \"{0}\"".format(expression))
+                exc_info = sys.exc_info()
+                logging.error("".join(traceback.format_exception(*exc_info))) 
                 return
             
             # Add the control to the sizer, and create a corresponding attribute to self

@@ -1,4 +1,14 @@
+##########################################################################
+# MediPy - Copyright (C) Universite de Strasbourg, 2011             
+# Distributed under the terms of the CeCILL-B license, as published by 
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
+# for details.                                                      
+##########################################################################
+
 import logging
+import os
+import re
 import sys
 import traceback
 import xml.dom.minidom
@@ -66,7 +76,12 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
 #        
 #        self._drawings = []
         
-        xml_resource = xml.dom.minidom.parse(find_resource("resources/gui/viewer_3d_frame.xrc"))
+        filename = find_resource("resources/gui/viewer_3d_frame.xrc")
+        resource = open(filename).read()
+        pattern = r"<bitmap>(.*)</bitmap>"
+        replacement = r"<bitmap>{0}/\1</bitmap>".format(os.path.dirname(filename))
+        resource = re.sub(pattern, replacement, resource)
+        xml_resource = xml.dom.minidom.parseString(resource)
         
         resource = wx.xrc.EmptyXmlResource()
         resource.InsertHandler(medipy.gui.xrc_wrapper.Viewer3DXMLHandler())
@@ -906,7 +921,7 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
     
     def _manage_texture_from_depth(self, _object, image, depth):
         (min, max) = image.data.min(), image.data.max() 
-        lut = medipy.components.vtk_bridge.build_vtk_colormap(medipy.gui.colormaps["gray"])
+        lut = medipy.vtk.build_vtk_colormap(medipy.gui.colormaps["gray"])
         _object.color_by_scalars(lut, min, max)
         texture_from_depth(_object, image, depth)
             

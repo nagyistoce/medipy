@@ -347,26 +347,3 @@ class OldCineDialog(wx.Dialog):
                 self._set_layer(value)
             else :  
                 self._layer_text.SetBackgroundColour(wx.RED)
-
-if __name__ == "__main__" :
-    import sys
-    import medipy.components.io
-    import medipy.gui.image
-    
-    images = []
-    for i in range(medipy.components.io.number_of_images(sys.argv[1])) :
-        image = medipy.components.io.load(sys.argv[1], i)
-        images.append(image)
-    
-    app = wx.PySimpleApp()
-    
-    frame = wx.Frame(None)
-    image_widget = medipy.gui.image.Image(frame, 
-        layers=[{"image": x} for x in images])
-    
-    cine_dialog = CineDialog(frame, image_widget)
-    
-    frame.Show()
-    cine_dialog.Show()
-    
-    app.MainLoop()
