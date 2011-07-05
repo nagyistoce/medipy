@@ -1,45 +1,24 @@
-import docutils
-import docutils.parsers.rst
-import docutils.utils
+import xml.dom.minidom
 
-from parameter_gui import ParameterGUI
-
-def parseRSTAsParameters(docstring) :
-    """ Create a list of ParameterGUI from a string 
+def parse_docstring(docstring):
+    """ Parse the given docstring to a list of dictionaries, describing GUI
+        parameters.
     """
     
-    parser = docutils.parsers.rst.Parser()
-    settings = docutils.frontend.OptionParser(components=(docutils.parsers.rst.Parser,)).get_default_values()
-    document = docutils.utils.new_document("/", settings)
-    parser.parse(docstring, document)
-    dom = document.asdom()
-    root = dom.documentElement
+    gui_description_begin = docstring.rfind("<gui>")
+    gui_description_end = docstring.rfind("</gui>")
+    gui_description = docstring[gui_description_begin:gui_description_end+len("</gui>")]
     
-    # Find the field element that has a field_name child with value gui
-    fields = dom.getElementsByTagName("field")
-    guiNode = None
-    for field in fields :
-        fieldName = field.getElementsByTagName("field_name")[0]
-        if fieldName.firstChild.data == "gui" :
-            guiNode = field.getElementsByTagName("definition_list")[0]
-    
-    # Find each element
     parameters = []
-    for item in guiNode.childNodes :
-        name = item.getElementsByTagName("term")[0].firstChild.data
-        
-        classifiers = item.getElementsByTagName("classifier")
-        type = classifiers[0].firstChild.data
-        
-        initializer = None
-        if len(classifiers) >= 2 :
-            initializer = classifiers[1].firstChild.data
-        
-        definitions = item.getElementsByTagName("definition")[0].childNodes
-        label = definitions[0].firstChild.data
-        tooltip = len(definitions)>1 and definitions[1].firstChild.data or None
-        parameter = ParameterGUI(name, type, initializer, label, tooltip)
-        
-        parameters.append(parameter)
     
+    if not gui_description :
+        return parameters
+    
+    document = xml.dom.minidom.parseString(gui_description)
+    for node in document.childNodes[0].childNodes :
+        if node.nodeType != node.ELEMENT_NODE or node.tagName != "item":
+            continue
+            
+        parameters.append(dict(node.attributes.items()))
+
     return parameters

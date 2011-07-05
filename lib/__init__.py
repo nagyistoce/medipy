@@ -6,7 +6,9 @@ import sys
 class Importer(object):
     
     def __init__(self):
-        self._plugins_path = os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep)
+        self._plugins_path = ""
+        if "MEDIPY_PLUGINS_PATH" in os.environ :
+            self._plugins_path = os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep)
     
     def find_module(self, fullname, path=None):
         if not fullname.startswith("medipy.") :
