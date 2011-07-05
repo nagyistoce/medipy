@@ -80,7 +80,7 @@ def absolute_value(image):
     
     return output
 
-def operation(image1, image2, filter_class):
+def pixelwise_operation(image1, image2, filter_class):
     """ Perform a pixelwise operation using an ITK filter on the images,
         return the result
     """ 
@@ -94,27 +94,3 @@ def operation(image1, image2, filter_class):
     output = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
     
     return output
-
-#import itk
-#import numpy
-#
-#import medipy.itk
-#
-
-
-#
-#def absolute_value(input, output):
-#    """ Compute the absolute value element_wise
-#        
-#        :gui:
-#            input : Image
-#                Input
-#            output : Image : output=True
-#                Output
-#    """
-#    if input.shape != output.shape :
-#       output.data = numpy.ndarray(shape=input.shape, dtype=input.dtype)
-#    output[:] = numpy.abs(input)
-#    output.copy_information(input)
-#    
-
