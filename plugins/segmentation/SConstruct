@@ -1,0 +1,25 @@
+import itertools
+import os
+
+from deployement.scons.wrapitk import get_instantiations
+
+Import("env")
+
+env = env.Clone()
+
+env.Glob("*.py")
+
+# BET, instantiated for the following type (TInputImage and TOutputImage are
+# equal) :
+# * itk::Image<signed short, 3>, itk::Image<unsigned short, 3>    
+# * itk::Image<signed long, 3>, itk::Image<unsigned long, 3>
+# * itk::Image<float, 3>
+types = ["%s %s"%x 
+         for x in itertools.product(["signed", "unsigned"], ["short", "long"])]
+types += ["float"]
+dimensions = [3]
+instantiations = get_instantiations("itk::Image", types, dimensions)
+instantiations = [(i,i) for i in instantiations]
+classes_template_info = [ ("itk::BETImageFilter", instantiations, "pointer") ]
+env.Use("vtk")
+env.WrapITKPythonModule("BETImageFilter", classes_template_info)
