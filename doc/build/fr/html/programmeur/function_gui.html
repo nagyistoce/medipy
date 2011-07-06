@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Description de l’interface graphique d’une fonction &mdash; MediPy v1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="MediPy v1.0 documentation" href="../index.html" />
+    <link rel="up" title="Guide du programmeur" href="index.html" />
+    <link rel="next" title="Lecture DICOM" href="dicom.html" />
+    <link rel="prev" title="Menu" href="menu.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dicom.html" title="Lecture DICOM"
+             accesskey="N">suivant</a> |</li>
+        <li class="right" >
+          <a href="menu.html" title="Menu"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../index.html">MediPy v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Guide du programmeur</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table des matières</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Description de l&#8217;interface graphique d&#8217;une fonction</a><ul>
+<li><a class="reference external" href="#syntaxe">Syntaxe</a><ul>
+<li><a class="reference external" href="#exemples">Exemples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Sujet précédent</h4>
+            <p class="topless"><a href="menu.html"
+                                  title="Chapitre précédent">Menu</a></p>
+            <h4>Sujet suivant</h4>
+            <p class="topless"><a href="dicom.html"
+                                  title="Chapitre suivant">Lecture DICOM</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Recherche rapide</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="description-de-l-interface-graphique-d-une-fonction">
+<h1>Description de l&#8217;interface graphique d&#8217;une fonction<a class="headerlink" href="#description-de-l-interface-graphique-d-une-fonction" title="Lien permanent vers ce titre">¶</a></h1>
+<p>Les fonctions présentes dans le menu de MediPy vont avoir une interface
+graphique associée. L&#8217;ensemble des boîtes de dialogue de Medimax 3 (créees par
+les macros GET_INT, GET_FLOAT, GET_QCM, ...) sont ici remplacées par une unique
+interface graphique.</p>
+<p>Cette interface est décrite dans la docstring des fonctions python, selon la
+syntaxe précisée ci-dessous. Pour une fonction de seuillage prenant comme
+paramètres une image d&#8217;entrée, les bornes du seuillage et une image de sortie,
+on obtiendra l&#8217;interface suivante :</p>
+<img alt="../_images/threshold2_gui.png" src="../_images/threshold2_gui.png" />
+<div class="section" id="syntaxe">
+<h2>Syntaxe<a class="headerlink" href="#syntaxe" title="Lien permanent vers ce titre">¶</a></h2>
+<p>La syntaxe à utiliser dans la docstring de la fonction est celle utilisée
+notamment par <a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> : il s&#8217;agit du format RST,
+simple et relativement proche d&#8217;une syntaxe de Wiki. Les éléments de l&#8217;interface
+graphique sont recensés dans un <a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#field-lists">champ</a>,
+nommé <tt class="docutils literal"><span class="pre">gui</span></tt>. Chaque élément est une <a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#definition-lists">définition</a>,
+avec :</p>
+<ul class="simple">
+<li>terme : nom du paramètre correspondant de la fonction</li>
+<li>premier classificateur : type du contrôle relié à ce paramètre</li>
+<li>second classificateur (optionnel) : paramètre d&#8217;initialisation du contrôle</li>
+<li>premier paragraphe de la définition : label associé</li>
+<li>second paragraphe de la définition (optionnel) : tooltip associé</li>
+</ul>
+<p>D&#8217;autres éléments peuvent bien sur être présents dans la docstring, seul le
+champ <tt class="docutils literal"><span class="pre">gui</span></tt> est pris en compte par le constructeur d&#8217;interface.</p>
+<p><strong>Attention</strong> : la définition ne peut pas être vide selon la syntaxe de RST.
+Avec une définition vide, l&#8217;élément ne sera pas affiché.</p>
+<div class="section" id="exemples">
+<h3>Exemples<a class="headerlink" href="#exemples" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Des exemples valant mieux qu&#8217;un long discours, voici l&#8217;exemple d&#8217;une fonction de
+seuillage :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">threshold</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Threshold the input image and store the result in the output image.</span>
+
+<span class="sd">    :gui:</span>
+<span class="sd">        input : Image</span>
+<span class="sd">            Input image</span>
+
+<span class="sd">        min : Float</span>
+<span class="sd">            Minimum value</span>
+
+<span class="sd">            Minimum value in threshold (included)</span>
+
+<span class="sd">        max : Float</span>
+<span class="sd">            Maximum value</span>
+
+<span class="sd">            Maximum value in threshold (included)</span>
+
+<span class="sd">        output : Image</span>
+<span class="sd">            Output image</span>
+
+<span class="sd">            Output image. If input and output are the same, in-place processing</span>
+<span class="sd">            is used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Le champ <tt class="docutils literal"><span class="pre">input</span></tt> crée un contrôle de type <tt class="docutils literal"><span class="pre">Image</span></tt>, qui va permettre de
+choisir entre plusieurs images grâce à des radio-buttons. Les champs <tt class="docutils literal"><span class="pre">min</span></tt> et
+<tt class="docutils literal"><span class="pre">max</span></tt> ont une syntaxe similaire, mais ajoutent un tooltip. L&#8217;interface générée
+est la suivante :</p>
+<img alt="../_images/threshold2_gui.png" src="../_images/threshold2_gui.png" />
+<p>La fonction suivante montre l&#8217;utilisation du paramètre d&#8217;initialisation du
+contrôle :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">binary_erosion</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">seType</span><span class="p">,</span> <span class="n">seSize</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Erode the input image and store the result in output.</span>
+
+<span class="sd">    :gui:</span>
+<span class="sd">        input : Image</span>
+<span class="sd">            Input</span>
+
+<span class="sd">        seType : Enum : (&quot;box&quot;, &quot;ball&quot;)</span>
+<span class="sd">            Shape</span>
+
+<span class="sd">            Type of structuring element</span>
+
+<span class="sd">        seSize : Int : 1</span>
+<span class="sd">            Size</span>
+
+<span class="sd">            Must be greater than 1</span>
+
+<span class="sd">        output : Image : output=True</span>
+<span class="sd">            Output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">input</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="p">:</span>
+       <span class="n">output</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">se</span> <span class="o">=</span> <span class="n">structuring_element</span><span class="p">(</span><span class="n">seType</span><span class="p">,</span> <span class="n">seSize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+    <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">binary_erosion</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Le paramètre d&#8217;initialisation de <tt class="docutils literal"><span class="pre">seSize</span></tt> est optionnel : un contrôle de type
+<tt class="docutils literal"><span class="pre">int</span></tt> peut être initialisé sans paramètre, mais on souhaite un élément
+structurant de taille au moins 1. Le paramètre d&#8217;initialisation de seType est en
+revanche obligatoire : on ne peut pas initialiser une liste de choix sans lui
+donner la liste des valeurs qu&#8217;elle peut prendre. L&#8217;interface générée par cette
+docstring est la suivante :</p>
+<img alt="../_images/binary_erosion.png" src="../_images/binary_erosion.png" />
+<p>On peut également spécifier un intervalle pour les valeurs prises pour un
+contrôle de type <tt class="docutils literal"><span class="pre">Int</span></tt> grâce au paramètre <tt class="docutils literal"><span class="pre">range</span></tt>. A la création de
+l&#8217;interface graphique, si le paramètre <tt class="docutils literal"><span class="pre">range</span></tt> est renseigné, on ajoute alors
+une barre de défilement au contrôle. En règle générale, on peut également
+choisir de stocker le résultat du traitement dans une nouvelle image en cochant
+le bouton <tt class="docutils literal"><span class="pre">new</span></tt> du paramètre <tt class="docutils literal"><span class="pre">Output</span></tt> de l&#8217;interface graphique. On peut
+également spécifier l&#8217;intervalle en fonction d&#8217;un des autres éléments de
+l&#8217;interface graphique comme dans l&#8217;exemple ci dessous :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">something</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Do something</span>
+<span class="sd">        :gui:</span>
+<span class="sd">            input : Image</span>
+<span class="sd">                Input</span>
+<span class="sd">            value : Int : range = (${input}.data.min(), ${input}.data.max())</span>
+<span class="sd">                Value</span>
+<span class="sd">            output : Image : output = True</span>
+<span class="sd">                Output</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<img alt="../_images/something.png" src="../_images/something.png" />
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="dicom.html" title="Lecture DICOM"
+             >suivant</a> |</li>
+        <li class="right" >
+          <a href="menu.html" title="Menu"
+             >précédent</a> |</li>
+        <li><a href="../index.html">MediPy v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Guide du programmeur</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
