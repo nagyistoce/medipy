@@ -13,8 +13,8 @@
 
 #include <string>
 
-/** @brief Parse a file. Return a dictionary containing the DICOM elements or
- *         None if the file is not readable.
+/** @brief Parse a DICOM file.
+ *  @return A new reference to a dictionary containing the DICOM elements.
  */
 PyObject* parse_file(std::string const & filename);
 

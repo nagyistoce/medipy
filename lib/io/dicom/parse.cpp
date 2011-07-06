@@ -23,6 +23,7 @@
 
 /**
  * @brief Parse a DICOM element with VM=1.
+ * @return A new reference
  */
 PyObject* parse_single_valued(std::string const & value, std::string const & vr,
                               std::string const & encoding = "ascii",
@@ -100,13 +101,14 @@ PyObject* parse_single_valued(std::string const & value, std::string const & vr,
     }
     else
     {
-        std::cerr << "Cannot parse VR " << vr << std::endl;
-        return Py_None;
+        PyErr_SetString(PyExc_Exception, ("Cannot parse VR "+vr).c_str());
+        return NULL;
     }
 }
 
 /**
  * @brief Parse a DICOM element with VM>1
+ * @return A new reference
  */
 PyObject* parse_multi_valued(std::string const & value, std::string const & vr,
                              std::string const & encoding = "ascii",
@@ -128,6 +130,7 @@ PyObject* parse_multi_valued(std::string const & value, std::string const & vr,
             return NULL;
         }
         PyList_Append(list, item);
+        Py_DECREF(item);
         if(stop != std::string::npos)
         {
             start = stop+1;
@@ -143,6 +146,7 @@ PyObject* parse_multi_valued(std::string const & value, std::string const & vr,
 
 /**
  * @brief Parse a DICOM element with a string representation (i.e. gdcm::ValEntry).
+ * @return A new reference
  *
  * According to gdcm::VR::IsVROfStringRepresentable, these are (21 VRs) :
  *   * AE
@@ -190,6 +194,7 @@ PyObject* parse_val_entry(gdcm::ValEntry & entry,
 
 /**
  * @brief Parse a DICOM element without a string representation (i.e. gdcm::BinEntry).
+ * @return A new reference
  *
  * According to gdcm::VR::IsVROfStringRepresentable, these are (5 VRs):
  *   * AT
@@ -206,14 +211,12 @@ PyObject* parse_bin_entry(gdcm::BinEntry & entry)
     if(entry.GetVR() == "AT")
     {
         unsigned int const vm = entry.GetLength()/4;
-        PyObject* at = Py_None;
+        PyObject* at = NULL;
         if(vm == 1)
         {
-            at = PyTuple_New(2);
             uint16_t e0 = *reinterpret_cast<uint16_t*>(entry.GetBinArea());
             uint16_t e1 = *reinterpret_cast<uint16_t*>(entry.GetBinArea()+2);
-            PyTuple_SetItem(at, 0, PyInt_FromLong(e0));
-            PyTuple_SetItem(at, 1, PyInt_FromLong(e1));
+            at = Py_BuildValue("(II)", int(e0), int(e1));
         }
         else
         {
@@ -222,10 +225,9 @@ PyObject* parse_bin_entry(gdcm::BinEntry & entry)
             {
                 uint16_t e0 = *reinterpret_cast<uint16_t*>(entry.GetBinArea()+4*i);
                 uint16_t e1 = *reinterpret_cast<uint16_t*>(entry.GetBinArea()+4*i+2);
-                PyObject* item = PyTuple_New(2);
-                PyTuple_SetItem(item, 0, PyInt_FromLong(e0));
-                PyTuple_SetItem(item, 1, PyInt_FromLong(e1));
+                PyObject* item = Py_BuildValue("(II)", int(e0), int(e1));
                 PyList_Append(at, item);
+                Py_DECREF(item);
             }
         }
         return at;
@@ -239,6 +241,7 @@ PyObject* parse_bin_entry(gdcm::BinEntry & entry)
 
 /**
  * @brief Parse a container of DICOM elements.
+ * @return A new reference
  */
 PyObject* parse_doc_entry_set(gdcm::DocEntrySet & doc_entry_set,
                               std::string const & encoding = "ascii",
@@ -301,11 +304,9 @@ PyObject* parse_doc_entry_set(gdcm::DocEntrySet & doc_entry_set,
                 else if(charset->GetValue() == "GB18030") dataset_encoding = "gb18030";
             }
 
-            PyObject* key = PyTuple_New(2);
-            PyTuple_SetItem(key, 0, PyInt_FromLong(entry->GetGroup()));
-            PyTuple_SetItem(key, 1, PyInt_FromLong(entry->GetElement()));
+            PyObject* key = Py_BuildValue("(II)", entry->GetGroup(), entry->GetElement());
 
-            PyObject* value = Py_None;
+            PyObject* value = NULL;
             if(dynamic_cast<gdcm::BinEntry*>(entry))
             {
                 value = parse_bin_entry(*dynamic_cast<gdcm::BinEntry*>(entry));
@@ -329,8 +330,14 @@ PyObject* parse_doc_entry_set(gdcm::DocEntrySet & doc_entry_set,
                         return NULL;
                     }
                     PyList_Append(value, python_item);
+                    Py_DECREF(python_item);
                     item = sequence.GetNextSQItem();
                 }
+            }
+            else
+            {
+                PyErr_SetString(PyExc_Exception, "Unknown entry type");
+                return NULL;
             }
 
             if(value == NULL)
@@ -340,6 +347,8 @@ PyObject* parse_doc_entry_set(gdcm::DocEntrySet & doc_entry_set,
             }
 
             PyDict_SetItem(result, key, value);
+            Py_DECREF(key);
+            Py_DECREF(value);
         }
 
         entry = doc_entry_set.GetNextEntry();
@@ -356,7 +365,8 @@ PyObject* parse_file(std::string const & filename)
 
     if(!document.IsReadable())
     {
-        return Py_None;
+        PyErr_SetString(PyExc_Exception, ("Cannot parse "+filename).c_str());
+        return NULL;
     }
 
     // Load /all/ binary entries
