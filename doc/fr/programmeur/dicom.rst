@@ -9,12 +9,12 @@ sait qu'ils ne contiennent qu'une seule série.
 
 ::
 
-    import medipy.components.io.dicom
+    import medipy.io.dicom
     
     # Chargement des fichiers
-    datasets = [medipy.components.io.dicom.parse(f) for f in filenames]
+    datasets = [medipy.io.dicom.parse(f) for f in filenames]
     # Création de l'image
-    image = medipy.components.io.dicom.image(datasets)
+    image = medipy.io.dicom.image(datasets)
 
 Lecture de fichiers contenant plusieurs séries
 ----------------------------------------------
@@ -25,17 +25,17 @@ séries, puis choisir l'une d'entre elles.
 
 ::
 
-    import medipy.components.io.dicom
+    import medipy.io.dicom
     
-    datasets = [medipy.components.io.dicom.parse(f) for f in filenames]
+    datasets = [medipy.io.dicom.parse(f) for f in filenames]
     # Division des DataSets en séries
-    series = medipy.components.io.dicom.series(datasets)
+    series = medipy.io.dicom.series(datasets)
     for serie in series :
         # Récupération des valeurs des attributs Series Instance UID et 
         # Series Description
-        uid, description = medipy.components.io.dicom.uid_and_description(serie)
+        uid, description = medipy.io.dicom.uid_and_description(serie)
         print description
-    image = medipy.components.io.dicom.image(series[0])
+    image = medipy.io.dicom.image(series[0])
 
 
 Lecture d'un DICOMDIR
@@ -54,18 +54,18 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s'agit de :
 
 ::
     
-    import medipy.components.io.dicom
+    import medipy.io.dicom
 
-    datasets = [medipy.components.io.dicom.parse(f) for f in filenames]
-    series = medipy.components.io.dicom.series(datasets)
+    datasets = [medipy.io.dicom.parse(f) for f in filenames]
+    series = medipy.io.dicom.series(datasets)
     for serie in series :
         # Récupération des valeurs des attributs Series Instance UID et 
         # Series Description
-        uid, description = medipy.components.io.dicom.uid_and_description(serie, base_directory)
+        uid, description = medipy.io.dicom.uid_and_description(serie, base_directory)
         print description
     # Chargement des DataSets à partir des Directory Records
-    serie = medipy.components.io.dicom.load_dicomdir_records(series[0], base_directory)
-    image = medipy.components.io.dicom.image(serie)
+    serie = medipy.io.dicom.load_dicomdir_records(series[0], base_directory)
+    image = medipy.io.dicom.image(serie)
 
 Cas général
 -----------
@@ -76,11 +76,11 @@ localisateur en IRM. La fonction ``stacks`` permet de diviser une série en pile
 
 ::
     
-    import medipy.components.io.dicom
+    import medipy.io.dicom
 
-    datasets = [medipy.components.io.dicom.parse(f) for f in filenames]
-    series = medipy.components.io.dicom.series(datasets)
-    serie = medipy.components.io.dicom.load_dicomdir_records(series[0], base_directory)
+    datasets = [medipy.io.dicom.parse(f) for f in filenames]
+    series = medipy.io.dicom.series(datasets)
+    serie = medipy.io.dicom.load_dicomdir_records(series[0], base_directory)
     # Division de la série en piles
-    stack = medipy.components.io.dicom.stacks(serie)[0]
-    image = medipy.components.io.dicom.image(stack)
+    stack = medipy.io.dicom.stacks(serie)[0]
+    image = medipy.io.dicom.image(stack)

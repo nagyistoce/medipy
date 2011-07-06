@@ -60,17 +60,17 @@ convention que pour les codes sources Python, soit quatre espaces par niveau
 d'indentation.
 
 Le nom Python donne un nom de module ou de fonction défini soit de façon absolue
-(si ce nom commence par ``medipy.components``), soit de façon relative à la 
+(si ce nom commence par ``medipy``), soit de façon relative à la 
 hiérarchie des noms de entrées précédentes. Dans l'exemple suivant, l'entrée 
-``bet`` correspond à la fonction ``medipy.components.segmentation.brain.bet``, 
-et l'entrée ``medipy.components.other_module.skull_segmentation`` donne 
+``bet`` correspond à la fonction ``medipy.segmentation.brain.bet``, 
+et l'entrée ``medipy.other_module.skull_segmentation`` donne 
 explicitement le module de la fonction ``skull_segmentation`` : ::
     
     segmentation
         brain
             bet
         skull
-            medipy.components.other_module.skull_segmentation
+            medipy.other_module.skull_segmentation
 
 Si le nom à afficher est vide, les caractères ``_`` sont remplacés par des 
 espaces dans le composant le plus à droite du nom Python.

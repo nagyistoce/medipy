@@ -95,51 +95,43 @@ on obtiendra l&#8217;interface suivante :</p>
 <img alt="../_images/threshold2_gui.png" src="../_images/threshold2_gui.png" />
 <div class="section" id="syntaxe">
 <h2>Syntaxe<a class="headerlink" href="#syntaxe" title="Lien permanent vers ce titre">¶</a></h2>
-<p>La syntaxe à utiliser dans la docstring de la fonction est celle utilisée
-notamment par <a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> : il s&#8217;agit du format RST,
-simple et relativement proche d&#8217;une syntaxe de Wiki. Les éléments de l&#8217;interface
-graphique sont recensés dans un <a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#field-lists">champ</a>,
-nommé <tt class="docutils literal"><span class="pre">gui</span></tt>. Chaque élément est une <a class="reference external" href="http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#definition-lists">définition</a>,
-avec :</p>
+<p>La syntaxe à utiliser dans la docstring de la fonction une syntax XML simple.
+L&#8217;interface graphique est contenue dans un élément <tt class="docutils literal"><span class="pre">gui</span></tt>, et chaque élément
+de l&#8217;interface est décrit par un élément <tt class="docutils literal"><span class="pre">item</span></tt> avec les attributs suivants</p>
 <ul class="simple">
-<li>terme : nom du paramètre correspondant de la fonction</li>
-<li>premier classificateur : type du contrôle relié à ce paramètre</li>
-<li>second classificateur (optionnel) : paramètre d&#8217;initialisation du contrôle</li>
-<li>premier paragraphe de la définition : label associé</li>
-<li>second paragraphe de la définition (optionnel) : tooltip associé</li>
+<li><tt class="docutils literal"><span class="pre">name</span></tt> : nom du paramètre correspondant de la fonction</li>
+<li><tt class="docutils literal"><span class="pre">type</span></tt> : type du contrôle relié à ce paramètre</li>
+<li><tt class="docutils literal"><span class="pre">initializer</span></tt> (optionnel) : paramètre d&#8217;initialisation du contrôle</li>
+<li><tt class="docutils literal"><span class="pre">role</span></tt> (optionnel) : rôle du paramètre (vide, <tt class="docutils literal"><span class="pre">output</span></tt> ou <tt class="docutils literal"><span class="pre">return</span></tt>)</li>
+<li><tt class="docutils literal"><span class="pre">label</span></tt> : label associé</li>
+<li><tt class="docutils literal"><span class="pre">tooltip</span></tt> (optionnel) : tooltip associé</li>
 </ul>
-<p>D&#8217;autres éléments peuvent bien sur être présents dans la docstring, seul le
-champ <tt class="docutils literal"><span class="pre">gui</span></tt> est pris en compte par le constructeur d&#8217;interface.</p>
-<p><strong>Attention</strong> : la définition ne peut pas être vide selon la syntaxe de RST.
-Avec une définition vide, l&#8217;élément ne sera pas affiché.</p>
+<p>L&#8217;attribut <tt class="docutils literal"><span class="pre">role</span></tt> sera absent si le paramètre concerné n&#8217;est pas modifié par
+la fonction. Il vaudra <tt class="docutils literal"><span class="pre">output</span></tt> s&#8217;il est modifié par la fonction (i.e. c&#8217;est
+un paramètre de sortie) ; il vaudra enfin <tt class="docutils literal"><span class="pre">return</span></tt> s&#8217;il s&#8217;agit d&#8217;une des
+valeurs de retour de la fonction.</p>
 <div class="section" id="exemples">
 <h3>Exemples<a class="headerlink" href="#exemples" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Des exemples valant mieux qu&#8217;un long discours, voici l&#8217;exemple d&#8217;une fonction de
 seuillage :</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">threshold</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Threshold the input image and store the result in the output image.</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">binary_threshold</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">inside</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">outside</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Return a binarized version of the input image.</span>
 
-<span class="sd">    :gui:</span>
-<span class="sd">        input : Image</span>
-<span class="sd">            Input image</span>
-
-<span class="sd">        min : Float</span>
-<span class="sd">            Minimum value</span>
-
-<span class="sd">            Minimum value in threshold (included)</span>
-
-<span class="sd">        max : Float</span>
-<span class="sd">            Maximum value</span>
-
-<span class="sd">            Maximum value in threshold (included)</span>
-
-<span class="sd">        output : Image</span>
-<span class="sd">            Output image</span>
-
-<span class="sd">            Output image. If input and output are the same, in-place processing</span>
-<span class="sd">            is used</span>
+<span class="sd">        &lt;gui&gt;</span>
+<span class="sd">            &lt;item name=&quot;input&quot; type=&quot;Image&quot; label=&quot;Image&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;min&quot; type=&quot;Float&quot; label=&quot;Minimum value&quot;</span>
+<span class="sd">                tooltip=&quot;Minimum value in threshold (included)&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;max&quot; type=&quot;Float&quot; label=&quot;Maximum value&quot;</span>
+<span class="sd">                tooltip=&quot;Maximum value in threshold (included)&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;inside&quot; type=&quot;Float&quot; initializer=&quot;1&quot; label=&quot;Inside value&quot;</span>
+<span class="sd">                tooltip=&quot;Value taken by pixels inside the image&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;outside&quot; type=&quot;Float&quot; initializer=&quot;0&quot; label=&quot;Outside value&quot;</span>
+<span class="sd">                tooltip=&quot;Value taken by pixels outside the image&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;output&quot; type=&quot;Image&quot; initializer=&quot;output=True&quot;</span>
+<span class="sd">                role=&quot;return&quot; label=&quot;Output image&quot;/&gt;</span>
+<span class="sd">        &lt;/gui&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">pass</span>
 </pre></div>
 </div>
@@ -150,36 +142,27 @@ est la suivante :</p>
 <img alt="../_images/threshold2_gui.png" src="../_images/threshold2_gui.png" />
 <p>La fonction suivante montre l&#8217;utilisation du paramètre d&#8217;initialisation du
 contrôle :</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">binary_erosion</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">seType</span><span class="p">,</span> <span class="n">seSize</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Erode the input image and store the result in output.</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">erode</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">erode_value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Binary dilation of an image using a name of a structuring element and a</span>
+<span class="sd">        radius, or a structuring element.</span>
 
-<span class="sd">    :gui:</span>
-<span class="sd">        input : Image</span>
-<span class="sd">            Input</span>
-
-<span class="sd">        seType : Enum : (&quot;box&quot;, &quot;ball&quot;)</span>
-<span class="sd">            Shape</span>
-
-<span class="sd">            Type of structuring element</span>
-
-<span class="sd">        seSize : Int : 1</span>
-<span class="sd">            Size</span>
-
-<span class="sd">            Must be greater than 1</span>
-
-<span class="sd">        output : Image : output=True</span>
-<span class="sd">            Output</span>
+<span class="sd">        &lt;gui&gt;</span>
+<span class="sd">            &lt;item name=&quot;input&quot; type=&quot;Image&quot; label=&quot;Input&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;erode_value&quot; type=&quot;Float&quot; initializer=&quot;1&quot; label=&quot;Erode value&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;shape&quot; type=&quot;Enum&quot; initializer=&quot;(&#39;ball&#39;, &#39;box&#39;,&#39;cross&#39;)&quot;</span>
+<span class="sd">                label=&quot;Shape&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;radius&quot; type=&quot;Int&quot; initializer=&quot;1&quot; label=&quot;Radius&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;output&quot; type=&quot;Image&quot; initializer=&quot;output=True&quot; role=&quot;return&quot;</span>
+<span class="sd">                label=&quot;Output&quot;/&gt;</span>
+<span class="sd">        &lt;/gui&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">input</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span> <span class="p">:</span>
-       <span class="n">output</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">input</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="n">se</span> <span class="o">=</span> <span class="n">structuring_element</span><span class="p">(</span><span class="n">seType</span><span class="p">,</span> <span class="n">seSize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-    <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">binary_erosion</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">se</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">pass</span>
 </pre></div>
 </div>
-<p>Le paramètre d&#8217;initialisation de <tt class="docutils literal"><span class="pre">seSize</span></tt> est optionnel : un contrôle de type
+<p>Le paramètre d&#8217;initialisation de <tt class="docutils literal"><span class="pre">radius</span></tt> est optionnel : un contrôle de type
 <tt class="docutils literal"><span class="pre">int</span></tt> peut être initialisé sans paramètre, mais on souhaite un élément
-structurant de taille au moins 1. Le paramètre d&#8217;initialisation de seType est en
+structurant de taille au moins 1. Le paramètre d&#8217;initialisation de <tt class="docutils literal"><span class="pre">shape</span></tt> est en
 revanche obligatoire : on ne peut pas initialiser une liste de choix sans lui
 donner la liste des valeurs qu&#8217;elle peut prendre. L&#8217;interface générée par cette
 docstring est la suivante :</p>
@@ -194,13 +177,14 @@ le bouton <tt class="docutils literal"><span class="pre">new</span></tt> du para
 l&#8217;interface graphique comme dans l&#8217;exemple ci dessous :</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">something</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span> <span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; Do something</span>
-<span class="sd">        :gui:</span>
-<span class="sd">            input : Image</span>
-<span class="sd">                Input</span>
-<span class="sd">            value : Int : range = (${input}.data.min(), ${input}.data.max())</span>
-<span class="sd">                Value</span>
-<span class="sd">            output : Image : output = True</span>
-<span class="sd">                Output</span>
+<span class="sd">        &lt;gui&gt;</span>
+<span class="sd">            &lt;item name=&quot;input&quot; type=&quot;Image&quot; label=&quot;Input&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;value&quot; type=&quot;Int&quot;</span>
+<span class="sd">                initializer=&quot;range = (${input}.data.min(), ${input}.data.max())&quot;</span>
+<span class="sd">                label=&quot;Value&quot;/&gt;</span>
+<span class="sd">            &lt;item name=&quot;output&quot; type=&quot;Image&quot; role=&quot;output&quot;</span>
+<span class="sd">                initializer=&quot;output = True&quot; label=&quot;Output&quot;/&gt;</span>
+<span class="sd">        &lt;/gui&gt;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">pass</span>

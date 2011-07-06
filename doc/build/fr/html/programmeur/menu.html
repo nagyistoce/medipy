@@ -137,16 +137,16 @@ cohérente d&#8217;une entrée à l&#8217;autre. Il est donc recommandé d&#8217
 convention que pour les codes sources Python, soit quatre espaces par niveau
 d&#8217;indentation.</p>
 <p>Le nom Python donne un nom de module ou de fonction défini soit de façon absolue
-(si ce nom commence par <tt class="docutils literal"><span class="pre">medipy.components</span></tt>), soit de façon relative à la
+(si ce nom commence par <tt class="docutils literal"><span class="pre">medipy</span></tt>), soit de façon relative à la
 hiérarchie des noms de entrées précédentes. Dans l&#8217;exemple suivant, l&#8217;entrée
-<tt class="docutils literal"><span class="pre">bet</span></tt> correspond à la fonction <tt class="docutils literal"><span class="pre">medipy.components.segmentation.brain.bet</span></tt>,
-et l&#8217;entrée <tt class="docutils literal"><span class="pre">medipy.components.other_module.skull_segmentation</span></tt> donne
+<tt class="docutils literal"><span class="pre">bet</span></tt> correspond à la fonction <tt class="docutils literal"><span class="pre">medipy.segmentation.brain.bet</span></tt>,
+et l&#8217;entrée <tt class="docutils literal"><span class="pre">medipy.other_module.skull_segmentation</span></tt> donne
 explicitement le module de la fonction <tt class="docutils literal"><span class="pre">skull_segmentation</span></tt> :</p>
 <div class="highlight-python"><pre>segmentation
     brain
         bet
     skull
-        medipy.components.other_module.skull_segmentation</pre>
+        medipy.other_module.skull_segmentation</pre>
 </div>
 <p>Si le nom à afficher est vide, les caractères <tt class="docutils literal"><span class="pre">_</span></tt> sont remplacés par des
 espaces dans le composant le plus à droite du nom Python.</p>

@@ -81,12 +81,12 @@
 <h2>Lecture de fichiers contenant une seule série<a class="headerlink" href="#lecture-de-fichiers-contenant-une-seule-serie" title="Lien permanent vers ce titre">¶</a></h2>
 <p>Dans le cas le plus simple, on souhaite charger un ensemble de fichiers dont on
 sait qu&#8217;ils ne contiennent qu&#8217;une seule série.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.components.io.dicom</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
 <span class="c"># Chargement des fichiers</span>
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 <span class="c"># Création de l&#39;image</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -95,17 +95,17 @@ sait qu&#8217;ils ne contiennent qu&#8217;une seule série.</p>
 <p>Si on souhaite charger un ensemble de fichiers qui contiennent potentiellement
 plusieurs séries, il faut d&#8217;abord diviser l&#8217;ensemble des Data Sets chargés en
 séries, puis choisir l&#8217;une d&#8217;entre elles.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.components.io.dicom</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 <span class="c"># Division des DataSets en séries</span>
-<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">serie</span> <span class="ow">in</span> <span class="n">series</span> <span class="p">:</span>
     <span class="c"># Récupération des valeurs des attributs Series Instance UID et</span>
     <span class="c"># Series Description</span>
-    <span class="n">uid</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">uid_and_description</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
+    <span class="n">uid</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">uid_and_description</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
     <span class="k">print</span> <span class="n">description</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -123,18 +123,18 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s&#8217;agit d
 <li>uid_and_description</li>
 </ul>
 </blockquote>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.components.io.dicom</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
-<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">serie</span> <span class="ow">in</span> <span class="n">series</span> <span class="p">:</span>
     <span class="c"># Récupération des valeurs des attributs Series Instance UID et</span>
     <span class="c"># Series Description</span>
-    <span class="n">uid</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">uid_and_description</span><span class="p">(</span><span class="n">serie</span><span class="p">,</span> <span class="n">base_directory</span><span class="p">)</span>
+    <span class="n">uid</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">uid_and_description</span><span class="p">(</span><span class="n">serie</span><span class="p">,</span> <span class="n">base_directory</span><span class="p">)</span>
     <span class="k">print</span> <span class="n">description</span>
 <span class="c"># Chargement des DataSets à partir des Directory Records</span>
-<span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">base_directory</span><span class="p">)</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
+<span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">base_directory</span><span class="p">)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -143,14 +143,14 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s&#8217;agit d
 <p>Dans le cas le plus général, chaque série peut être composée de plusieurs piles
 (ensemble de coupes ayant la même orientation), par exemple dans le cas du
 localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">stacks</span></tt> permet de diviser une série en piles.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.components.io.dicom</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
-<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
-<span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">base_directory</span><span class="p">)</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">base_directory</span><span class="p">)</span>
 <span class="c"># Division de la série en piles</span>
-<span class="n">stack</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">stacks</span><span class="p">(</span><span class="n">serie</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">stacks</span><span class="p">(</span><span class="n">serie</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
