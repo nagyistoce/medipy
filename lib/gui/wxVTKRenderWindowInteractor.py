@@ -733,11 +733,11 @@ class wxVTKRenderWindowInteractor(baseClass):
             self.GetRenderWindow().Finalize()
             renderers = self.GetRenderWindow().GetRenderers()
             renderers.InitTraversal()
-            renderer = renderers.GetNextItemAsObject()
+            renderer = renderers.GetNextItem()
             while renderer is not None :
                 renderer.RemoveAllViewProps()
-                renderer = renderers.GetNextItemAsObject()
-        self.Destroy()
+                renderer = renderers.GetNextItem()
+        event.Skip()
         
     def OnKeyUp(self,event):
         """Handles the wx.EVT_KEY_UP event for

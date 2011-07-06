@@ -27,7 +27,9 @@ def images(datasets, parent, dtype=numpy.single,
     dialog.SetSize((700,700))
     
     if dialog.ShowModal() != wx.ID_OK :
+        dialog.Destroy()
         return []
+    dialog.Destroy()
     
     # Get selected series from dialog, load it.
     series = dialog.get_selected_datasets()

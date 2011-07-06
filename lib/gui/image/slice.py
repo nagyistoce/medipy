@@ -218,6 +218,23 @@ class Slice(PropertySynchronized) :
         self.set_keyboard_tool("c", keyboard_tools.ToggleCornerAnnotationsVisibility())
         self.set_keyboard_tool("o", keyboard_tools.ToggleOrientationVisibility())
     
+    def close(self):
+        """ Remove all actors from renderer, prepare for destruction.
+        """
+    
+        self.renderer.RemoveActor(self._horizontal_line_actor)
+        self.renderer.RemoveActor(self._vertical_line_actor)
+        self.renderer.RemoveActor(self._scalar_bar_actor)
+        self.renderer.RemoveActor(self._orientation_annotation)
+        self.renderer.RemoveActor(self._corner_annotation)
+        
+        for layer in self._layers :
+            self.renderer.RemoveActor(layer.actor)
+        
+        for gui_annotation in self._gui_annotations.values() :
+            self.renderer.RemoveActor(gui_annotation.shape_actor)
+            self.renderer.RemoveActor(gui_annotation.text_actor)
+    
     def append_layer(self, *args, **kwargs) :
         """ Append a new layer.
         """

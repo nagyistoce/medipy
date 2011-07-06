@@ -637,7 +637,11 @@ class Image(wx.Panel, PropertySynchronized):
         self.AddPendingEvent(new_event)
     
     def _on_close(self, event):
-        self._rwi.Close(event.CanVeto())
+        for slice in self._slices :
+            slice.close()
+            slice.unset_rwi(self._rwi)
+        self._rwi.Disable()
+        self._rwi.Close()
         self.Destroy()
     
     def _update_informations(self) :
