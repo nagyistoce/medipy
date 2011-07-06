@@ -10,12 +10,13 @@ import numpy
 
 from medipy.base import Image
 
-from medipy.io.nifti_io import Nifti
 from medipy.io.ipb import IPB
+from medipy.io.itk_io import ITK
+from medipy.io.nifti_io import Nifti
 from medipy.io.wx_image import WXImage
 # Nifti is quite verbose when testing if an image can be loaded, so let's test
 # it last
-io_classes = [IPB, WXImage, Nifti]
+io_classes = [ITK, IPB, WXImage, Nifti]
 
 def get_loader(filename, report_progress=None) :
     """Search for a loader in io_classes"""
