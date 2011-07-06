@@ -7,6 +7,7 @@
 ##########################################################################
 
 from cine_3d_dialog import Cine3dDialog 
+from colormap import Colormap
 from colormaps import colormaps, get_colormap_from_name, stage_colormaps
 from periodic_progress_dialog import PeriodicProgressDialog, WorkerThread
 from wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor

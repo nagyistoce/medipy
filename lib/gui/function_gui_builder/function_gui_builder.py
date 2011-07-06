@@ -66,11 +66,6 @@ class FunctionGUIBuilder(object):
                     dummy = Image(shape=(1,1,1), value=0, dtype=numpy.single)
                     namespace[parameter["name"]] = dummy
                 elif parameter["type"] == "Object3D" :
-                    if self._controls[parameter["name"]].output_checked :
-                        viewer = Viewer3DFrame(parent=None, objects_3d = ObservableList())
-                        viewer.Show()
-                        wx.GetApp().append_viewer_3d(viewer)
-                        getattr(self, parameter["name"]).value = self._viewer_3ds[-1]
                     dummy = Object3D(name="New object")
                     namespace[parameter["name"]] = dummy
                 else :
@@ -86,10 +81,7 @@ class FunctionGUIBuilder(object):
             if parameter.get("role", "") == "return" :
                 return_values.append(parameter["name"])
             else :
-                if parameter["type"] == "Object3D" :
-                    args.append("{0} = objects_3d[\"{0}\"]".format(parameter["name"]))
-                else :
-                    args.append("{0} = {0}".format(parameter["name"]))
+                args.append("{0} = {0}".format(parameter["name"]))
         expression = "function({0})".format(", ".join(args))
         if return_values : 
             return_expression = ", ".join(return_values)
@@ -118,27 +110,39 @@ class FunctionGUIBuilder(object):
                 # Parameter has not been modified
                 continue 
             else :
+                name = parameter["name"]
+                value = namespace[name]
+                control = self._controls[name]
+                
                 # Special case for Image and Object3D
                 if parameter["type"] == "Image" :
-                    if self._controls[parameter["name"]].output_checked :
-                        wx.GetApp().append_image(namespace[parameter["name"]])
+                    if control.output_checked :
+                        wx.GetApp().append_image(value)
                     else :
-                        index = wx.GetApp().images.index(self._controls[parameter["name"]].value)
+                        index = wx.GetApp().images.index(control.value)
                         wx.GetApp().close_image(wx.GetApp().gui_images[index])
-                        wx.GetApp().insert_image(index, namespace[parameter["name"]])
+                        wx.GetApp().insert_image(index, value)
                 elif parameter["type"] == "Object3D" :
-                    # TODO
+                    if control.output_checked :
+                        viewer = Viewer3DFrame(parent=None, objects_3d = ObservableList())
+                        viewer.Show()
+                        wx.GetApp().append_viewer_3d(viewer)
+                        control.value = self._viewer_3ds[-1]
+                    viewer_3d = control.value 
+                    viewer_3d.objects_3d.append(value)
                     # If object has an associated image, set the GUI image
-                    object_3d = self._controls[parameter["name"]].value.objects_3d[-1] 
-                    image = object_3d.image
+                    image = value.image
                     if image is not None :
                         index = wx.GetApp().images.index(image)
-                        object_3d.gui_image = wx.GetApp().gui_images[index]
-                    if len(self._controls[parameter["name"]].value.objects_3d) == 1 :
-                        getattr(self, parameter["name"]).value.view_all()
-                        getattr(self, parameter["name"]).value.update_object_editor()
-                # In any case, update the control
-                self._controls[parameter["name"]].value = namespace[parameter["name"]]
+                        value.gui_image = wx.GetApp().gui_images[index]
+                    if len(viewer_3d.objects_3d) == 1 :
+                        viewer_3d.view_all()
+                        viewer_3d.update_object_editor()
+                
+                # In any case but Object3D (whose value is a Viewe3D),
+                # update the control
+                if parameter["type"] != "Object3D" :
+                    control.value = value
     
     def validate_form(self):
         all_controls_valid = True

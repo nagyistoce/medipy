@@ -23,7 +23,7 @@ import wx.xrc
 from medipy.base import Object3D, Observable, ObservableList
 import medipy.io
 import medipy.gui.xrc_wrapper
-from medipy.gui import get_colormap_from_name, Cine3dDialog
+from medipy.gui import Colormap, get_colormap_from_name, Cine3dDialog
 from medipy.gui.control import Image
 from medipy.base import find_resource
 
@@ -742,9 +742,9 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
     def _create_image_layers(self, state, _object) :
         image = _object.image
         colormap_name = image.metadata["colormap"] if "colormap" in image.metadata else "gray"
-        colormap = get_colormap_from_name(colormap_name)
+        colormap = Colormap(get_colormap_from_name(colormap_name), None)
         for axis, matrice in Viewer3DFrame.slicing_matrices.items() :
-            image_layer = ImageLayer(image=image, colormap=colormap, patient_to_slice=matrice)
+            image_layer = ImageLayer(matrice, image, colormap=colormap)
             image_layer.position = numpy.divide(_object.image.shape, 2.)
             image_layer.actor.SetOrientation(Viewer3DFrame.orientations[axis])
             image_layer.zero_transparency = True
