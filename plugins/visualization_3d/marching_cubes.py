@@ -8,15 +8,12 @@ def marching_cubes(input, isovalue, compute_normals, output):
     """ Generate a triangle mesh of the surface using the marching cubes 
         algorithm.
         
-        :gui:
-            input : Image
-                Image
-            isovalue : Float : 0.5
-                Isovalue
-            compute_normals : Bool : False
-                Compute normals
-            output : Object3D
-                Output
+        <gui>
+            <item name="input" type="Image" label="Image"/>
+            <item name="isovalue" type="Float" initializer="0.5" label="Isovalue"/>
+            <item name="compute_normals" type="Bool" initializer="False" label="Compute normals"/>
+            <item name="output" type="Object3D" role="output" label="Output"/>
+        </gui>
     """
     
     vtk_image = medipy.vtk.build_vtk_image(input)
@@ -34,13 +31,11 @@ def discrete_marching_cubes(input, isovalue, output):
     """ Generate a triangle mesh of the surface using the discrete marching cubes 
         algorithm.
         
-        :gui:
-            input : Image
-                Image
-            isovalue : Float
-                Isovalue
-            output : Object3D
-                Output
+        <gui>
+            <item name="input" type="Image" label="Image"/>
+            <item name="isovalue" type="Float" initializer="0.5" label="Isovalue"/>
+            <item name="output" type="Object3D" role="output" label="Output"/>
+        </gui>
     """
     
     vtk_image = medipy.vtk.build_vtk_image(input)
@@ -52,21 +47,3 @@ def discrete_marching_cubes(input, isovalue, output):
     output.dataset = marching_cubes.GetOutput()
     output.image = input
     
-    # Try to color the object according to colormap
-    if "colormap" in input.metadata :
-        colormap_name = input.metadata["colormap"]
-        colormap = None
-        try :
-            colormap = get_colormap_from_name(colormap_name)
-        except Exception, e :
-            pass
-        else :
-            if len(colormap[0]) == 2 :
-                # Stage colormap only
-                i = 0
-                while not (colormap[i][0][0] <= isovalue < colormap[i][0][1]) and i<len(colormap) :
-                    i = i+1
-                if i<len(colormap) :
-                    color = colormap[i][1]
-                    output.diffuse_color = color[:3]
-                    output.opacity = color[3]
