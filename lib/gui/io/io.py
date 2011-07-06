@@ -188,8 +188,9 @@ def _separate_dicomdirs(paths):
     
     for path in paths :
         
-        dataset = medipy.io.dicom.parse(path)
-        if dataset is None :
+        try :
+            dataset = medipy.io.dicom.parse(path)
+        except :
             is_dicomdir = False
         else :
             is_dicomdir = (dataset.get("media_storage_sop_class_uid", None) == 
