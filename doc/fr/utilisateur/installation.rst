@@ -48,8 +48,9 @@ Certaines variables d'environnement doivent ensuite être mises à jour
 (``~/.bashrc`` ou ``~/.profile``) : ::
 
     export PATH=$HOME/local/bin:$PATH
-    export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/MediPy/build/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/medipy/build/lib:$LD_LIBRARY_PATH
     export PYTHONPATH=$HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/:$PYTHONPATH
+    export MEDIPY_PLUGINS_PATH=/$HOME/src/medipy/build/medipy/plugins/
 
 Démarrez un nouveau terminal pour que ces modifications soient prises en compte.
 
@@ -57,12 +58,10 @@ Récupération des sources
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 L'ensemble des sources de MediPy est stocké sur un serveur 
-`Subversion <http://fr.wikipedia.org/wiki/Subversion_(logiciel)>`_, à l'adresse
-https://svn-ipb.u-strasbg.fr/svn/medipy/. Nous avons adopté l'arborescence
-classique de Subversion (tronc, branches et étiquettes (tags)) et le tronc peut
-donc être récupéré par : ::
+`Mercurial <http://fr.wikipedia.org/wiki/Mercurial>`_, à l'adresse
+https://medipy.googlecode.com/hg/. Les sources peuvent donc être récupérées par : ::
 
-    svn checkout https://svn-ipb.u-strasbg.fr/svn/medipy/trunk $HOME/src/MediPy
+    hg clone https://medipy.googlecode.com/hg/ $HOME/src/medipy
 
 Compilation de MediPy
 ^^^^^^^^^^^^^^^^^^^^^
@@ -91,15 +90,11 @@ Sous Linux, afin d'intégrer MediPy aux paquets Python, il faut créer un lien
 symbolique depuis le répertoire contenant les fichiers compilés
 (``build/medipy``) vers la hiérarchie locale : ::
 
-    ln -s $HOME/src/MediPy/build/medipy $HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages
-
-Il faut ensuite installer les bibliothèques dans le répertoire ``build`` : ::
-
-    scons install
+    ln -s $HOME/src/medipy/build/medipy/lib $HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/medipy
 
 MediPy peut ensuite être lancé par : ::
 
-    python $HOME/src/MediPy/MediPy.py
+    $HOME/src/medipy/apps/medipy
 
 Options en ligne de commande
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
