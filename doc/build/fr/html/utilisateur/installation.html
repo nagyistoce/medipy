@@ -128,19 +128,18 @@ personnel. Les exemples suivants supposent l&#8217;existence de la hiérarchie
 <p>Certaines variables d&#8217;environnement doivent ensuite être mises à jour
 (<tt class="docutils literal"><span class="pre">~/.bashrc</span></tt> ou <tt class="docutils literal"><span class="pre">~/.profile</span></tt>) :</p>
 <div class="highlight-python"><pre>export PATH=$HOME/local/bin:$PATH
-export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/MediPy/build/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/:$PYTHONPATH</pre>
+export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/medipy/build/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/:$PYTHONPATH
+export MEDIPY_PLUGINS_PATH=/$HOME/src/medipy/build/medipy/plugins/</pre>
 </div>
 <p>Démarrez un nouveau terminal pour que ces modifications soient prises en compte.</p>
 </div>
 <div class="section" id="recuperation-des-sources">
 <h3>Récupération des sources<a class="headerlink" href="#recuperation-des-sources" title="Lien permanent vers ce titre">¶</a></h3>
 <p>L&#8217;ensemble des sources de MediPy est stocké sur un serveur
-<a class="reference external" href="http://fr.wikipedia.org/wiki/Subversion_(logiciel)">Subversion</a>, à l&#8217;adresse
-<a class="reference external" href="https://svn-ipb.u-strasbg.fr/svn/medipy/">https://svn-ipb.u-strasbg.fr/svn/medipy/</a>. Nous avons adopté l&#8217;arborescence
-classique de Subversion (tronc, branches et étiquettes (tags)) et le tronc peut
-donc être récupéré par :</p>
-<div class="highlight-python"><pre>svn checkout https://svn-ipb.u-strasbg.fr/svn/medipy/trunk $HOME/src/MediPy</pre>
+<a class="reference external" href="http://fr.wikipedia.org/wiki/Mercurial">Mercurial</a>, à l&#8217;adresse
+<a class="reference external" href="https://medipy.googlecode.com/hg/">https://medipy.googlecode.com/hg/</a>. Les sources peuvent donc être récupérées par :</p>
+<div class="highlight-python"><pre>hg clone https://medipy.googlecode.com/hg/ $HOME/src/medipy</pre>
 </div>
 </div>
 <div class="section" id="compilation-de-medipy">
@@ -165,13 +164,10 @@ MediPy) :</p>
 <p>Sous Linux, afin d&#8217;intégrer MediPy aux paquets Python, il faut créer un lien
 symbolique depuis le répertoire contenant les fichiers compilés
 (<tt class="docutils literal"><span class="pre">build/medipy</span></tt>) vers la hiérarchie locale :</p>
-<div class="highlight-python"><pre>ln -s $HOME/src/MediPy/build/medipy $HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages</pre>
-</div>
-<p>Il faut ensuite installer les bibliothèques dans le répertoire <tt class="docutils literal"><span class="pre">build</span></tt> :</p>
-<div class="highlight-python"><pre>scons install</pre>
+<div class="highlight-python"><pre>ln -s $HOME/src/medipy/build/medipy/lib $HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/medipy</pre>
 </div>
 <p>MediPy peut ensuite être lancé par :</p>
-<div class="highlight-python"><pre>python $HOME/src/MediPy/MediPy.py</pre>
+<div class="highlight-python"><pre>$HOME/src/medipy/apps/medipy</pre>
 </div>
 </div>
 <div class="section" id="options-en-ligne-de-commande">
