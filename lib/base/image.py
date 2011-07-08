@@ -7,6 +7,7 @@
 ##########################################################################
 
 import copy
+import logging
 
 import numpy
 
@@ -240,7 +241,10 @@ class Image(Observable):
     
     def _compute_index_to_physical_matrix(self):
         if None not in [self._spacing, self._origin] :
-            self._index_to_physical_matrix = numpy.diag(self._spacing)*self._direction
+            try :
+                self._index_to_physical_matrix = numpy.diag(self._spacing)*self._direction
+            except ValueError,e :
+                logging.warning("Could not compute index to physical matrix : {0}".format(e))
     
     def _default_spacing(self):
         """ Return the default image spacing, according to the data type.
