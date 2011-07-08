@@ -66,7 +66,7 @@ class Nifti(IOBase) :
             self._report_progress(1.)
         
         while data.shape[0] == 1 and len(data.shape)>3 :
-            data = data.reshape(image.shape[1:])
+            data = data.reshape(data.shape[1:])
         return data
     
     def load_metadata(self, index=0) :
