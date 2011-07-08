@@ -20,6 +20,14 @@ class ITK(IOBase) :
                    itk.MetaImageIO, itk.NiftiImageIO, itk.NrrdImageIO, 
                    itk.PNGImageIO, itk.TIFFImageIO, itk.VTKImageIO]
     
+    _larger_type = {
+        itk.UC : itk.US,
+        itk.US : itk.UL,
+        itk.SC : itk.SS,
+        itk.SS : itk.SL,
+        itk.F : itk.D
+    }
+    
     _component_type_to_type = {
         itk.ImageIOBase.UCHAR : itk.UC,
         itk.ImageIOBase.CHAR : itk.SC,
@@ -64,7 +72,11 @@ class ITK(IOBase) :
             self._image_informations_read = True
         
         # TODO : NumberOfComponents != 1
+        InstantiatedTypes = set([itk.template(x[0])[1][0] 
+                                 for x in itk.NumpyBridge.__template__.keys()])
         PixelType = ITK._component_type_to_type[self._loader.GetComponentType()]
+        while PixelType not in InstantiatedTypes :
+            PixelType = ITK._larger_type[PixelType]
         Dimension = self._loader.GetNumberOfDimensions()
         ImageType = itk.Image[PixelType, Dimension]
         
