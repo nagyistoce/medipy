@@ -275,7 +275,8 @@ class Slice(PropertySynchronized) :
         self._update_layers_positions()
         if self._cursor_physical_position is not None : 
             layer.physical_position = self._cursor_physical_position
-        layer.actor.SetInterpolate(self._interpolation)
+        if isinstance(layer, ImageLayer) :
+            layer.actor.SetInterpolate(self._interpolation)
         
         # And finally add it to the renderer
         self._renderer.AddActor(layer.actor)
