@@ -124,7 +124,15 @@ def import_dicom_directory(parent = None, dtype = numpy.single):
     files.sort()
     
     def loader(files):
-        return [medipy.io.dicom.parse(x) for x in files]
+        datasets = []
+        for file in files :
+            try :
+                dataset = medipy.io.dicom.parse(file)
+            except Exception, e :
+                logging.warning("Could not parse file {0} : {1}".format(file, e))
+            else :
+                datasets.append(dataset)
+        return datasets
     
     periodic_progress_dialog = PeriodicProgressDialog(
         0.2, "Loading files", "Loading ...")
@@ -146,7 +154,7 @@ def import_dicom_directory(parent = None, dtype = numpy.single):
     if images :
         config.Write("ImageFileDialog/DefaultPath", dialog.GetPath())
         config.Flush() 
-        return images[0]
+        return images
 
 def save(image, parent=None):
     """ Save an image with appropriate dialogs (file selector)
