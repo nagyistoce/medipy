@@ -205,6 +205,9 @@ class MainFrame(xrc_wrapper.Frame):
             if image.ndim == 2 :
                 image.data = image.data.reshape(1, *image.shape)
                 image.origin = numpy.insert(image.origin, 0, 0)
+                image.direction = numpy.insert(
+                    numpy.insert(image.direction,0, [0,0], 0), 
+                    0, [1,0,0],1)
                 image.spacing = numpy.insert(image.spacing, 0, 1)
             wx.GetApp().append_image(image)
                 
