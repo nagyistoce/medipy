@@ -6,7 +6,7 @@ Depuis les sources
 
 Les outils suivants sont nécessaires pour installer MediPy depuis les sources :
 
-* `Subversion <http://subversion.apache.org/>`_
+* `Mercurial <http://mercurial.selenic.com/>`_
 * `SCons <http://www.scons.org/>`_
 * `SWIG <http://www.swig.org/>`_
 * `GCC-XML <http://www.gccxml.org/HTML/Index.html>`_
@@ -94,7 +94,7 @@ symbolique depuis le répertoire contenant les fichiers compilés
 
 MediPy peut ensuite être lancé par : ::
 
-    $HOME/src/medipy/apps/medipy
+    $HOME/src/medipy/apps/medipy/medipy
 
 Options en ligne de commande
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

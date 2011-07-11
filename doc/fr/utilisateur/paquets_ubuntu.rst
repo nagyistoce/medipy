@@ -6,7 +6,7 @@ Ubuntu 10.04 LTS (Lucid Lynx), 9.10 (Karmic Koala) et 9.04 (Jaunty Jackalope)
 
 **Outils** ::
 
-    sudo aptitude install scons subversion python-setuptools swig ipython cmake doxygen gccxml cableswig
+    sudo aptitude install scons mercurial python-setuptools swig ipython cmake doxygen gccxml cableswig
 
 **Bilbiothèques** ::
 
