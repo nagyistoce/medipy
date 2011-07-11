@@ -23,8 +23,10 @@ class ITK(IOBase) :
     _larger_type = {
         itk.UC : itk.US,
         itk.US : itk.UL,
+        itk.UI : itk.UL,
         itk.SC : itk.SS,
         itk.SS : itk.SL,
+        itk.SI : itk.SL,
         itk.F : itk.D
     }
     
