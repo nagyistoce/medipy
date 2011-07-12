@@ -117,37 +117,15 @@ def data(datasets):
     else :
         sample_dataset = datasets[0]
         
-    shape = (len(datasets), sample_dataset.rows, sample_dataset.columns)
-    dtype = "int%d"%(sample_dataset.bits_allocated)
-    if sample_dataset.pixel_representation :
-        dtype = "u"+dtype
-    dtype = numpy.dtype(dtype)
-    
-    array = numpy.ndarray(shape, dtype=dtype)
+    shape = (len(datasets),) + sample_dataset.shape[-2:]
+    array = numpy.ndarray(shape, dtype=sample_dataset.pixel_array.dtype)
     
     for index, dataset in enumerate(datasets) :
-        
+        # Get data
         if isinstance(dataset, tuple) :
-            transfer_syntax = dataset[0].transfer_syntax_uid
+            pixel_data = dataset[0].pixel_array[dataset[0]]
         else :
-            transfer_syntax = dataset.transfer_syntax_uid
-        
-        # Explicit VR big endian. All other are little endian, either explicit
-        # or implicit
-        dataset_is_little_endian = (transfer_syntax != "1.2.840.10008.1.2.2")
-        
-        # Get data and swap bytes if necessary
-        if isinstance(dataset, tuple) :
-            pixel_data = numpy.fromstring(dataset[0].pixel_data, dtype)
-            slice = shape[-1]*shape[-2]
-            begin = dataset[1]*slice
-            end = (1+dataset[1])*slice
-            pixel_data = pixel_data[begin:end]
-        else :
-            pixel_data = numpy.fromstring(dataset.pixel_data, dtype)
-        
-        if sys_is_little_endian != dataset_is_little_endian :
-            pixel_data.byteswap(True)
+            pixel_data = dataset.pixel_array
         
         # Insert into reconstructed data
         pixel_data = pixel_data.reshape(shape[1:])
@@ -176,7 +154,7 @@ def metadata(datasets, skipped_tags="default"):
             if key in skipped_tags or key in special_processing :
                 continue
             
-            if key.private==1 :
+            if key.private :
                 if key.element == 0x0010 :
                     # Private creator
                     private_creator = None
