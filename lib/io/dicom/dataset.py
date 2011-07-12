@@ -92,7 +92,7 @@ class DataSet(dict):
             return None
         
         if "_pixel_array" not in self.__dict__ :
-            sys_is_little_endian = (sys.byteorder == 'little')
+            
             shape = (self.rows, self.columns)
             if "number_of_frames" in self :
                 shape = (self.number_of_frames,)+shape
@@ -103,7 +103,13 @@ class DataSet(dict):
             dtype = numpy.dtype(dtype)
             
             self._pixel_array = numpy.fromstring(self.pixel_data, dtype).reshape(shape)
-        
+            
+            dataset_is_little_endian = (self.transfer_syntax_uid != "1.2.840.10008.1.2.2")
+            sys_is_little_endian = (sys.byteorder == 'little')
+            
+            if sys_is_little_endian != dataset_is_little_endian :
+                self._pixel_array.byteswap(True)
+            
         return self._pixel_array
         
         
