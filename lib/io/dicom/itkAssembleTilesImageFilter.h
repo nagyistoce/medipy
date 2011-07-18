@@ -42,20 +42,41 @@ public :
     itkGetMacro(NumberOfTiles, unsigned int);
     itkSetMacro(NumberOfTiles, unsigned int);
 
-    /** Position of the empty tiles. */
+    /** Position of the empty tiles, defaults to BEGIN. */
     itkGetEnumMacro(EmptyTiles, EmptyTilesPosition);
     itkSetEnumMacro(EmptyTiles, EmptyTilesPosition);
     
+    /** Spacing on the new dimension, defaults to 1. */
+    itkGetMacro(Spacing, double);
+    itkSetMacro(Spacing, double);
+
+    /** Origin on the new dimension, defaults to 0. */
+    itkGetMacro(Origin, double);
+    itkSetMacro(Origin, double);
+
 protected :
     AssembleTilesImageFilter();
-    ~AssembleTilesImageFilter() {}
+    ~AssembleTilesImageFilter();
     void PrintSelf(std::ostream& os, Indent indent) const;
+    virtual void GenerateOutputInformation();
+    virtual void GenerateInputRequestedRegion();
     void GenerateData();
 
 private :
-    typename InputImageType::SizeType m_TileSize;
+
+    typedef typename InputImageType::RegionType InputImageRegionType;
+    typedef typename InputImageType::IndexType InputImageIndexType;
+    typedef typename InputImageType::SizeType InputImageSizeType;
+
+    typedef typename OutputImageType::RegionType OutputImageRegionType;
+    typedef typename OutputImageType::IndexType OutputImageIndexType;
+    typedef typename OutputImageType::SizeType OutputImageSizeType;
+
+    InputImageSizeType m_TileSize;
     unsigned int m_NumberOfTiles;
     EmptyTilesPosition m_EmptyTiles;
+    double m_Spacing;
+    double m_Origin;
 
     AssembleTilesImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
