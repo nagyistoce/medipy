@@ -17,7 +17,8 @@ namespace itk
 template<typename TInputImage, typename TOutputImage>
 AssembleTilesImageFilter<TInputImage, TOutputImage>
 ::AssembleTilesImageFilter()
-: m_NumberOfTiles(0), m_EmptyTiles(BEGIN), m_Spacing(1.), m_Origin(0.)
+: m_NumberOfTiles(0), m_EmptyTiles(BEGIN), m_AssemblyOrder(BOTTOM_TO_TOP),
+  m_Spacing(1.), m_Origin(0.)
 {
     this->m_TileSize.Fill(0);
 
@@ -117,7 +118,14 @@ void AssembleTilesImageFilter<TInputImage, TOutputImage>
             }
             else
             {
-                output_direction[i][j] = i == j ? 1.0 : 0.0;
+                if(i==j)
+                {
+                    output_direction[i][j] = (this->m_AssemblyOrder==BOTTOM_TO_TOP)?+1.:-1.;
+                }
+                else
+                {
+                    output_direction[i][j] = 0.;
+                }
             }
         }
     }
@@ -203,11 +211,16 @@ void AssembleTilesImageFilter<TInputImage, TOutputImage>
 
         InputImageRegionType const source_region(tile_begin, this->m_TileSize);
 
-        // TODO : slice direction
-
         OutputImageIndexType destination_index;
         destination_index.Fill(0);
-        destination_index[InputImageType::ImageDimension] = i-first_tile;
+        if(this->m_AssemblyOrder == TOP_TO_BOTTOM)
+        {
+            destination_index[InputImageType::ImageDimension] = last_tile-i;
+        }
+        else
+        {
+            destination_index[InputImageType::ImageDimension] = i-first_tile;
+        }
 
         OutputImageSizeType destination_size;
         destination_size.Fill(1);

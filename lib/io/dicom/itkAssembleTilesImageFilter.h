@@ -34,6 +34,12 @@ public :
         END
     };
 
+    enum AssemblyOrder
+    {
+        BOTTOM_TO_TOP,
+        TOP_TO_BOTTOM,
+    };
+
     /** Size of a tile in pixels. */
     itkGetMacro(TileSize, typename InputImageType::SizeType);
     itkSetMacro(TileSize, typename InputImageType::SizeType);
@@ -46,6 +52,10 @@ public :
     itkGetEnumMacro(EmptyTiles, EmptyTilesPosition);
     itkSetEnumMacro(EmptyTiles, EmptyTilesPosition);
     
+    /** Order of the assembly, defaults to BOTTOM_TO_TOP. */
+    itkGetEnumMacro(AssemblyOrder, AssemblyOrder);
+    itkSetEnumMacro(AssemblyOrder, AssemblyOrder);
+
     /** Spacing on the new dimension, defaults to 1. */
     itkGetMacro(Spacing, double);
     itkSetMacro(Spacing, double);
@@ -75,6 +85,7 @@ private :
     InputImageSizeType m_TileSize;
     unsigned int m_NumberOfTiles;
     EmptyTilesPosition m_EmptyTiles;
+    AssemblyOrder m_AssemblyOrder;
     double m_Spacing;
     double m_Origin;
 
