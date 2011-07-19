@@ -38,14 +38,14 @@ public :
 
     enum EmptyTilesPosition
     {
-        BEGIN,
-        END
+        BEGIN=0,
+        END=1
     };
 
     enum AssemblyOrder
     {
-        BOTTOM_TO_TOP,
-        TOP_TO_BOTTOM,
+        BOTTOM_TO_TOP=0,
+        TOP_TO_BOTTOM=1,
     };
 
     /** Size of a tile in pixels. */
@@ -56,7 +56,7 @@ public :
     itkGetMacro(NumberOfTiles, unsigned int);
     itkSetMacro(NumberOfTiles, unsigned int);
 
-    /** Position of the empty tiles, defaults to BEGIN. */
+    /** Position of the empty tiles, defaults to END. */
     itkGetEnumMacro(EmptyTiles, EmptyTilesPosition);
     itkSetEnumMacro(EmptyTiles, EmptyTilesPosition);
     

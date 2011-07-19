@@ -25,7 +25,7 @@ namespace itk
 template<typename TInputImage, typename TOutputImage>
 AssembleTilesImageFilter<TInputImage, TOutputImage>
 ::AssembleTilesImageFilter()
-: m_NumberOfTiles(0), m_EmptyTiles(BEGIN), m_AssemblyOrder(BOTTOM_TO_TOP),
+: m_NumberOfTiles(0), m_EmptyTiles(END), m_AssemblyOrder(BOTTOM_TO_TOP),
   m_Spacing(1.), m_Origin(0.)
 {
     this->m_TileSize.Fill(0);
@@ -190,7 +190,7 @@ void AssembleTilesImageFilter<TInputImage, TOutputImage>
     {
         // The first tile is at the beginning
         first_tile = 0;
-        last_tile = this->m_NumberOfTiles;
+        last_tile = this->m_NumberOfTiles-1;
     }
     else
     {
