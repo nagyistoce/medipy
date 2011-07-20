@@ -300,7 +300,9 @@ class DataSet(dict):
         """
         
         if isinstance(value, basestring):
-            tag = Tag(name_dictionary.get(value, None))
+            tag = name_dictionary.get(value, None)
+            if tag is not None :
+                tag = Tag(tag)
         else :
             tag = Tag(value)
             
