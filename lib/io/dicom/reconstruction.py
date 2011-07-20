@@ -7,6 +7,7 @@
 ##########################################################################
 
 import logging
+import math
 import sys
 
 import itk
@@ -17,7 +18,9 @@ import medipy.itk
 
 from medipy.io.dicom.dictionary import data_dictionary
 from medipy.io.dicom import Tag
+import medipy.io.dicom.csa2
 import medipy.io.dicom.sort
+import medipy.io.dicom.split
 
 default_skipped_tags = [
     (0x0002,0x0003), # Media Storage SOP Instance UID
@@ -108,23 +111,41 @@ def data(datasets):
         All Data Sets must belong to the same stack and be geometrically sorted.
     """
     
-    sys_is_little_endian = (sys.byteorder == 'little')
-    
-    # TODO : mosaic/DTI ?
-    
     if isinstance(datasets[0], tuple) :
         sample_dataset = datasets[0][0]
     else :
         sample_dataset = datasets[0]
-        
-    shape = (len(datasets),) + sample_dataset.shape[-2:]
+    
+    if "MOSAIC" in sample_dataset.image_type :
+        image_csa = medipy.io.dicom.csa2.parse_csa(sample_dataset[0x0029,0x1010])
+        number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
+        mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
+        shape = (len(datasets), number_of_tiles, 
+                 sample_dataset.rows/mosaic_size, sample_dataset.columns/mosaic_size)
+    else :
+        shape = (len(datasets),) + sample_dataset.pixel_array.shape[-2:]
     array = numpy.ndarray(shape, dtype=sample_dataset.pixel_array.dtype)
     
     for index, dataset in enumerate(datasets) :
         # Get data
         if isinstance(dataset, tuple) :
             pixel_data = dataset[0].pixel_array[dataset[0]]
-        else :
+        elif "MOSAIC" in dataset.image_type :
+            image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
+            number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
+            mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
+            tile_size = (dataset.rows/mosaic_size, dataset.columns/mosaic_size)
+            
+            itk_pixel_array = medipy.itk.array_to_itk_image(dataset.pixel_array, False)
+            
+            TileImageType = itk.Image[medipy.itk.dtype_to_itk[array.dtype.type], 2]
+            VolumeImageType = itk.Image[medipy.itk.dtype_to_itk[array.dtype.type], 3]
+            assemble_tiles = itk.AssembleTilesImageFilter[TileImageType, VolumeImageType].New(
+                Input=itk_pixel_array, 
+                TileSize=tile_size, NumberOfTiles=number_of_tiles)
+            itk_volume = assemble_tiles()[0]
+            pixel_data = medipy.itk.itk_image_to_array(itk_volume, True)
+        else : 
             pixel_data = dataset.pixel_array
         
         # Insert into reconstructed data
