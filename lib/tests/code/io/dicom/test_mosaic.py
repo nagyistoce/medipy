@@ -42,4 +42,6 @@ class testMosaic(unittest.TestCase):
             FileName = os.path.join(self.data_directory, "baseline", "io", 
                                     "dicom", "siemens_mosaic.nii"))
         expected = medipy.itk.itk_image_to_array(nifti_reader()[0], False)
-        
+
+if __name__ == '__main__':
+    unittest.main()
