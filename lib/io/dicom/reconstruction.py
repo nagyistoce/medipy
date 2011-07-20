@@ -203,7 +203,10 @@ def metadata(datasets, skipped_tags="default"):
         else :
             origin = (0,0,0)
     else :
-        origin = datasets[0].get("image_position_patient", (0,0,0))
+        if "MOSAIC" in datasets[0].image_type :
+            origin = list(datasets[0].get("image_position_patient", (0,0,0))) + [0]
+        else :
+            origin = datasets[0].get("image_position_patient", (0,0,0))
     result["origin"] = tuple(reversed(origin))
 
     # Spacing
@@ -230,9 +233,13 @@ def metadata(datasets, skipped_tags="default"):
     else :
         spacing = datasets[0].get("pixel_spacing", (1.,1.))
         
-        slice_spacing = numpy.linalg.norm(numpy.subtract(
-            datasets[0].get("image_position_patient", (0,0,0)), 
-            datasets[1].get("image_position_patient", (0,0,0))))
+        if "MOSAIC" in datasets[0].image_type :
+            slice_spacing = 1
+            spacing = list(spacing) + [datasets[0].get("slice_thickness", 1.)]
+        else :
+            slice_spacing = numpy.linalg.norm(numpy.subtract(
+                datasets[0].get("image_position_patient", (0,0,0)), 
+                datasets[1].get("image_position_patient", (0,0,0))))
     
     if slice_spacing == 0 :
         slice_spacing = 1.
@@ -250,13 +257,17 @@ def metadata(datasets, skipped_tags="default"):
             orientation = (1., 0., 0., 0., 1., 0)
     else :
         orientation = datasets[0].get("image_orientation_patient", (1., 0., 0., 
-                                                                    0., 1., 0))
+                                                                        0., 1., 0))
     # Use column vectors, cf. PS 3.3, C.7.6.2.1.1
     v1 = orientation[:3]
     v2 = orientation[3:]
     normal = numpy.cross(v1, v2)
     result["direction"] = numpy.transpose(numpy.asarray(
         (tuple(reversed(normal)), tuple(reversed(v2)), tuple(reversed(v1)))))
+    if "MOSAIC" in datasets[0].image_type :
+        result["direction"] = numpy.insert(
+            numpy.insert(result["direction"], 0, (0,0,0), 0), 
+            0, (1,0,0,0), 1)
     
     return result 
 
