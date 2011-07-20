@@ -119,3 +119,36 @@ def stacks(datasets):
                 result[orientation] = [dataset]
     
     return result.values()
+
+def acquisitions(datasets):
+    """ Return a list of "acquisitions" present in the datasets. Acquisitions
+        are defined as sets of datasets that have a similar :
+          * Echo Number(s) (0018,0086)
+          * Acquisition Number (0020,0012)
+          * Diffusion Gradient Orientation (0018,9089)
+          * Diffusion b-value (0018,9087)
+          
+        All datasets
+        must belong to the same series.
+        
+    """
+    
+    result = {}
+    for dataset in datasets :
+        if "MOSAIC" not in dataset.image_type and "echo_numbers" in dataset :
+            identifier = dataset.echo_numbers
+        elif "number_of_frames" in dataset :
+            # TODO
+            # TODO : test for mosaic ?
+            # Multi-frame : Diffusion Gradient Orientation (0018,9089) and 
+            # Diffusion b-value (0018,9087) are in MR Diffusion Sequence (0018,9117)
+            if "mr_diffusion_sequence" in dataset :
+                pass
+        elif "acquisition_number" in dataset :
+            identifier = dataset.acquisition_number
+        else : 
+            identifier = None
+        
+        result.setdefault(identifier, []).append(dataset)
+    
+    return [result[x] for x in sorted(result.keys())]
