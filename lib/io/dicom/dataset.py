@@ -98,7 +98,7 @@ class DataSet(dict):
                 shape = (self.number_of_frames,)+shape
             
             dtype = "int%d"%(self.bits_allocated)
-            if self.pixel_representation :
+            if self.get("pixel_representation", 0) == 0 :
                 dtype = "u"+dtype
             dtype = numpy.dtype(dtype)
             
@@ -137,22 +137,16 @@ class DataSet(dict):
         """ Access to an item using a numerical or named tag.
         """
         
-        if isinstance(item, (str, unicode)):
-            tag = name_dictionary.get(item, None)
-        else :
-            tag = Tag(item)
+        tag = self._get_tag(item)
         return dict.__getitem__(self, tag)
     
     def __setitem__(self, item, value):
         """ Access to an item using a numerical or named tag.
         """
         
-        if isinstance(item, (str, unicode)):
-            tag = Tag(name_dictionary.get(item, None))
-        else :
-            tag = Tag(item)
+        tag = self._get_tag(item)
             
-        if tag.group%2==1 :
+        if tag.private :
             pass
 #            # See PS 3.5-2008 section 7.8.1 (p. 44) for how blocks are reserved
 #            logging.debug("Setting private tag %r" % tag)
@@ -227,17 +221,11 @@ class DataSet(dict):
     # Sequence functions #
     ######################
     
-    def __contains__(self, name):
+    def __contains__(self, key):
         """ Test the presence of numerical or named tag in the Data Set.
         """
-        if isinstance(name, (str, unicode)):
-            tag = name_dictionary.get(name, None)
-        else :
-            tag = None
-        if tag:
-            return dict.__contains__(self, tag)
-        else:
-            return dict.__contains__(self, name)
+        tag = self._get_tag(key)
+        return dict.__contains__(self, tag)
     
     ########################
     # Dictionary functions #
@@ -246,13 +234,8 @@ class DataSet(dict):
     def get(self, key, default=None):
         """ Access to an item using a numerical or named tag.
         """
-        if isinstance(key, (str, unicode)):
-            try:
-                return getattr(self, key)
-            except AttributeError:
-                return default
-        else :
-            return dict.get(self, key, default)
+        tag = self._get_tag(key)
+        return dict.get(self, tag, default)
     
     ###################
     # Misc. functions #
@@ -310,3 +293,15 @@ class DataSet(dict):
         return "\n".join(result)
     
     __repr__ = __str__
+    
+    @staticmethod
+    def _get_tag(value):
+        """ Create a tag from either a string or a numerical value
+        """
+        
+        if isinstance(value, basestring):
+            tag = Tag(name_dictionary.get(value, None))
+        else :
+            tag = Tag(value)
+            
+        return tag
