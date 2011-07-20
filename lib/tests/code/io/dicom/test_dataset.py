@@ -20,6 +20,8 @@ class TestDataSet(unittest.TestCase):
         
         self.assertFalse(0x00100040 in self.dataset)
         self.assertFalse((0x0010,0x0040) in self.dataset)
+        self.assertFalse(0xffffffff in self.dataset)
+        self.assertFalse((0xffff,0xffff) in self.dataset)
         
         self.dataset[0x00100040] = "O"
         self.assertEqual(self.dataset[0x0010,0x0040], "O")
@@ -31,6 +33,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue("patients_name" in self.dataset)
         
         self.assertFalse("patients_sex" in self.dataset)
+        self.assertFalse("foobar" in self.dataset)
         
         self.dataset.patients_sex = "O"
         self.assertEqual(self.dataset["patients_sex"], "O")
