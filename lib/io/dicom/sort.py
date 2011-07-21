@@ -11,6 +11,8 @@ import operator
 
 import numpy
 
+import medipy.io.dicom.split
+
 def sort(datasets, sort_function = None):
     """ Sort the Data Sets (or pairs of (Data Set, frame number) in geometrical
         order.    
@@ -22,37 +24,19 @@ def sort(datasets, sort_function = None):
         datasets.sort(sort_function)
         return True
     else :
-        volumes = {}
-        if _is_dwi(datasets) :
-            # Find all values of Diffusion b-value (0018,9087) and
-            # Diffusion Gradient Orientation (0018,9089)
-            for dataset in datasets :
-                # B-value and Gradient Orientation
-                if isinstance(dataset, tuple) :
-                    functional_group = dataset[0].perframe_functional_groups_sequence[dataset[1]]
-                    mr_diffusion = functional_group.mr_diffusion_sequence[0]
-                    key = (mr_diffusion.diffusion_bvalue, 
-                           mr_diffusion.diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation)
-                else :
-                    key = (dataset.diffusion_bvalue, tuple(dataset.diffusion_gradient_orientation))
-                if key not in volumes :
-                    volumes[key] = []
-                volumes[key].append(dataset)
-        else :
-            # TODO : mosaic, fMRI
-            volumes["all"] = datasets
+        acquisitions = medipy.io.dicom.split.acquisitions(datasets)
         
         all_sorted = True
-        for volume in volumes.values() :
-            if not _sort_by_image_position_patient(volume) :
+        for acquisition in acquisitions :
+            if not _sort_by_image_position_patient(acquisition) :
                 logging.warning("Could not sort images using Image Position (Patient)")
                 all_sorted = False
-                if not _sort_by_image_number(volume) :
+                if not _sort_by_image_number(acquisition) :
                     logging.warning("Could not sort images using Image Number")
                     # Sort by file name ?
                     all_sorted = False
         
-        datasets[:] = reduce(operator.concat, volumes.values(), [])
+        datasets[:] = reduce(operator.concat, acquisitions, [])
         return all_sorted
 
 def _is_dwi(datasets):
@@ -71,6 +55,9 @@ def _is_dwi(datasets):
     return False
 
 def _sort_by_image_position_patient(datasets) :
+    
+    if len(datasets) == 1 :
+        return True
     
     for dataset in datasets :
         if isinstance(dataset, tuple) :
@@ -127,9 +114,14 @@ def _sort_by_image_position_patient(datasets) :
     return True
 
 def _sort_by_image_number(datasets) :
+    if len(datasets) == 1 :
+        return True
+    
     for dataset in datasets :
-        if "image_number" not in dataset :
+        if "instance_number" not in dataset :
+            logging.warning("Instance Number (0020,0013) is missing from a " 
+                            "Data Set. Cannot sort using instance number")
             return False
     
-    datasets.sort(lambda x,y : x.image_number-y.image_number)
+    datasets.sort(lambda x,y : x.instance_number-y.instance_number)
     return True
