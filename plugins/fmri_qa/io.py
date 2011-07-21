@@ -96,8 +96,8 @@ def save_weisskoff_analysis(fluctuations, theoretical_fluctuations, rdc, directo
         os.path.join(directory, "weisskoff.png"))
 
 def load_summary(filename):
-    """ Return the SFNR, SNR, fluctuation, drift and radius of decorrelation
-        from the given file.
+    """ Return the acquisition dante, SFNR, SNR, fluctuation, drift and 
+        radius of decorrelation from the given file.
     """
     
     fd = open(filename)
@@ -105,28 +105,32 @@ def load_summary(filename):
     result = {}
     for line in fd.readlines() :
         key, value = line.strip().split("=")
+        if key == "date" :
+            value = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M")
+        else :
+            value = float(value)
         result[key] = float(value)
     
     return result
 
-def save_summary(sfnr, snr, fluctuation, drift, rdc, directory):
+def save_summary(date, sfnr, snr, fluctuation, drift, rdc, directory):
     """ Save summary values to directory/summary :
+          * Acquisition date
           * Signal-to-fluctuation-noise ratio
           * Signal-to-noise ratio
           * Fluctuation percentage
           * Drift percentage
           * Radius of decorrelation (in pixels)
     """
-    frame = inspect.currentframe()
-    args, _, _, values = inspect.getargvalues(frame)
     
     summary_file = open(os.path.join(directory, "summary"), "w")
-    
-    for name in args :
-        if name == "directory" :
-            continue
-        value = values[name]
-        summary_file.write("%s=%s\n"%(name, value))
+
+    summary_file.write("{0}={1}\n".format("date", date.strftime("%Y-%m-%dT%H:%M")))
+    summary_file.write("{0}={1}\n".format("sfnr", sfnr))
+    summary_file.write("{0}={1}\n".format("snr", snr))
+    summary_file.write("{0}={1}\n".format("fluctuation", fluctuation))
+    summary_file.write("{0}={1}\n".format("drift", drift))
+    summary_file.write("{0}={1}\n".format("rdc", rdc))
     
     summary_file.close()
 
@@ -161,7 +165,7 @@ def save_report(date, sfnr, snr, drift, fluctuation, rdc, directory):
 </html>"""
 
     data = template%{
-        "date" : date.strftime("%d %B %Y"),
+        "date" : date.strftime("%Y-%m-%d, %H:%M"),
         "time_series" : "time_series.png",
         "spectrum" : "spectrum_no_dc.png",
         "weisskoff" : "weisskoff.png",

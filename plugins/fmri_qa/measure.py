@@ -6,6 +6,7 @@
 # for details.                                                      
 ##########################################################################
 
+import datetime
 import os
 import logging
 import sys
@@ -57,10 +58,18 @@ def measure(image, output_directory):
     logging.info("8/8 : Weisskoff analysis ... ")
     fluctuations, theoretical_fluctuations, rdc = get_weisskoff_analysis(image)
     io.save_weisskoff_analysis(fluctuations, theoretical_fluctuations, rdc, output_directory)
-    
-    io.save_summary(sfnr_summary, snr, fluctuation, drift, rdc, output_directory)
-    
-    date = medipy.io.dicom.misc.parse_da(image.metadata["series_date"])
+
+    if image.metadata.get("series_date", "") :
+        date = medipy.io.dicom.misc.parse_da(image.metadata["study_date"]) 
+        if image.metadata.get("series_time", "") :
+            time = medipy.io.dicom.misc.parse_tm(image.metadata["series_time"])
+            date = datetime.datetime.combine(date, time)
+    else :
+        logging.warning("No Series Date present in image metadata, "
+                        "using current date and time")
+        date = datetime.datetime.now()
+
+    io.save_summary(date, sfnr_summary, snr, fluctuation, drift, rdc, output_directory)
     io.save_report(date, sfnr_summary, snr, fluctuation, drift, rdc, output_directory)
 
 def get_signal_image(image) :
