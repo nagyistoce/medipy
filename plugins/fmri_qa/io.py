@@ -109,7 +109,7 @@ def load_summary(filename):
             value = datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M")
         else :
             value = float(value)
-        result[key] = float(value)
+        result[key] = value
     
     return result
 
@@ -200,7 +200,7 @@ def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
         figure = matplotlib.pyplot.figure()
         plot = figure.add_subplot(111)
         
-        plot.plot([d[0] for d in data], [d[1] for d in data], "k-")
+        plot.plot([d[0] for d in data], [d[1] for d in data], "ko")
         
         date_range = data[-1][0]-data[0][0]
         
@@ -214,12 +214,16 @@ def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
             format = "%Y-%m"
         else :
             major_locator = matplotlib.dates.DayLocator()
-            minor_locator = matplotlib.dates.HourLocator()
-            format = "%Y-%m %H"
+            minor_locator = matplotlib.dates.HourLocator(byhour=range(0,24,6))
+            format = "%Y-%m-%d"
 
         plot.xaxis.set_major_locator(major_locator)
         plot.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(format))
         plot.xaxis.set_minor_locator(minor_locator)
+        
+        for label in plot.xaxis.get_ticklabels():
+            label.set_rotation(30)
+            label.set_horizontalalignment('right')
         
         plot.axes.set_xlabel("Date")
         plot.axes.set_ylabel(long_names[name])
