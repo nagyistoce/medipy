@@ -23,7 +23,7 @@ class FSLTool(object):
         "NIFTI_PAIR_GZ" : ".hdr.gz",
     }
     
-    def __init__(self, fsl_dir, fsl_output_type="NIFTI"):
+    def __init__(self, fsl_dir=None, fsl_output_type="NIFTI"):
         self.fsl_dir = fsl_dir
         self.fsl_output_type = fsl_output_type
     
