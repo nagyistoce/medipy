@@ -33,7 +33,7 @@ class BET(FSLTool):
     
     def __init__(self, input=None, output=None, 
                  create_outline=False, create_brain_mask=False, create_skull=False,
-                 intensity_threshold=0.5, gradient_threshold=0, 
+                 intensity_threshold=None, gradient_threshold=None, 
                  head_radius=None, center_of_gravity=None,
                  *args, **kwargs):
         
@@ -53,16 +53,25 @@ class BET(FSLTool):
         self.center_of_gravity = center_of_gravity
     
     def _get_outline(self):
-        return os.path.extsep.join(os.path.splitext(self.input)+"_overlay", 
-                                   self._suffixes[self.fsl_output_type])
+        if self.create_outline :
+            return os.path.extsep.join([os.path.splitext(self.input)[0]+"_overlay", 
+                                        self._suffixes[self.fsl_output_type]])
+        else :
+            return None
     
     def _get_brain_mask(self):
-        return os.path.extsep.join(os.path.splitext(self.input)+"_mask", 
-                                   self._suffixes[self.fsl_output_type])
+        if self.create_brain_mask :
+            return os.path.extsep.join([os.path.splitext(self.input)[0]+"_mask", 
+                                        self._suffixes[self.fsl_output_type]])
+        else :
+            return None
     
     def _get_skull(self):
-        return os.path.extsep.join(os.path.splitext(self.input)+"_skull", 
-                                   self._suffixes[self.fsl_output_type])
+        if self.create_skull :
+            return os.path.extsep.join([os.path.splitext(self.input)[0]+"_skull", 
+                                        self._suffixes[self.fsl_output_type]])
+        else :
+            return None
     
     def _get_command(self):
         if None in [self.input, self.output] :
@@ -76,12 +85,20 @@ class BET(FSLTool):
         if self.create_skull :
             command.append("-s")
         
-        command.append("-f {0:f}".format(self.intensity_threshold))
-        command.append("-g {0:f}".format(self.gradient_threshold))
+        if self.intensity_threshold :
+            command.extend(["-f", "{0}".format(self.intensity_threshold)])
+        if self.gradient_threshold :
+            command.extend(["-g", "{0}".format(self.gradient_threshold)])
         
         if self.head_radius :
-            command.append("-r {0:f}".format(self.head_radius))
+            command.extend(["-r", "{0}".format(self.head_radius)])
         if self.center_of_gravity :
-            command.append("-c {0[0]:f} {0[1]:f} {0[2]:f}".format(self.center_of_gravity))
+            command.extend(["-c", "{0}".format(self.center_of_gravity[0]), 
+                            "{0}".format(self.center_of_gravity[1]),
+                            "{0}".format(self.center_of_gravity[2])])
         
         return command
+
+    outline = property(_get_outline)
+    brain_mask = property(_get_brain_mask)
+    skull = property(_get_skull)
