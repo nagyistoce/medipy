@@ -23,3 +23,10 @@ instantiations = [(i,i) for i in instantiations]
 classes_template_info = [ ("itk::BETImageFilter", instantiations, "pointer") ]
 env.Use("vtk")
 env.WrapITKPythonModule("BETImageFilter", classes_template_info)
+
+types = ["float"]
+dimensions = [2,3]
+instantiations = get_instantiations("itk::Image", types, dimensions)
+instantiations = [(i,i,i) for i in instantiations]
+classes_template_info = [ ("itk::MonoModalStatisticalChangeDetectionImageFilter", instantiations, "pointer") ]
+env.WrapITKPythonModule("StatisticalChangeDetectionImageFilters", classes_template_info)
