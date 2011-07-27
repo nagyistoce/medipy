@@ -20,20 +20,15 @@ class Importer(object):
                 return self
     
     def load_module(self, fullname):
-        index = sys.meta_path.index(self)
-        del sys.meta_path[index]
-        
         try :
             path = self._plugins_path
             for level, package in enumerate(fullname.split(".")[1:]) :
                 file, pathname, description = imp.find_module(package, path)
                 path = [pathname]
-                module = imp.load_module(".".join(fullname.split(".")[:level+2]), file, pathname, description)
+                module = imp.load_module(".".join(fullname.split(".")[1:level+2]), file, pathname, description)
         except :
             raise
-        finally :
-            sys.meta_path.insert(index, self)
-        
-        return module
+        else :
+            return module
         
 sys.meta_path.append(Importer())
