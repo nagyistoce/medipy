@@ -41,7 +41,6 @@ def build_menu(path) :
         
         sys.path.append(path)
         try :
-            execfile(os.path.join(path, "__init__.py"))
             execfile(api_file, api_globals, api_locals)
         except Exception, e :
             logging.warn("Could not load %s/api.py : %s"%(path, e))
