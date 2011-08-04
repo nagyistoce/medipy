@@ -41,5 +41,5 @@ def ComputeRocCurve_GUI(imDetection, maskimDetection, maskBonnesDetec, nbPointsH
 	print nbPointsH
 
 	print 't'
-	medipy.components.medimax3.detection.ComputeRocCurve(imDetection, maskimDetection, maskBonnesDetec, nbPointsH, str(fichier))
+	medipy.medimax.detection.ComputeRocCurve(imDetection, maskimDetection, maskBonnesDetec, nbPointsH, str(fichier))
 	print 'tt'

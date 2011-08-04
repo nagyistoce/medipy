@@ -70,7 +70,7 @@ def recalage_lineaire_multi_IM(registration_type, imreca, imref, imres, filename
 				Name of saved .trf file
 	""" 
 	RegistrationTypeConverter = {"Rigid" : 0,"Rigid+Zoom" : 1,"Affine" : 2}
-	medipy.components.medimax3.recalage.LinearRegistration(imref,imreca, imres,RegistrationTypeConverter[registration_type],5,1,1,0,1,str(filename),0,2,0)
+	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,RegistrationTypeConverter[registration_type],5,1,1,0,1,str(filename),0,2,0)
 
 
 #-------------------------------------------------------------
@@ -94,7 +94,7 @@ def recalage_rigide_multi_IM(imreca, imref, imres, filename) :
 			filename : String
 				Name of saved .trf file
 	""" 
-	medipy.components.medimax3.recalage.LinearRegistration(imref,imreca, imres,0,5,1,1,0,1,str(filename),0,2,0)
+	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,0,5,1,1,0,1,str(filename),0,2,0)
 
 
 #-------------------------------------------------------------
@@ -119,7 +119,7 @@ def recalage_rigidezoom_multi_IM(imreca, imref, imres, filename) :
 				Name of saved .trf file
 
 	""" 
-	medipy.components.medimax3.recalage.LinearRegistration(imref,imreca, imres,1,5,1,1,0,1,str(filename),0,2,0)
+	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,1,5,1,1,0,1,str(filename),0,2,0)
 
 
 #-------------------------------------------------------------
@@ -144,7 +144,7 @@ def recalage_affine_multi_IM(imreca, imref, imres, filename) :
 				Name of saved .trf file
 
 	""" 
-	medipy.components.medimax3.recalage.LinearRegistration(imref,imreca, imres,2,5,1,1,0,1,str(filename),0,2,0)
+	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,2,5,1,1,0,1,str(filename),0,2,0)
 
 
 #-------------------------------------------------------------
@@ -175,7 +175,7 @@ def recalage_Bspline_topo(imreca, imref, imres, resolf, symetrique, filename) :
 				Name of saved .trf file
 	""" 
 	dicoConverter = {"Non Symmetric" : 0,"Symmetric" : 1}
-	medipy.components.medimax3.recalage.BsplineRegistration3d(imref, imreca, imres,0,2,1.0,2,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)])
+	medipy.medimax.recalage.BsplineRegistration3d(imref, imreca, imres,0,2,1.0,2,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)])
 
 
 #-------------------------------------------------------------
@@ -199,7 +199,7 @@ def ApplyTransfo3d_GUI(imdeb, nomfichier, imres, inter_type) :
 			nomfichier : File
 				trf file
 	""" 
-	medipy.components.medimax3.recalage.ApplyTransfo3d(imdeb,str(nomfichier),imres,InterpolationNumberInMedimax(inter_type))
+	medipy.medimax.recalage.ApplyTransfo3d(imdeb,str(nomfichier),imres,InterpolationNumberInMedimax(inter_type))
 
 #-------------------------------------------------------------
 #  Combine two transf_3d 
@@ -219,7 +219,7 @@ def CombineTransfo3d_GUI(nomfichier1, nomfichier2, nomfichierres) :
 			nomfichierres : String
 				resulting trf file
 	""" 
-	medipy.components.medimax3.recalage.CombineTransfo3d(str(nomfichier1), str(nomfichier2), str(nomfichierres), 5)
+	medipy.medimax.recalage.CombineTransfo3d(str(nomfichier1), str(nomfichier2), str(nomfichierres), 5)
 
 
 #-------------------------------------------------------------
@@ -255,7 +255,7 @@ def InvertTransfo3d_GUI(nomfichier, nomfichres,wdthref, hghtref, dpthref, dxref,
 			dzref : Float : value=-1
 				dz of the transformation (optional)
 		""" 
-	medipy.components.medimax3.recalage.InvertTransfo3d(str(nomfichier), str(nomfichres), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+	medipy.medimax.recalage.InvertTransfo3d(str(nomfichier), str(nomfichres), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
 
 
 #-------------------------------------------------------------
@@ -270,7 +270,7 @@ def MriInfo3D_GUI(im) :
 			im : Image
 				Image to get info 
 	""" 
-	medipy.components.medimax3.recalage.MriInfo3D(im)
+	medipy.medimax.recalage.MriInfo3D(im)
 
 
 #-------------------------------------------------------------
@@ -292,5 +292,5 @@ def VisuTrfFile_GUI( nomfichier, output, visu_type) :
 				type of visualisation 
 				
 	""" 
-	medipy.components.medimax3.recalage.VisuTrfFile(str(nomfichier),output,VisuTrfNumberInMedimax(visu_type))
+	medipy.medimax.recalage.VisuTrfFile(str(nomfichier),output,VisuTrfNumberInMedimax(visu_type))
 
