@@ -10,7 +10,7 @@ import itk
 
 import medipy.itk
 
-def bet(input, bt, output):
+def bet(input, bt):
     """ Brain Extraction Tool.
         
         @TECHREPORT{SmithBET,
@@ -24,7 +24,7 @@ def bet(input, bt, output):
             <item name="input" type="Image" label="Input"/>
             <item name="bt" type="Float" initializer="0.5" label="b_t"
                 tooltip="Main parameter (0 &lt;= b_t &lt;= 1)"/>
-            <item name="output" type="Image" initializer="output=True" role="output"
+            <item name="output" type="Image" initializer="output=True" role="return"
                 label="Output"/>
         </gui>
     """
@@ -35,4 +35,4 @@ def bet(input, bt, output):
     itk_input = medipy.itk.medipy_image_to_itk_image(input, False)
     bet_filter = itk.BETImageFilter[itk_input, itk_input].New(itk_input, BT=bt)
     itk_output = bet_filter()[0]
-    medipy.itk.itk_image_to_medipy_image(itk_output, output, True)
+    return medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
