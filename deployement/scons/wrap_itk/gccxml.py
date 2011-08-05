@@ -10,6 +10,8 @@ class GccXML(object) :
     def __init__(self, env) :
         self.env = env
         
+        self.library_depends = None
+        
         self.includes = ""
         self.typedefs = ""
         self.force_instantiate = ""
@@ -77,34 +79,10 @@ class GccXML(object) :
         else :
             self.includes += "#include \"{0}\"\n".format(include_file)
     
-    def add_one_typedef(self, wrap_class, swig_name, template_params, wrap_method="") :
+    def add_one_typedef(self, wrap_class, swig_name, wrap_method="", template_params=None) :
         self.typedefs += "\n"
         self.force_instantiate += "\n"
     
     def add_simple_typedef(self, wrap_class, swig_name) :
         self.typedefs += "      typedef {0} {1};\n".format(wrap_class, swig_name)
         self.force_instantiate += "  sizeof({0});\n".format(swig_name)
-
-#if __name__ == "SCons.Script" :
-#
-#    env = Environment()
-#    env.AppendUnique(CPPPATH=[
-#        "/usr/include/InsightToolkit/",
-#        "/usr/include/InsightToolkit/BasicFilters/", 
-#        "/usr/include/InsightToolkit/Common/",
-#        "/usr/include/InsightToolkit/Utilities/vxl/core/",
-#        "/usr/include/InsightToolkit/Utilities/vxl/vcl/",
-#    ])
-#    
-#    env["WRAPPER_LIBRARY_OUTPUT_DIR"] = "."
-#    env["WRAP_ITK_USE_CCACHE"] = False
-#    env["WRAP_ITK_GCCXML_SOURCE_DIR"] = "/usr/lib/InsightToolkit/WrapITK/Configuration/Languages/GccXML"
-#    
-#    gccxml = GccXML(env)
-#    gccxml.wrap_library("PixelMath")
-#    gccxml.wrap_module("itkAndImageFilter")
-#    gccxml.wrap_include("itkAndImageFilter.h")
-#    gccxml.add_one_typedef("itk::AndImageFilter", "itkAndImageFilter", [])
-#    gccxml.add_simple_typedef("itk::AndImageFilter< itk::Image< unsigned char,2 >, itk::Image< unsigned char,2 >, itk::Image< unsigned char,2 > >::Pointer", 
-#                              "itkAndImageFilterIUC2IUC2IUC2_Pointer")
-#    gccxml.end_wrap_module("itkAndImageFilter")

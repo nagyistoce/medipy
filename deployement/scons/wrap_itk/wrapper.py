@@ -3,6 +3,8 @@ import re
 
 import config
 from gccxml import GccXML
+from swig_interface import SwigInterface
+from python import Python
 
 class Wrapper(object):
     
@@ -36,6 +38,8 @@ class Wrapper(object):
                 self.language_wrappers[language] = globals()[language](env)
             else :
                 logging.warning("No builder for language \"{0}\"".format(language))
+        
+        self._library_depends = None
     
     def wrap_libraries(self) :
         pass
@@ -110,12 +114,10 @@ class Wrapper(object):
         if self.auto_include_headers :
             self.wrap_include("{0}.h".format(swig_name))
 
-        allowed_languages = ["Doc", 
-                             "Python", "TCL", "Ruby",
-                            ]
+        allowed_languages = []
         for language in self.languages :
             if language in allowed_languages and language in self.language_wrappers :
-                self.language_wrappers[language].end_wrap_module(self.module_name)
+                self.language_wrappers[language].wrap_class(self.module_name)
     
     def end_wrap_class(self):
         pass
@@ -201,7 +203,7 @@ class Wrapper(object):
         else :
             full_class_name = wrap_class
         
-        allowed_languages = ["GccXML", "SwigInterface", "Doc"
+        allowed_languages = ["GccXML", "SwigInterface", "Doc",
                              "Python", "TCL", "Ruby", "Java",
                              "Explicit"
                             ]
@@ -291,6 +293,16 @@ class Wrapper(object):
         
         return dims
     
+    def _get_library_depends(self):
+        return self._library_depends
+    
+    def _set_library_depends(self, library_depends):
+        self._library_depends = library_depends
+        for wrapper in self.language_wrappers.values() :
+            wrapper.library_depends = library_depends
+    
+    library_depends = property(_get_library_depends, _set_library_depends)
+    
 if __name__ == "SCons.Script" :
     env = Environment()
     env.AppendUnique(CPPPATH=[
@@ -308,9 +320,12 @@ if __name__ == "SCons.Script" :
     env["WRAP_ITK_DIMS"] = [2,3]
     env["WRAP_ITK_USE_CCACHE"] = False
     env["WRAP_ITK_GCCXML_SOURCE_DIR"] = "/usr/lib/InsightToolkit/WrapITK/Configuration/Languages/GccXML"
+    env["WRAP_ITK_SWIGINTERFACE_SOURCE_DIR"] = "/usr/lib/InsightToolkit/WrapITK/Configuration/Languages/SwigInterface"
+    env["WRAP_ITK_PYTHON_SOURCE_DIR"] = "/usr/lib/InsightToolkit/WrapITK/Configuration/Languages/Python"
     
     wrapper = Wrapper(env)
     wrapper.wrap_library("PixelMath")
+    wrapper.library_depends = ["ITKImageFilterBase", "ITKImageStatistics", "ITKImageGrid"]
     wrapper.wrap_module("itkAndImageFilter")
     wrapper.wrap_class("itk::AndImageFilter", "POINTER_WITH_SUPERCLASS")
     wrapper.wrap_image_filter(config.WRAP_ITK_USIGN_INT, 3)
