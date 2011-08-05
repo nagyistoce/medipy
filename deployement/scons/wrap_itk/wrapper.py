@@ -1,12 +1,20 @@
 import logging
+import re
 
+import config
 from gccxml import GccXML
-from utils import get_mangled_type_name
 
 class Wrapper(object):
     
     def __init__(self, env):
         self.env = env
+        
+        self.default_include = ["itkCommand.h",
+                                # itkStatisticsLabelObject.h does not exist in 
+                                # ITK 3.14
+                                #"itkStatisticsLabelObject.h"
+                                ]+config.type_wrapper.includes
+        
         self.languages = ["GccXML", "SwigInterface", "Python"]
         allowed_languages = ["GccXML", "SwigInterface", "Doc", 
                              "Python", 
@@ -16,6 +24,7 @@ class Wrapper(object):
         
         self.library_name = None
         self.module_name = None
+        self.auto_include_headers = None
         self.include_files = None
         self.wrap_method = None
         self.class_ = None
@@ -75,13 +84,10 @@ class Wrapper(object):
             if language in allowed_languages and language in self.language_wrappers :
                 self.language_wrappers[language].wrap_module(module)
         
-        # TODO
-#        set(WRAPPER_INCLUDE_FILES )
-#        foreach(inc ${WRAPPER_DEFAULT_INCLUDE})
-#            WRAP_INCLUDE("${inc}")
-#        endforeach(inc)
-#        set(WRAPPER_AUTO_INCLUDE_HEADERS ON)
-        
+        self.include_files = []
+        for inc in self.default_include :
+            self.wrap_include(inc)
+        self.auto_include_headers = True
     
     def end_wrap_module(self, module):
         allowed_languages = ["GccXML", "SwigInterface", "Doc", 
@@ -101,11 +107,8 @@ class Wrapper(object):
         
         self.wrap_named_class(class_, swig_name, wrap_method)
         
-        # TODO
-#        # and include the class's header
-#        if(WRAPPER_AUTO_INCLUDE_HEADERS)
-#            WRAP_INCLUDE("${swig_name}.h")
-#        endif(WRAPPER_AUTO_INCLUDE_HEADERS)
+        if self.auto_include_headers :
+            self.wrap_include("{0}.h".format(swig_name))
 
         allowed_languages = ["Doc", 
                              "Python", "TCL", "Ruby",
@@ -169,7 +172,14 @@ class Wrapper(object):
                 self.language_wrappers[language].wrap_named_non_template_class(class_, swig_name)
     
     def wrap_include(self, include_file):
-        pass
+        if include_file not in self.include_files :
+            self.include_files.append(include_file)
+        
+        allowed_languages = ["GccXML", "SwigInterface",
+                             "Explicit"]
+        for language in self.languages :
+            if language in allowed_languages and language in self.language_wrappers :
+                self.language_wrappers[language].wrap_include(include_file)
     
     def add_simple_typedef(self, wrap_class, swig_name):
         allowed_languages = ["GccXML",
@@ -245,9 +255,7 @@ class Wrapper(object):
     
     def wrap_image_filter_types(self, param_list, dim_cond=None):
         if dim_cond :
-            pass
-            # TODO
-#            FILTER_DIMS(dims ${last_arg})
+            dims = self.filter_dims(dim_cond)
         else :
             dims = env["WRAP_ITK_DIMS"]
         
@@ -255,19 +263,33 @@ class Wrapper(object):
             template_params = []
             mangled_name = []
             
-            for num, type in enumerate(param_list) :
-                # TODO
-#                if("${WRAP_ITK_VECTOR}" MATCHES "(^|;)${type}(;|$)")
-#                # if the type is a vector type with no dimension specified, make the
-#                # vector dimension match the image dimension.
-#                    set(type "${type}${d}")
-#                endif("${WRAP_ITK_VECTOR}" MATCHES "(^|;)${type}(;|$)")
-                image_type = "itk::Image< {0}, {1} >".format(type, d)
-                mangle_type = "I{0}{1}".format(get_mangled_type_name(type), d)
+            for type in param_list :
+                if type in config.WRAP_ITK_VECTOR :
+                    type = "{0}{1}".format(type, d)
+                image_type = config.type_wrapper.ITKT["I{0}{1}".format(type,d)]
+                mangle_type = config.type_wrapper.ITKM["I{0}{1}".format(type,d)]
                 template_params.append(image_type)
                 mangled_name.append(mangle_type)
             self.wrap_template("".join(mangled_name), template_params)
-                
+    
+    def filter_dims(self, dimension_condition):
+        dims = []
+        
+        if isinstance(dimension_condition, basestring) and re.match(r"^[0-9]+\+$", dimension_condition) :
+            min_dim = int(re.sub(r"^([0-9]+)\+$", r"\1", dimension_condition))
+            max_disallowed = min_dim-1
+            var_name = ""
+            for d in env["WRAP_ITK_DIMS"] :
+                if d >= min_dim :
+                    dims.append(d)
+        else :
+            # The condition is just a list of dims. Return the intersection of these
+            # dims with the selected ones.
+            s1 = set(env["WRAP_ITK_DIMS"])
+            s2 = set(dimension_condition)
+            dims = list(s1.intersection(s2))
+        
+        return dims
     
 if __name__ == "SCons.Script" :
     env = Environment()
@@ -275,6 +297,9 @@ if __name__ == "SCons.Script" :
         "/usr/include/InsightToolkit/",
         "/usr/include/InsightToolkit/BasicFilters/", 
         "/usr/include/InsightToolkit/Common/",
+        "/usr/include/InsightToolkit/Numerics/Statistics/",
+        "/usr/include/InsightToolkit/Review/",
+        "/usr/include/InsightToolkit/SpatialObject/",
         "/usr/include/InsightToolkit/Utilities/vxl/core/",
         "/usr/include/InsightToolkit/Utilities/vxl/vcl/",
     ])
@@ -288,8 +313,8 @@ if __name__ == "SCons.Script" :
     wrapper.wrap_library("PixelMath")
     wrapper.wrap_module("itkAndImageFilter")
     wrapper.wrap_class("itk::AndImageFilter", "POINTER_WITH_SUPERCLASS")
-    wrapper.wrap_image_filter(["unsigned short"], 3)
-    wrapper.wrap_image_filter(["unsigned char"], 3)
+    wrapper.wrap_image_filter(config.WRAP_ITK_USIGN_INT, 3)
+    wrapper.wrap_image_filter(config.WRAP_ITK_SIGN_INT, 3)
     wrapper.end_wrap_class()
     wrapper.end_wrap_module("itkAndImageFilter")
     wrapper.end_wrap_library()

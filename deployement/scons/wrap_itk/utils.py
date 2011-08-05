@@ -5,11 +5,3 @@ def configure_file(source, destination, **kwargs) :
         data = data.replace("@{0}@".format(key), value)
     
     open(destination, "w").write(data)
-
-def get_mangled_type_name(type):
-    dictionary = {
-        "unsigned short" : "US",
-        "unsigned char" : "UC"
-    }
-    
-    return dictionary[type]
