@@ -709,7 +709,12 @@ def get_module_includes(requirements, classes_template_info, pointer):
             swig_name = "%s%s"%(swig_class_name, "".join(mangled_name))
             
             content.append("typedef %s %s;"%(cpp_name, swig_name))
-            content.append("typedef %s::Pointer::SmartPointer %s_Pointer;"%(cpp_name, swig_name))
+            if "pointer" in pointer :
+                content.append("typedef %s::Pointer::SmartPointer %s_Pointer;"%(cpp_name, swig_name))
+            if "superclass" in pointer :
+                content.append("typedef %s::Superclass::Self %s_Superclass;"%(cpp_name, swig_name))
+            if pointer == "pointer_with_superclass" :
+                content.append("typedef %s::Superclass::Pointer::SmartPointer %s_Superclass_Pointer;"%(cpp_name, swig_name))
     
     return "\n".join(content)
 
