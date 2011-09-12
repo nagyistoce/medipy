@@ -8,6 +8,7 @@
 
 import itk
 
+import medipy.intensity
 import medipy.itk
 
 def mono_modal_statistical_change_detection(input1, input2, mask):
@@ -34,3 +35,30 @@ def mono_modal_statistical_change_detection(input1, input2, mask):
             Input1=itk_input_1, Input2=itk_input_2, Mask=itk_mask)
     itk_output = change_detection_filter()[0]
     return medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+
+def change_detection_clustering(input, mask, 
+                                maximum_number_of_clusters, minimum_cluster_size):
+    """ Create clusters on the change detection image.
+        
+        <gui>
+            <item name="input" type="Image" label="Input"/>
+            <item name="mask" type="Image" label="Mask"/>
+            <item name="maximum_number_of_clusters" type="Int" label="Max # of clusters" 
+                  initializer="30"/>
+            <item name="minimum_cluster_size" type="Int" label="Min cluster size" 
+                  initializer="5"/>
+            <item name="result" type="Image" initializer="output=True"
+                  role="return" label="Result"/>
+        </gui>
+    """
+    
+    itk_input = medipy.itk.medipy_image_to_itk_image(input, False)
+    itk_mask = medipy.itk.medipy_image_to_itk_image(mask, False)
+    clustering_filter = itk.ChangeDetectionClusteringImageFilter[
+        itk_input, itk_mask, itk_input].New(
+            Input=itk_input, Mask=itk_mask, 
+            MaximumNumberOfClusters=maximum_number_of_clusters,
+            MinimumClusterSize=minimum_cluster_size)
+    itk_output = clustering_filter()[0]
+    return medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+    
