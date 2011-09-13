@@ -8,6 +8,7 @@
 
 import itk
 
+import medipy.base
 import medipy.intensity
 import medipy.itk
 
@@ -61,4 +62,24 @@ def change_detection_clustering(input, mask,
             MinimumClusterSize=minimum_cluster_size)
     itk_output = clustering_filter()[0]
     return medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+
+def clusters_to_annotations(image):
+    """
+        <gui>
+            <item name="image" type="Image" label="Image"/>
+        </gui>
+    """
+    
+    itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
+    annotations_calculator = itk.ClustersToAnnotationsCalculator[itk_image].New(
+        Image=itk_image)
+    annotations_calculator.Compute()
+    
+    image.annotations[:] = []
+    
+    for label in annotations_calculator.GetAnnotationsLabels() :
+        position = [x for x in reversed(annotations_calculator.GetAnnotation(label))]
+        annotation = medipy.base.ImageAnnotation(
+            position, label, medipy.base.ImageAnnotation.Shape.cross, 10)
+        image.annotations.append(annotation)
     
