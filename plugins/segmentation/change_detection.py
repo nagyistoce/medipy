@@ -6,6 +6,9 @@
 # for details.                                                      
 ##########################################################################
 
+import colorsys
+import random
+
 import itk
 
 import medipy.base
@@ -66,7 +69,7 @@ def change_detection_clustering(input, mask,
 def clusters_to_annotations(image):
     """
         <gui>
-            <item name="image" type="Image" label="Image"/>
+            <item name="image" type="Image" label="Image" role="output"/>
         </gui>
     """
     
@@ -79,7 +82,10 @@ def clusters_to_annotations(image):
     
     for label in annotations_calculator.GetAnnotationsLabels() :
         position = [x for x in reversed(annotations_calculator.GetAnnotation(label))]
+        color = colorsys.hsv_to_rgb(random.random(), 1, 1)
+        
         annotation = medipy.base.ImageAnnotation(
-            position, label, medipy.base.ImageAnnotation.Shape.cross, 10)
+            position, str(label), 
+            medipy.base.ImageAnnotation.Shape.cross, 10, color)
         image.annotations.append(annotation)
     
