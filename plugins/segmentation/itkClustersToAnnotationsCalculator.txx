@@ -23,7 +23,7 @@ ClustersToAnnotationsCalculator<TImage>
     typedef std::map<PixelType, std::vector<IndexType> > RegionsMapType;
     RegionsMapType regions;
 
-    for(itk::ImageRegionConstIteratorWithIndex<ImageType> it(
+    for(ImageRegionConstIteratorWithIndex<ImageType> it(
             this->m_Image, this->m_Image->GetRequestedRegion());
         !it.IsAtEnd(); ++it)
     {
@@ -55,7 +55,7 @@ ClustersToAnnotationsCalculator<TImage>
         }
 
         // Create sub-image
-        typedef itk::Image<unsigned int, ImageType::ImageDimension> SubImageType;
+        typedef Image<signed int, ImageType::ImageDimension> SubImageType;
         typename SubImageType::Pointer sub_image = SubImageType::New();
         typename SubImageType::RegionType::SizeType size;
         for(unsigned int d=0; d<SubImageType::ImageDimension; ++d)
@@ -79,13 +79,14 @@ ClustersToAnnotationsCalculator<TImage>
         distance_map_filter->SetInput(sub_image);
         distance_map_filter->Update();
 
-        // Find maximum
-        typedef itk::MinimumMaximumImageCalculator<SubImageType> MaximumCalculatorType;
-        typename MaximumCalculatorType::Pointer maximum_calculator = MaximumCalculatorType::New();
-        maximum_calculator->SetImage(distance_map_filter->GetOutput());
-        maximum_calculator->ComputeMaximum();
+        // Find minimum, since "the inside is considered as having negative
+        // distances" (cf. doc of SignedMaurerDistanceMapImageFilter)
+        typedef MinimumMaximumImageCalculator<SubImageType> MinimumCalculatorType;
+        typename MinimumCalculatorType::Pointer minimum_calculator = MinimumCalculatorType::New();
+        minimum_calculator->SetImage(distance_map_filter->GetOutput());
+        minimum_calculator->ComputeMinimum();
 
-        this->m_Annotations[regions_it->first] = maximum_calculator->GetIndexOfMaximum();
+        this->m_Annotations[regions_it->first] = minimum_calculator->GetIndexOfMinimum();
     }
 }
 

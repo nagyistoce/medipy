@@ -82,6 +82,7 @@ def clusters_to_annotations(image):
     
     for label in annotations_calculator.GetAnnotationsLabels() :
         position = [x for x in reversed(annotations_calculator.GetAnnotation(label))]
+        position = image.index_to_physical(position)
         color = colorsys.hsv_to_rgb(random.random(), 1, 1)
         
         annotation = medipy.base.ImageAnnotation(
