@@ -91,6 +91,7 @@ class Image(Observable):
         self._direction = None
         
         self._index_to_physical_matrix = None
+        self._physical_to_index_matrix = None
         
         ##################
         # Initialization #
@@ -181,6 +182,12 @@ class Image(Observable):
         """Return data as a numpy array."""
         return numpy.asarray(self.data)
     
+    def index_to_physical(self, index):
+        return numpy.dot(self._index_to_physical_matrix, index)
+    
+    def physical_to_index(self, index):
+        return numpy.dot(self._physical_to_index_matrix, index)
+    
     ##############
     # Properties #
     ##############
@@ -245,6 +252,7 @@ class Image(Observable):
                 self._index_to_physical_matrix = numpy.diag(self._spacing)*self._direction
             except ValueError,e :
                 logging.warning("Could not compute index to physical matrix : {0}".format(e))
+            self._physical_to_index_matrix = numpy.linalg.inv(self._index_to_physical_matrix)
     
     def _default_spacing(self):
         """ Return the default image spacing, according to the data type.
