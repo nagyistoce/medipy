@@ -30,6 +30,12 @@ instantiations = get_instantiations("itk::Image", types, dimensions)
 instantiations = [(i,i,i) for i in instantiations]
 classes_template_info = [ 
     ("itk::MonoModalStatisticalChangeDetectionImageFilter", instantiations, "pointer"),
-    ("itk::ChangeDetectionClusteringImageFilter", instantiations, "pointer")
+    ("itk::ChangeDetectionClusteringImageFilter", instantiations, "pointer"),
 ]
+
+instantiations = [(i,) for i in get_instantiations("itk::Image", types, dimensions)]
+classes_template_info.append(
+    ("itk::ClustersToAnnotationsCalculator", instantiations, "pointer")
+)
+
 env.WrapITKPythonModule("StatisticalChangeDetectionImageFilters", classes_template_info)
