@@ -38,6 +38,8 @@ public :
     void Compute();
 
     MapType const & GetAnnotations() const;
+    std::vector<typename MapType::key_type> GetAnnotationsLabels() const;
+    IndexType GetAnnotation(PixelType label) const;
 
 protected:
     ClustersToAnnotationsCalculator();

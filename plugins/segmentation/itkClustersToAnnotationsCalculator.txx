@@ -90,6 +90,31 @@ ClustersToAnnotationsCalculator<TImage>
 }
 
 template<typename TImage>
+std::vector<typename ClustersToAnnotationsCalculator<TImage>::MapType::key_type>
+ClustersToAnnotationsCalculator<TImage>
+::GetAnnotationsLabels() const
+{
+    std::vector<typename MapType::key_type> labels;
+    labels.reserve(this->m_Annotations.size());
+
+    for(typename MapType::const_iterator it=this->m_Annotations.begin();
+        it!=this->m_Annotations.end(); ++it)
+    {
+        labels.push_back(it->first);
+    }
+
+    return labels;
+}
+
+template<typename TImage>
+typename ClustersToAnnotationsCalculator<TImage>::IndexType
+ClustersToAnnotationsCalculator<TImage>
+::GetAnnotation(ClustersToAnnotationsCalculator<TImage>::PixelType label) const
+{
+    return this->m_Annotations.find(label)->second;
+}
+
+template<typename TImage>
 ClustersToAnnotationsCalculator<TImage>
 ::ClustersToAnnotationsCalculator()
 {
