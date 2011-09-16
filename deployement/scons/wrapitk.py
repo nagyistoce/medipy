@@ -690,6 +690,7 @@ def get_module_includes(requirements, classes_template_info, pointer):
     content.append("")
     
     for class_name, instantiations, pointer in classes_template_info :
+        pointer = pointer or ""
         swig_class_name = get_swig_class_name(class_name)
         
         template_parameters = []
