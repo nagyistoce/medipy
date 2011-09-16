@@ -48,11 +48,7 @@
             <ul>
 <li><a class="reference external" href="#">Installation d&#8217;ITK et de WrapITK</a><ul>
 <li><a class="reference external" href="#paquets">Paquets</a></li>
-<li><a class="reference external" href="#construction-d-un-paquet">Construction d&#8217;un paquet</a><ul>
-<li><a class="reference external" href="#id2">ITK</a></li>
-<li><a class="reference external" href="#id3">WrapITK</a></li>
-</ul>
-</li>
+<li><a class="reference external" href="#construction-d-un-paquet">Construction d&#8217;un paquet</a></li>
 </ul>
 </li>
 </ul>
@@ -88,171 +84,21 @@
 <h1>Installation d&#8217;ITK et de WrapITK<a class="headerlink" href="#installation-d-itk-et-de-wrapitk" title="Lien permanent vers ce titre">¶</a></h1>
 <div class="section" id="paquets">
 <h2>Paquets<a class="headerlink" href="#paquets" title="Lien permanent vers ce titre">¶</a></h2>
-<p>Des paquets pour <a class="reference external" href="http://www.itk.org/">ITK</a> sont disponibles pour Debian 5.0,
-Ubuntu 8.10, Ubuntu 9.04 et Ubuntu 9.10. Ces paquets existent pour les
-architectures <tt class="docutils literal"><span class="pre">i386</span></tt> et <tt class="docutils literal"><span class="pre">amd64</span></tt>. Ils sont disponibles dans un dépôt non
-officiel, qui peut être ajouté au système en ajoutant une ligne au fichier
-<tt class="docutils literal"><span class="pre">/etc/apt/sources.list</span></tt> :</p>
-<ul class="simple">
-<li>Debian 5.0 : <tt class="docutils literal"><span class="pre">deb</span> <span class="pre">http://download.opensuse.org/repositories/home:/tonddast:/itk/Debian_5.0/</span> <span class="pre">./</span></tt></li>
-<li>Ubuntu 8.10 : <tt class="docutils literal"><span class="pre">deb</span> <span class="pre">http://download.opensuse.org/repositories/home:/tonddast:/itk/xUbuntu_8.10/</span> <span class="pre">./</span></tt></li>
-<li>Ubuntu 9.04 : <tt class="docutils literal"><span class="pre">deb</span> <span class="pre">http://download.opensuse.org/repositories/home:/tonddast:/itk/xUbuntu_9.04/</span> <span class="pre">./</span></tt></li>
-<li>Ubuntu 9.10 : <tt class="docutils literal"><span class="pre">deb</span> <span class="pre">http://download.opensuse.org/repositories/home:/tonddast:/itk/xUbuntu_9.10/</span> <span class="pre">./</span></tt></li>
-</ul>
-<p>ITK peut ensuite être installé par <tt class="docutils literal"><span class="pre">aptitude</span> <span class="pre">install</span> <span class="pre">libitk</span> <span class="pre">libitk-dev</span></tt>.</p>
-<p>Pour Ubuntu 10.04 LTS, un paquet est disponible dans <tt class="docutils literal"><span class="pre">/dskcommun/lamy/ITK</span></tt>.</p>
-<p>Des paquets existent également pour <a class="reference external" href="http://code.google.com/p/wrapitk/">WrapITK</a>
-pour Debian 5.0 (i386), Ubuntu 9.04 (i386 et amd64) et Ubuntu 9.10 (i386).
-Ils sont disponibles sur notre <a class="reference external" href="ftp://alsace.u-strasbg.fr/pub/tmp/wrapitk/">serveur FTP</a>
-et dans <tt class="docutils literal"><span class="pre">/dskcommun/lamy/wrapitk</span></tt>.</p>
+<p>Nous mettons à disposition des paquets pour ITK 3.14 et WrapITK/Python 0.3.0 pour Ubuntu (versions 9.04 et 10.04), à la fois en 32 bits et en 64 bits.
+Ces paquets sont disponibles sur le <a class="reference external" href="http://code.google.com/p/medipy/downloads/list">site Google Code de MediPy</a>.</p>
 </div>
 <div class="section" id="construction-d-un-paquet">
 <h2>Construction d&#8217;un paquet<a class="headerlink" href="#construction-d-un-paquet" title="Lien permanent vers ce titre">¶</a></h2>
-<p>Si aucun paquet n&#8217;existe pour votre distribution, il peut être intéressant d&#8217;en
-fabriquer un et de l&#8217;héberger sur le <a class="reference external" href="ftp://alsace.u-strasbg.fr/pub/tmp/wrapitk/">serveur FTP</a>.
-<a class="reference external" href="http://www.cmake.org/">CMake</a> et <a class="reference external" href="http://fakeroot.alioth.debian.org/">fakeroot</a>
-sont nécessaires pour la construction du paquet.</p>
-<div class="section" id="id2">
-<h3>ITK<a class="headerlink" href="#id2" title="Lien permanent vers ce titre">¶</a></h3>
-<ul>
-<li><p class="first">Génération du Makefile :</p>
-<div class="highlight-python"><pre>mkdir InsightToolkit-3.14.0-build
-cd InsightToolkit-3.14.0-build
-ccmake ../InsightToolkit-3.14.0</pre>
-</div>
-</li>
-<li><p class="first">Options de cmake :</p>
-<ul class="simple">
-<li>BUILD_TESTING=OFF</li>
-<li>CMAKE_BUILD_TYPE=Release</li>
-<li>CMAKE_INSTALL_PREFIX=/usr</li>
-<li>BUILD_SHARED_LIBS=ON</li>
-<li>BUILD_DOXYGEN=ON</li>
-<li>BUILD_DOCUMENTATION=ON</li>
-<li>BUILD_EXAMPLES=OFF</li>
-<li>ITK_USE_REVIEW=ON</li>
-</ul>
-</li>
-<li><p class="first">Compilation : la compilation parallèle (<tt class="docutils literal"><span class="pre">make</span> <span class="pre">-j</span> <span class="pre">n</span></tt>) fonctionne sans problème</p>
-<div class="highlight-python"><pre>make -j 3</pre>
-</div>
-</li>
-<li><p class="first">Installation locale :</p>
-<div class="highlight-python"><pre>mkdir -p local_install/usr
-cmake -D CMAKE_INSTALL_PREFIX=local_install/usr -P cmake_install.cmake</pre>
-</div>
-</li>
-<li><p class="first">Création du fichier de contrôle du paquet (adapter les champs <tt class="docutils literal"><span class="pre">Architecture</span></tt>
-et <tt class="docutils literal"><span class="pre">Maintainer</span></tt>) :</p>
-<div class="highlight-python"><pre>mkdir -p local_install/DEBIAN
-cat &lt;&lt;EOF &gt; local_install/DEBIAN/control
-Package: InsightToolkit
-Version: 3.14.0-lamy0
-Section: libs
-Priority: extra
-Architecture: i386
-Maintainer: Julien Lamy &lt;lamy@unistra.fr&gt;
-Description: Image processing toolkit for registration and segmentation
- ITK is an open-source software toolkit for performing registration and
- segmentation. Segmentation is the process of identifying and classifying
- data found in a digitally sampled representation. Typically the sampled
- representation is an image acquired from such medical instrumentation as
- CT or MRI scanners. Registration is the task of aligning or developing
- correspondences between data. For example, in the medical environment, a
- CT scan may be aligned with a MRI scan in order to combine the
- information contained in both.
-EOF</pre>
-</div>
-</li>
-<li><p class="first">Intégration du répertoire <tt class="docutils literal"><span class="pre">/usr/local/InsightToolkit</span></tt> au chemin de recherche
-de <tt class="docutils literal"><span class="pre">ld</span></tt></p>
-<div class="highlight-python"><pre>mkdir -p local_install/etc/ld.so.conf.d
-echo /usr/lib/InsightToolkit &gt; local_install/etc/ld.so.conf.d/itk.conf
-cat &lt;&lt;EOF &gt; local_install/DEBIAN/postinstall
-#!/bin/sh
-/sbin/ldconfig
-EOF
-chmod 755 local_install/DEBIAN/postinstall
-cp -a local_install/DEBIAN/postinstall local_install/DEBIAN/prerm</pre>
-</div>
-</li>
-<li><p class="first">Création du paquet :</p>
-<div class="highlight-python"><pre>fakeroot dpkg-deb -b local_install ./itk-3.14.0-lamy0.deb</pre>
-</div>
-</li>
-</ul>
-</div>
-<div class="section" id="id3">
-<h3>WrapITK<a class="headerlink" href="#id3" title="Lien permanent vers ce titre">¶</a></h3>
-<ul>
-<li><p class="first">Récupération des sources :</p>
-<div class="highlight-python"><pre>cd ~/src
-wget http://wrapitk.googlecode.com/files/wrapitk-0.3.0.tar.bz2
-tar jxf wrapitk-0.3.0.tar.bz2</pre>
-</div>
-</li>
-<li><p class="first">Génération du Makefile :</p>
-<div class="highlight-python"><pre>mkdir wrapitk-0.3.0-build
-cd wrapitk-0.3.0-build
-ccmake ../wrapitk-0.3.0</pre>
-</div>
-</li>
-<li><p class="first">Options de cmake :</p>
-<ul class="simple">
-<li>BUILD_TESTING=OFF</li>
-<li>CMAKE_BUILD_TYPE=Release</li>
-<li>CMAKE_INSTALL_PREFIX=/usr</li>
-<li>WRAP_ITK_DOC=ON</li>
-<li>WRAP_ITK_PYTHON=ON</li>
-<li>INSTALL_WRAP_ITK_COMPATIBILITY=ON</li>
-<li>compiler pour tous les types entiers</li>
-</ul>
-</li>
-<li><p class="first">Compilation : la compilation parallèle (<tt class="docutils literal"><span class="pre">make</span> <span class="pre">-j</span> <span class="pre">n</span></tt>) fonctionne sans
-problème</p>
-<div class="highlight-python"><pre>make -j 3</pre>
-</div>
-</li>
-<li><p class="first">Installation locale :</p>
-<div class="highlight-python"><pre>mkdir -p local_install/usr
-sed -e "s/^FILE/#FILE/" -i install_wrapitk_compatibility.cmake
-cmake -D CMAKE_INSTALL_PREFIX=local_install/usr -P cmake_install.cmake
-sed -e "s/^#FILE/FILE/" -i install_wrapitk_compatibility.cmake</pre>
-</div>
-</li>
-<li><p class="first">Copie des fichiers « InstallOnly »</p>
-<div class="highlight-python"><pre>mkdir -p local_install/usr/lib/python2.6/dist-packages
-mkdir -p local_install/usr/share/cmake-2.6/Modules
-cp Languages/Python/InstallOnly/WrapITK.pth local_install/usr/lib/python2.6/dist-packages
-cp InstallOnly/FindWrapITK.cmake local_install/usr/share/cmake-2.6/Modules</pre>
-</div>
-</li>
-<li><p class="first">Création du fichier de contrôle du paquet (adapter les champs <tt class="docutils literal"><span class="pre">Architecture</span></tt>
-et <tt class="docutils literal"><span class="pre">Maintainer</span></tt>)</p>
-<div class="highlight-python"><pre>mkdir -p local_install/DEBIAN
-cat &lt;&lt;EOF &gt; local_install/DEBIAN/control
-Package: wrapitk
-Version: 0.3.0
-Section: libs
-Priority: extra
-Architecture: i386
-Maintainer: Julien Lamy &lt;lamy@unistra.fr&gt;
-Description: Automated dynamic language binding for Insight Toolkit (ITK)
- WrapITK is an effort to automate the language binding process of one of
- the largest highly template-oriented c++ libraries, the Insight Toolkit
- image processing library.
- .
- Currently Python, Java and Tcl language bindings are implemented, but
- only Python is fully supported. For ITK .NET languages wrapper you may
- refer to ManagedITK.
-EOF</pre>
-</div>
-</li>
-<li><p class="first">Création du paquet :</p>
-<div class="highlight-python"><pre>fakeroot dpkg-deb -b local_install ./wrapitk-0.3.0.deb</pre>
-</div>
-</li>
-</ul>
+<p>Si aucun paquet n&#8217;existe pour votre distribution, nous avons publié deux scripts permettant de créer des paquets <tt class="docutils literal"><span class="pre">.deb</span></tt> pour ITK et WrapITK.
+<a class="reference external" href="http://www.cmake.org/">CMake</a> et <a class="reference external" href="http://fakeroot.alioth.debian.org/">fakeroot</a> sont nécessaires pour la construction du paquet.</p>
+<p>Pour ces deux scripts, la variable d&#8217;environnement <tt class="docutils literal"><span class="pre">MAINTAINER</span></tt> doit être définie ; cette variable permet de renseigner le champ correspondant dans le paquet.
+Elle doit être au format <tt class="docutils literal"><span class="pre">&quot;Prénom</span> <span class="pre">Nom</span> <span class="pre">&lt;adresse</span> <span class="pre">électronique&gt;&quot;</span></tt>.
+La variable <tt class="docutils literal"><span class="pre">JOBS</span></tt> peut également être définie, elle permet de contrôler le nombre de tâches de compilation lancées simultannément (option <tt class="docutils literal"><span class="pre">-j</span></tt> de la commande <tt class="docutils literal"><span class="pre">make</span></tt>).</p>
+<p>Pour compiler et créer les paquets dans le répertoire courant en utilisant trois tâches de compilation simultannées, on aura donc :</p>
+<div class="highlight-python"><pre>MAINTAINER="John Doe &lt;john@example.com&gt;"
+JOBS=3
+$HOME/src/medipy/deployement/package_itk.sh
+$HOME/src/medipy/deployement/package_wrapitk.sh</pre>
 </div>
 </div>
 </div>
