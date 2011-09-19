@@ -273,7 +273,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._mouse_tools[button] = (tool_class, args, kwargs)
         
         for slice in self._slices :
-            tool = tool_class(slice, *args, **kwargs)
+            tool = tool_class(*args, **kwargs)
             slice.set_mouse_button_tool(button, tool)
     
     def get_wheel_tool(self, direction) :
@@ -293,7 +293,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._mouse_tools[event_name] = (tool_class, args, kwargs)
         
         for slice in self._slices :
-            tool = tool_class(slice, *args, **kwargs)
+            tool = tool_class(*args, **kwargs)
             slice.set_wheel_tool(direction, tool)
     
     def get_keyboard_tool(self, key):
@@ -303,7 +303,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._keyboard_tools[key] = (tool_class, args, kwargs)
         
         for slice in self._slices :
-            tool = tool_class(slice, *args, **kwargs)
+            tool = tool_class(*args, **kwargs)
             slice.set_keyboard_tool(key, tool)
     
     def set_next_window_info(self, info):
