@@ -76,12 +76,12 @@ EOF
 # Add library dir to ld
 mkdir -p local_install/etc/ld.so.conf.d
 echo /usr/lib/InsightToolkit > local_install/etc/ld.so.conf.d/itk.conf
-cat <<EOF > local_install/DEBIAN/postinstall
+cat <<EOF > local_install/DEBIAN/postinst
 #!/bin/sh
 /sbin/ldconfig
 EOF
-chmod 755 local_install/DEBIAN/postinstall
-cp -a local_install/DEBIAN/postinstall local_install/DEBIAN/prerm
+chmod 755 local_install/DEBIAN/postinst
+cp -a local_install/DEBIAN/postinst local_install/DEBIAN/prerm
 
 # Build the package
 fakeroot dpkg-deb -b local_install ./$PACKAGE_NAME
