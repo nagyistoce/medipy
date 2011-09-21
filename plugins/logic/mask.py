@@ -28,3 +28,25 @@ def create_mask(input, background):
     numpy.not_equal(input, background, output.data)
     
     return output
+
+def apply_mask(input, mask, background, outside):
+    """ Apply the mask to the input image : the value of the output image is :
+          * input(p) if input(p) != background
+          * outside otherwise
+    
+        <gui>
+            <item name="input" type="Image" label="Input"/>
+            <item name="mask" type="Image" label="Mask"/>
+            <item name="background" type="Float" initializer="0" label="Background"/>
+            <item name="outside" type="Float" initializer="0" label="Outside"/>
+            <item name="output" type="Image" initializer="output = True"
+                role="return" label="Output"/>
+        </gui>
+    """
+    
+    itk_input = medipy.itk.medipy_image_to_itk_image(input, False)
+    itk_mask = medipy.itk.medipy_image_to_itk_image(mask, False)
+    mask_filter = itk.MaskWithValueImageFilter[itk_input, itk_mask, itk_input].New(
+        itk_input, Mask=itk_mask, BackgroundValue=background, OutsideValue=outside)
+    itk_output = mask_filter()[0]
+    return medipy.itk.itk_image_to_medipy_image(itk_output, None, True)

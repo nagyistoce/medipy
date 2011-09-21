@@ -4,7 +4,13 @@ from deployement.scons.wrapitk import get_instantiations
 Import("env")
 env = env.Clone()
 
-env.Use("itk")
-env.PythonModule("_mask", ["mask.i", "mask.cpp"])
+types = ["%s %s"%x 
+         for x in itertools.product(["signed", "unsigned"], ["short", "long"])]
+types = ["float"]
+dimensions = [3]
+instantiations = get_instantiations("itk::Image", types, dimensions)
+instantiations = [(i,i,i) for i in instantiations]
+classes_template_info = [ ("itk::MaskWithValueImageFilter", instantiations, "pointer") ]
+env.WrapITKPythonModule("MaskWithValueImageFilter", classes_template_info)
 
 env.Glob("*.py")
