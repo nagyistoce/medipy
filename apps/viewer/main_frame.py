@@ -31,13 +31,14 @@ class MainFrame(medipy.gui.base.Frame):
             medipy.gui.base.UI.from_window(self, window, names)
             image = medipy.base.Image((256,256,256), value=0)
             self.image = medipy.gui.image.Image(
-                self.panel, layers = [{"image" : image}], interpolation = True)
+                self.panel, layers = [{"image" : image}], interpolation = False)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(self.image, 1, wx.EXPAND)
             self.panel.SetSizer(sizer)
             self.panel.Layout()
     
     def __init__(self, parent=None, *args, **kwargs):
+        self._title = "MediPy/Viewer"
         self.ui = MainFrame.UI()
         self._save_location = None
         
@@ -49,9 +50,25 @@ class MainFrame(medipy.gui.base.Frame):
     def OnOpen(self, dummy):
         images = medipy.gui.io.load(self)
         if images :
+            image = images[0]
+            
             self.ui.image.delete_layer(0)
-            self.ui.image.append_layer(images[0])
+            self.ui.image.append_layer(image)
             self.ui.image.reset_view()
+            
+            if "loader" in image.metadata :
+                filename = image.metadata["loader"]["filename"]
+            elif image.metadata.get("series_description", "") :
+                filename = image.metadata["series_description"]
+                if "series_instance_uid" in image.metadata :
+                    filename += "/" + str(image.metadata["series_instance_uid"])
+            else :
+                filename = None
+            
+            if filename :
+                self.SetTitle("{0} ({1})".format(self._title, filename))
+            else :
+                self.SetTitle(self._title)
     
     def OnSave(self, event):
         if self._save_location is None :
@@ -63,9 +80,34 @@ class MainFrame(medipy.gui.base.Frame):
         result = medipy.gui.io.save(self.ui.image.get_layer_image(0), self)
         if result is not None and self._save_location is None :
             self._save_location = result
+            self.SetTitle("{0} ({1})".format(self._title, result))
     
     def OnQuit(self, dummy):
         self.Close()
+    
+    def OnResetView(self, dummy):
+        self.ui.image.reset_view()
+        self.ui.image.render()
+    
+    def OnMultiplanar(self, dummy):
+        self.ui.image.slice_mode = "multiplanar"
+        self.ui.image.render()
+    
+    def OnAxial(self, dummy):
+        self.ui.image.slice_mode = "axial"
+        self.ui.image.render()
+    
+    def OnCoronal(self, dummy):
+        self.ui.image.slice_mode = "coronal"
+        self.ui.image.render()
+    
+    def OnSagittal(self, dummy):
+        self.ui.image.slice_mode = "sagittal"
+        self.ui.image.render()
+    
+    def OnInterpolation(self, event):
+        self.ui.image.interpolation = event.IsChecked()
+        self.ui.image.render()
     
     def OnAbout(self, dummy):
         info = wx.AboutDialogInfo()
