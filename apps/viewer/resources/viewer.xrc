@@ -24,7 +24,41 @@
         </object>
         <label>&amp;File</label>
       </object>
-      <object class="wxMenu" name="view"/>
+      <object class="wxMenu" name="view">
+        <label>&amp;View</label>
+        <object class="wxMenuItem" name="reset_view">
+          <label>&amp;Reset view</label>
+          <accel>Ctrl+0</accel>
+        </object>
+        <object class="wxMenu" name="slices">
+          <label>&amp;Slices</label>
+          <object class="wxMenuItem" name="multiplanar">
+            <label>&amp;Multi-planar</label>
+            <accel>Alt+M</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="axial">
+            <label>&amp;Axial</label>
+            <accel>Alt+A</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="coronal">
+            <label>&amp;Coronal</label>
+            <accel>Alt+C</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="sagittal">
+            <label>&amp;Sagittal</label>
+            <accel>Alt+S</accel>
+            <radio>1</radio>
+          </object>
+        </object>
+        <object class="wxMenuItem" name="interpolation">
+          <label>Interpolation</label>
+          <accel>Alt+I</accel>
+          <checkable>1</checkable>
+        </object>
+      </object>
       <object class="wxMenu" name="help">
         <label>&amp;Help</label>
         <object class="wxMenuItem" name="about">
