@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+##########################################################################
+# MediPy - Copyright (C) Universite de Strasbourg, 2011             
+# Distributed under the terms of the CeCILL-B license, as published by 
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
+# for details.                                                      
+##########################################################################
+
+import medipy.gui.base
+
+from main_frame import MainFrame
+
+app = medipy.gui.base.Application()
+app.SetAppName("MediPy/Viewer")
+
+frame = MainFrame(None, size=(800,800))
+frame.Show()
+    
+app.MainLoop()
