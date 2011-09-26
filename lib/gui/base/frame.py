@@ -13,6 +13,7 @@ import wx.xrc
 
 import medipy.gui.base.base
 import medipy.gui.utilities
+from medipy.gui import wxVTKRenderWindowInteractor
 import medipy.gui.xrc_wrapper
 
 
@@ -36,6 +37,25 @@ class Frame(medipy.gui.xrc_wrapper.Frame):
         self.ui.from_window(self, controls)
         # Bind menu items events to event handlers
         self.bind_menu_items()
+        # Bind events
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+    
+    def OnClose(self, event):
+        """ Fix a destruction bug that happens when the RenderWindowInteractors
+            are destroyed too late : the drawable is not valid and an error is
+            thrown.
+        """
+        
+        # Close all renderwindow interactors beneath us
+        queue = [event.GetEventObject()]
+        while queue :
+            window = queue.pop(0)
+            for child in window.GetChildren() :
+                if isinstance(child, wxVTKRenderWindowInteractor) :
+                    child.Close(not event.CanVeto())
+                queue.append(child)
+        
+        event.Skip()
     
     def bind_menu_items(self):
         """ Bind the EVT_MENU event of all menu items to member functions with
