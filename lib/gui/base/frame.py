@@ -37,6 +37,8 @@ class Frame(medipy.gui.xrc_wrapper.Frame):
         self.ui.from_window(self, controls)
         # Bind menu items events to event handlers
         self.bind_menu_items()
+        # Bind tool events to event handlers
+        self.bind_tools()
         # Bind events
         self.Bind(wx.EVT_CLOSE, self.OnClose)
     
@@ -83,5 +85,34 @@ class Frame(medipy.gui.xrc_wrapper.Frame):
             if hasattr(self, function_name) :
                 handler = getattr(self, function_name)
                 self.Bind(wx.EVT_MENU, handler, id=item_id)
+            else :
+                logging.warning("No function called %s", function_name)
+    
+    def bind_tools(self):
+        """ Bind the EVT_TOOL event of all tools to member functions with
+            the (almost) same name. Tools must use 
+            underscore_separated_name, while function must be called 
+            OnCamelCaseName.
+        """
+        
+        for element in self._xml_resource.getElementsByTagName("object") :
+            if element.getAttribute("class") != "tool" :
+                continue
+            
+            name = element.getAttribute("name")
+                
+            if name == "" :
+                logging.warning("Tool has invalid name \"%s\"", name)
+                continue
+                
+            function_name = medipy.gui.utilities.underscore_to_camel_case(name)
+            function_name = "On" + function_name
+            
+            item_id = wx.xrc.XRCID(name)
+            
+            # Bind to handler function
+            if hasattr(self, function_name) :
+                handler = getattr(self, function_name)
+                self.Bind(wx.EVT_TOOL, handler, id=item_id)
             else :
                 logging.warning("No function called %s", function_name)
