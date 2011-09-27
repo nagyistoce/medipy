@@ -43,6 +43,9 @@ def load_xrc(xrc_file, handlers, class_name, parent, window_name):
     
     # Build frame
     loader = getattr(resource, "Load%s"%class_name)
-    window = loader(parent, window_name)
+    if class_name in ["Bitmap", "Icon", "Menu"] :
+        window = loader(window_name)
+    else :
+        window = loader(parent, window_name)
     
     return (xml_document, window) 
