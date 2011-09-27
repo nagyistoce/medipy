@@ -215,3 +215,25 @@ class Pan(MouseTool) :
             if image.is_inside(index_position) :
                 slice.center_on_physical_position(world_position)
                 rwi.Render()
+
+class PopupMenu(MouseTool) :
+    """ Display a pop-up menu.
+    """
+    
+    def __init__(self, window, button, menu):
+        super(PopupMenu, self).__init__()
+        self.window = window
+        self.button = button
+        self.menu = menu
+    
+    def start_interaction(self, rwi, slice) :
+        # The ButtonReleaseEvent will got get dispatched to VTK, so
+        # the slice will keep the button as event source
+        # Simulate the release
+        rwi.InvokeEvent("{0}ButtonReleaseEvent".format(self.button))
+        
+        # Convert VTK position to wx position (invert Y axis)
+        position = list(rwi.GetEventPosition())
+        position[1] = rwi.GetRenderWindow().GetSize()[1]-position[1]-1
+        
+        self.window.PopupMenu(self.menu, position)
