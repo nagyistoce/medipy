@@ -26,6 +26,8 @@ class Frame(medipy.gui.xrc_wrapper.Frame):
         
         self.ui = ui
         
+        self.tool_ids = []
+        
         # Load XRC
         self._xml_resource, frame = medipy.gui.base.base.load_xrc(
             xrc_file, handlers, "Frame", parent, frame_name)
@@ -109,6 +111,7 @@ class Frame(medipy.gui.xrc_wrapper.Frame):
             function_name = "On" + function_name
             
             item_id = wx.xrc.XRCID(name)
+            self.tool_ids.append(item_id)
             
             # Bind to handler function
             if hasattr(self, function_name) :
