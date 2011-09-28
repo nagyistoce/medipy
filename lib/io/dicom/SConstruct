@@ -1,5 +1,7 @@
 import itertools
-from deployement.scons.wrapitk import get_instantiations
+from deployement.scons.wrapitk import (get_scalar_types, get_dimensions, 
+                                       get_instantiations)
+from deployement.scons.itk import wrapitk_root
 
 Import("env")
 env = env.Clone()
@@ -8,9 +10,7 @@ env.Glob("*.py")
 env.Use("itk")
 env.PythonModule("_parse", ["parse.i", "parse.cpp"])
 
-types = ["%s %s"%x 
-         for x in itertools.product(["signed", "unsigned"], ["short", "long"])]
-types += ["float"]
+types = get_scalar_types(wrapitk_root())
 dimensions = [2]
 instantiations = get_instantiations("itk::Image", types, dimensions)
 instantiations = [((class_, type, dimension), (class_, type, dimension+1)) 
