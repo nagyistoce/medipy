@@ -241,7 +241,7 @@ class IPB(IOBase) :
         
         return metadata
     
-    def can_save(self) :
+    def can_save(self, image) :
         return (self._header_filename is not None)
     
     def save(self, image) :

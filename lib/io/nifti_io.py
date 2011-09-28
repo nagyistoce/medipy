@@ -7,10 +7,10 @@
 ##########################################################################
 
 import fnmatch
-
-import numpy
+import logging
 
 import nifti
+import numpy
 
 # The following two tests ease the translation from earlier versions of PyNifti
 # (i.e. with modules nifti.niftiimage and nifti.niftiformat) to newer 
@@ -96,7 +96,7 @@ class Nifti(IOBase) :
         
         return metadata
     
-    def can_save(self) :
+    def can_save(self, image) :
         found = False
         for pattern in self.filenames :
             if fnmatch.fnmatch(self.filename, pattern):
@@ -109,8 +109,7 @@ class Nifti(IOBase) :
         spacing = image.spacing.tolist()
         spacing.reverse()
         nifti_image.pixdim = spacing 
-        #nifti_image.slope = image.metadata["slope"]
-        #nifti_image.shift = image.metadata["shift"]
+#        logging.warning("Image direction and origin will not be saved")
         nifti_image.save(self._filename)
 
 if __name__ == "__main__" :

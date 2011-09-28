@@ -116,8 +116,13 @@ class ITK(IOBase) :
         
         return metadata
     
-    def can_save(self):
-        return self._saver is not None
+    def can_save(self, image):
+        if not self._saver :
+            # No ImageIO is available for the given filename
+            return False
+        
+        # Check the instantiations
+        return (image.ndim in [x[1] for x in itk.Image.__template__])
     
     def save(self, image) :
         itk_image = medipy_image_to_itk_image(image, False)
@@ -175,17 +180,3 @@ class ITK(IOBase) :
                 saver = s
                 break
         return saver
-
-def main():
-    import sys
-    
-    filename = sys.argv[1]
-    
-    loader = ITK(filename)
-    print loader.can_load()
-    metadata = loader.load_metadata()
-    data = loader.load_data()
-    print metadata, data.shape, data.dtype
-
-if __name__ == "__main__" :
-    main()

@@ -58,7 +58,7 @@ class WXImage(IOBase):
     def load_metadata(self, index=0):
         return {}
     
-    def can_save(self):
+    def can_save(self, image):
         return False
     
     def _get__image(self, index=0):

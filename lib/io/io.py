@@ -29,11 +29,11 @@ def get_loader(filename, report_progress=None) :
     # If we get here, no loader was found
     raise Exception("No loader available for %s"%filename)
 
-def get_saver(filename) :
+def get_saver(image, filename) :
     """Search for a saver in io_classes"""
     for saver_class in io_classes : 
         saver = saver_class(filename)
-        if saver.can_save() :
+        if saver.can_save(image) :
             return saver
 
 def number_of_images(filename, loader_class=None, loader=None) :
@@ -134,7 +134,7 @@ def save(image, filename, saver_class=None) :
                 Destination file
     """
     if saver_class is None :
-        saver = get_saver(filename)
+        saver = get_saver(image, filename)
     else :
         saver = saver_class(filename)
     saver.save(image)

@@ -53,7 +53,7 @@ class Nmr2D(IOBase) :
          
         return metadata
     
-    def can_save(self):
+    def can_save(self, image):
         return False
     
     def _get__struct(self, index=0):
