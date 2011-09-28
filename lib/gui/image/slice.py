@@ -411,7 +411,7 @@ class Slice(PropertySynchronized) :
     def set_mouse_button_tool(self, button, tool) :
         """ Set a tool associated with given button (Left, Middle, or Right),
             with an optional modifier (Shift or Control). Example : Right,
-            ShiftLeft.
+            ShiftLeft. Set tool to None to have no tool connected to the button.
         """
         
         event_name = "%sButton"%button
@@ -419,9 +419,11 @@ class Slice(PropertySynchronized) :
         if event_name in self._mouse_tools : 
             self._mouse_tools[event_name].deselect()
         
-        tool.select()
-        
-        self._mouse_tools[event_name] = tool
+        if tool :
+            tool.select()
+            self._mouse_tools[event_name] = tool
+        elif event_name in self._mouse_tools :
+            del self._mouse_tools[event_name]
     
     def get_wheel_tool(self, direction) :
         """ Return the tool associated with a mouse wheel direction (Forward or 
@@ -441,9 +443,11 @@ class Slice(PropertySynchronized) :
         if event_name in self._mouse_tools : 
             self._mouse_tools[event_name].deselect()
         
-        tool.select()
-        
-        self._mouse_tools[event_name] = tool
+        if tool :
+            tool.select()
+            self._mouse_tools[event_name] = tool
+        elif event_name in self._mouse_tools :
+            del self._mouse_tools[event_name]
     
     def get_keyboard_tool(self, key):
         return self._keyboard_tools[key]
@@ -451,9 +455,12 @@ class Slice(PropertySynchronized) :
     def set_keyboard_tool(self, key, tool):
         if key in self._keyboard_tools : 
             self._keyboard_tools[key].deselect()
-        tool.select()
-        self._keyboard_tools[key] = tool
-    
+        if tool :
+            tool.select()
+            self._keyboard_tools[key] = tool
+        elif key in self._keyboard_tools :
+            del self._keyboard_tools[key]
+        
     ##############
     # Properties #
     ##############

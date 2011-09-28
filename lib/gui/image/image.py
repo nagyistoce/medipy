@@ -267,13 +267,16 @@ class Image(wx.Panel, PropertySynchronized):
     def set_mouse_button_tool(self, button, tool_class, *args, **kwargs) :
         """ Set a tool associated with given button (Left, Middle, or Right),
             with an optional modifier (Shift or Control). Example : Right,
-            ShiftLeft.
+            ShiftLeft. Set tool to None to have no tool connected to the button.
         """
         
         self._mouse_tools[button] = (tool_class, args, kwargs)
         
         for slice in self._slices :
-            tool = tool_class(*args, **kwargs)
+            if tool_class :
+                tool = tool_class(*args, **kwargs)
+            else :
+                tool = None
             slice.set_mouse_button_tool(button, tool)
     
     def get_wheel_tool(self, direction) :
@@ -293,7 +296,10 @@ class Image(wx.Panel, PropertySynchronized):
         self._mouse_tools[event_name] = (tool_class, args, kwargs)
         
         for slice in self._slices :
-            tool = tool_class(*args, **kwargs)
+            if tool_class :
+                tool = tool_class(*args, **kwargs)
+            else :
+                tool = None
             slice.set_wheel_tool(direction, tool)
     
     def get_keyboard_tool(self, key):
@@ -303,7 +309,10 @@ class Image(wx.Panel, PropertySynchronized):
         self._keyboard_tools[key] = (tool_class, args, kwargs)
         
         for slice in self._slices :
-            tool = tool_class(*args, **kwargs)
+            if tool_class :
+                tool = tool_class(*args, **kwargs)
+            else :
+                tool = None
             slice.set_keyboard_tool(key, tool)
     
     def set_next_window_info(self, info):
