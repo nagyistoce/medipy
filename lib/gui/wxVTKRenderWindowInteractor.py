@@ -712,6 +712,7 @@ class wxVTKRenderWindowInteractor(baseClass):
         event.Skip()
 
         ctrl, shift = event.ControlDown(), event.ShiftDown()
+        alt = event.AltDown()
         keycode = event.GetKeyCode()
         
         # If keysym is None, then the event information is not modified
@@ -724,6 +725,7 @@ class wxVTKRenderWindowInteractor(baseClass):
         self._Iren.SetEventInformation(x, y,
                                        ctrl, shift, key, 0,
                                        keysym)
+        self._Iren.SetAltKey(alt)
 
         self._Iren.KeyPressEvent()
         self._Iren.CharEvent()
