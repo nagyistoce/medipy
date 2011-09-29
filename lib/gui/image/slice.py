@@ -884,11 +884,20 @@ class Slice(PropertySynchronized) :
             if source in self._mouse_tools :
                 self._mouse_tools[source].dispatch_interaction(rwi, self)
     
+    def _get_key_name(self, rwi):
+        key = rwi.GetKeySym() or rwi.GetKeyCode()
+        if rwi.GetControlKey() :
+            key = "Ctrl"+key
+        if rwi.GetAltKey() :
+            key = "Alt"+key
+        
+        return key
+    
     def _key_press(self, rwi, dummy) :
         if not self._renderer.IsInViewport(*rwi.GetEventPosition()) :
             return
         
-        key = rwi.GetKeySym() or rwi.GetKeyCode()
+        key = self._get_key_name(rwi)
         
         if key in self._keyboard_tools :
             self._keyboard_tools[key].press(rwi, self)
@@ -897,7 +906,7 @@ class Slice(PropertySynchronized) :
         if not self._renderer.IsInViewport(*rwi.GetEventPosition()) :
             return
         
-        key = rwi.GetKeySym() or rwi.GetKeyCode()
+        key = self._get_key_name(rwi)
         
         if key in self._keyboard_tools :
             self._keyboard_tools[key].release(rwi, self)
