@@ -701,34 +701,25 @@ class wxVTKRenderWindowInteractor(baseClass):
             self._Iren.MouseWheelForwardEvent()
         else:
             self._Iren.MouseWheelBackwardEvent()
-
         
     def OnKeyDown(self,event):
-        """Handles the wx.EVT_KEY_DOWN event for
-        wxVTKRenderWindowInteractor.
+        """Handles the wx.EVT_KEY_DOWN event for wxVTKRenderWindowInteractor.
         """
 
         # event processing should continue
         event.Skip()
-
-        ctrl, shift = event.ControlDown(), event.ShiftDown()
-        alt = event.AltDown()
-        keycode = event.GetKeyCode()
-        
-        # If keysym is None, then the event information is not modified
-        key = chr(keycode if keycode<256 else 0)
-        keysym = self.keysyms.get(keycode, "")
-        
-        # wxPython 2.6.0.1 does not return a valid event.Get{X,Y}()
-        # for this event, so we use the cached position.
-        (x,y)= self._Iren.GetEventPosition()
-        self._Iren.SetEventInformation(x, y,
-                                       ctrl, shift, key, 0,
-                                       keysym)
-        self._Iren.SetAltKey(alt)
-
+        self._set_key_event_informations(event)
         self._Iren.KeyPressEvent()
         self._Iren.CharEvent()
+
+    def OnKeyUp(self,event):
+        """Handles the wx.EVT_KEY_UP event for wxVTKRenderWindowInteractor.
+        """
+        
+        # event processing should continue
+        event.Skip()
+        self._set_key_event_informations(event)
+        self._Iren.KeyReleaseEvent()
 
     def OnClose(self, event):
         if self.GetRenderWindow() is not None :
@@ -740,26 +731,6 @@ class wxVTKRenderWindowInteractor(baseClass):
                 renderer.RemoveAllViewProps()
                 renderer = renderers.GetNextItem()
         event.Skip()
-        
-    def OnKeyUp(self,event):
-        """Handles the wx.EVT_KEY_UP event for
-        wxVTKRenderWindowInteractor.
-        """
-        
-        # event processing should continue
-        event.Skip()
-        
-        ctrl, shift = event.ControlDown(), event.ShiftDown()
-        keycode = event.GetKeyCode()
-        
-        key = chr(keycode if keycode<256 else 0)
-        keysym = self.keysyms.get(keycode, None)
-
-        self._Iren.SetEventInformationFlipY(event.GetX(), event.GetY(),
-                                            ctrl, shift, key, 0,
-                                            keysym)
-        self._Iren.KeyReleaseEvent()
-
 
     def GetRenderWindow(self):
         """Returns the render window (vtkRenderWindow).
@@ -822,6 +793,23 @@ class wxVTKRenderWindowInteractor(baseClass):
         """
         self.__RenderWhenDisabled = bool(newValue)
 
+    def _set_key_event_informations(self, event):
+        ctrl, shift = event.ControlDown(), event.ShiftDown()
+        alt = event.AltDown()
+        keycode = event.GetKeyCode()
+        
+        # If keysym is None, then the event information is not modified
+        key = chr(keycode if keycode<256 else 0)
+        keysym = self.keysyms.get(keycode, None)
+        
+        # wxPython 2.6.0.1 does not return a valid event.Get{X,Y}()
+        # for this event, so we use the cached position.
+        (x,y)= self._Iren.GetEventPosition()
+        self._Iren.SetEventInformation(x, y,
+                                       ctrl, shift, key, 0,
+                                       keysym)
+        self._Iren.SetAltKey(alt)
+        print repr(key), repr(keysym)
 
 #--------------------------------------------------------------------  
 def wxVTKRenderWindowInteractorConeExample():
