@@ -809,7 +809,6 @@ class wxVTKRenderWindowInteractor(baseClass):
                                        ctrl, shift, key, 0,
                                        keysym)
         self._Iren.SetAltKey(alt)
-        print repr(key), repr(keysym)
 
 #--------------------------------------------------------------------  
 def wxVTKRenderWindowInteractorConeExample():
