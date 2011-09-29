@@ -292,8 +292,7 @@ class Image(wx.Panel, PropertySynchronized):
             Backward)
         """
         
-        event_name = "MouseWheel%s"%direction
-        self._mouse_tools[event_name] = (tool_class, args, kwargs)
+        self._mouse_tools[direction] = (tool_class, args, kwargs)
         
         for slice in self._slices :
             if tool_class :
@@ -396,6 +395,11 @@ class Image(wx.Panel, PropertySynchronized):
             self._rwi.GetRenderWindow().AddRenderer(self._informations_renderer)
         else :
             self._slices[0].corner_annotations_visibility = True
+        
+        for button, (class_, args, kwargs) in self._mouse_tools.items() :
+            self.set_mouse_button_tool(button, class_, *args, **kwargs)
+        for key, (class_, args, kwargs) in self._keyboard_tools.items() :
+            self.set_keyboard_tool(key, class_, *args, **kwargs)
         
         self._update_informations()
         
