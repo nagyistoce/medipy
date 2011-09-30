@@ -20,7 +20,6 @@ class ImageAnnotation(Observable):
             * size : old_value
             * color : old_value
             * filled : old_value
-            * depth : old_value
             * comment : old_value
     """
     
@@ -31,10 +30,10 @@ class ImageAnnotation(Observable):
         point = 3
     
     def __init__(self, position = None, label = None, shape = None, size = None,
-        color = None, filled = None, depth = None, comment = None) :
+        color = None, filled = None, comment = None) :
         
         Observable.__init__(self, ["position", "label", "shape",
-            "size", "color", "filled", "depth", "comment"])
+            "size", "color", "filled", "comment"])
         
         # Position in image space
         self.position = position if position is not None else [0., 0. ,0.]
@@ -45,11 +44,10 @@ class ImageAnnotation(Observable):
         # RGB color, each component in 0,1 range
         self.color = color or [0., 0., 0.]
         self.filled = filled or False
-        self.depth = depth or 0
         self.comment = comment or ""
     
     def __setattr__(self, attr, value):
-        if attr in ["position", "label", "shape", "size", "color", "filled", "depth", "comment"] :
+        if attr in ["position", "label", "shape", "size", "color", "filled", "comment"] :
             old_value = getattr(self, attr, None) 
             object.__setattr__(self, attr, value)
             self.notify_observers(attr, old_value = old_value)

@@ -279,9 +279,7 @@ class IPB(IOBase) :
         if element + "_filled" in self.header :
             annotation.filled = (int(self.header[element + "_filled"]) == 1)
         if element + "_comment" in self.header :
-            annotation.comment = decode(self.header[element + "_comment"])
-        if element + "_depth" in self.header :
-            annotation.depth = int(self.header[element + "_depth"])        
+            annotation.comment = decode(self.header[element + "_comment"])        
         
         return annotation
         
