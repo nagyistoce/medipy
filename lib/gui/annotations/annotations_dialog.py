@@ -39,6 +39,18 @@ class AnnotationsDialog(wx.Dialog):
         self._add.Bind(wx.EVT_BUTTON, self.OnAdd)
         self._delete.Bind(wx.EVT_BUTTON, self.OnDelete)
     
+    ##############
+    # Properties #
+    ##############
+    
+    def _get_image(self):
+        return self._annotations_panel.image
+    
+    def _set_image(self, image):
+        self._annotations_panel.image = image
+    
+    image = property(_get_image, _set_image)
+    
     ##################
     # Event handlers #
     ##################
