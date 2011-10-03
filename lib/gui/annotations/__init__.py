@@ -6,4 +6,6 @@
 # for details.                                                      
 ##########################################################################
 
+from annotations_dialog import AnnotationsDialog
+from annotations_panel import AnnotationsPanel
 from image_annotation import ImageAnnotation
