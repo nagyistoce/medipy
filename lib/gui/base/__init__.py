@@ -10,3 +10,4 @@ from application import Application
 from base import UI
 from dialog import Dialog
 from frame import Frame
+from panel import Panel
