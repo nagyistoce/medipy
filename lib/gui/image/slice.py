@@ -473,7 +473,7 @@ class Slice(PropertySynchronized) :
         if self._annotations is not None :
             self._annotations.remove_observer("any", self._on_annotations_changed)
             for slice_annotation in self._gui_annotations.values() :
-                self._renderer.RemoveActor(slice_annotation.geometry_actor)
+                self._renderer.RemoveActor(slice_annotation.shape_actor)
                 self._renderer.RemoveActor(slice_annotation.text_actor)
         
         self._gui_annotations = {}
