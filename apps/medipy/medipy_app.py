@@ -213,7 +213,9 @@ class MediPyApp(Application) :
             if self._active_image_index is not None :
                 image = self.gui_images[self._active_image_index]
                 if self._annotations_dialog is None :
-                    self._annotations_dialog = AnnotationsDialog(self._frame)
+                    self._annotations_dialog = AnnotationsDialog(
+                        self._frame, title="Annotations", 
+                        style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
                 self._annotations_dialog.image = image
                 self._annotations_dialog.Show()
             elif self._annotations_dialog is not None :
