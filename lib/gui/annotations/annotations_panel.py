@@ -52,9 +52,9 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         
         xrc_file = find_resource(
             os.path.join("resources", "gui", "annotations_panel.xrc"))
-        wrappers = medipy.gui.xrc_wrapper.FloatXMLHandler()
+        wrappers = [medipy.gui.xrc_wrapper.FloatXMLHandler()]
         medipy.gui.base.Panel.__init__(self, xrc_file, "annotations_panel", 
-            [wrappers], self.ui, self.ui.controls, parent, *args, **kwargs)
+            wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
         
         for shape in sorted(self._annotation_id_to_shape.values()) : 
             self.ui.shape.Append(shape)
