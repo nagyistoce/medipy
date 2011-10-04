@@ -1,7 +1,5 @@
 import os.path
 
-SConscript('tests/SConstruct')
-
 Import('env')
 
 env = env.Clone()

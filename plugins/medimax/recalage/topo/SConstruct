@@ -7,4 +7,4 @@ env["LIBPATH"].append("../../wrapping")
 env["LIBPATH"].append("../../")
 
 
-env.Python(Glob("*.py"))
+env.Glob("*.py")

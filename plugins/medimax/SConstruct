@@ -39,4 +39,4 @@ env["CPPPATH"].append(os.path.abspath("."))
 output_files = env.SharedLibrary("medimax", files)
 #env.Install(env["lib_dir"], output_files)
 
-env.Python(Glob("*.py"))
+env.Glob("*.py")
