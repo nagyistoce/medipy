@@ -117,13 +117,13 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         
         position = "("+", ".join([str(x) for x in reversed(annotation.position)])+")"
         
-        self.ui.position.SetValue(position)
+        self.ui.position.ChangeValue(position)
         self.ui.label.ChangeValue(annotation.label)
         self.ui.shape.SetStringSelection(self._annotation_id_to_shape[annotation.shape])
         self.ui.size.value = annotation.size
         self.ui.color.SetBackgroundColour([int(255.*c) for c in annotation.color])
         self.ui.filled.SetValue(annotation.filled)
-        self.ui.comment.SetValue(annotation.comment)
+        self.ui.comment.ChangeValue(annotation.comment)
         self.ui.annotations.SetSelection(index)
         
         self._image.cursor_physical_position = annotation.position
