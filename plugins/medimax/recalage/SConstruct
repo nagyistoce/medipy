@@ -1,4 +1,3 @@
-SConscript('tests/SConstruct')
 SConscript('topo/SConstruct')
 Import('env')
 
@@ -10,4 +9,4 @@ env["CPPPATH"].append("../")
 env.PythonModule("_recalage", ["recalage.i"], 
                  LIBS=["medimax_wrapping", "medimax"])
 
-env.Python(Glob("*.py"))
+env.Glob("*.py")
