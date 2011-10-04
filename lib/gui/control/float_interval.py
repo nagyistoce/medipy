@@ -18,12 +18,12 @@ class FloatInterval(wx.PyPanel, Observable) :
     """
     
     def __init__(self, parent, id=wx.ID_ANY, min_max=(0, 100), value=(20,80),
-                 vertical = True, pos=wx.DefaultPosition, size=wx.DefaultSize, 
+                 orientation = wx.VERTICAL, pos=wx.DefaultPosition, size=wx.DefaultSize, 
                  style=wx.TAB_TRAVERSAL|wx.NO_BORDER, name=wx.PanelNameStr) :
         
         self._range = min_max
         self._value = None
-        self._vertical = vertical
+        self._orientation = None
         
         self._triangle_size = None
         self._line = None
@@ -44,20 +44,7 @@ class FloatInterval(wx.PyPanel, Observable) :
         
         self._triangle_size = point_size*1.2
         
-        if self._vertical :
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            
-            sizer.Add(self._max_text, 0, wx.ALIGN_CENTER)
-            sizer.Add(self._panel, 1, wx.ALIGN_CENTER)
-            sizer.Add(self._min_text, 0, wx.ALIGN_CENTER)
-        else : 
-            sizer = wx.BoxSizer(wx.HORIZONTAL)
-            
-            sizer.Add(self._min_text, 0, wx.ALIGN_CENTER)
-            sizer.Add(self._panel, 1, wx.ALIGN_CENTER)
-            sizer.Add(self._max_text, 0, wx.ALIGN_CENTER)
-        self.SetSizer(sizer)
-        self.Layout()
+        self._set_orientation(orientation)
         
         self._panel.Bind(wx.EVT_LEFT_DOWN, self.OnLeftClick)
         self._panel.Bind(wx.EVT_LEFT_UP, self.OnLeftRelease)
@@ -78,7 +65,7 @@ class FloatInterval(wx.PyPanel, Observable) :
     
     def DoGetBestSize(self):
         point_size = self.GetFont().GetPointSize()
-        if self._vertical :
+        if self._orientation == wx.VERTICAL :
             totalWidth = point_size*10
             totalHeight = 10*self._triangle_size+2*self._min_text.GetBestSize()[1]
         else :
@@ -111,8 +98,35 @@ class FloatInterval(wx.PyPanel, Observable) :
         self._range = range
         self.Refresh()
     
+    def _get_orientation(self):
+        return self._orientation
+    
+    def _set_orientation(self, orientation):
+        
+        if self._orientation is not None :
+            self.GetSizer().Clear()
+        
+        self._orientation = orientation
+        
+        if self._orientation == wx.VERTICAL :
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            
+            sizer.Add(self._max_text, 0, wx.ALIGN_CENTER)
+            sizer.Add(self._panel, 1, wx.ALIGN_CENTER)
+            sizer.Add(self._min_text, 0, wx.ALIGN_CENTER)
+        else : 
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            
+            sizer.Add(self._min_text, 0, wx.ALIGN_CENTER)
+            sizer.Add(self._panel, 1, wx.ALIGN_CENTER)
+            sizer.Add(self._max_text, 0, wx.ALIGN_CENTER)
+        self.SetSizer(sizer)
+        self.Layout()
+        self.DoGetBestSize()
+    
     value = property(_get_value, _set_value)
     range = property(_get_range, _set_range)
+    orientation = property(_get_orientation, _set_orientation)
     
     ##################
     # Event handlers #
@@ -123,7 +137,7 @@ class FloatInterval(wx.PyPanel, Observable) :
         
         # Figure on which side of the line the user clicked
         width, height = self._panel.GetClientSize()
-        if self._vertical :
+        if self._orientation == wx.VERTICAL :
             self._moving_cursor = "min" if (position[0] < width/2) else "max"
         else : 
             self._moving_cursor = "min" if (position[1] < height/2) else "max"
@@ -184,7 +198,7 @@ class FloatInterval(wx.PyPanel, Observable) :
     #####################
     
     def _compute_ui(self, width, height) :
-        if self._vertical :
+        if self._orientation == wx.VERTICAL :
             self._line = ((width/2, self._triangle_size), 
                           (width/2, height-self._triangle_size))
             screen_length = self._line[1][1]-self._line[0][1]
@@ -200,7 +214,7 @@ class FloatInterval(wx.PyPanel, Observable) :
                             (self._value[1]-self._range[0])/real_length)
         
         # Range in screen coordinates
-        if self._vertical :
+        if self._orientation == wx.VERTICAL :
             screen_range = (self._line[1][1]-normalized_range[0]*screen_length,
                             self._line[1][1]-normalized_range[1]*screen_length)
         else :
@@ -209,7 +223,7 @@ class FloatInterval(wx.PyPanel, Observable) :
         
         # Triangles
         side = math.sin(math.pi/3)*self._triangle_size
-        if self._vertical :
+        if self._orientation == wx.VERTICAL :
             min_start = (width/2, screen_range[0])
             max_start = (width/2, screen_range[1])
             self._min_triangle = [min_start,  
@@ -271,7 +285,7 @@ class FloatInterval(wx.PyPanel, Observable) :
             return
         
         # Compute the new value
-        if self._vertical :
+        if self._orientation == wx.VERTICAL :
             screen_length = self._line[1][1]-self._line[0][1]
             normalized = (self._line[1][1]-position[1])/float(screen_length)
         else :
@@ -287,23 +301,3 @@ class FloatInterval(wx.PyPanel, Observable) :
         elif self._moving_cursor == "max" :
             value = max(self._value[0], value)
             self._set_value([self._value[0], value])
-
-def main():
-    app = wx.PySimpleApp()
-    frame = wx.Frame(None)
-    
-    range_control_vertical = FloatInterval(frame, wx.ID_ANY)
-    range_control_horizontal = FloatInterval(frame, wx.ID_ANY, vertical=False)
-    
-    sizer = wx.BoxSizer()
-    sizer.Add(range_control_vertical)#, 1, wx.EXPAND|wx.ALL, 5)
-    sizer.Add(range_control_horizontal)#, 1, wx.EXPAND|wx.ALL, 5)
-    frame.SetSizer(sizer)
-    sizer.SetSizeHints(frame)
-    
-    frame.Show()
-    
-    app.MainLoop()
-
-if __name__ == "__main__" :
-    main()
