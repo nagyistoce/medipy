@@ -81,10 +81,14 @@ int imx_differential_bias_correction(grphic3d *im1, grphic3d *im2, grphic3d *imr
  
  
  
+  printf("********************************************************************************\n"
+		 "*                  BRAIN EXTRACTION IS NOT AVAILABLE FROM HERE                 *\n"
+		 "********************************************************************************\n");
  
- 
+  /*
   imx_brain_extraction_tool_3d_p(im1,im_tmp1,NULL,brain_threshold,gradthresh);
   imx_brain_extraction_tool_3d_p(im2,im_tmp2,NULL,brain_threshold,gradthresh); 
+  */
  
   printf("\n Brain extraction done");
  /*Calculating common area of the two brains*/
