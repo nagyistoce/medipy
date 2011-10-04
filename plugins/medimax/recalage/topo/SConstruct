@@ -1,0 +1,10 @@
+Import('env')
+
+env = env.Clone()
+
+env["CPPPATH"].append("../../")
+env["LIBPATH"].append("../../wrapping")
+env["LIBPATH"].append("../../")
+
+
+env.Python(Glob("*.py"))
