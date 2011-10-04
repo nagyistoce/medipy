@@ -110,7 +110,7 @@ ClustersToAnnotationsCalculator<TImage>
 template<typename TImage>
 typename ClustersToAnnotationsCalculator<TImage>::IndexType
 ClustersToAnnotationsCalculator<TImage>
-::GetAnnotation(ClustersToAnnotationsCalculator<TImage>::PixelType label) const
+::GetAnnotation(typename ClustersToAnnotationsCalculator<TImage>::PixelType label) const
 {
     return this->m_Annotations.find(label)->second;
 }
