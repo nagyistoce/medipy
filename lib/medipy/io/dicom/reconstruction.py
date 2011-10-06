@@ -51,6 +51,10 @@ def to_axis_aligned_ras_space(image):
     dicom_to_nifti = numpy.asarray([[-1, 0, 0],
                                     [ 0,-1, 0],
                                     [ 0, 0, 1]], dtype=numpy.float64)
+    if image.ndim == 4 :
+        numpy.insert(
+            numpy.insert(dicom_to_nifti, 0, (0,0,0), 0), 
+            0, (1,0,0,0), 1)
     dicom_to_nifti = MatrixBridge.GetMatrixFromArray(dicom_to_nifti)
     
     original_direction = image.direction
