@@ -74,7 +74,7 @@ def python_emitter(target, source, env):
 
     return target, source 
 
-def module_builder(self, module_name, sources, **kwargs) :
+def module_builder(env, module_name, sources, **kwargs) :
     """ Build a Python module from the given sources
     """
     
@@ -90,7 +90,6 @@ def module_builder(self, module_name, sources, **kwargs) :
             swig_sources.append(cpp_file)
         else : 
             swig_sources.append(source)
-    env = self.Clone()
 
     # Add the necessary flags
     kwargs["SWIGFLAGS"] = kwargs.get("SWIGFLAGS", [])+env["Swig"]["SWIGFLAGS"]+env["SWIGFLAGS"]
@@ -102,9 +101,10 @@ def module_builder(self, module_name, sources, **kwargs) :
         kwargs[key] = kwargs.get(key, [])+env["Python"][key]+env[key]
         
     
-    shared_library = env.SharedLibrary(module_name, swig_sources, **kwargs)
+    shared_library = env.SharedLibrary(module_name.replace(".", os.path.sep), swig_sources, **kwargs)
     if sys.platform == "win32" :
         env.AddPostAction(shared_library, 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2')
+    return shared_library
 
 def exists(env):
     return (configuration_variables() is not None)
