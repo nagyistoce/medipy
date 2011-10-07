@@ -14,11 +14,18 @@ import subprocess
 import sys
 import traceback
 
+import SCons.Script
 from SCons.Script.SConscript import SConsEnvironment
+from SCons.Variables import Variables, BoolVariable, PathVariable 
 from SCons.Builder import Builder
 
 import openmp
 from utils import merge_construction_variables
+
+SCons.Script.AddOption("--prefix", dest="prefix", type="string",
+                       default = "/usr" if sys.platform != "win32" else ".",
+                       nargs=1, action="store", metavar="DIR",
+                       help="installation prefix")
 
 if sys.version_info[0] == 2 and sys.version_info[1] <= 5 :
     
@@ -37,8 +44,25 @@ if sys.version_info[0] == 2 and sys.version_info[1] <= 5 :
     itertools.product = itertools_product
 
 class Environment(SConsEnvironment) :
-    def __init__(self, *args, **kwargs) :
-        SConsEnvironment.__init__(self, *args, **kwargs)
+    def __init__(self, platform=None, tools=None, toolpath=None, variables=None,
+                 parse_flags=None, **kwargs) :
+        
+        if not variables :
+            variables = Variables(args=SCons.Script.ARGUMENTS)
+        
+        variables.Add("optimized", "Set to 1 to build for release", 0)
+        variables.Add("verbose", "Set to 1 to print build commands", 0)
+        
+        SConsEnvironment.__init__(self, platform, tools, toolpath, variables, 
+                                  parse_flags, **kwargs)
+        self.Help(variables.GenerateHelpText(self))
+        
+        self._prefix = SCons.Script.GetOption("prefix")
+        self._bindir = os.path.join(self._prefix, "bin")
+        self._libdir = os.path.join(self._prefix, "lib")
+        self._includedir = os.path.join(self._prefix, "include")
+        self._pythondir = os.path.join(
+            self._libdir, "python{0}".format(sys.version[:3]), "site-packages")
         
         known_construction_variables = [
             "ASFLAGS", "CCFLAGS", "CFLAGS", "CPPDEFINES", "CPPPATH",
@@ -99,6 +123,31 @@ class Environment(SConsEnvironment) :
         self._find_python()
         self._find_vtk()
 
+    ##############
+    # Installers #
+    ##############
+    
+    def InstallPythonPackage(self, module):
+        if "install" not in SCons.Script.COMMAND_LINE_TARGETS :
+            return
+        
+        module = module.replace(".", os.path.sep)
+        
+        source = self.Glob(os.path.join(module, "*py"))
+        destination = os.path.join(self._pythondir, module)
+        
+        self.Install(destination, source)
+        self.Alias("install", destination)
+    
+    def InstallPythonExtension(self, source, package):
+        if "install" not in SCons.Script.COMMAND_LINE_TARGETS :
+            return
+        
+        destination = os.path.join(self._pythondir, 
+                                   package.replace(".", os.path.sep))
+        
+        self.Install(destination, source)
+        self.Alias("install", destination)
     
     #############
     # Libraries #
