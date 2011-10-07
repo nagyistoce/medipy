@@ -44,8 +44,8 @@ def wrap_module(env, module, library):
     source = os.path.join(config.wrapitk_root, "Configuration", "Languages", 
                           "GccXML", "wrap_.cxx.in")
     target = "{0}.cxx".format(module.name)
-    
     instantiations_node = Builder(action=instantiations_action)(env, target, source)
+    # TODO : this should depend on the instantiated values
     
     include_paths = " ".join(["-I{0}".format(dir) 
                               for dir in env["CPPPATH"]])
@@ -59,7 +59,7 @@ def wrap_module(env, module, library):
     #self.env.Depends(xml_file, gccxml_inc_file)
     source = instantiations_node
     target = "{0}.xml".format(module.name)
-    Builder(action=gcc_xml_action)(env, target, source)
+    module.xml_node = Builder(action=gcc_xml_action)(env, target, source)
 
 def wrap_class(env, wrapped_class, module, library):
     # Nothing to do
