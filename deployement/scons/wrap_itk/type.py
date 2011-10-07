@@ -3,9 +3,10 @@ import copy
 import config
 
 class Type(object):
-    def __init__(self, name, template_parameters=None):
+    def __init__(self, name, template_parameters=None, nested_type=None):
         self.name = name
         self.template_parameters = template_parameters or []
+        self.nested_type = nested_type
     
     def __eq__(self, other):
         return self.full_name == other.full_name
@@ -24,12 +25,27 @@ class Type(object):
                 parameters.append(p.full_name)
         
         parameters = ", ".join(parameters)
-        return "{0}<{1}{2}>".format(
-            self.name, parameters, " " if parameters.endswith(">") else "")
+        
+        if self.nested_type :
+            if isinstance(self.nested_type, basestring) :
+                nested_type = "::{0}".format(self.nested_type)
+            else :
+                nested_type = "::{0}".format(self.nested_type.full_name)
+        else :
+            nested_type = ""
+        
+        return "{0}<{1}{2}>{3}".format(
+            self.name,
+            parameters, " " if parameters.endswith(">") else "", 
+            nested_type)
                 
     def _get_mangled_name(self):
+        
+        name = Type._mangled_names.get(self.name, self.name)
+        name = name.replace("::", "")
+        
         if not self.template_parameters :
-            return self._mangled_names[self.name]
+            return name
         
         parameters = []
         for p in self.template_parameters :
@@ -41,7 +57,16 @@ class Type(object):
                 parameters.append(p.mangled_name)
         
         parameters = "".join(parameters)
-        return "{0}{1}".format(Type._mangled_names[self.name], parameters)
+        
+        if self.nested_type :
+            if isinstance(self.nested_type, basestring) :
+                nested_type = "_{0}".format(self.nested_type)
+            else :
+                nested_type = "_{0}".format(self.nested_type.mangled_name)
+        else :
+            nested_type = ""
+            
+        return "{0}{1}{2}".format(name, parameters, nested_type)
     
     full_name = property(_get_full_name)
     mangled_name = property(_get_mangled_name)
