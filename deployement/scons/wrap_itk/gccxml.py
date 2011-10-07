@@ -1,88 +1,73 @@
 import os
-import re
 
 from SCons.Builder import Builder
 
+import config
 from utils import configure_file
 
-class GccXML(object) :
+def wrap_library(env, library) :
+    def action(target, source, env):
+        CONFIG_GCCXML_INC_CONTENTS = "\n".join(
+            ["-I{0}".format(dir) for dir in env["CPPPATH"]])
+        configure_file(source[0].path, target[0].path,
+                       CONFIG_GCCXML_INC_CONTENTS=CONFIG_GCCXML_INC_CONTENTS)
     
-    def __init__(self, env) :
-        self.env = env
+    source = os.path.join(config.wrapitk_root, "Configuration", "Languages", 
+                          "GccXML", "gcc_xml.inc.in")
+    # TODO : path
+    target = "gcc_xml.inc"
+    library.gcc_xml_inc = Builder(action=action)(env, target, source)
+
+def wrap_module(env, module, library):
+    def instantiations_action(target, source, env) :
         
-        self.library_depends = None
+        includes = []
+        includes.extend(["#include <{0}>".format(x) for x in library.includes])
+        for wrapped_class in module.classes :
+            includes.extend(["#include <{0}>".format(x) 
+                             for x in wrapped_class.includes])
+        includes = "\n".join(includes)
         
-        self.includes = ""
-        self.typedefs = ""
-        self.force_instantiate = ""
+        typedefs = []
+        for wrapped_class in module.classes :
+            for typedef in wrapped_class.typedefs :
+                typedefs.append("      typedef {0} {1};".format(
+                    typedef.full_name, typedef.mangled_name))
+        typedefs = "\n".join(typedefs)
+        
+        force_instantiate = []
+        for wrapped_class in module.classes :
+            for typedef in wrapped_class.typedefs :
+                force_instantiate.append("  sizeof({0});".format(
+                    typedef.mangled_name)) 
+        force_instantiate = "\n".join(force_instantiate)
+        
+        configure_file(source[0].path, target[0].path,
+            CONFIG_WRAPPER_INCLUDES=includes,
+            CONFIG_WRAPPER_MODULE_NAME=module.name,
+            CONFIG_WRAPPER_TYPEDEFS=typedefs,
+            CONFIG_WRAPPER_FORCE_INSTANTIATE=force_instantiate,
+            CONFIG_WRAPPER_EXTRAS="")
+
+    # TODO : path
+    source = os.path.join(config.wrapitk_root, "Configuration", "Languages", 
+                          "GccXML", "wrap_.cxx.in")
+    target = "{0}.cxx".format(module.name)
     
-    def wrap_library(self, library) :
-        gccxml_inc_file = os.path.join(self.env["WRAPPER_LIBRARY_OUTPUT_DIR"], "gcc_xml.inc")
-        
-        CONFIG_GCCXML_INC_CONTENTS = ""
-        
-        if self.env["WRAP_ITK_USE_CCACHE"] :
-            pass
-            # TODO
-        else :
-            for dir in self.env["CPPPATH"] :
-                CONFIG_GCCXML_INC_CONTENTS += "-I{0}\n".format(dir)
-                def gcc_xml_inc_action(target, source, env) :
-                    configure_file(os.path.join(self.env["WRAP_ITK_GCCXML_SOURCE_DIR"], "gcc_xml.inc.in"),
-                                   target[0].path,
-                                   CONFIG_GCCXML_INC_CONTENTS=CONFIG_GCCXML_INC_CONTENTS)
-                Builder(action=gcc_xml_inc_action)(self.env, gccxml_inc_file, "")
+    instantiations_node = Builder(action=instantiations_action)(env, target, source)
     
-    def end_wrap_library(self) :
-        pass
+    gcc_xml_action = (
+            "gccxml -fxml-start=_cable_ -fxml=$TARGET "
+            "--gccxml-gcc-options {gccxml_inc_file} -DCSWIG "
+            "-DCABLE_CONFIGURATION -DITK_MANUAL_INSTANTIATION "
+            "$SOURCE".format(gccxml_inc_file=library.gcc_xml_inc[0])
+    )
     
-    def wrap_module(self, module) :
-        self.typedefs = ""
-        self.includes = ""
-        self.force_instantiate = ""
-    
-    def end_wrap_module(self, module) :
-        file_name = "{0}.cxx".format(module)
-        cxx_file = os.path.join(self.env["WRAPPER_LIBRARY_OUTPUT_DIR"], file_name)
-        
-        def cxx_file_action(target, source, env) :
-            configure_file(os.path.join(self.env["WRAP_ITK_GCCXML_SOURCE_DIR"], "wrap_.cxx.in"),
-                target[0].path,
-                CONFIG_WRAPPER_INCLUDES=self.includes,
-                CONFIG_WRAPPER_MODULE_NAME=module,
-                CONFIG_WRAPPER_TYPEDEFS=self.typedefs,
-                CONFIG_WRAPPER_FORCE_INSTANTIATE=self.force_instantiate,
-                CONFIG_WRAPPER_EXTRAS="")
-        
-        Builder(action=cxx_file_action)(self.env, cxx_file, "")
-        
-        gccxml_inc_file = os.path.join(self.env["WRAPPER_LIBRARY_OUTPUT_DIR"], "gcc_xml.inc")
-        xml_file = os.path.join(self.env["WRAPPER_LIBRARY_OUTPUT_DIR"], "{0}.xml".format(module))
-        
-        if self.env["WRAP_ITK_USE_CCACHE"] :
-            pass
-            # TODO
-        else :
-            xml_file_action = (
-                "gccxml -fxml-start=_cable_ -fxml=$TARGET "
-                "--gccxml-gcc-options {gccxml_inc_file} -DCSWIG "
-                "-DCABLE_CONFIGURATION -DITK_MANUAL_INSTANTIATION "
-                "$SOURCE".format(gccxml_inc_file=gccxml_inc_file)
-            )
-        
-        self.env.Depends(xml_file, gccxml_inc_file)
-        Builder(action=xml_file_action)(self.env, xml_file, cxx_file)
-    
-    def wrap_include(self, include_file) :
-        if re.match(r"<.*>", include_file) :
-            self.includes += "#include {0}\n".format(include_file)
-        else :
-            self.includes += "#include \"{0}\"\n".format(include_file)
-    
-    def add_one_typedef(self, wrap_class, swig_name, wrap_method="", template_params=None) :
-        self.typedefs += "\n"
-        self.force_instantiate += "\n"
-    
-    def add_simple_typedef(self, wrap_class, swig_name) :
-        self.typedefs += "      typedef {0} {1};\n".format(wrap_class, swig_name)
-        self.force_instantiate += "  sizeof({0});\n".format(swig_name)
+    #self.env.Depends(xml_file, gccxml_inc_file)
+    source = instantiations_node
+    target = "{0}.xml".format(module.name)
+    Builder(action=gcc_xml_action)(env, target, source)
+
+def wrap_class(env, wrapped_class, module, library):
+    # Nothing to do
+    pass
