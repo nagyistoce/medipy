@@ -50,7 +50,7 @@ Certaines variables d'environnement doivent ensuite être mises à jour
     export PATH=$HOME/local/bin:$PATH
     export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/medipy/build/lib:$LD_LIBRARY_PATH
     export PYTHONPATH=$HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/:$PYTHONPATH
-    export MEDIPY_PLUGINS_PATH=/$HOME/src/medipy/build/medipy/plugins/
+    export MEDIPY_PLUGINS_PATH=$HOME/src/medipy/build/medipy/plugins/
 
 Démarrez un nouveau terminal pour que ces modifications soient prises en compte.
 
