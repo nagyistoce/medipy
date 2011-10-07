@@ -3,7 +3,47 @@ import re
 
 from SCons.Builder import Builder
 
+import config
 from utils import configure_file
+
+def wrap_library(env, library):
+    # Nothing to do
+    pass
+
+def wrap_module(env, module, library):
+    includes = []
+    includes.extend(["#include <{0}>".format(x) for x in library.includes])
+    for wrapped_class in module.classes :
+        includes.extend(["#include <{0}>".format(x) 
+                         for x in wrapped_class.includes])
+    includes = "\n".join(includes)
+    
+    typedefs = []
+    for wrapped_class in module.classes :
+        for typedef in wrapped_class.typedefs :
+            typedefs.append("      typedef {0} {1};".format(
+                typedef.full_name, typedef.mangled_name))
+    typedefs = "\n".join(typedefs)
+    def swig_interface_in_action(target, source, env):
+        configure_file(source[0].path, target[0].path,
+                       SWIG_INTERFACE_INCLUDES_CONTENT=includes,
+                       SWIG_INTERFACE_TYPEDEFS=typedefs)
+    source = os.path.join(config.wrapitk_root, "Configuration", "Languages", 
+                          "SwigInterface", "module.includes.in")
+    # TODO : path
+    target = "{0}SwigInterface.h.in".format(module.name)
+    Builder(action=swig_interface_in_action)(env, target, source)
+    
+    cableidx_action = "cableidx $SOURCE $TARGET"
+    source = module.xml_node
+    # TODO : path
+    target = "{0}.idx".format(module.name)
+    Builder(action=cableidx_action)(env, target, source)
+    
+    # TODO : igenerator
+    
+def wrap_class(env, wrapped_class, module, library):
+    pass
 
 class SwigInterface(object) :
     
