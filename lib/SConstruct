@@ -1,7 +1,8 @@
 import os
 import sys
 
-from ..deployement.scons import Environment
+sys.path.append(os.path.abspath(".."))
+from deployement.scons import Environment
 
 env = Environment(ENV = {"PATH" : os.environ["PATH"]})
 env.Alias("install", "$PREFIX")
@@ -11,7 +12,7 @@ targets = []
 
 modules = ["base", "gui", "io", "itk", "resources", "vtk"]
 for module in modules :
-    module_targets = SConscript(os.path.join(module, "SConstruct"))
+    module_targets = SConscript(os.path.join("medipy", module, "SConstruct"))
     if module_targets :
         targets.extend(module_targets)
     else :
