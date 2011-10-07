@@ -6,17 +6,8 @@ import config
 from utils import configure_file
 
 def wrap_library(env, library) :
-    def action(target, source, env):
-        CONFIG_GCCXML_INC_CONTENTS = "\n".join(
-            ["-I{0}".format(dir) for dir in env["CPPPATH"]])
-        configure_file(source[0].path, target[0].path,
-                       CONFIG_GCCXML_INC_CONTENTS=CONFIG_GCCXML_INC_CONTENTS)
-    
-    source = os.path.join(config.wrapitk_root, "Configuration", "Languages", 
-                          "GccXML", "gcc_xml.inc.in")
-    # TODO : path
-    target = "gcc_xml.inc"
-    library.gcc_xml_inc = Builder(action=action)(env, target, source)
+    # Nothing to do
+    pass
 
 def wrap_module(env, module, library):
     def instantiations_action(target, source, env) :
@@ -56,11 +47,13 @@ def wrap_module(env, module, library):
     
     instantiations_node = Builder(action=instantiations_action)(env, target, source)
     
+    include_paths = " ".join(["-I{0}".format(dir) 
+                              for dir in env["CPPPATH"]])
     gcc_xml_action = (
             "gccxml -fxml-start=_cable_ -fxml=$TARGET "
-            "--gccxml-gcc-options {gccxml_inc_file} -DCSWIG "
+            "{0} -DCSWIG "
             "-DCABLE_CONFIGURATION -DITK_MANUAL_INSTANTIATION "
-            "$SOURCE".format(gccxml_inc_file=library.gcc_xml_inc[0])
+            "$SOURCE".format(include_paths)
     )
     
     #self.env.Depends(xml_file, gccxml_inc_file)
