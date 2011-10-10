@@ -37,28 +37,19 @@ Des listes de paquets sont disponibles pour certaines distributions de Linux :
 Préparation de l'environnement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sous Linux il est conseillé de créer une hiérarchie locale dans votre répertoire
-personnel. Les exemples suivants supposent l'existence de la hiérarchie 
-``$HOME/local``, contenant les répertoires ``bin``, ``lib`` et ``include`` : ::
-
-    mkdir -p $HOME/local/{bin,include,lib/python`python -c "import sys; print sys.version[:3]"`/site-packages}
-
-
-Certaines variables d'environnement doivent ensuite être mises à jour 
+Sous Linux, certaines variables d'environnement doivent être mises à jour 
 (``~/.bashrc`` ou ``~/.profile``) : ::
 
-    export PATH=$HOME/local/bin:$PATH
-    export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/medipy/build/lib:$LD_LIBRARY_PATH
-    export PYTHONPATH=$HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/:$PYTHONPATH
-    export MEDIPY_PLUGINS_PATH=$HOME/src/medipy/build/medipy/plugins/
+    export PYTHONPATH=$HOME/src/medipy/lib:$PYTHONPATH
+    export MEDIPY_PLUGINS_PATH=$HOME/src/medipy/plugins/
 
 Démarrez un nouveau terminal pour que ces modifications soient prises en compte.
 
 Récupération des sources
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-L'ensemble des sources de MediPy est stocké sur un serveur 
-`Mercurial <http://fr.wikipedia.org/wiki/Mercurial>`_, à l'adresse
+L'ensemble des sources de MediPy est stocké sur un `serveur 
+Mercurial <http://fr.wikipedia.org/wiki/Mercurial>`_, à l'adresse
 https://medipy.googlecode.com/hg/. Les sources peuvent donc être récupérées par : ::
 
     hg clone https://medipy.googlecode.com/hg/ $HOME/src/medipy
@@ -85,12 +76,6 @@ ou, de façon équivalente : ::
 Le nettoyage des sources est effectué par ``scons -c`` (équivalent à 
 ``make clean``). Sous Windows, il est nécessaire d'utiliser le 
 ``win32-build.bat``, qui assigne correctement les variables d'environnement.
-
-Sous Linux, afin d'intégrer MediPy aux paquets Python, il faut créer un lien
-symbolique depuis le répertoire contenant les fichiers compilés
-(``build/medipy``) vers la hiérarchie locale : ::
-
-    ln -s $HOME/src/medipy/build/medipy/lib $HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/medipy
 
 MediPy peut ensuite être lancé par : ::
 
