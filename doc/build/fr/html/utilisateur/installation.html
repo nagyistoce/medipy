@@ -120,24 +120,17 @@ facilement.</p>
 </ul>
 <div class="section" id="preparation-de-l-environnement">
 <h3>Préparation de l&#8217;environnement<a class="headerlink" href="#preparation-de-l-environnement" title="Lien permanent vers ce titre">¶</a></h3>
-<p>Sous Linux il est conseillé de créer une hiérarchie locale dans votre répertoire
-personnel. Les exemples suivants supposent l&#8217;existence de la hiérarchie
-<tt class="docutils literal"><span class="pre">$HOME/local</span></tt>, contenant les répertoires <tt class="docutils literal"><span class="pre">bin</span></tt>, <tt class="docutils literal"><span class="pre">lib</span></tt> et <tt class="docutils literal"><span class="pre">include</span></tt> :</p>
-<div class="highlight-python"><pre>mkdir -p $HOME/local/{bin,include,lib/python`python -c "import sys; print sys.version[:3]"`/site-packages}</pre>
-</div>
-<p>Certaines variables d&#8217;environnement doivent ensuite être mises à jour
+<p>Sous Linux, certaines variables d&#8217;environnement doivent être mises à jour
 (<tt class="docutils literal"><span class="pre">~/.bashrc</span></tt> ou <tt class="docutils literal"><span class="pre">~/.profile</span></tt>) :</p>
-<div class="highlight-python"><pre>export PATH=$HOME/local/bin:$PATH
-export LD_LIBRARY_PATH=$HOME/local/lib:$HOME/src/medipy/build/lib:$LD_LIBRARY_PATH
-export PYTHONPATH=$HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/:$PYTHONPATH
-export MEDIPY_PLUGINS_PATH=$HOME/src/medipy/build/medipy/plugins/</pre>
+<div class="highlight-python"><pre>export PYTHONPATH=$HOME/src/medipy/lib:$PYTHONPATH
+export MEDIPY_PLUGINS_PATH=$HOME/src/medipy/plugins/</pre>
 </div>
 <p>Démarrez un nouveau terminal pour que ces modifications soient prises en compte.</p>
 </div>
 <div class="section" id="recuperation-des-sources">
 <h3>Récupération des sources<a class="headerlink" href="#recuperation-des-sources" title="Lien permanent vers ce titre">¶</a></h3>
-<p>L&#8217;ensemble des sources de MediPy est stocké sur un serveur
-<a class="reference external" href="http://fr.wikipedia.org/wiki/Mercurial">Mercurial</a>, à l&#8217;adresse
+<p>L&#8217;ensemble des sources de MediPy est stocké sur un <a class="reference external" href="http://fr.wikipedia.org/wiki/Mercurial">serveur
+Mercurial</a>, à l&#8217;adresse
 <a class="reference external" href="https://medipy.googlecode.com/hg/">https://medipy.googlecode.com/hg/</a>. Les sources peuvent donc être récupérées par :</p>
 <div class="highlight-python"><pre>hg clone https://medipy.googlecode.com/hg/ $HOME/src/medipy</pre>
 </div>
@@ -161,11 +154,6 @@ MediPy) :</p>
 <p>Le nettoyage des sources est effectué par <tt class="docutils literal"><span class="pre">scons</span> <span class="pre">-c</span></tt> (équivalent à
 <tt class="docutils literal"><span class="pre">make</span> <span class="pre">clean</span></tt>). Sous Windows, il est nécessaire d&#8217;utiliser le
 <tt class="docutils literal"><span class="pre">win32-build.bat</span></tt>, qui assigne correctement les variables d&#8217;environnement.</p>
-<p>Sous Linux, afin d&#8217;intégrer MediPy aux paquets Python, il faut créer un lien
-symbolique depuis le répertoire contenant les fichiers compilés
-(<tt class="docutils literal"><span class="pre">build/medipy</span></tt>) vers la hiérarchie locale :</p>
-<div class="highlight-python"><pre>ln -s $HOME/src/medipy/build/medipy/lib $HOME/local/lib/python`python -c "import sys; print sys.version[:3]"`/site-packages/medipy</pre>
-</div>
 <p>MediPy peut ensuite être lancé par :</p>
 <div class="highlight-python"><pre>$HOME/src/medipy/apps/medipy/medipy</pre>
 </div>
