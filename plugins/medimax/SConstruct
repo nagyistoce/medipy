@@ -4,7 +4,7 @@ import sys
 SConscript(os.path.join("wrapping", "SConstruct"))
 
 modules = ["noyau", "segmentation", "outils", "detection", "math", "morpho",
-"recalage", "recalage/topo", "traitement", "noyau/io", "noyau/gui", "ImLib3D-0.9.5"]
+           "recalage", "recalage/topo", "traitement", "noyau/io", "noyau/gui"]
 
 if sys.platform.startswith("win") :
     modules.append("windowsOnly")
