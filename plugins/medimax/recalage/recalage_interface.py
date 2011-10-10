@@ -53,21 +53,16 @@ def recalage_lineaire_multi_IM(registration_type, imreca, imref, imres, filename
 	"""
 	Multiresolution Linear registration based on Mutual Information, Simplex optimization and linear interpolation
 
-		:gui:
-			registration_type : Enum : ('Rigid','Rigid+Zoom','Affine')
-				Registration type 
-
-			imreca : Image
-				Image to register
- 	
-			imref : Image
-				Reference image
-			
-			imres : Image : output=True
-				Registered image
-
-			filename : String
-				Name of saved .trf file
+		<gui>
+			<item name="registration_type" type="Enum" 
+			      initializer="('Rigid','Rigid+Zoom','Affine')"
+			      label="Registration type"/> 
+			<item name="imreca" type="Image" label="Image to register" />
+			<item name="imref" type="Image" label="Reference image" />
+			<item name="imres" type="Image" initializer="output=True"
+				role="output" label="Registered image" />
+			<item name="filename" type="String" label="Name of saved .trf file"/>
+		</gui>
 	""" 
 	RegistrationTypeConverter = {"Rigid" : 0,"Rigid+Zoom" : 1,"Affine" : 2}
 	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,RegistrationTypeConverter[registration_type],5,1,1,0,1,str(filename),0,2,0)
@@ -81,18 +76,13 @@ def recalage_rigide_multi_IM(imreca, imref, imres, filename) :
 	"""
 	Multiresolution rigid registration based on Mutual Information, Simplex optimization and linear interpolation
 
-		:gui:
-			imreca : Image
-				Image to register
- 	
-			imref : Image
-				Reference image
-			
-			imres : Image : output=True
-				Registered image
-
-			filename : String
-				Name of saved .trf file
+		<gui>
+			<item name="imreca" type="Image" label="Image to register"/>
+			<item name="imref" type="Image" label="Reference image"/>
+			<item name="imres" type="Image" role="output" 
+				  initializer="output=True" label="Registered image"/>
+			<item name="filename" type="String" label="Name of saved .trf file"/>
+		</gui>
 	""" 
 	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,0,5,1,1,0,1,str(filename),0,2,0)
 
@@ -105,18 +95,13 @@ def recalage_rigidezoom_multi_IM(imreca, imref, imres, filename) :
 	"""
 	Multiresolution rigid + zoom registration based on Mutual Information, Simplex optimization and linear interpolation
 
-		:gui:
-			imreca : Image
-				Image to register
- 	
-			imref : Image
-				Reference image
-			
-			imres : Image : output=True
-				Registered image
-		
-			filename : String
-				Name of saved .trf file
+		<gui>
+			<item name="imreca" type="Image" label="Image to register"/>
+			<item name="imref" type="Image" label="Reference image"/>
+			<item name="imres" type="Image" role="output" 
+				  initializer="output=True" label="Registered image"/>
+			<item name="filename" type="String" label="Name of saved .trf file"/>
+		</gui>
 
 	""" 
 	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,1,5,1,1,0,1,str(filename),0,2,0)
@@ -130,18 +115,13 @@ def recalage_affine_multi_IM(imreca, imref, imres, filename) :
 	"""
 	Multiresolution affine registration based on Mutual Information, Simplex optimization and linear interpolation
 
-		:gui:
-			imreca : Image
-				Image to register
- 	
-			imref : Image
-				Reference image
-			
-			imres : Image : output=True
-				Registered image
-		
-			filename : String
-				Name of saved .trf file
+		<gui>
+			<item name="imreca" type="Image" label="Image to register"/>
+			<item name="imref" type="Image" label="Reference image"/>
+			<item name="imres" type="Image" role="output" 
+				  initializer="output=True" label="Registered image"/>
+			<item name="filename" type="String" label="Name of saved .trf file"/>
+		</gui>
 
 	""" 
 	medipy.medimax.recalage.LinearRegistration(imref,imreca, imres,2,5,1,1,0,1,str(filename),0,2,0)
@@ -155,24 +135,17 @@ def recalage_Bspline_topo(imreca, imref, imres, resolf, symetrique, filename) :
 	"""
 	Topology preserving Bspline-based registration (default settings)
 
-		:gui:
-			imreca : Image
-				Image to register
- 	
-			imref : Image
-				Reference image
-			
-			imres : Image : output=True
-				Registered image
-
-			resolf : Int : value=1, range=(1,7)
-				final resolution
-			
-			symetrique : Enum : ('Non Symmetric','Symmetric')
-				use symmetric pairwise registration 
-								
-			filename : String
-				Name of saved .trf file
+		<gui>
+			<item name="imreca" type="Image" label="Image to register"/>
+			<item name="imref" type="Image" label="Reference image"/>
+			<item name="imres" type="Image" initializer="output=True" role="output" 
+				label="Registered image"/>
+			<item name="resolf" type="Int" initializer="value=1, range=(1,7)"
+				label="final resolution"/>
+			<item name="symetrique" type="Enum" initializer="('Non Symmetric','Symmetric')"
+				label="use symmetric pairwise registration"/> 
+			<item name="filename" type="String" label="Name of saved .trf file"/>
+		</gui>
 	""" 
 	dicoConverter = {"Non Symmetric" : 0,"Symmetric" : 1}
 	medipy.medimax.recalage.BsplineRegistration3d(imref, imreca, imres,0,2,1.0,2,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)])
@@ -186,18 +159,15 @@ def ApplyTransfo3d_GUI(imdeb, nomfichier, imres, inter_type) :
 	"""
 	Warp an image according to a .trf file
 		
-		:gui:
-			imdeb : Image
-				Image to warp 
-			
-			imres : Image : output=True
-				Warped image
-			
-			inter_type : Enum : ('Nearest','Linear','SinCard','QuickSinCard2','QuickSinCard3','Bspline2','Bspline3','Bspline4','Bspline5','Label')
-				Interpolation method 
-				
-			nomfichier : File
-				trf file
+		<gui>
+			<item name="imdeb" type="Image" label="Image to warp"/> 
+			<item name="imres" type="Image" role="output" initializer="output=True"
+				label="Warped image"/>
+			<item name="inter_type" type="Enum" initializer="('Nearest','Linear',
+				'SinCard','QuickSinCard2','QuickSinCard3','Bspline2','Bspline3',
+				'Bspline4','Bspline5','Label')" label="Interpolation method"/> 
+			<item name="nomfichier" type="File" label="trf file"/>
+		</gui>
 	""" 
 	medipy.medimax.recalage.ApplyTransfo3d(imdeb,str(nomfichier),imres,InterpolationNumberInMedimax(inter_type))
 
@@ -209,15 +179,11 @@ def CombineTransfo3d_GUI(nomfichier1, nomfichier2, nomfichierres) :
 	"""
 	Combine two .trf files
 		
-		:gui:
-			nomfichier1 : File
-				first trf file
-			
-			nomfichier2 : File
-				second trf file
-
-			nomfichierres : String
-				resulting trf file
+		<gui>
+			<item name="nomfichier1" type="File" label="first trf file"/>
+			<item name="nomfichier2" type="File" label="second trf file"/>
+			<item name="nomfichierres" type="String" label="resulting trf file"/>
+		</gui>
 	""" 
 	medipy.medimax.recalage.CombineTransfo3d(str(nomfichier1), str(nomfichier2), str(nomfichierres), 5)
 
@@ -230,30 +196,22 @@ def InvertTransfo3d_GUI(nomfichier, nomfichres,wdthref, hghtref, dpthref, dxref,
 	"""
 	Invert a .trf file
 		
-		:gui:
-			nomfichier : File
-				.trf file to invert
-			
-			nomfichres : String
-				resulting trf file
-
-			wdthref : Int : value=-1
-				width of the transformation  (optional)
-
-			hghtref : Int : value=-1
-				height of the transformation (optional)
-
-			dpthref : Int : value=-1
-				depth of the transformation (optional)
-
-			dxref : Float : value=-1
-				dx of the transformation (optional)
-
-			dyref : Float : value=-1
-				dy of the transformation (optional)
-
-			dzref : Float : value=-1
-				dz of the transformation (optional)
+		<gui>
+			<item name="nomfichier" type="File" label=".trf file to invert"/>
+			<item name="nomfichres" type="String" label="resulting trf file"/>
+			<item name="wdthref" type="Int" initializer="value=-1" 
+				  label="width of the transformation  (optional)"/>
+			<item name="hghtref" type="Int" initializer="value=-1" 
+				  label="height of the transformation (optional)"/>
+			<item name="dpthref" type="Int" initializer="value=-1" 
+				  label="depth of the transformation (optional)"/>
+			<item name="dxref" type="Float" initializer="value=-1" 
+				  label="dx of the transformation (optional)"/>
+			<item name="dyref" type="Float" initializer="value=-1" 
+				  label="dy of the transformation (optional)"/>
+			<item name="dzref" type="Float" initializer="value=-1" 
+				  label="dz of the transformation (optional)"/>
+		</gui>
 		""" 
 	medipy.medimax.recalage.InvertTransfo3d(str(nomfichier), str(nomfichres), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
 
@@ -266,9 +224,9 @@ def MriInfo3D_GUI(im) :
 	"""
 	Info MRI 3D
 		
-		:gui:
-			im : Image
-				Image to get info 
+		<gui>
+			<item name="im" type="Image" label="Image to get info"/>
+		</gui> 
 	""" 
 	medipy.medimax.recalage.MriInfo3D(im)
 
@@ -281,15 +239,14 @@ def VisuTrfFile_GUI( nomfichier, output, visu_type) :
 	"""
 	Visualisation of a .trf file
 		
-		:gui:
-			nomfichier : File
-				trf file
-
-			output : Image : output=True
-				resulting image
-			
-			visu_type : Enum : ('Module','Jacobian','X-displacement','Y-displacement','Z-displacement')
-				type of visualisation 
+		<gui>
+			<item name="nomfichier" type="File" label="trf file"/>
+			<item name="output" type="Image" initializer="output=True" role="output"
+				  label="resulting image"/>
+			<item name="visu_type" type="Enum" initializer="('Module','Jacobian',
+				  'X-displacement','Y-displacement','Z-displacement')"
+				label="type of visualisation"/>
+		</gui> 
 				
 	""" 
 	medipy.medimax.recalage.VisuTrfFile(str(nomfichier),output,VisuTrfNumberInMedimax(visu_type))
