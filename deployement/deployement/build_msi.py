@@ -11,14 +11,14 @@ import os.path
 import shutil
 import subprocess
 
-import medipy.deployement.setup
+from setup import get_build_name
 
 def build_msi(project_name, wix_source = None):
     
     if wix_source is None :
         wix_source = "%s.wxs"%project_name
     
-    build = medipy.deployement.setup.get_build_name()
+    build = get_build_name()
 
     source_dir = os.path.abspath(os.getcwd())
     working_dir = "bin\\%s-%s"%(project_name, build)

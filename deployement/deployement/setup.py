@@ -28,14 +28,11 @@ def get_build_name():
     """ Return the build name, based on the platform and on the SVN revision.
     """
     
-    command = "svn info --xml --non-interactive".split(" ")
-    data = subprocess.Popen(command, stdout=subprocess.PIPE).communicate()[0]
-    
-    document = xml.dom.minidom.parseString(data)
-    entries = document.getElementsByTagName("entry")
-    revision = entries[0].getAttribute("revision")
+    command = ["hg", "tip", "--template", "{rev}"]
+    revision = subprocess.Popen(command, stdout=subprocess.PIPE).communicate()[0]
 
     build_name = "%s-r%s"%(sys.platform, revision)
+    
     return build_name
 
 def get_api_files(root) :
