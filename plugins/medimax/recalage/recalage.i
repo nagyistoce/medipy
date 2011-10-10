@@ -76,7 +76,7 @@ Multiresolution rigid registration
 	end_resol 	: undersampling factor at the final scale
 
 
-""", if imres == imref : imres.data = numpy.ndarray(shape=imref.shape, dtype=imref.dtype), imref, imreca, imres, registration_type, dist_type, inter_type, min_type, multistart, save_type, nomfichres, precision, start_resol, end_resol)
+""", imres.data = numpy.ndarray(shape=imref.shape, dtype=imref.dtype), imref, imreca, imres, registration_type, dist_type, inter_type, min_type, multistart, save_type, nomfichres, precision, start_resol, end_resol)
 
 
 #-------------------------------------------------------------
@@ -102,7 +102,7 @@ MEDIMAX_FUNCTION_MACRO(ApplyTransfo3d,
 				 	8 : bspline 5
 				 	9 : label (for labeled image only)
 
-""", if imres == imdeb :  imres.data = numpy.ndarray(shape=imdeb.shape, dtype=imdeb.dtype), imdeb, nomfichier, imres, inter_type)
+""", imres.data = numpy.ndarray(shape=imdeb.shape, dtype=imdeb.dtype), imdeb, nomfichier, imres, inter_type)
 
 
 #-------------------------------------------------------------
@@ -238,7 +238,7 @@ MEDIMAX_FUNCTION_MACRO(BsplineRegistration3d,
 					0 : No
 					1 : Yes
 					
-""", if imres == imref : imres.data=numpy.ndarray(shape=imref.shape, dtype=imref.dtype), imref, imreca, imres, dist_type, reg_type, reg_factor, min_type, save_type, nomfichres, resolf, Jmin, Jmax, normalisation_type, nb_classe, biais, symetrique)
+""", imres.data=numpy.ndarray(shape=imref.shape, dtype=imref.dtype), imref, imreca, imres, dist_type, reg_type, reg_factor, min_type, save_type, nomfichres, resolf, Jmin, Jmax, normalisation_type, nb_classe, biais, symetrique)
 
 #-------------------------------------------------------------
 #   Combine two transf_3d
