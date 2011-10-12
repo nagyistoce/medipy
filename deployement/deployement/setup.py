@@ -7,16 +7,18 @@
 ##########################################################################
 
 import distutils.core
+import imp
 import os
 import os.path
 import re
 import shutil
 import subprocess
 import sys
-import xml.dom.minidom
 
 import py2exe
 import py2exe.mf
+
+import medipy
 
 # Duck-punch py2exe DLL inclusion to include msvcp71.dll
 origIsSystemDLL = py2exe.build_exe.isSystemDLL
@@ -37,51 +39,38 @@ def get_build_name():
     
     return build_name
 
-def get_api_files(root) :
-    """ Find all api.py files under given root
-    """
-    api_files = []
-    for dirpath, dirnames, filenames in os.walk(root) :
-        if "api.py" in filenames :
-            api_files.append(os.path.join(dirpath, "api.py"))
-    return api_files
-
-def find_functions(api_files):
-    """ Return the list of functions contained in api.py files
-    """
-    
-    result = []
-    
-    for api_file in api_files :
-        api_globals = {}
-        api_locals = {}
-        
-        sys.path.append(dirpath)
-        execfile(api_file, api_globals, api_locals)
-        sys.path.pop()
-        
-        result.append([api_file, api_locals.keys()])
-    return result
-
 def patch_load_package(self, fqname, pathname):
     m = self.original_load_package(fqname, pathname)
-    data = open(m.__file__).readlines()
-    for line in data :
-        match = re.match(r""".*load_wrapitk_module\(.*, "(.*)"\)""", line)
-        if match :
-            self.import_hook("{0}.{1}Config".format(fqname, match.group(1)))
-            self.import_hook("{0}.{1}Python".format(fqname, match.group(1)))
+    if fqname.startswith("medipy") :
+        # See if there is a wrapitk module
+        data = open(m.__file__).readlines()
+        for line in data :
+            match = re.match(r""".*load_wrapitk_module\(.*, "(.*)"\)""", line)
+            if match :
+                self.import_hook("{0}.{1}Config".format(fqname, match.group(1)))
+                self.import_hook("{0}.{1}Python".format(fqname, match.group(1)))
     return m
-
 py2exe.mf.ModuleFinder.original_load_package = py2exe.mf.ModuleFinder.load_package 
 py2exe.mf.ModuleFinder.load_package = patch_load_package
 
-def setup(project_name, main_script, includes):
-    bin_directory = os.path.join("bin", "%s-%s"%(project_name, get_build_name()))
+def patch_find_module(self, name, path, parent=None) :
+    try :
+        result = self.original_find_module(name, path, parent)
+    except :
+        # Look for a MediPy plugin
+        return imp.find_module(
+            name, os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep))
+    else :
+        return result
+py2exe.mf.ModuleFinder.original_find_module = py2exe.mf.ModuleFinder.find_module
+py2exe.mf.ModuleFinder.find_module = patch_find_module
+
+def setup(project_name, main_script, includes=None, medipy_plugins=None):
     
-    import itk
-    import itkTypes
-    wrapitk_root = os.path.dirname(os.path.dirname(itkTypes.__file__))
+    includes = includes or []
+    medipy_plugins = medipy_plugins or []
+    
+    bin_directory = os.path.join("bin", "%s-%s"%(project_name, get_build_name()))
     
     # Remove destination dir if it exists
     if os.path.exists(bin_directory) :
@@ -89,16 +78,23 @@ def setup(project_name, main_script, includes):
     
     # Process specific includes
     if "itk" in includes :
+        import itk
+        import itkTypes
+        wrapitk_root = os.path.dirname(os.path.dirname(itkTypes.__file__))
         for file in os.listdir(os.path.join(wrapitk_root, "lib")) :
             # Only load "library" modules
             if not file.startswith("_") and not file.startswith("itk") :
                 swig_module = os.path.splitext(file)[0]
                 if swig_module not in includes :
                     includes.append(swig_module)
+        # Copy configuration files from WrapITK
+        configuration_dir = os.path.join(wrapitk_root, "Python", "Configuration")
+        shutil.copytree(configuration_dir, os.path.join(bin_directory, "Configuration"))
+    includes.extend(["medipy.{0}".format(plugin) for plugin in medipy_plugins])
 
     # Main setup script
     sys.path.append(os.path.join(wrapitk_root, "lib"))
-    distribution = distutils.core.setup(
+    distutils.core.setup(
         name = project_name,
         windows = [main_script], 
         options = { 
@@ -115,22 +111,28 @@ def setup(project_name, main_script, includes):
     )
     sys.path.pop()
     
-    # Copy configuration files from WrapITK
-    configuration_dir = os.path.join(wrapitk_root, "Python", "Configuration")
-    shutil.copytree(configuration_dir, os.path.join(bin_directory, "Configuration"))
-    
     # Copy resources
-    for dirpath, dirnames, filenames in os.walk("resources") :
+    medipy_resources = list(os.walk(os.path.join(medipy.__path__[0], "resources")))
+    project_resources = list(os.walk("resources"))
+    for dirpath, dirnames, filenames in medipy_resources+project_resources :
         if ".svn" in dirnames :
             del dirnames[dirnames.index(".svn")]
         for filename in filenames :
             skip_file = (filename == "SConstruct" or
                          filename.endswith(".fbp"))
             if not skip_file :
-                destination = os.path.join(bin_directory, dirpath)
-                if not os.path.isdir(destination) :
-                    os.makedirs(destination)
-                print os.path.join(dirpath, filename), "->", os.path.join(destination, filename)
-                shutil.copyfile(os.path.join(dirpath, filename), 
-                                os.path.join(destination, filename))
+                source = os.path.join(dirpath, filename)
+            
+                if dirpath.startswith(os.path.join(medipy.__path__[0])) :
+                    prefix = dirpath[
+                        len(os.path.join(medipy.__path__[0]))+len(os.path.sep):]
+                    destination_dir = os.path.join(bin_directory, prefix)
+                else :
+                    destination_dir = os.path.join(bin_directory, dirpath)
+                if not os.path.isdir(destination_dir) :
+                    os.makedirs(destination_dir)
+                
+                destination = os.path.join(destination_dir, filename)
+                print "copying {0} -> {1}".format(source, destination)
+                shutil.copyfile(source, destination)
     
