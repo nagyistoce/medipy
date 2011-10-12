@@ -9,12 +9,14 @@
 import distutils.core
 import os
 import os.path
+import re
 import shutil
 import subprocess
 import sys
 import xml.dom.minidom
 
 import py2exe
+import py2exe.mf
 
 # Duck-punch py2exe DLL inclusion to include msvcp71.dll
 origIsSystemDLL = py2exe.build_exe.isSystemDLL
@@ -61,6 +63,19 @@ def find_functions(api_files):
         result.append([api_file, api_locals.keys()])
     return result
 
+def patch_load_package(self, fqname, pathname):
+    m = self.original_load_package(fqname, pathname)
+    data = open(m.__file__).readlines()
+    for line in data :
+        match = re.match(r""".*load_wrapitk_module\(.*, "(.*)"\)""", line)
+        if match :
+            self.import_hook("{0}.{1}Config".format(fqname, match.group(1)))
+            self.import_hook("{0}.{1}Python".format(fqname, match.group(1)))
+    return m
+
+py2exe.mf.ModuleFinder.original_load_package = py2exe.mf.ModuleFinder.load_package 
+py2exe.mf.ModuleFinder.load_package = patch_load_package
+
 def setup(project_name, main_script, includes):
     bin_directory = os.path.join("bin", "%s-%s"%(project_name, get_build_name()))
     
@@ -75,15 +90,11 @@ def setup(project_name, main_script, includes):
     # Process specific includes
     if "itk" in includes :
         for file in os.listdir(os.path.join(wrapitk_root, "lib")) :
-            if not file.startswith("_") :
+            # Only load "library" modules
+            if not file.startswith("_") and not file.startswith("itk") :
                 swig_module = os.path.splitext(file)[0]
                 if swig_module not in includes :
                     includes.append(swig_module)
-    if "medipy.itk" in includes :
-        modules = ["itkNumpyBridgePython", "MediPyBridge", "MediPyBridgeConfig",
-                   "MediPyBridgePython", "numpy_bridge"]
-        for module in modules :
-            includes.append("medipy.itk.%s"%module)
 
     # Main setup script
     sys.path.append(os.path.join(wrapitk_root, "lib"))
