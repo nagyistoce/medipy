@@ -7,3 +7,4 @@
 ##########################################################################
 
 from build_msi import build_msi
+from setup import setup
