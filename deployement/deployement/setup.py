@@ -7,6 +7,7 @@
 ##########################################################################
 
 import distutils.core
+import glob
 import imp
 import os
 import os.path
@@ -14,19 +15,12 @@ import re
 import shutil
 import subprocess
 import sys
+import _winreg
 
 import py2exe
 import py2exe.mf
 
 import medipy
-
-# Duck-punch py2exe DLL inclusion to include msvcp71.dll
-origIsSystemDLL = py2exe.build_exe.isSystemDLL
-def isSystemDLL(pathname):
-        if os.path.basename(pathname).lower() in ("msvcp71.dll", "gdiplus.dll"):
-                return 0
-        return origIsSystemDLL(pathname)
-py2exe.build_exe.isSystemDLL = isSystemDLL
 
 def get_build_name():
     """ Return the build name, based on the platform and on the SVN revision.
@@ -69,6 +63,11 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
     
     includes = includes or []
     medipy_plugins = medipy_plugins or []
+    key = _winreg.OpenKey(
+        _winreg.HKEY_LOCAL_MACHINE, 
+        "SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VC")
+    vs_root, key_type = _winreg.QueryValueEx(key, "ProductDir")
+    key.Close()
     
     bin_directory = os.path.join("bin", "%s-%s"%(project_name, get_build_name()))
     
@@ -91,12 +90,19 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
         configuration_dir = os.path.join(wrapitk_root, "Python", "Configuration")
         shutil.copytree(configuration_dir, os.path.join(bin_directory, "Configuration"))
     includes.extend(["medipy.{0}".format(plugin) for plugin in medipy_plugins])
+    
+    # Include Visual C runtime DLL
+    data_files = [("Microsoft.VC90.CRT", 
+        glob.glob(os.path.join(vs_root,  
+                               "redist", "x86", "Microsoft.VC90.CRT", "*.*")))]
+    print data_files
 
     # Main setup script
     sys.path.append(os.path.join(wrapitk_root, "lib"))
     distutils.core.setup(
         name = project_name,
-        windows = [main_script], 
+        windows = [main_script],
+        data_files=data_files, 
         options = { 
             "py2exe" : {
                 "includes" : includes, 
