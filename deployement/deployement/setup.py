@@ -95,7 +95,6 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
     data_files = [("Microsoft.VC90.CRT", 
         glob.glob(os.path.join(vs_root,  
                                "redist", "x86", "Microsoft.VC90.CRT", "*.*")))]
-    print data_files
 
     # Main setup script
     sys.path.append(os.path.join(wrapitk_root, "lib"))
