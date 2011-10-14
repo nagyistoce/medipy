@@ -18,6 +18,7 @@ from medipy.gui.xrc_wrapper.scrolled_panel_xml_handler import ScrolledPanelXMLHa
 
 from medipy.gui.xrc_wrapper.control_image_xml_handler import ControlImageXMLHandler
 from medipy.gui.xrc_wrapper.dicom_explorer_xml_handler import DICOMExplorerXMLHandler
+from medipy.gui.xrc_wrapper.file_xml_handler import FileXMLHandler
 from medipy.gui.xrc_wrapper.float_xml_handler import FloatXMLHandler
 from medipy.gui.xrc_wrapper.float_interval_xml_handler import FloatIntervalXMLHandler
 from medipy.gui.xrc_wrapper.viewer_3d_xml_handler import Viewer3DXMLHandler
