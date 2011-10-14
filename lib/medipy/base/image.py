@@ -249,7 +249,8 @@ class Image(Observable):
     def _compute_index_to_physical_matrix(self):
         if None not in [self._spacing, self._origin] :
             try :
-                self._index_to_physical_matrix = numpy.diag(self._spacing)*self._direction
+                self._index_to_physical_matrix = numpy.dot(
+                    self._direction, numpy.diag(self._spacing))
             except ValueError,e :
                 logging.warning("Could not compute index to physical matrix : {0}".format(e))
             self._physical_to_index_matrix = numpy.linalg.inv(self._index_to_physical_matrix)
