@@ -61,10 +61,10 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s'agit de :
     for serie in series :
         # Récupération des valeurs des attributs Series Instance UID et 
         # Series Description
-        uid, description = medipy.io.dicom.uid_and_description(serie, base_directory)
+        uid, description = medipy.io.dicom.uid_and_description(serie)
         print description
     # Chargement des DataSets à partir des Directory Records
-    serie = medipy.io.dicom.load_dicomdir_records(series[0], base_directory)
+    serie = medipy.io.dicom.load_dicomdir_records(series[0])
     image = medipy.io.dicom.image(serie)
 
 Cas général
@@ -80,7 +80,7 @@ localisateur en IRM. La fonction ``stacks`` permet de diviser une série en pile
 
     datasets = [medipy.io.dicom.parse(f) for f in filenames]
     series = medipy.io.dicom.series(datasets)
-    serie = medipy.io.dicom.load_dicomdir_records(series[0], base_directory)
+    serie = medipy.io.dicom.load_dicomdir_records(series[0])
     # Division de la série en piles
     stack = medipy.io.dicom.stacks(serie)[0]
     image = medipy.io.dicom.image(stack)
