@@ -268,7 +268,7 @@ class DataSet(dict):
                         name = tag
                         vr = None
             else :
-                name = data_dictionary[tag][2]
+                name = data_dictionary.setdefault(tag, ("UN", "1", str(tag)))[2]
                 vr = data_dictionary[tag][0]
             
             if vr == "SQ" :
