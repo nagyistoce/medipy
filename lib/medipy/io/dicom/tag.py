@@ -21,6 +21,9 @@ class Tag(int):
     def __str__(self):
         return "(%04x,%04x)"%(self.group, self.element)
     
+    def __repr__(self):
+        return "(0x%04x,0x%04x)"%(self.group, self.element)
+    
     def _get_group(self):
         return self >> 16
     
