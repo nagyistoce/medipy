@@ -15,6 +15,7 @@ from medipy.gui.xrc_wrapper.window import Window
 
 from medipy.gui.xrc_wrapper.check_list_box_xml_handler import CheckListBoxXMLHandler
 from medipy.gui.xrc_wrapper.scrolled_panel_xml_handler import ScrolledPanelXMLHandler
+from medipy.gui.xrc_wrapper.timectrl_xml_handler import TimeCtrlXMLHandler
 
 from medipy.gui.xrc_wrapper.control_image_xml_handler import ControlImageXMLHandler
 from medipy.gui.xrc_wrapper.dicom_explorer_xml_handler import DICOMExplorerXMLHandler
