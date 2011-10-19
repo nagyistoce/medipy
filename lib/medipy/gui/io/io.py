@@ -102,11 +102,12 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
     
     return images
 
-def import_dicom_directory(parent = None, dtype = numpy.single):
+def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False):
     """ Import an image from a directory containing DICOM files
         
         parent : parent wx Window for dialogs
         dtype : type to cast images to, or None to preserve original type
+        recursive : set to True to recursively search for DICOM files
     """
     
     config = wx.Config("MediPy")
@@ -119,8 +120,13 @@ def import_dicom_directory(parent = None, dtype = numpy.single):
         return []
         
     directory = dialog.GetPath()
-    files = os.listdir(directory)
-    files = [str(os.path.join(directory, x)) for x in files]
+    if recursive :
+        files = []
+        for dirpath, dirnames, filenames in os.walk(directory) :
+            files.extend([(os.path.join(dirpath, x)) for x in filenames])
+    else :
+        files = os.listdir(directory)
+        files = [str(os.path.join(directory, x)) for x in files]
     files.sort()
     
     def loader(files):
