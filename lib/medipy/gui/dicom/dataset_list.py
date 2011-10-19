@@ -72,7 +72,8 @@ class DataSetList(wx.ListCtrl) :
             if tag == 0x52009230 : # Per-frame Functional Groups Sequence
                 continue
             
-            description = indent+dictionary.data_dictionary[tag][2]
+            description = indent+dictionary.data_dictionary.setdefault(
+                tag, ("UN", "1", str(tag)))[2]
             item = self.InsertStringItem(sys.maxint, description)
             self.SetStringItem(item, 1, "({0:04x},{1:04x})".format(tag.group, tag.element))
             
