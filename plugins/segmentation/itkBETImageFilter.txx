@@ -135,10 +135,11 @@ BETImageFilter<TInputImage, TOutputImage>
         *************************************/
         vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
         normalFilter->SetInput(this->sphere_);
+        // We know that all the normals on the original model are outward-pointing
+        normalFilter->AutoOrientNormalsOff();
+        normalFilter->ConsistencyOff();
+        // Don't create new points at sharp edges
         normalFilter->SplittingOff();
-        normalFilter->AutoOrientNormalsOn();
-        normalFilter->ComputePointNormalsOn();
-        normalFilter->ComputeCellNormalsOff();
         normalFilter->Update();
         vtkPolyData* normals = normalFilter->GetOutput();
 
@@ -456,6 +457,13 @@ BETImageFilter<TInputImage, TOutputImage>
     transformFilter->SetInput(subdivision->GetOutput());
     transformFilter->SetTransform(transform);
     transformFilter->Update();
+
+    // vtkPlatonicSolidSource give inwards pointing normals
+    vtkPolyData* sphere = transformFilter->GetOutput();
+    for(unsigned int i=0; i<sphere->GetNumberOfCells(); ++i)
+    {
+        sphere->ReverseCell(i);
+    }
 
     this->sphere_ = transformFilter->GetOutput();
 }
