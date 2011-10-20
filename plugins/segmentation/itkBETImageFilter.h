@@ -52,6 +52,7 @@ public :
 
     /** Type for input image. */
     typedef TInputImage InputImageType;
+    typedef typename Superclass::InputImagePixelType InputImagePixelType;
 
     /** Type for the output image. */
     typedef TOutputImage OutputImageType;
@@ -82,6 +83,18 @@ protected :
 
 private :
 
+    struct ThreadStruct
+    {
+        Self* filter;
+        vtkDataArray* pointsDataArray;
+        vtkDataArray* normalsDataArray;
+        float E;
+        float F;
+        float d1;
+        float d2;
+        std::vector<vnl_vector_fixed<float, 3> >* displacements;
+    };
+
     float m_BT;
 
     typename TInputImage::PointType m_CenterOfGravity;
@@ -108,6 +121,13 @@ private :
     std::vector<vtkIdType> neighbors(vtkIdType pointId);
     void meanVertexDistance();
     void voxelize();
+
+    static ITK_THREAD_RETURN_TYPE adjust_model_callback(void* data);
+    static void adjust_model(Self* filter,
+        float E, float F, float d1, float d2,
+        vtkDataArray* pointsDataArray, vtkDataArray* normalsDataArray,
+        vtkIdType points_begin, vtkIdType points_end,
+        std::vector<vnl_vector_fixed<float, 3> > & displacements);
 
     void
     drawSegment(vnl_vector_fixed_ref<float, TOutputImage::ImageDimension> const & p1,
