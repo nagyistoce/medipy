@@ -152,124 +152,20 @@ BETImageFilter<TInputImage, TOutputImage>
 
         std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
 
-        for(vtkIdType pointId=0; pointId<normals->GetNumberOfPoints(); ++pointId)
-        {
-            // Current point
-            vnl_vector_fixed_ref_const<float, 3> const p((float*)pointsDataArray->GetVoidPointer(3*pointId));
-            // Current normal
-            vnl_vector_fixed_ref_const<float, 3> const n((float*)normalsDataArray->GetVoidPointer(3*pointId));
+        MultiThreader* threader = MultiThreader::New();
+        threader->SetNumberOfThreads(this->GetNumberOfThreads());
 
-            /*****************************************************************
-            * 3.4.2 Mean Position of Neighbours and Difference Vector (p. 9) *
-            *****************************************************************/
-            // Find all neighbors
-            std::vector<vtkIdType> const & neighbors = this->neighborhood_[pointId];
-
-            // Difference vector
-            vnl_vector_fixed<float, 3> s(0,0,0);
-            for(std::vector<vtkIdType>::const_iterator neighborsIt=neighbors.begin();
-                neighborsIt != neighbors.end(); ++neighborsIt)
-            {
-                vnl_vector_fixed_ref_const<float, 3> const neighbor((float*)pointsDataArray->GetVoidPointer(3*(*neighborsIt)));
-                s += neighbor;
-            }
-            s /= neighbors.size();
-            s -= p;
-
-            // Decompose difference vector
-            float const dotProduct = s[0]*n[0]+s[1]*n[1]+s[2]*n[2];
-            vnl_vector_fixed<float, 3> const sn(dotProduct*n);
-            vnl_vector_fixed<float, 3> const st(s-sn);
-
-            /******************************************************************
-            * 3.4.3 Update Component 1: Within-Surface Vertex Spacing (p. 10) *
-            ******************************************************************/
-            vnl_vector_fixed<float, 3> const u1(st/2.f);
-
-            /******************************************************************
-            * 3.4.4 Update Component 2: Surface Smoothness Control (p. 10-12) *
-            ******************************************************************/
-
-            float const r = (this->l_*this->l_)/(2*sn.magnitude());
-            float const f2 = (1.+std::tanh(F*(1./r-E)))/2.;
-
-            vnl_vector_fixed<float, 3> const u2(f2*sn);
-
-            /********************************************************************
-            * 3.4.5 Update Component 3: Brain Surface Selection Term (p. 12-14) *
-            ********************************************************************/
-            // Line pointing inward from the current vertex
-            typename InputImageType::IndexType const firstIndex = {{
-                    (p[0]-n[0])/this->GetInput()->GetSpacing()[0],
-                    (p[1]-n[1])/this->GetInput()->GetSpacing()[1],
-                    (p[2]-n[2])/this->GetInput()->GetSpacing()[2] }};
-            typename InputImageType::IndexType const lastIndex = {{
-                    (p[0]-d1*n[0])/this->GetInput()->GetSpacing()[0],
-                    (p[1]-d1*n[1])/this->GetInput()->GetSpacing()[1],
-                    (p[2]-d1*n[2])/this->GetInput()->GetSpacing()[2] }};
-
-            float f3;
-            if(this->GetInput()->GetBufferedRegion().IsInside(firstIndex) &&
-               this->GetInput()->GetBufferedRegion().IsInside(lastIndex))
-            {
-                typename InputImageType::PixelType const firstIntensity =
-                    this->GetInput()->GetPixel(firstIndex);
-                typename InputImageType::PixelType const lastIntensity =
-                    this->GetInput()->GetPixel(lastIndex);
-
-                typename InputImageType::PixelType I_min =
-                    std::min(this->tm_, std::min(firstIntensity, lastIntensity));
-                typename InputImageType::PixelType I_max =
-                    std::max(this->t_, std::max(firstIntensity, lastIntensity));
-
-                for(float d=2; d<d1; ++d)
-                {
-                    typename InputImageType::IndexType const index = {{
-                        (p[0]-d*n[0])/this->GetInput()->GetSpacing()[0],
-                        (p[1]-d*n[1])/this->GetInput()->GetSpacing()[1],
-                        (p[2]-d*n[2])/this->GetInput()->GetSpacing()[2]
-                    }};
-
-                    typename InputImageType::PixelType const value =
-                        this->GetInput()->GetPixel(index);
-
-                    I_min = std::min(I_min, value);
-
-                    if(d<d2)
-                    {
-                        I_max = std::max(I_max, value);
-                    }
-                }
-
-                I_min = std::max(this->t2_, I_min);
-                I_max = std::min(this->tm_, I_max);
-
-                float const tl = (I_max-this->t2_)*this->m_BT+this->t2_;
-                if(float(I_max)-this->t2_>0)
-                {
-                    f3 = 2.*(I_min-tl)/(float(I_max)-this->t2_);
-                }
-                else
-                {
-                    // Use maximum if intensity is too low
-                    // cf. BET2, 2.3.2
-                    f3 = 2.*(I_min-tl);
-                }
-            }
-            else
-            {
-                f3 = 0;
-            }
-
-            // There is a typo in the paper : it reads \^s_n, but should
-            // read n
-            float const coefficient = 0.05*f3*this->l_;
-            vnl_vector_fixed<float, 3> const u3(coefficient*n);
-
-            vnl_vector_fixed<float, 3> const u(u1+u2+u3);
-            displacements[pointId] = u;
-
-        } // for all points
+        Self::ThreadStruct thread_structure;
+        thread_structure.filter = this;
+        thread_structure.pointsDataArray = pointsDataArray;
+        thread_structure.normalsDataArray = normalsDataArray;
+        thread_structure.E = E;
+        thread_structure.F = F;
+        thread_structure.d1 = d1;
+        thread_structure.d2 = d2;
+        thread_structure.displacements = &displacements;
+        threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
+        threader->SingleMethodExecute();
 
         for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
         {
@@ -281,6 +177,170 @@ BETImageFilter<TInputImage, TOutputImage>
     this->voxelize();
 
     this->UpdateProgress(1.);
+}
+
+template<typename TInputImage, typename TOutputImage>
+ITK_THREAD_RETURN_TYPE
+BETImageFilter<TInputImage, TOutputImage>
+::adjust_model_callback(void* data)
+{
+    MultiThreader::ThreadInfoStruct* thread_info =
+        reinterpret_cast<MultiThreader::ThreadInfoStruct*>(data);
+    int const thread_id = thread_info->ThreadID;
+    int const thread_count = thread_info->NumberOfThreads;
+    Self::ThreadStruct* user_data = reinterpret_cast<Self::ThreadStruct*>(thread_info->UserData);
+
+    // Split the total number of points
+    Self* filter = user_data->filter;
+    int const points_count = filter->sphere_->GetNumberOfPoints();
+    int const chunk = points_count/thread_count;
+    vtkIdType const begin = thread_id*chunk;
+    vtkIdType const end = (thread_id==thread_count-1)?(points_count):(begin+chunk);
+
+    // Get the rest of the arguments
+    vtkDataArray* pointsDataArray = user_data->pointsDataArray;
+    vtkDataArray* normalsDataArray = user_data->normalsDataArray;
+    float E = user_data->E;
+    float F = user_data->F;
+    float d1 = user_data->d1;
+    float d2 = user_data->d2;
+    std::vector<vnl_vector_fixed<float, 3> >*  displacements = user_data->displacements;
+
+    // Call the processing function
+    Self::adjust_model(filter, E, F, d1, d2, pointsDataArray, normalsDataArray,
+                       begin, end, *displacements);
+
+    return ITK_THREAD_RETURN_VALUE;
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+BETImageFilter<TInputImage, TOutputImage>
+::adjust_model(BETImageFilter<TInputImage, TOutputImage>* filter,
+    float E, float F, float d1, float d2,
+    vtkDataArray* pointsDataArray, vtkDataArray* normalsDataArray,
+    vtkIdType points_begin, vtkIdType points_end,
+    std::vector<vnl_vector_fixed<float, 3> > & displacements)
+{
+    typedef typename InputImageType::IndexType InputImageIndexType;
+
+    for(vtkIdType pointId=points_begin; pointId<points_end; ++pointId)
+    {
+        // Current point
+        vnl_vector_fixed_ref_const<float, 3> const p((float*)pointsDataArray->GetVoidPointer(3*pointId));
+        // Current normal
+        vnl_vector_fixed_ref_const<float, 3> const n((float*)normalsDataArray->GetVoidPointer(3*pointId));
+
+        /*****************************************************************
+        * 3.4.2 Mean Position of Neighbours and Difference Vector (p. 9) *
+        *****************************************************************/
+        // Find all neighbors
+        std::vector<vtkIdType> const & neighbors = filter->neighborhood_[pointId];
+
+        // Difference vector
+        vnl_vector_fixed<float, 3> s(0,0,0);
+        for(std::vector<vtkIdType>::const_iterator neighborsIt=neighbors.begin();
+            neighborsIt != neighbors.end(); ++neighborsIt)
+        {
+            vnl_vector_fixed_ref_const<float, 3> const neighbor(
+                (float*)pointsDataArray->GetVoidPointer(3*(*neighborsIt)));
+            s += neighbor;
+        }
+        s /= neighbors.size();
+        s -= p;
+
+        // Decompose difference vector
+        float const dotProduct = s[0]*n[0]+s[1]*n[1]+s[2]*n[2];
+        vnl_vector_fixed<float, 3> const sn(dotProduct*n);
+        vnl_vector_fixed<float, 3> const st(s-sn);
+
+        /******************************************************************
+        * 3.4.3 Update Component 1: Within-Surface Vertex Spacing (p. 10) *
+        ******************************************************************/
+        vnl_vector_fixed<float, 3> const u1(st/2.f);
+
+        /******************************************************************
+        * 3.4.4 Update Component 2: Surface Smoothness Control (p. 10-12) *
+        ******************************************************************/
+
+        float const r = (filter->l_*filter->l_)/(2*sn.magnitude());
+        float const f2 = (1.+std::tanh(F*(1./r-E)))/2.;
+
+        vnl_vector_fixed<float, 3> const u2(f2*sn);
+
+        /********************************************************************
+        * 3.4.5 Update Component 3: Brain Surface Selection Term (p. 12-14) *
+        ********************************************************************/
+        // Line pointing inward from the current vertex
+        InputImageType const * input = filter->GetInput();
+        typename InputImageType::SpacingType const & spacing = input->GetSpacing();
+        InputImageIndexType const firstIndex = {{
+                (p[0]-n[0])/spacing[0],
+                (p[1]-n[1])/spacing[1],
+                (p[2]-n[2])/spacing[2] }};
+        InputImageIndexType const lastIndex = {{
+                (p[0]-d1*n[0])/spacing[0],
+                (p[1]-d1*n[1])/spacing[1],
+                (p[2]-d1*n[2])/spacing[2] }};
+
+        float f3;
+        if(input->GetBufferedRegion().IsInside(firstIndex) &&
+           input->GetBufferedRegion().IsInside(lastIndex))
+        {
+            InputImagePixelType const firstIntensity = input->GetPixel(firstIndex);
+            InputImagePixelType const lastIntensity = input->GetPixel(lastIndex);
+
+            InputImagePixelType I_min = std::min(filter->tm_, std::min(firstIntensity, lastIntensity));
+            InputImagePixelType I_max = std::max(filter->t_, std::max(firstIntensity, lastIntensity));
+
+            for(float d=2; d<d1; ++d)
+            {
+                InputImageIndexType const index = {{
+                    (p[0]-d*n[0])/filter->GetInput()->GetSpacing()[0],
+                    (p[1]-d*n[1])/filter->GetInput()->GetSpacing()[1],
+                    (p[2]-d*n[2])/filter->GetInput()->GetSpacing()[2]
+                }};
+
+                InputImagePixelType const value = filter->GetInput()->GetPixel(index);
+
+                I_min = std::min(I_min, value);
+
+                if(d<d2)
+                {
+                    I_max = std::max(I_max, value);
+                }
+            }
+
+            I_min = std::max(filter->t2_, I_min);
+            I_max = std::min(filter->tm_, I_max);
+
+            float const tl = (I_max-filter->t2_)*filter->m_BT+filter->t2_;
+            if(float(I_max)-filter->t2_>0)
+            {
+                f3 = 2.*(I_min-tl)/(float(I_max)-filter->t2_);
+            }
+            else
+            {
+                // Use maximum if intensity is too low
+                // cf. BET2, 2.3.2
+                f3 = 2.*(I_min-tl);
+            }
+        }
+        else
+        {
+            f3 = 0;
+        }
+
+        // There is a typo in the paper : it reads \^s_n, but should
+        // read n
+        float const coefficient = 0.05*f3*filter->l_;
+        vnl_vector_fixed<float, 3> const u3(coefficient*n);
+
+        vnl_vector_fixed<float, 3> const u(u1+u2+u3);
+        displacements[pointId] = u;
+
+    } // for all points
+
 }
 
 template<typename TInputImage, typename TOutputImage>
