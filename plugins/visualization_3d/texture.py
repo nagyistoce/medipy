@@ -8,15 +8,14 @@
 
 import numpy
 import scipy.ndimage
+
 from vtk import vtkFloatArray
+import vtk.util.numpy_support
 
 def texture_from_depth(object_3d, image, depth, center_of_mass = None):
     """ Color the vertices of the object using color from  image with
         a depth factor related to the image center of mass.
     """
-    
-    # TODO : move this out of the function once the migration to VTK 5.4 is done
-    import vtk.util.numpy_support
     
     # Compute the center of mass if necessary
     if center_of_mass is None :
@@ -37,7 +36,10 @@ def texture_from_depth(object_3d, image, depth, center_of_mass = None):
     points -= center_of_mass
     points *= depth
     points += center_of_mass
-        
+    
+    # Clip to image boundary
+    numpy.clip(points, image.ndim*[0], numpy.subtract(image.shape, 1), points)
+    
     # Probe image : must supply list of shape (3,n) instead of (n,3)
     values = image.data[points.T.tolist()]
         

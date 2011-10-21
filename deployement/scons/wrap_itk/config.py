@@ -2,6 +2,8 @@ import copy
 
 from itk_types import ItkTypeWrapper
 
+wrapitk_root = "/usr/lib/InsightToolkit/WrapITK/"
+
 WRAP_ITK_DIMS = [2,3]
     
 WRAP = {}
@@ -26,6 +28,24 @@ WRAP["rgb_unsigned_char"] = True
 WRAP["rgb_unsigned_short"] = False
 WRAP["rgba_unsigned_char"] = True
 WRAP["rgba_unsigned_short"] = False
+
+unsigned_integers = [
+    t for t in ["unsigned char", "unsigned long", "unsigned short"] if WRAP[t]]
+signed_integers = [
+    t for t in ["signed char", "signed long", "signed short"] if WRAP[t]]
+reals = [t for t in ["float", "double"] if WRAP[t]]
+rgb = []#t for t in ["rgb_unsigned_char", "rgb_unsigned_short"] if WRAP[t]]
+rgba = []#t for t in ["rgba_unsigned_char", "rgba_unsigned_short"] if WRAP[t]]
+vector_real = []#t for t in ["vector_double", "vector_float"] if WRAP[t]]
+covariant_vector_real = [
+    ]#t for t in ["covariant_vector_double", "covariant_vector_float"] if WRAP[t]]
+
+integers = unsigned_integers+signed_integers
+scalars = integers+reals
+vectors = vector_real+covariant_vector_real
+colors = rgb+rgba
+all_types = integers+scalars+vectors+colors
+dimensions = [1,2,3,4]
 
 mapping = {
     "unsigned char" : "UC", "unsigned long" : "UL", "unsigned short" : "US",
