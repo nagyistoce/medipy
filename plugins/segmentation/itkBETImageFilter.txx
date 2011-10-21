@@ -74,8 +74,6 @@ BETImageFilter<TInputImage, TOutputImage>
 
     this->AllocateOutputs();
 
-    this->UpdateProgress(0.);
-
     /**************************************************************
     * 3.2 Estimation of Basic Image and Brain Parameters (p. 5-7) *
     **************************************************************/
@@ -115,66 +113,83 @@ BETImageFilter<TInputImage, TOutputImage>
         this->neighborhood_[pointId] = neighbors;
     }
 
-    this->UpdateProgress(1./(float(nbIterations)+2.));
-
     /***********************************
     * 3.4 Main iterated loop (p. 8-14) *
     ***********************************/
 
-    for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
+    unsigned int pass = 0;
+    bool done = false;
+    while(!done)
     {
-        this->UpdateProgress((1.+float(iteration))/(float(nbIterations)+2.));
-        // Update l
-        this->meanVertexDistance();
-        itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
-
-        /*************************************
-        * 3.4.1 Local Surface Normal (p.8-9) *
-        *************************************/
-        vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-        normalFilter->SetInput(this->sphere_);
-        // We know that all the normals on the original model are outward-pointing
-        normalFilter->AutoOrientNormalsOff();
-        normalFilter->ConsistencyOff();
-        // Don't create new points at sharp edges
-        normalFilter->SplittingOff();
-        normalFilter->Update();
-        vtkPolyData* normals = normalFilter->GetOutput();
-
-        vtkDataArray* pointsDataArray = normals->GetPoints()->GetData();
-        vtkDataArray* normalsDataArray = normals->GetPointData()->GetNormals();
-        if(pointsDataArray->GetDataType() != VTK_FLOAT || normalsDataArray->GetDataType() != VTK_FLOAT)
+        for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
         {
-            throw std::runtime_error("Points should be VTK_FLOAT");
-        }
+            float smoothness;
+            if(iteration<=0.75*nbIterations)
+            {
+                smoothness = std::pow(10., pass);
+            }
+            else
+            {
+                // Linear interpolation between 1 and 10^pass
+                float const alpha = (iteration-0.75*nbIterations)/(0.25*nbIterations);
+                smoothness = (1-alpha)*std::pow(10., pass)+alpha;
+            }
 
-        std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
+            // Update l
+            this->meanVertexDistance();
+            itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
 
-        MultiThreader::Pointer threader = MultiThreader::New();
-        threader->SetNumberOfThreads(this->GetNumberOfThreads());
+            /*************************************
+            * 3.4.1 Local Surface Normal (p.8-9) *
+            *************************************/
+            vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+            normalFilter->SetInput(this->sphere_);
+            // We know that all the normals on the original model are outward-pointing
+            normalFilter->AutoOrientNormalsOff();
+            normalFilter->ConsistencyOff();
+            // Don't create new points at sharp edges
+            normalFilter->SplittingOff();
+            normalFilter->Update();
+            vtkPolyData* normals = normalFilter->GetOutput();
 
-        Self::ThreadStruct thread_structure;
-        thread_structure.filter = this;
-        thread_structure.pointsDataArray = pointsDataArray;
-        thread_structure.normalsDataArray = normalsDataArray;
-        thread_structure.E = E;
-        thread_structure.F = F;
-        thread_structure.d1 = d1;
-        thread_structure.d2 = d2;
-        thread_structure.displacements = &displacements;
-        threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
-        threader->SingleMethodExecute();
+            vtkDataArray* pointsDataArray = normals->GetPoints()->GetData();
+            vtkDataArray* normalsDataArray = normals->GetPointData()->GetNormals();
+            if(pointsDataArray->GetDataType() != VTK_FLOAT || normalsDataArray->GetDataType() != VTK_FLOAT)
+            {
+                throw std::runtime_error("Points should be VTK_FLOAT");
+            }
 
-        for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
-        {
-            vnl_vector_fixed_ref<float, 3> p((float*)pointsDataArray->GetVoidPointer(3*pointId));
-            p += displacements[pointId];
-        }
-    } // for all iterations
+            std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
+
+            MultiThreader::Pointer threader = MultiThreader::New();
+            threader->SetNumberOfThreads(this->GetNumberOfThreads());
+
+            Self::ThreadStruct thread_structure;
+            thread_structure.filter = this;
+            thread_structure.pointsDataArray = pointsDataArray;
+            thread_structure.normalsDataArray = normalsDataArray;
+            thread_structure.E = E;
+            thread_structure.F = F;
+            thread_structure.d1 = d1;
+            thread_structure.d2 = d2;
+            thread_structure.smoothness = smoothness;
+            thread_structure.displacements = &displacements;
+            threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
+            threader->SingleMethodExecute();
+
+            for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
+            {
+                vnl_vector_fixed_ref<float, 3> p((float*)pointsDataArray->GetVoidPointer(3*pointId));
+                p += displacements[pointId];
+            }
+        } // for all iterations
+        ++pass;
+        // TODO : implement self-intersection test
+        done = true;
+    } // for all passes
 
     this->voxelize();
 
-    this->UpdateProgress(1.);
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -202,10 +217,12 @@ BETImageFilter<TInputImage, TOutputImage>
     float F = user_data->F;
     float d1 = user_data->d1;
     float d2 = user_data->d2;
+    float smoothness = user_data->smoothness;
     std::vector<vnl_vector_fixed<float, 3> >*  displacements = user_data->displacements;
 
     // Call the processing function
-    Self::adjust_model(filter, E, F, d1, d2, pointsDataArray, normalsDataArray,
+    Self::adjust_model(filter, E, F, d1, d2, smoothness,
+                       pointsDataArray, normalsDataArray,
                        begin, end, *displacements);
 
     return ITK_THREAD_RETURN_VALUE;
@@ -215,7 +232,7 @@ template<typename TInputImage, typename TOutputImage>
 void
 BETImageFilter<TInputImage, TOutputImage>
 ::adjust_model(BETImageFilter<TInputImage, TOutputImage>* filter,
-    float E, float F, float d1, float d2,
+    float E, float F, float d1, float d2, float smoothness,
     vtkDataArray* pointsDataArray, vtkDataArray* normalsDataArray,
     vtkIdType points_begin, vtkIdType points_end,
     std::vector<vnl_vector_fixed<float, 3> > & displacements)
@@ -262,7 +279,20 @@ BETImageFilter<TInputImage, TOutputImage>
         ******************************************************************/
 
         float const r = (filter->l_*filter->l_)/(2*sn.magnitude());
-        float const f2 = (1.+std::tanh(F*(1./r-E)))/2.;
+        float f2 = (1.+std::tanh(F*(1./r-E)))/2.;
+
+        /******************************************************************
+        * 3.4.7 Increased smoothing                                       *
+        ******************************************************************/
+        // The sign of sn.n determine if the area if convex or concave,
+        // cf. figure 4. If smoothness == 1, this is the first pass, and f2
+        // should not be modified
+        float const concave = sn[0]*n[0]+sn[1]*n[1]+sn[2]*n[2];
+        if(smoothness>1 && concave > 0)
+        {
+            f2 *= smoothness;
+            f2 = std::min(f2, 1.f);
+        }
 
         vnl_vector_fixed<float, 3> const u2(f2*sn);
 
