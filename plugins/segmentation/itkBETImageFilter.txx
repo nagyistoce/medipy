@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 #include <queue>
 #include <vector>
 
@@ -123,12 +124,9 @@ BETImageFilter<TInputImage, TOutputImage>
     for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
     {
         this->UpdateProgress((1.+float(iteration))/(float(nbIterations)+2.));
-        // Update l from time to time
-        if(iteration%100 == 0)
-        {
-            this->meanVertexDistance();
-            itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
-        }
+        // Update l
+        this->meanVertexDistance();
+        itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
 
         /*************************************
         * 3.4.1 Local Surface Normal (p.8-9) *
@@ -152,7 +150,7 @@ BETImageFilter<TInputImage, TOutputImage>
 
         std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
 
-        MultiThreader* threader = MultiThreader::New();
+        MultiThreader::Pointer threader = MultiThreader::New();
         threader->SetNumberOfThreads(this->GetNumberOfThreads());
 
         Self::ThreadStruct thread_structure;
@@ -563,16 +561,70 @@ void
 BETImageFilter<TInputImage, TOutputImage>
 ::meanVertexDistance()
 {
-    this->l_=0;
+    MultiThreader::Pointer threader = MultiThreader::New();
+    threader->SetNumberOfThreads(this->GetNumberOfThreads());
 
-    vtkDataArray* dataArray(this->sphere_->GetPoints()->GetData());
+    Self::MeanVertexDistanceThreadStruct thread_structure;
+    thread_structure.model = this->sphere_;
+    thread_structure.neighborhood = &this->neighborhood_;
+    thread_structure.distances = new float[threader->GetNumberOfThreads()];
+    threader->SetSingleMethod(Self::mean_vertex_distance_callback, &thread_structure);
+    threader->SingleMethodExecute();
 
-    for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
+    float const distance = std::accumulate(
+        thread_structure.distances,
+        thread_structure.distances+threader->GetNumberOfThreads(),
+        0);
+
+    this->l_ = distance / this->sphere_->GetNumberOfPoints();
+
+    delete[] thread_structure.distances;
+}
+
+template<typename TInputImage, typename TOutputImage>
+ITK_THREAD_RETURN_TYPE
+BETImageFilter<TInputImage, TOutputImage>
+::mean_vertex_distance_callback(void* data)
+{
+    MultiThreader::ThreadInfoStruct* thread_info =
+        reinterpret_cast<MultiThreader::ThreadInfoStruct*>(data);
+    int const thread_id = thread_info->ThreadID;
+    int const thread_count = thread_info->NumberOfThreads;
+    Self::MeanVertexDistanceThreadStruct* user_data =
+        reinterpret_cast<Self::MeanVertexDistanceThreadStruct*>(thread_info->UserData);
+
+    // Split the total number of points
+    vtkPolyData* model = user_data->model;
+    int const points_count = model->GetNumberOfPoints();
+    int const chunk = points_count/thread_count;
+    vtkIdType const begin = thread_id*chunk;
+    vtkIdType const end = (thread_id==thread_count-1)?(points_count):(begin+chunk);
+
+    // Get the rest of the arguments
+    std::vector<std::vector<vtkIdType> >* neighborhood = user_data->neighborhood;
+
+    // Call the processing function
+    user_data->distances[thread_id] = Self::mean_vertex_distance_thread(model, *neighborhood, begin, end);
+
+    return ITK_THREAD_RETURN_VALUE;
+}
+
+template<typename TInputImage, typename TOutputImage>
+float
+BETImageFilter<TInputImage, TOutputImage>
+::mean_vertex_distance_thread(vtkPolyData* model,
+    std::vector<std::vector<vtkIdType> > const & neighborhood,
+    vtkIdType points_begin, vtkIdType points_end)
+{
+    vtkDataArray* dataArray(model->GetPoints()->GetData());
+
+    float total_distance = 0;
+    for(vtkIdType pointId=points_begin; pointId<points_end; ++pointId)
     {
         vnl_vector_fixed_ref_const<float, 3> const p((float*)dataArray->GetVoidPointer(3*pointId));
 
         float distance = 0;
-        std::vector<vtkIdType> const & neighbors = this->neighborhood_[pointId];
+        std::vector<vtkIdType> const & neighbors = neighborhood[pointId];
         for(std::vector<vtkIdType>::const_iterator neighborsIt=neighbors.begin();
             neighborsIt != neighbors.end(); ++neighborsIt)
         {
@@ -580,9 +632,10 @@ BETImageFilter<TInputImage, TOutputImage>
             distance += std::sqrt(vnl_vector_ssd(p, neighbor));
         }
         distance /= neighbors.size();
-        this->l_ += distance;
+        total_distance += distance;
     }
-    this->l_ /= this->sphere_->GetNumberOfPoints();
+
+    return total_distance;
 }
 
 template<typename TInputImage, typename TOutputImage>

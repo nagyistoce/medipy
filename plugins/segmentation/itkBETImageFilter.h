@@ -95,6 +95,13 @@ private :
         std::vector<vnl_vector_fixed<float, 3> >* displacements;
     };
 
+    struct MeanVertexDistanceThreadStruct
+    {
+        vtkPolyData* model;
+        std::vector<std::vector<vtkIdType> >* neighborhood;
+        float* distances;
+    };
+
     float m_BT;
 
     typename TInputImage::PointType m_CenterOfGravity;
@@ -121,6 +128,11 @@ private :
     std::vector<vtkIdType> neighbors(vtkIdType pointId);
     void meanVertexDistance();
     void voxelize();
+
+    static ITK_THREAD_RETURN_TYPE mean_vertex_distance_callback(void* data);
+    static float mean_vertex_distance_thread(vtkPolyData* model,
+        std::vector<std::vector<vtkIdType> > const & neighborhood,
+        vtkIdType points_begin, vtkIdType points_end);
 
     static ITK_THREAD_RETURN_TYPE adjust_model_callback(void* data);
     static void adjust_model(Self* filter,
