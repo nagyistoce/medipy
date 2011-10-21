@@ -61,7 +61,9 @@ public :
     itkGetMacro(BT, float);
     itkSetClampMacro(BT, float, 0., 1.);
 
-    /** Center of gravity of the brain. Will be computed if user does not provide it. */
+    /** Center of gravity of the brain in physical units.
+     * Will be computed if user does not provide it.
+     */
     itkGetMacro(CenterOfGravity, typename TInputImage::PointType);
     virtual void SetCenterOfGravity(typename TInputImage::PointType & _arg)
     {
@@ -69,9 +71,9 @@ public :
         if(this->m_CenterOfGravity != _arg)
         {
             this->m_CenterOfGravity = _arg;
-            this->userDefinedCOG_ = true;
             this->Modified();
         }
+        this->userDefinedCOG_ = true;
     }
 
 
@@ -92,6 +94,7 @@ private :
         float F;
         float d1;
         float d2;
+        float smoothness;
         std::vector<vnl_vector_fixed<float, 3> >* displacements;
     };
 
@@ -136,7 +139,7 @@ private :
 
     static ITK_THREAD_RETURN_TYPE adjust_model_callback(void* data);
     static void adjust_model(Self* filter,
-        float E, float F, float d1, float d2,
+        float E, float F, float d1, float d2, float smoothness,
         vtkDataArray* pointsDataArray, vtkDataArray* normalsDataArray,
         vtkIdType points_begin, vtkIdType points_end,
         std::vector<vnl_vector_fixed<float, 3> > & displacements);
