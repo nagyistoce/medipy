@@ -25,7 +25,6 @@ def marching_cubes(input, isovalue, compute_normals, output):
     """
     
     vtk_image = medipy.vtk.build_vtk_image(input)
-    vtk_image.SetSpacing(*reversed(input.spacing))
     marching_cubes = vtkMarchingCubes()
     marching_cubes.SetInput(vtk_image)
     marching_cubes.SetValue(0, isovalue)
