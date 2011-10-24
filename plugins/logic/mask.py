@@ -10,6 +10,7 @@ import itk
 import numpy
 
 import medipy.itk
+import medipy.logic
 
 def create_mask(input, background):
     """ Create a binary image by setting every non-background voxel to 1,
