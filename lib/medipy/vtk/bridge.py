@@ -86,11 +86,11 @@ def build_vtk_image(array, vtk_image=None, save=1) :
     vtk_image.SetExtent(extent)
     
     # If we have an image, use its origin and spacing
-    # if hasattr(array, "spacing") :
-        # vtk_image.SetSpacing(*reversed(array.spacing))
+    if hasattr(array, "spacing") :
+        vtk_image.SetSpacing(*reversed(array.spacing))
     # 
-    # if hasattr(array, "origin") :
-        # vtk_image.SetOrigin(*reversed(array.origin))
+    if hasattr(array, "origin") :
+        vtk_image.SetOrigin(*reversed(array.origin))
     
     return vtk_image
 
