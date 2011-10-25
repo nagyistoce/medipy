@@ -22,5 +22,6 @@ from medipy.gui.xrc_wrapper.dicom_explorer_xml_handler import DICOMExplorerXMLHa
 from medipy.gui.xrc_wrapper.file_xml_handler import FileXMLHandler
 from medipy.gui.xrc_wrapper.float_xml_handler import FloatXMLHandler
 from medipy.gui.xrc_wrapper.float_interval_xml_handler import FloatIntervalXMLHandler
+from medipy.gui.xrc_wrapper.int_xml_handler import IntXMLHandler
 from medipy.gui.xrc_wrapper.viewer_3d_xml_handler import Viewer3DXMLHandler
 from medipy.gui.xrc_wrapper.string_xml_handler import StringXMLHandler
