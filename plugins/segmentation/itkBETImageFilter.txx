@@ -126,13 +126,13 @@ BETImageFilter<TInputImage, TOutputImage>
             float smoothness;
             if(iteration<=0.75*nbIterations)
             {
-                smoothness = std::pow(10., pass);
+                smoothness = std::pow(10.f, float(pass));
             }
             else
             {
                 // Linear interpolation between 1 and 10^pass
                 float const alpha = (iteration-0.75*nbIterations)/(0.25*nbIterations);
-                smoothness = (1-alpha)*std::pow(10., pass)+alpha;
+                smoothness = (1-alpha)*std::pow(10.f, float(pass))+alpha;
             }
 
             // Update l
