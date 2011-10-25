@@ -102,6 +102,9 @@ class Image(wx.Panel, PropertySynchronized):
                  orientation_visibility=True, corner_annotations_visibility=False,
                  *args, **kwargs):
         
+        if annotations is None :
+            annotations = ObservableList()
+        
         ##############
         # Properties #
         ##############
@@ -173,7 +176,7 @@ class Image(wx.Panel, PropertySynchronized):
             self.append_layer(**layer)
         self._set_slice_mode(slice_mode)
         
-        self._set_annotations(annotations or ObservableList())
+        self._set_annotations(annotations)
         
         # Position image at middle of layer 0
         self.reset_view()
