@@ -121,17 +121,6 @@ def load(filename, index=0, type=numpy.single, rescale_data=True,
 
 def save(image, filename, saver_class=None) :
     """ Save an image to a file
-        
-        :gui:
-            image : Image
-                Image
-                
-                Image to be saved
-                
-            filename : File : output=True
-                File
-                
-                Destination file
     """
     if saver_class is None :
         saver = get_saver(image, filename)
