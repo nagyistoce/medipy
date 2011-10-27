@@ -1,3 +1,6 @@
+from connected_threshold import (
+    connected_threshold, connected_threshold_with_radius)
+
 import os.path
 import medipy.itk
 
