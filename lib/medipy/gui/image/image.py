@@ -132,7 +132,7 @@ class Image(wx.Panel, PropertySynchronized):
         # Private members #
         ###################
         self._rwi = None
-        self._layers = []
+        self._layers = ObservableList()
         self._slices = []
         self._informations_renderer = vtkRenderer()
         self._informations_renderer.SetViewport(*self._viewport["informations"])
