@@ -367,6 +367,7 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
     
     shared_objects = env.SharedObject(
         source=sources,
+        CPPDEFINES=env["CPPDEFINES"]+["SWIG_PYTHON_CAST_MODE"],
         CPPPATH=env["CPPPATH"]+env["Python"]["CPPPATH"]+env["ITK"]["CPPPATH"], 
         SWIGFLAGS=env["SWIGFLAGS"]+env["Swig"]["SWIGFLAGS"]+env["ITK"]["SWIGFLAGS"]+swig_flags,
     )
