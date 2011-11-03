@@ -141,9 +141,14 @@ class Layer(object) :
         return self._image
     
     def _set_image(self, image) :
+        if self._image :
+            self._image.remove_observer("modified", self._on_image_modified)
+            
         self._image = image
         
         self._vtk_image = medipy.vtk.build_vtk_image(self._image, self._vtk_image)
+        
+        self._image.add_observer("modified", self._on_image_modified)
         
         self._update_vtk_image_position()
         self._update_change_information()
@@ -239,6 +244,9 @@ class Layer(object) :
     #####################
     # Private interface #
     #####################
+    
+    def _on_image_modified(self, event):
+        self._vtk_image.Modified()
     
     def _update_vtk_image_position(self) :
         """ Update the origin and spacing of the vtk image with respect to image
