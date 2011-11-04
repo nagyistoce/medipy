@@ -179,6 +179,60 @@ class TestHistory(unittest.TestCase):
         self.assertTrue(self.history.can_undo)
         self.assertFalse(self.history.can_redo)
         self.assertEqual(self.history.labels, ["Recent", "Old"])
+    
+    def test_add_after_undo(self):
+        self.history.add(self.old_old_command)
+        self.history.add(self.old_command)
+        
+        # Test commands state
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 0)
+        
+        self.assertEqual(self.recent_command.execution_count, 0)
+        self.assertEqual(self.recent_command.undo_count, 0)
+        
+        # Test history state
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Old", "Old old"])
+        
+        # Undo
+        self.history.undo()
+        
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 1)
+        
+        self.assertEqual(self.recent_command.execution_count, 0)
+        self.assertEqual(self.recent_command.undo_count, 0)
+        
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertTrue(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Old", "Old old"])
+        
+        # Add new command
+        self.history.add(self.recent_command)
+        
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 1)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 0)
+        
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old old"])
         
 if __name__ == '__main__':
     unittest.main()
