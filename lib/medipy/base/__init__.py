@@ -6,6 +6,7 @@
 # for details.                                                      
 ##########################################################################
 
+from command import Command, UndoableCommand
 from find_resource import find_resource
 from image import Image
 from image_annotation import ImageAnnotation
