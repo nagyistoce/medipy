@@ -83,6 +83,7 @@ class TestHistory(unittest.TestCase):
         self.assertFalse(self.history.empty)
         self.assertTrue(self.history.can_undo)
         self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
         
         # Test undo
         self.history.undo()
@@ -141,6 +142,43 @@ class TestHistory(unittest.TestCase):
         self.assertTrue(self.history.can_undo)
         self.assertFalse(self.history.can_redo)
         self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+    
+    def test_limited_size(self):
+        self.history = medipy.base.History(2)
+        
+        self.history.add(self.old_old_command)
+        self.history.add(self.old_command)
+        
+        # Test commands state
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 0)
+        
+        # Test history state
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Old", "Old old"])
+        
+        # Add new command, discarding earliest one
+        self.history.add(self.recent_command)
+        
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 0)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 0)
+        
+        # Test history state
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old"])
         
 if __name__ == '__main__':
     unittest.main()
