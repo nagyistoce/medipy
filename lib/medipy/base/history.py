@@ -23,7 +23,7 @@ class History(object) :
         if self._cursor :
             del self._steps[0:self._cursor]
         self._cursor = 0
-        if self.maximum_steps and len(self._steps) == self.maximum_steps-1 :
+        if self.maximum_steps and len(self._steps) == self.maximum_steps :
             del self._steps[-1]
         self._steps.insert(0, command)
     
