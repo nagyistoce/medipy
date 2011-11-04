@@ -8,6 +8,7 @@
 
 from command import Command, UndoableCommand
 from find_resource import find_resource
+from history import History
 from image import Image
 from image_annotation import ImageAnnotation
 from late_binding_property import LateBindingProperty
