@@ -7,7 +7,7 @@
 ##########################################################################
 
 class History(object) :
-    """ History of Commands with multiple undo/redo levels
+    """ History of Commands with multiple undo/redo levels.
     """
     
     def __init__(self, maximum_steps=None) :
@@ -42,6 +42,11 @@ class History(object) :
             self.cursor-=1
 
     def _get_cursor(self):
+        """ Current position in the history. Latest commands have lower indices
+            than earliest commands : the earlist command has index steps_count,
+            the latest has index 0.
+        """
+        
         return self._cursor
     
     def _set_cursor(self, cursor):
@@ -59,7 +64,13 @@ class History(object) :
             if function == "undo" :
                 i += 1
         self._cursor = cursor
-
+    
+    def _get_steps_count(self) :
+        """ Number of steps in the history.
+        """
+        
+        return len(self._steps)
+    
     def _get_empty(self) :
         """ Test if the history is empty.
         """
@@ -85,6 +96,7 @@ class History(object) :
         return [command.label for command in self._steps]
 
     cursor = property(_get_cursor, _set_cursor)
+    steps_count = property(_get_steps_count)
     empty = property(_get_empty)
     can_undo = property(_get_can_undo)
     can_redo = property(_get_can_redo)
