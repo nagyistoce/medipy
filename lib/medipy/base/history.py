@@ -32,16 +32,33 @@ class History(object) :
         """
         
         for _ in range(count) :
-            self._steps[self._cursor].undo()
-            self._cursor+=1
+            self.cursor+=1
     
     def redo(self, count=1) :
         """ Redo the current command.
         """
         
         for _ in range(count) :
-            self._cursor-=1
-            self._steps[self._cursor].execute()
+            self.cursor-=1
+
+    def _get_cursor(self):
+        return self._cursor
+    
+    def _set_cursor(self, cursor):
+        offset = cursor - self._cursor
+        if offset <= 0 :
+            function = "execute"
+        else :
+            function = "undo"
+        i = self._cursor
+        while i != cursor :
+            if function == "execute" :
+                i -= 1
+            step = self._steps[i]
+            getattr(step, function)()
+            if function == "undo" :
+                i += 1
+        self._cursor = cursor
 
     def _get_empty(self) :
         """ Test if the history is empty.
@@ -67,6 +84,7 @@ class History(object) :
         
         return [command.label for command in self._steps]
 
+    cursor = property(_get_cursor, _set_cursor)
     empty = property(_get_empty)
     can_undo = property(_get_can_undo)
     can_redo = property(_get_can_redo)
