@@ -233,6 +233,145 @@ class TestHistory(unittest.TestCase):
         self.assertTrue(self.history.can_undo)
         self.assertFalse(self.history.can_redo)
         self.assertEqual(self.history.labels, ["Recent", "Old old"])
+    
+    def test_cursor(self):
+        self.history.add(self.old_old_command)
+        self.history.add(self.old_command)
+        self.history.add(self.recent_command)
+        
+        # Test commands state
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 0)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 0)
+        
+        # Test history state
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+        self.assertEqual(self.history.cursor, 0)
+        
+        # Test undo
+        self.history.cursor = 2
+        
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 1)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 1)
+        
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertTrue(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+        self.assertEqual(self.history.cursor, 2)
+        
+        # Test redo
+        self.history.cursor = 1
+        
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 2)
+        self.assertEqual(self.old_command.undo_count, 1)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 1)
+        
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertTrue(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+        self.assertEqual(self.history.cursor, 1)
+    
+    def test_cursor_limit(self):
+        self.history.add(self.old_old_command)
+        self.history.add(self.old_command)
+        self.history.add(self.recent_command)
+        
+        # Test commands state
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 0)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 0)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 0)
+        
+        # Test history state
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+        self.assertEqual(self.history.cursor, 0)
+        
+        # Test undo everything
+        self.history.cursor = self.history.steps_count
+        
+        self.assertEqual(self.old_old_command.execution_count, 1)
+        self.assertEqual(self.old_old_command.undo_count, 1)
+        
+        self.assertEqual(self.old_command.execution_count, 1)
+        self.assertEqual(self.old_command.undo_count, 1)
+        
+        self.assertEqual(self.recent_command.execution_count, 1)
+        self.assertEqual(self.recent_command.undo_count, 1)
+        
+        self.assertFalse(self.history.empty)
+        self.assertFalse(self.history.can_undo)
+        self.assertTrue(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+        self.assertEqual(self.history.cursor, 3)
+        
+        # Test redo everything
+        self.history.cursor = 0
+        
+        self.assertEqual(self.old_old_command.execution_count, 2)
+        self.assertEqual(self.old_old_command.undo_count, 1)
+        
+        self.assertEqual(self.old_command.execution_count, 2)
+        self.assertEqual(self.old_command.undo_count, 1)
+        
+        self.assertEqual(self.recent_command.execution_count, 2)
+        self.assertEqual(self.recent_command.undo_count, 1)
+        
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Recent", "Old", "Old old"])
+        self.assertEqual(self.history.cursor, 0)
+        
+        # Test undo everything, then add a new step
+        newest_command = TestHistory.Command("Only me")
+        self.history.cursor = self.history.steps_count
+        self.history.add(newest_command)
+        
+        self.assertEqual(self.old_old_command.execution_count, 2)
+        self.assertEqual(self.old_old_command.undo_count, 2)
+        
+        self.assertEqual(self.old_command.execution_count, 2)
+        self.assertEqual(self.old_command.undo_count, 2)
+        
+        self.assertEqual(self.recent_command.execution_count, 2)
+        self.assertEqual(self.recent_command.undo_count, 2)
+        
+        self.assertEqual(newest_command.execution_count, 1)
+        self.assertEqual(newest_command.undo_count, 0)
+        
+        self.assertFalse(self.history.empty)
+        self.assertTrue(self.history.can_undo)
+        self.assertFalse(self.history.can_redo)
+        self.assertEqual(self.history.labels, ["Only me"])
+        self.assertEqual(self.history.cursor, 0)
         
 if __name__ == '__main__':
     unittest.main()
