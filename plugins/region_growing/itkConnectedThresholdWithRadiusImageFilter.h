@@ -86,13 +86,10 @@ protected:
     float m_Radius;
     OutputImagePixelType m_ReplaceValue;
 
-
     ConnectedThresholdWithRadiusImageFilter();
     ~ConnectedThresholdWithRadiusImageFilter();
     void PrintSelf(std::ostream & os, Indent indent) const;
     void GenerateData();
-
-
 
 private:
     ConnectedThresholdWithRadiusImageFilter(const Self&); //purposely not implemented
