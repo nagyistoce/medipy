@@ -10,7 +10,7 @@ import wx
 
 import medipy.base
 
-class HistoryPanel(wx.Panel) :
+class HistoryPanel(wx.Panel, medipy.base.Observable) :
     """ GUI proxy to medipy.base.History. Earliest commands are displayed at the
         top of the list, latest commands are displayed at the bottom of the
         list. Clicking on a command will undo/redo up to this command.
@@ -18,6 +18,7 @@ class HistoryPanel(wx.Panel) :
     
     def __init__(self, *args, **kwargs) :
         wx.Panel.__init__(self, *args, **kwargs)
+        medipy.base.Observable.__init__(self, ["cursor"])
         
         self._listbox = wx.ListBox(self)
         sizer = wx.BoxSizer()
@@ -27,27 +28,27 @@ class HistoryPanel(wx.Panel) :
         self._listbox.Bind(wx.EVT_LISTBOX, self.OnListBox)
         
         self._history = medipy.base.History()
-        self._update_listbox()
+        self._history.add_observer("cursor", self._on_cursor)
     
     def add(self, command) :
+        if self._history.cursor :
+            for i in range(0, self._history.cursor) :
+                # Always delete the last one (i.e. latest commands)
+                self._listbox.Delete(self._listbox.GetCount()-1)
+        self._listbox.Append(command.label)
         self._history.add(command)
-        self._update_listbox()
-        self._listbox.SetSelection(self._listbox.GetCount()-1-self._history.cursor)
     
     def undo(self, count=1) : 
         self._history.undo(count)
-        self._listbox.SetSelection(self._listbox.GetCount()-1-self._history.cursor)
     
     def redo(self, count=1) :
         self._history.redo(count)
-        self._listbox.SetSelection(self._listbox.GetCount()-1-self._history.cursor)
     
     def _get_cursor(self) :
         return self._history.cursor
     
     def _set_cursor(self, cursor) :
         self._history.cursor = cursor
-        self._listbox.SetSelection(self._listbox.GetCount()-1-self._history.cursor)
     
     def _get_steps_count(self) :
         return self._history.steps_count
@@ -74,9 +75,15 @@ class HistoryPanel(wx.Panel) :
     def OnListBox(self, event) :
         if self._listbox.GetSelection() == wx.NOT_FOUND :
             return
-        self._history.cursor = self._listbox.GetCount()-1-self._listbox.GetSelection()
+        self.cursor = self._listbox.GetCount()-1-self._listbox.GetSelection()
     
-    def _update_listbox(self) :
-        self._listbox.Clear()
-        for label in self._history.labels[::-1] :
-            self._listbox.Append(label)
+    def _on_cursor(self, event):
+        self._listbox.SetSelection(self._listbox.GetCount()-1-self._history.cursor)
+        if self._history.steps_count != self._listbox.GetCount() :
+            # GUI is not up-to-date with respect to self._history : 
+            # update the listbox
+            self._listbox.Clear()
+            for label in self._history.labels[::-1] :
+                self._listbox.Append(label)
+        self.notify_observers("cursor") 
+    
