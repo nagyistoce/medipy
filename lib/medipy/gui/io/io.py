@@ -84,7 +84,7 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
             worker_thread = WorkerThread(periodic_progress_dialog,
                                         target=medipy.io.load, 
                                         args=(path, index),
-                                        kwargs={"type":dtype})
+                                        kwargs={"dtype":dtype})
             worker_thread.start()
             periodic_progress_dialog.start()
             
