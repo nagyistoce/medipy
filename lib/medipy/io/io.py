@@ -50,7 +50,7 @@ def number_of_images(filename, loader_class=None, loader=None) :
     return loader.number_of_images()
     
 
-def load(filename, index=0, type=numpy.single, rescale_data=True, 
+def load(filename, index=0, dtype=numpy.single, rescale_data=True, 
          loader_class=None, loader=None, report_progress=None) :
     """ Load an image from a file.
         
@@ -85,7 +85,7 @@ def load(filename, index=0, type=numpy.single, rescale_data=True,
     metadata["loader"] = {
         "filename" : filename,
         "index" : index,
-        "type" : type,
+        "dtype" : dtype,
         "rescale_data" : rescale_data,
         "loader" : loader
     }
@@ -104,9 +104,9 @@ def load(filename, index=0, type=numpy.single, rescale_data=True,
         if metadata.has_key("shift") :
             data += metadata["shift"]
     
-    if type is not None : 
-        if type != data.dtype:
-            data = data.astype(type)
+    if dtype is not None : 
+        if dtype != data.dtype:
+            data = data.astype(dtype)
     elif original_type != data.dtype : 
         data = data.astype(original_type)
     
