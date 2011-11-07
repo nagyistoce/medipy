@@ -7,7 +7,7 @@
 ##########################################################################
 
 import sys
-import os.path
+import os
 
 def find_resource(where) :
     """ Return the absolute file name of a resource inside the project.
@@ -30,12 +30,18 @@ def find_resource(where) :
             elements.pop()
     if resource_path is not None :
         return resource_path
-    else :
-        # Try in MediPy
-        import medipy
-        dirname = os.path.dirname(medipy.__file__)
-        resource_path = os.path.join(dirname, where)
+    
+    # Try in MediPy
+    import medipy
+    resource_path = os.path.join(os.path.dirname(medipy.__file__), where)
+    if os.path.exists(resource_path) :
+        return resource_path
+        
+    # Try in MediPy plugins
+    for path in os.environ.get("MEDIPY_PLUGINS_PATH", "").split(os.pathsep) :
+        resource_path = os.path.join(path, where)
         if os.path.exists(resource_path) :
             return resource_path
-        else :
-            raise Exception("Cannot find resource %s"%where)
+    
+    # Resource was not found, raise an exception        
+    raise Exception("Cannot find resource %s"%where)
