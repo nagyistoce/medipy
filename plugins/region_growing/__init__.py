@@ -1,5 +1,6 @@
 from connected_threshold import (
     connected_threshold, connected_threshold_with_radius)
+from region_growing_panel import RegionGrowingPanel
 
 import os.path
 import medipy.itk
