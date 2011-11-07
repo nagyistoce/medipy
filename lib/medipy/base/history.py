@@ -6,11 +6,14 @@
 # for details.                                                      
 ##########################################################################
 
-class History(object) :
+from observable import Observable
+
+class History(Observable) :
     """ History of Commands with multiple undo/redo levels.
     """
     
     def __init__(self, maximum_steps=None) :
+        Observable.__init__(self, ["cursor"])
         self.maximum_steps = maximum_steps
         self._steps = []
         self._cursor = None
@@ -26,6 +29,7 @@ class History(object) :
         if self.maximum_steps and len(self._steps) == self.maximum_steps :
             del self._steps[-1]
         self._steps.insert(0, command)
+        self.notify_observers("cursor")
     
     def undo(self, count=1) :
         """ Undo the current command.
@@ -33,6 +37,7 @@ class History(object) :
         
         for _ in range(count) :
             self.cursor+=1
+            self.notify_observers("cursor")
     
     def redo(self, count=1) :
         """ Redo the current command.
@@ -40,6 +45,7 @@ class History(object) :
         
         for _ in range(count) :
             self.cursor-=1
+            self.notify_observers("cursor")
 
     def _get_cursor(self):
         """ Current position in the history. Latest commands have lower indices
@@ -64,6 +70,7 @@ class History(object) :
             if function == "undo" :
                 i += 1
         self._cursor = cursor
+        self.notify_observers("cursor")
     
     def _get_steps_count(self) :
         """ Number of steps in the history.
