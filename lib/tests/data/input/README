@@ -1,1 +1,3 @@
 siemens_mosaic.dcm : from dcm2nii, Siemens Trio B17 (http://www.cabiatl.com/mricro/mricron/dcm2nii.html)
+avg152T1_LR_nifti.nii.gz : http://nifti.nimh.nih.gov/nifti-1/data
+brainix.tar.gz : http://pubimage.hcuge.ch:8080/ , processed through Osirix to add DICOMDIR
