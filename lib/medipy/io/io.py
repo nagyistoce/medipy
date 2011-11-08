@@ -6,124 +6,94 @@
 # for details.                                                      
 ##########################################################################
 
+import re
+import urlparse
+
 import numpy
 
-from medipy.base import Image
+import schemes
 
-from medipy.io.ipb import IPB
-from medipy.io.itk_io import ITK
-from medipy.io.nifti_io import Nifti
-from medipy.io.nmr2D import Nmr2D
-from medipy.io.wx_image import WXImage
-# Nifti is quite verbose when testing if an image can be loaded, so let's test
-# it last
-io_classes = [ITK, IPB, WXImage, Nmr2D, Nifti]
-
-def get_loader(filename, report_progress=None) :
-    """Search for a loader in io_classes"""
-    for loader_class in io_classes : 
-        loader = loader_class(filename, report_progress=report_progress)
-        if loader.can_load() :
-            return loader
-    
-    # If we get here, no loader was found
-    raise Exception("No loader available for %s"%filename)
-
-def get_saver(image, filename) :
-    """Search for a saver in io_classes"""
-    for saver_class in io_classes : 
-        saver = saver_class(filename)
-        if saver.can_save(image) :
-            return saver
-
-def number_of_images(filename, loader_class=None, loader=None) :
-    """Return the number of images contained in the given filename"""
-    if loader_class is not None and loader is not None :
-        raise Exception("Cannot specify both loader_class and loader")
-    
-    if loader_class is None and loader is None:
-        loader = get_loader(filename)
-    elif loader_class is not None and loader is None:
-        loader = loader_class(filename)
-    # else loader_class is None and loader is not None : do nothing
-    
-    return loader.number_of_images()
-    
-
-def load(filename, index=0, dtype=numpy.single, rescale_data=True, 
-         loader_class=None, loader=None, report_progress=None) :
-    """ Load an image from a file.
+def load(url, dtype=numpy.single) :
+    """ Load an image.
         
-        filename : the name of the file to load from.
-        index : in the case of formats where multiple images can be stored in a
-            file, this is the index of the image to load.
-        type : the type to which the data will be cast. Pass None to keep the 
-            original type.
-        rescale_data : if the file contains a slope and/or a shift, this flag
-            indicates whether or not to apply the transformation.
-        loader_class : specific loader class to use. If None, it is automatically
-            determined.
-        report_progress : a unary function taking a float between 0 and 1 to
-            report the loading progress
+        url : url to load from.
+        dtype : type to which the data will be cast. Passing None will not cast.
+        
+        url uses the usual syntax of [scheme] "://" [authority] path [ "#" fragment]
+        scheme can be one of :
+          * "file" : the default value if no scheme is specified. Load the image
+            from the filesystem.
+          * "dicomdir" : load an image using a DICOMDIR
+          * "dicom" : load an image using a local filesystem directory 
+            containing DICOM files
+        
+        >>> import medipy.io
+        >>> medipy.io.load("/some/where/image.nii") # Uses "file" scheme
+        >>> medipy.io.load("dicomdir:/some/where/DICOMDIR#series_instance_uid=1.2.3.4")
+        >>> medipy.io.load("dicom:/some/where/#series_instance_uid=1.2.3.4")
+        
+        Refer to the different schemes for the details of the URL syntax
     """
     
-    if loader_class is not None and loader is not None :
-        raise Exception("Cannot specify both loader_class and loader")
+    scheme, path, fragment = _split(url)
     
-    if loader_class is None and loader is None:
-        loader = get_loader(filename, report_progress=report_progress)
-    elif loader_class is not None and loader is None:
-        loader = loader_class(filename, report_progress=report_progress)
-    # else loader_class is None and loader is not None : do nothing
-    
-    max_index = number_of_images(filename, loader=loader)
-    if index >= max_index :
-        raise Exception("Cannot access image %i. File \"%s\" contains %i images"%(index, filename, max_index))
-    
-    data = loader.load_data(index)
-    metadata = loader.load_metadata(index)
-    metadata["loader"] = {
-        "filename" : filename,
-        "index" : index,
-        "dtype" : dtype,
-        "rescale_data" : rescale_data,
-        "loader" : loader
-    }
-    
-    # Convert the buffer to float
-    original_type = data.dtype
-    
-    if rescale_data :
-        if data.dtype != numpy.single :
-            data = data.astype(numpy.single)
-        # Scale if necessary
-        if metadata.has_key("slope") :
-            data *= metadata["slope"]
-        
-        # Shift if necessary
-        if metadata.has_key("shift") :
-            data += metadata["shift"]
-    
-    if dtype is not None : 
-        if dtype != data.dtype:
-            data = data.astype(dtype)
-    elif original_type != data.dtype : 
-        data = data.astype(original_type)
-    
-    args = {}
-    for name in ["direction", "origin", "spacing", "data_type", "image_type", "annotations"] :
-        if name in metadata :
-            args[name] = metadata[name]
-            del metadata[name]
-    args["metadata"] = metadata
-    
-    return Image(data=data, **args)
+    try :
+        loader = getattr(scheme, "load")
+    except AttributeError :
+        raise Exception("Scheme \"{0}\" cannot load files".format(scheme))
 
-def save(image, filename, saver_class=None) :
-    """ Save an image to a file
+    image = loader(path, fragment)
+    
+    if dtype :
+        image.data = image.data.astype(dtype)
+    
+    return image    
+
+def save(image, url) :
+    """ Save an image.
+        
+        image : image to save.
+        url : url to save to.
     """
-    if saver_class is None :
-        saver = get_saver(image, filename)
-    else :
-        saver = saver_class(filename)
-    saver.save(image)
+    
+    scheme, path, _ = _split(url)
+    
+    try :
+        saver = getattr(scheme, "save")
+    except AttributeError :
+        raise Exception("Scheme \"{0}\" cannot save files".format(scheme))
+
+    saver(image, path)
+
+def number_of_images(url):
+    """ Return the number of images contained at given URL
+    """
+    
+    scheme, path, fragment = _split(url)
+    
+    try :
+        function = getattr(scheme, "save")
+    except AttributeError :
+        raise Exception("Scheme \"{0}\" cannot compute number of images".format(scheme))
+
+    function(path, fragment)
+
+def _split(url):
+    """ Return the scheme (as a Python module), the path and the fragment from
+        given url.
+    """
+    
+    # Parse the URL
+    for s in schemes.__all__ :
+        urlparse.uses_fragment.append(s)
+    scheme, _, path, _, fragment = urlparse.urlsplit(url)
+    for s in schemes.__all__ :
+        del urlparse.uses_fragment[urlparse.uses_fragment.index(s)]
+    
+    scheme = scheme or "file"
+    try :
+        scheme = getattr(schemes, scheme)
+    except AttributeError :
+        raise Exception("Unknown scheme : \"{0}\"".format(scheme))
+    
+    return scheme, path, fragment
