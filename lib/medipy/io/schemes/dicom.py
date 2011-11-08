@@ -60,6 +60,8 @@ def _get_filters(fragment) :
     recursive = True
     
     for element in fragment.split("&") :
+        if not element :
+            continue
         tag, value = element.split("=")
         matches = [re.match(r"^\((?:0x)?([\da-fA-F]{4}),(?:0x)?([\da-fA-F]{4})\)$", tag),
                    re.match(r"^(?:0x)?([\da-fA-F]+)$", tag)]
