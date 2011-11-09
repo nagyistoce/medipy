@@ -34,7 +34,7 @@ class Application(wx.PySimpleApp):
                           help="Redirect all messages to the console")
         for args, kwargs in extra_options :
             parser.add_option(*args, **kwargs)
-        self.options = parser.parse_args()[0]
+        self.options, self.arguments = parser.parse_args()
         
         if self.options.debug is not None :
             level = levels.get(self.options.debug, None)
