@@ -81,10 +81,10 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
             indices = [0] 
         
         for index in indices :
+            url = "file:{0}#index={1}".format(path, index)
             worker_thread = WorkerThread(periodic_progress_dialog,
                                         target=medipy.io.load, 
-                                        args=(path, index),
-                                        kwargs={"dtype":dtype})
+                                        args=(url, dtype))
             worker_thread.start()
             periodic_progress_dialog.start()
             
