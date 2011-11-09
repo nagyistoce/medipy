@@ -10,6 +10,7 @@ import wx
 from wx import GetTranslation as _
 
 import medipy.io
+import medipy.io.schemes.file
 
 class ImageFileDialog(wx.FileDialog):
     """ Custom version of wx.FileDialog tuned for images. It loads a default
@@ -56,7 +57,7 @@ class ImageFileDialog(wx.FileDialog):
         self._wildcard = []
         
         all_filenames = set()
-        for io_class in medipy.io.io_classes :
+        for io_class in medipy.io.schemes.file.io_classes :
             for filename in io_class.filenames :
                 all_filenames.add(filename)
         all_filenames.add("DICOMDIR")
@@ -73,9 +74,3 @@ class ImageFileDialog(wx.FileDialog):
         self._wildcard += [_("All"), "*"]
         
         self._wildcard = "|".join(self._wildcard)
-        
-if __name__ == "__main__" :
-    app = wx.PySimpleApp()
-    
-    image_file_dialog = ImageFileDialog(None)
-    image_file_dialog.ShowModal()
