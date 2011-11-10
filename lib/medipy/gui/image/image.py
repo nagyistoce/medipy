@@ -217,6 +217,9 @@ class Image(wx.Panel, PropertySynchronized):
         """ Remove a layer from the list.
         """
         
+        for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
+            self._slices[0].layers[index].colormap.remove_observer(event, self._on_colormap_event)
+        
         del self._layers[index]
         for slice in self._slices :
             slice.delete_layer(index)
@@ -603,7 +606,7 @@ class Image(wx.Panel, PropertySynchronized):
                 layers_colormaps = [x["colormap"] for x in self._layers]
                 layer_index = layers_colormaps.index(event.object)
             except ValueError :
-                logging.warning("No such colormap in layers") 
+                logging.warning("No such colormap in layers {0}".format(self)) 
             else :
                 self.notify_observers("colormap_{0}".format(event.event), 
                                       layer_index=layer_index)
