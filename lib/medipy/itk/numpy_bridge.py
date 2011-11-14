@@ -198,8 +198,9 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
     """
     
     if medipy_image is None :
-        medipy_image = medipy.base.Image(shape=(1,),
-            dtype=itk_to_dtype[itk.template(itk_image)[1][0]])
+        itk_type = itk.template(itk_image)[1][0]
+        dimension = itk.template(itk_image)[1][1]
+        medipy_image = medipy.base.Image(dimension*(0,), itk_to_dtype[itk_type])
     
     if itk_image.GetNameOfClass() == "Image" :
         if not itk.NumpyBridge[itk_image].IsBufferShared(medipy_image.data, itk_image) :
