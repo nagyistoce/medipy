@@ -21,11 +21,11 @@ class Dialog(medipy.gui.xrc_wrapper.Dialog):
         self.ui = ui
         
         # Load XRC
-        self._xml_resource, frame = medipy.gui.base.base.load_xrc(
+        self._xml_resource, dialog = medipy.gui.base.base.load_xrc(
             xrc_file, handlers, "Dialog", parent, dialog_name)
         
         # Build dialog
-        medipy.gui.xrc_wrapper.Dialog.__init__(self, frame, *args, **kwargs)
+        medipy.gui.xrc_wrapper.Dialog.__init__(self, dialog, *args, **kwargs)
         
         # Build UI object
         self.ui.from_window(self, controls)
