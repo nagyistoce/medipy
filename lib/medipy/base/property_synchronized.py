@@ -124,12 +124,14 @@ class PropertySynchronized(Observable) :
     
     def child_index(self, object):
         have_it = False
-        for child in self._children :
+        for index, child in enumerate(self._children) :
             if child() is object :
                 have_it = True
                 break
         if not have_it :
-            return ValueError("PropertySynchronized.child_index(x) : x not in children")
+            raise ValueError("PropertySynchronized.child_index(x) : x not in children")
+        else :
+            return index
     
     #####################
     # Private interface #
