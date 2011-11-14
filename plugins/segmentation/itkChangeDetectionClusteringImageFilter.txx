@@ -67,7 +67,12 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     input_threshold_filter->ThresholdBelow(threshold);
 
     // Label the connected components, use mask if available
-    typedef itk::ConnectedComponentImageFilter<InputImageType, OutputImageType, MaskImageType>
+    // Use a specific image type to avoid problems if OutputImageType is float:
+    // with VC2008, static_cast<unsigned long int>(std::numeric_limits<float>::max())
+    // is 0. This test is used in ConnectedComponentImageFilter::ThreadedGenerateData
+    typedef itk::Image<unsigned long, InputImageType::ImageDimension>
+    	ConnectedComponentsImageType;
+    typedef itk::ConnectedComponentImageFilter<InputImageType, ConnectedComponentsImageType, MaskImageType>
         ConnectedComponentFilterType;
     typename ConnectedComponentFilterType::Pointer connected_component_filter =
         ConnectedComponentFilterType::New();
@@ -79,7 +84,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     connected_component_filter->SetBackgroundValue(0);
 
     // Remove small objects
-    typedef itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>
+    typedef itk::RelabelComponentImageFilter<ConnectedComponentsImageType, OutputImageType>
         RelabelFilterType;
 
     typename RelabelFilterType::Pointer relabel_filter_1 = RelabelFilterType::New();
@@ -90,7 +95,9 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     this->discard_clusters_close_to_mask_boundary(relabel_filter_1->GetOutput());
 
     // Sort the label by size
-    typename RelabelFilterType::Pointer relabel_filter_2 = RelabelFilterType::New();
+    typedef itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>
+		RelabelFilterOutputImageType;
+    typename RelabelFilterOutputImageType::Pointer relabel_filter_2 = RelabelFilterOutputImageType::New();
     relabel_filter_2->SetInput(relabel_filter_1->GetOutput());
     // Keep only n labels
     typedef itk::ThresholdImageFilter<OutputImageType> OutputThresholdFilterType;
