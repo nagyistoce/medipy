@@ -92,8 +92,8 @@ def get_saver(image, path, report_progress=None) :
     
     for saver_class in io_classes : 
         saver = saver_class(path, report_progress=report_progress)
-        if saver.can_save() :
-            return save
+        if saver.can_save(image) :
+            return saver
     
     # If we get here, no loader was found
     raise Exception("No saver available for {0}".format(path))
