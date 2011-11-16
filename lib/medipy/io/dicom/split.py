@@ -135,15 +135,15 @@ def acquisitions(datasets):
     
     result = {}
     for dataset in datasets :
-        if "MOSAIC" not in dataset.image_type and "echo_numbers" in dataset :
-            identifier = dataset.echo_numbers
-        elif "number_of_frames" in dataset :
+        if isinstance(dataset, tuple) :
+            # Dataset is a stack of a multi-frame image
             # TODO
             # TODO : test for mosaic ?
             # Multi-frame : Diffusion Gradient Orientation (0018,9089) and 
             # Diffusion b-value (0018,9087) are in MR Diffusion Sequence (0018,9117)
-            if "mr_diffusion_sequence" in dataset :
-                pass
+            identifier = None
+        elif "MOSAIC" not in dataset.image_type and "echo_numbers" in dataset :
+            identifier = dataset.echo_numbers
         elif "acquisition_number" in dataset :
             identifier = dataset.acquisition_number
         else : 

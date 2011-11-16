@@ -133,7 +133,7 @@ def data(datasets):
     for index, dataset in enumerate(datasets) :
         # Get data
         if isinstance(dataset, tuple) :
-            pixel_data = dataset[0].pixel_array[dataset[0]]
+            pixel_data = dataset[0].pixel_array[dataset[1]]
         elif "MOSAIC" in dataset.image_type :
             image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
             number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
@@ -268,7 +268,9 @@ def metadata(datasets, skipped_tags="default"):
     normal = numpy.cross(v1, v2)
     result["direction"] = numpy.transpose(numpy.asarray(
         (tuple(reversed(normal)), tuple(reversed(v2)), tuple(reversed(v1)))))
-    if "MOSAIC" in datasets[0].image_type :
+    
+    sample_dataset = datasets[0][0] if isinstance(datasets[0], tuple) else datasets[0]
+    if "MOSAIC" in sample_dataset.image_type :
         result["direction"] = numpy.insert(
             numpy.insert(result["direction"], 0, (0,0,0), 0), 
             0, (1,0,0,0), 1)
