@@ -189,7 +189,7 @@ MonoModalStatisticalChangeDetectionImageFilter<TInputImage, TMaskImage, TOutputI
             mean /= source_it.Size();
 
             // Likelihood of change
-            double likelihood=std::pow(mean, 2.)*source_it.Size()*0.5/this->variance_;
+            double likelihood=std::pow(mean, 2.)*source_it.Size()*0.25/this->variance_;
             destination_it.Set(likelihood);
         }
 
