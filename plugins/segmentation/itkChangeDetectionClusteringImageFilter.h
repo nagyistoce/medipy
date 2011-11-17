@@ -88,7 +88,8 @@ private :
     void operator=(const Self&); //purposely not implemented
 
     InputImagePixelType compute_threshold();
-    void discard_clusters_close_to_mask_boundary(OutputImageType * image);
+    template<typename TImage>
+    void discard_clusters_close_to_mask_boundary(TImage * image);
 };
 
 }

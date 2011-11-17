@@ -126,14 +126,14 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     }
     itkDebugMacro(<< clusters_count << " clusters");
 
+    this->discard_clusters_close_to_mask_boundary<ClustersImageType>(clusters_image);
+
     // Relabel base on size, discard small clusters
     typename RelabelComponentImageFilter<ClustersImageType, OutputImageType>::Pointer
         relabel_filter = RelabelComponentImageFilter<ClustersImageType, OutputImageType>::New();
     relabel_filter->SetInput(clusters_image);
     relabel_filter->SetMinimumObjectSize(this->m_MinimumClusterSize);
     relabel_filter->Update();
-
-    this->discard_clusters_close_to_mask_boundary(relabel_filter->GetOutput());
 
     // Only keep a given number of clusters
     typename ThresholdImageFilter<OutputImageType>::Pointer
@@ -213,22 +213,26 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
+template<typename TImage>
 void
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
-::discard_clusters_close_to_mask_boundary(OutputImageType * image)
+::discard_clusters_close_to_mask_boundary(TImage * image)
 {
-    std::set<OutputImagePixelType> discarded_labels;
+    typedef TImage ImageType;
+    typedef typename ImageType::PixelType PixelType;
+
+    std::set<PixelType> discarded_labels;
     MaskImageType * mask = this->m_Mask;
 
     // Find labels connected to the mask boundary
-    typedef ConstNeighborhoodIterator<OutputImageType> NeighborhoodIteratorType;
+    typedef ConstNeighborhoodIterator<ImageType> NeighborhoodIteratorType;
     typename NeighborhoodIteratorType::RadiusType radius;
     radius.Fill(1);
 
     for(NeighborhoodIteratorType nit(radius, image, image->GetRequestedRegion());
         !nit.IsAtEnd(); ++nit)
     {
-        typename OutputImageType::PixelType const center_pixel = nit.GetCenterPixel();
+        PixelType const center_pixel = nit.GetCenterPixel();
 
         if(center_pixel == 0)
         {
@@ -249,7 +253,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     }
 
     // Discard the labels that are connected to the mask boundary
-    for(ImageRegionIterator<OutputImageType> it(image, image->GetRequestedRegion());
+    for(ImageRegionIterator<ImageType> it(image, image->GetRequestedRegion());
         !it.IsAtEnd(); ++it)
     {
         if(discarded_labels.count(it.Get()) != 0)
