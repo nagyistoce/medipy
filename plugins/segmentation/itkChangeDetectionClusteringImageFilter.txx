@@ -11,14 +11,12 @@
 
 #include "itkChangeDetectionClusteringImageFilter.h"
 
-#include <iterator>
-#include <limits>
+#include <map>
 #include <set>
 
-#include <itkConnectedComponentImageFilter.h>
 #include <itkConstNeighborhoodIterator.h>
 #include <itkImageRegionConstIterator.h>
-#include <itkImageRegionIterator.h>
+#include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkHistogram.h>
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkRelabelComponentImageFilter.h>
@@ -30,7 +28,8 @@ namespace itk
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::ChangeDetectionClusteringImageFilter()
-: m_Mask(0), m_MaskBackgroundValue(0), m_MinimumClusterSize(0),
+: m_Mask(0), m_MaskBackgroundValue(0), m_Quantile(0.99),
+  m_MinimumClusterSize(0),
   m_MaximumNumberOfClusters(std::numeric_limits<unsigned long>::max())
 {
 }
@@ -50,6 +49,9 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     this->Superclass::PrintSelf(os, indent);
     os << indent << "Mask : " << this->m_Mask << "\n";
     os << indent << "Mask background value : " << this->m_MaskBackgroundValue << "\n";
+    os << indent << "Quantile : " << this->m_Quantile << "\n";
+    os << indent << "Minimum cluster size : " << this->m_MinimumClusterSize << "\n";
+    os << indent << "Maximum number of clusters : " << this->m_MaximumNumberOfClusters << "\n";
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
@@ -57,62 +59,96 @@ void
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GenerateData()
 {
+    typedef typename InputImageType::IndexType InputIndexType;
+    InputImageType const * input = this->GetInput();
+    MaskImageType const * mask = this->m_Mask;
+
     InputImagePixelType const threshold = this->compute_threshold();
+    itkDebugMacro(<< "Threshold : " << threshold);
 
-    // Threshold input
-    typedef itk::ThresholdImageFilter<InputImageType> InputThresholdFilterType;
-    typename InputThresholdFilterType::Pointer input_threshold_filter = InputThresholdFilterType::New();
-    input_threshold_filter->SetInput(this->GetInput());
-    input_threshold_filter->SetOutsideValue(0);
-    input_threshold_filter->ThresholdBelow(threshold);
-
-    // Label the connected components, use mask if available
-    // Use a specific image type to avoid problems if OutputImageType is float:
-    // with VC2008, static_cast<unsigned long int>(std::numeric_limits<float>::max())
-    // is 0. This test is used in ConnectedComponentImageFilter::ThreadedGenerateData
-    typedef itk::Image<unsigned long, InputImageType::ImageDimension>
-    	ConnectedComponentsImageType;
-    typedef itk::ConnectedComponentImageFilter<InputImageType, ConnectedComponentsImageType, MaskImageType>
-        ConnectedComponentFilterType;
-    typename ConnectedComponentFilterType::Pointer connected_component_filter =
-        ConnectedComponentFilterType::New();
-    connected_component_filter->SetInput(input_threshold_filter->GetOutput());
-    if(!this->m_Mask.IsNull())
+    // Order the voxels based on their intensity. Higher-intensity voxels will
+    // be in front.
+    typedef std::multimap<InputImagePixelType, InputIndexType,
+        std::greater<InputImagePixelType> > Ordering;
+    typedef itk::ImageRegionConstIteratorWithIndex<InputImageType> InputImageRegionConstIteratorWithIndexType;
+    Ordering ordering;
+    for(InputImageRegionConstIteratorWithIndexType it(input, input->GetRequestedRegion());
+        !it.IsAtEnd(); ++it)
     {
-        connected_component_filter->SetMaskImage(this->m_Mask);
+        InputIndexType const index = it.GetIndex();
+        if(input->GetPixel(index) > threshold &&
+           mask->GetPixel(index) != this->m_MaskBackgroundValue)
+        {
+            ordering.insert(std::make_pair(it.Get(), index));
+        }
     }
-    connected_component_filter->SetBackgroundValue(0);
+    itkDebugMacro(<< ordering.size() << " voxels in global queue");
 
-    // Remove small objects
-    typedef itk::RelabelComponentImageFilter<ConnectedComponentsImageType, OutputImageType>
-        RelabelFilterType;
+    // Use an unsigned long image to avoid problems with float during relabeling.
+    typedef itk::Image<unsigned long, OutputImageType::ImageDimension> ClustersImageType;
+    typename ClustersImageType::Pointer clusters_image = ClustersImageType::New();
+    clusters_image->SetRegions(this->GetOutput()->GetRequestedRegion());
+    clusters_image->Allocate();
+    clusters_image->FillBuffer(0);
+    typename ClustersImageType::PixelType clusters_count=0;
 
-    typename RelabelFilterType::Pointer relabel_filter_1 = RelabelFilterType::New();
-    relabel_filter_1->SetInput(connected_component_filter->GetOutput());
-    relabel_filter_1->SetMinimumObjectSize(this->m_MinimumClusterSize);
-    relabel_filter_1->Update();
+    // For each voxel, starting with the highest intensity :
+    // If it has a neighbor in a cluster, add it to this cluster
+    // Otherwise, create a new cluster
+    typedef itk::ConstNeighborhoodIterator<ClustersImageType> NeighborhoodIteratorType;
+    typename NeighborhoodIteratorType::RadiusType radius;
+    radius.Fill(1);
+    NeighborhoodIteratorType nit(radius, clusters_image, clusters_image->GetRequestedRegion());
+    for(typename Ordering::const_iterator ordering_it=ordering.begin();
+        ordering_it != ordering.end(); ++ordering_it)
+    {
+        InputIndexType const & index = ordering_it->second;
 
-    this->discard_clusters_close_to_mask_boundary(relabel_filter_1->GetOutput());
+        nit.SetLocation(index);
+        bool new_cluster=true;
+        for(unsigned int i=0; i<nit.Size(); ++i)
+        {
+            typename ClustersImageType::IndexType const neighbor = nit.GetIndex(i);
 
-    // Sort the label by size
-    typedef itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>
-		RelabelFilterOutputImageType;
-    typename RelabelFilterOutputImageType::Pointer relabel_filter_2 = RelabelFilterOutputImageType::New();
-    relabel_filter_2->SetInput(relabel_filter_1->GetOutput());
-    // Keep only n labels
-    typedef itk::ThresholdImageFilter<OutputImageType> OutputThresholdFilterType;
-    typename OutputThresholdFilterType::Pointer output_threshold_filter = OutputThresholdFilterType::New();
-    output_threshold_filter->SetInput(relabel_filter_2->GetOutput());
-    output_threshold_filter->SetOutsideValue(0);
-    output_threshold_filter->ThresholdAbove(this->m_MaximumNumberOfClusters);
+            if(clusters_image->GetRequestedRegion().IsInside(neighbor) &&
+               clusters_image->GetPixel(neighbor) != 0)
+            {
+                clusters_image->SetPixel(index, clusters_image->GetPixel(neighbor));
+                new_cluster=false;
+            }
+        }
 
-    output_threshold_filter->GraftOutput(this->GetOutput());
-    output_threshold_filter->Update();
-    this->GraftOutput(output_threshold_filter->GetOutput());
+        if(new_cluster)
+        {
+            ++clusters_count;
+            clusters_image->SetPixel(index, clusters_count);
+        }
+    }
+    itkDebugMacro(<< clusters_count << " clusters");
+
+    // Relabel base on size, discard small clusters
+    typename itk::RelabelComponentImageFilter<ClustersImageType, OutputImageType>::Pointer
+        relabel_filter = itk::RelabelComponentImageFilter<ClustersImageType, OutputImageType>::New();
+    relabel_filter->SetInput(clusters_image);
+    relabel_filter->SetMinimumObjectSize(this->m_MinimumClusterSize);
+    relabel_filter->Update();
+
+    this->discard_clusters_close_to_mask_boundary(relabel_filter->GetOutput());
+
+    // Only keep a given number of clusters
+    typename itk::ThresholdImageFilter<OutputImageType>::Pointer
+        threshold_filter = itk::ThresholdImageFilter<OutputImageType>::New();
+    threshold_filter->SetInput(relabel_filter->GetOutput());
+    threshold_filter->ThresholdAbove(this->m_MaximumNumberOfClusters);
+    threshold_filter->InPlaceOn();
+
+    threshold_filter->GraftOutput(this->GetOutput());
+    threshold_filter->Update();
+    this->GraftOutput(threshold_filter->GetOutput());
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
-typename TInputImage::PixelType
+typename ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>::InputImagePixelType
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::compute_threshold()
 {
@@ -174,26 +210,15 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
         }
     }
 
-    // Find 0.98 threshold
-    Histogram::InstanceIdentifier n=0;
-    float cdf_value = 0;
-    do
-    {
-        cdf_value += histogram->GetFrequency(n)/histogram->GetTotalFrequency();
-        ++n;
-    }
-    while(cdf_value < 0.98);
-    InputImagePixelType const threshold = histogram->GetBinMax(0, n);
-
-    return threshold;
+    // Find threshold
+    return histogram->Quantile(0, this->m_Quantile);
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
-::discard_clusters_close_to_mask_boundary(TOutputImage * image)
+::discard_clusters_close_to_mask_boundary(OutputImageType * image)
 {
-
     std::set<OutputImagePixelType> discarded_labels;
     MaskImageType * mask = this->m_Mask;
 
@@ -215,7 +240,6 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 
         for(unsigned int i=0; i<nit.Size(); ++i)
         {
-            // TODO : skip center
             typename NeighborhoodIteratorType::IndexType const neighbor = nit.GetIndex(i);
             if(mask->GetRequestedRegion().IsInside(neighbor) &&
                mask->GetPixel(neighbor) == this->m_MaskBackgroundValue)

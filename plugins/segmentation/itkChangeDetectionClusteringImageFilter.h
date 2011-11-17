@@ -35,16 +35,15 @@ public :
     itkTypeMacro(ChangeDetectionClusteringImageFilter, ImageToImageFilter);
 
     /** Superclass typedefs. */
+    typedef typename Superclass::InputImageType InputImageType;
+    typedef typename Superclass::InputImagePointer InputImagePointer;
+    typedef typename Superclass::InputImageConstPointer InputImageConstPointer;
+    typedef typename Superclass::InputImageRegionType InputImageRegionType;
+    typedef typename Superclass::InputImagePixelType InputImagePixelType;
+
     typedef typename Superclass::OutputImageType OutputImageType;
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
     typedef typename Superclass::OutputImagePixelType  OutputImagePixelType;
-
-    /** Some convenient typedefs. */
-    typedef TInputImage InputImageType;
-    typedef typename InputImageType::Pointer InputImagePointer;
-    typedef typename InputImageType::ConstPointer InputImageConstPointer;
-    typedef typename InputImageType::RegionType InputImageRegionType;
-    typedef typename InputImageType::PixelType InputImagePixelType;
 
     /** Type of the mask image. */
     typedef TMaskImage MaskImageType;
@@ -57,6 +56,10 @@ public :
     /** Background value of the mask, default to 0. */
     itkGetMacro(MaskBackgroundValue, typename MaskImageType::PixelType);
     itkSetMacro(MaskBackgroundValue, typename MaskImageType::PixelType);
+
+    /** Quantile for threshold selection. Defaults to 0.99. */
+    itkGetMacro(Quantile, float);
+    itkSetMacro(Quantile, float);
 
     /** Minimum cluster size, default to 0. */
     itkGetMacro(MinimumClusterSize, unsigned long);
@@ -77,6 +80,7 @@ private :
     typename MaskImageType::Pointer m_Mask;
     typename MaskImageType::PixelType m_MaskBackgroundValue;
 
+    float m_Quantile;
     unsigned long m_MinimumClusterSize;
     unsigned long m_MaximumNumberOfClusters;
 
@@ -84,7 +88,7 @@ private :
     void operator=(const Self&); //purposely not implemented
 
     InputImagePixelType compute_threshold();
-    void discard_clusters_close_to_mask_boundary(TOutputImage * image);
+    void discard_clusters_close_to_mask_boundary(OutputImageType * image);
 };
 
 }
