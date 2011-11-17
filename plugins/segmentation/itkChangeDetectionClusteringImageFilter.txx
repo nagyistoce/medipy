@@ -17,6 +17,7 @@
 #include <itkConstNeighborhoodIterator.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
+#include <itkImageRegionIterator.h>
 #include <itkHistogram.h>
 #include <itkMinimumMaximumImageCalculator.h>
 #include <itkRelabelComponentImageFilter.h>
