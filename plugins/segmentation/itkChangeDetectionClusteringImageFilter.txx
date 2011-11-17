@@ -106,7 +106,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 
         nit.SetLocation(index);
         bool new_cluster=true;
-        for(unsigned int i=0; i<nit.Size(); ++i)
+        for(unsigned int i=0; i<nit.Size() && new_cluster; ++i)
         {
             typename ClustersImageType::IndexType const neighbor = nit.GetIndex(i);
 
