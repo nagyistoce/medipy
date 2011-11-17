@@ -44,7 +44,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
-::PrintSelf(std::ostream& os, itk::Indent indent) const
+::PrintSelf(std::ostream& os, Indent indent) const
 {
     this->Superclass::PrintSelf(os, indent);
     os << indent << "Mask : " << this->m_Mask << "\n";
@@ -70,7 +70,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     // be in front.
     typedef std::multimap<InputImagePixelType, InputIndexType,
         std::greater<InputImagePixelType> > Ordering;
-    typedef itk::ImageRegionConstIteratorWithIndex<InputImageType> InputImageRegionConstIteratorWithIndexType;
+    typedef ImageRegionConstIteratorWithIndex<InputImageType> InputImageRegionConstIteratorWithIndexType;
     Ordering ordering;
     for(InputImageRegionConstIteratorWithIndexType it(input, input->GetRequestedRegion());
         !it.IsAtEnd(); ++it)
@@ -85,7 +85,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     itkDebugMacro(<< ordering.size() << " voxels in global queue");
 
     // Use an unsigned long image to avoid problems with float during relabeling.
-    typedef itk::Image<unsigned long, OutputImageType::ImageDimension> ClustersImageType;
+    typedef Image<unsigned long, OutputImageType::ImageDimension> ClustersImageType;
     typename ClustersImageType::Pointer clusters_image = ClustersImageType::New();
     clusters_image->SetRegions(this->GetOutput()->GetRequestedRegion());
     clusters_image->Allocate();
@@ -95,7 +95,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     // For each voxel, starting with the highest intensity :
     // If it has a neighbor in a cluster, add it to this cluster
     // Otherwise, create a new cluster
-    typedef itk::ConstNeighborhoodIterator<ClustersImageType> NeighborhoodIteratorType;
+    typedef ConstNeighborhoodIterator<ClustersImageType> NeighborhoodIteratorType;
     typename NeighborhoodIteratorType::RadiusType radius;
     radius.Fill(1);
     NeighborhoodIteratorType nit(radius, clusters_image, clusters_image->GetRequestedRegion());
@@ -127,8 +127,8 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     itkDebugMacro(<< clusters_count << " clusters");
 
     // Relabel base on size, discard small clusters
-    typename itk::RelabelComponentImageFilter<ClustersImageType, OutputImageType>::Pointer
-        relabel_filter = itk::RelabelComponentImageFilter<ClustersImageType, OutputImageType>::New();
+    typename RelabelComponentImageFilter<ClustersImageType, OutputImageType>::Pointer
+        relabel_filter = RelabelComponentImageFilter<ClustersImageType, OutputImageType>::New();
     relabel_filter->SetInput(clusters_image);
     relabel_filter->SetMinimumObjectSize(this->m_MinimumClusterSize);
     relabel_filter->Update();
@@ -136,8 +136,8 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     this->discard_clusters_close_to_mask_boundary(relabel_filter->GetOutput());
 
     // Only keep a given number of clusters
-    typename itk::ThresholdImageFilter<OutputImageType>::Pointer
-        threshold_filter = itk::ThresholdImageFilter<OutputImageType>::New();
+    typename ThresholdImageFilter<OutputImageType>::Pointer
+        threshold_filter = ThresholdImageFilter<OutputImageType>::New();
     threshold_filter->SetInput(relabel_filter->GetOutput());
     threshold_filter->ThresholdAbove(this->m_MaximumNumberOfClusters);
     threshold_filter->InPlaceOn();
@@ -152,19 +152,17 @@ typename ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputIm
 ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::compute_threshold()
 {
-    typedef typename itk::ImageRegionConstIterator<InputImageType>
-        InputConstIteratorType;
-    typedef typename itk::ImageRegionConstIterator<MaskImageType>
-        MaskConstIteratorType;
+    typedef ImageRegionConstIterator<InputImageType> InputConstIteratorType;
+    typedef ImageRegionConstIterator<MaskImageType> MaskConstIteratorType;
     // Only keep the top 2% values, based on cumulative histogram
 
-    typedef itk::MinimumMaximumImageCalculator<InputImageType> MinimumMaximumImageCalculator;
+    typedef MinimumMaximumImageCalculator<InputImageType> MinimumMaximumImageCalculator;
     typename MinimumMaximumImageCalculator::Pointer calculator = MinimumMaximumImageCalculator::New();
     calculator->SetImage(this->GetInput());
     calculator->Compute();
 
     // Compute histogram
-    typedef itk::Statistics::Histogram<> Histogram;
+    typedef Statistics::Histogram<> Histogram;
     Histogram::Pointer histogram = Histogram::New();
     {
         Histogram::SizeType size; size.Fill(1000);
@@ -223,7 +221,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     MaskImageType * mask = this->m_Mask;
 
     // Find labels connected to the mask boundary
-    typedef itk::ConstNeighborhoodIterator<OutputImageType> NeighborhoodIteratorType;
+    typedef ConstNeighborhoodIterator<OutputImageType> NeighborhoodIteratorType;
     typename NeighborhoodIteratorType::RadiusType radius;
     radius.Fill(1);
 
@@ -251,7 +249,7 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     }
 
     // Discard the labels that are connected to the mask boundary
-    for(itk::ImageRegionIterator<OutputImageType> it(image, image->GetRequestedRegion());
+    for(ImageRegionIterator<OutputImageType> it(image, image->GetRequestedRegion());
         !it.IsAtEnd(); ++it)
     {
         if(discarded_labels.count(it.Get()) != 0)

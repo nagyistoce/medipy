@@ -72,7 +72,7 @@ public :
 protected :
     ChangeDetectionClusteringImageFilter();
     ~ChangeDetectionClusteringImageFilter();
-    void PrintSelf(std::ostream& os, itk::Indent indent) const;
+    void PrintSelf(std::ostream& os, Indent indent) const;
 
     void GenerateData();
 
