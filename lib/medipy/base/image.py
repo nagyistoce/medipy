@@ -183,10 +183,10 @@ class Image(Observable):
         return numpy.asarray(self.data)
     
     def index_to_physical(self, index):
-        return numpy.dot(self._index_to_physical_matrix, index)
+        return numpy.dot(self._index_to_physical_matrix, index)+self._origin
     
-    def physical_to_index(self, index):
-        return numpy.dot(self._physical_to_index_matrix, index)
+    def physical_to_index(self, physical):
+        return numpy.dot(self._physical_to_index_matrix, physical-self._origin)
     
     ##############
     # Properties #
