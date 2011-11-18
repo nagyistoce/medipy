@@ -9,6 +9,7 @@
 import wx
 
 from medipy.gui.dicom import Explorer
+from medipy.gui import wxVTKRenderWindowInteractor
 
 class ExplorerDialog(wx.Dialog):
     def __init__(self, *args, **kwargs):
@@ -31,6 +32,8 @@ class ExplorerDialog(wx.Dialog):
         buttons_sizer.Add(self._cancel_button, 0)
         
         self._explorer.hierarchy_tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnInformationEntitySelected)
+        self._cancel_button.Bind(wx.EVT_BUTTON, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
     
     def set_datasets(self, datasets):
         self._explorer.hierarchy_tree.set_datasets(datasets)
@@ -49,3 +52,23 @@ class ExplorerDialog(wx.Dialog):
             self._import_button.Enable(True)
         else :
             self._import_button.Enable(False)
+    
+    def OnClose(self, event):
+        """ Fix a destruction bug that happens when the RenderWindowInteractors
+            are destroyed too late : the drawable is not valid and an error is
+            thrown.
+        """
+        
+        # Close all renderwindow interactors beneath us
+        queue = [self._explorer]
+        while queue :
+            window = queue.pop(0)
+            for child in window.GetChildren() :
+                if isinstance(child, wxVTKRenderWindowInteractor) :
+                    if isinstance(event, wx.CloseEvent) :
+                        child.Close(not event.CanVeto())
+                    else :
+                        child.Close()
+                queue.append(child)
+        
+        event.Skip()
