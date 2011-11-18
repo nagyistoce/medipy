@@ -86,9 +86,10 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     itkDebugMacro(<< ordering.size() << " voxels in global queue");
 
     // Use an unsigned long image to avoid problems with float during relabeling.
-    typedef Image<unsigned long, OutputImageType::ImageDimension> ClustersImageType;
+    typedef Image<unsigned long, InputImageType::ImageDimension> ClustersImageType;
     typename ClustersImageType::Pointer clusters_image = ClustersImageType::New();
-    clusters_image->SetRegions(this->GetOutput()->GetRequestedRegion());
+    clusters_image->CopyInformation(input);
+    clusters_image->SetRegions(input->GetRequestedRegion());
     clusters_image->Allocate();
     clusters_image->FillBuffer(0);
     typename ClustersImageType::PixelType clusters_count=0;
