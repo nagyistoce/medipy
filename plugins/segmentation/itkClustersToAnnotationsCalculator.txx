@@ -3,6 +3,7 @@
 
 #include "itkClustersToAnnotationsCalculator.h"
 
+#include <cmath>
 #include <map>
 #include <vector>
 
@@ -103,7 +104,12 @@ ClustersToAnnotationsCalculator<TImage>
         minimum_calculator->SetImage(distance_map_filter->GetOutput());
         minimum_calculator->ComputeMinimum();
 
-        this->m_Annotations[regions_it->first] = minimum_calculator->GetIndexOfMinimum();
+        Annotation annotation;
+        annotation.position = minimum_calculator->GetIndexOfMinimum();
+        // Use distance transform informations as annotation size
+        annotation.size = -minimum_calculator->GetMinimum();
+
+        this->m_Annotations[regions_it->first] = annotation;
     }
 }
 
@@ -127,9 +133,17 @@ ClustersToAnnotationsCalculator<TImage>
 template<typename TImage>
 typename ClustersToAnnotationsCalculator<TImage>::IndexType
 ClustersToAnnotationsCalculator<TImage>
-::GetAnnotation(typename ClustersToAnnotationsCalculator<TImage>::PixelType label) const
+::GetAnnotationPosition(typename ClustersToAnnotationsCalculator<TImage>::PixelType label) const
 {
-    return this->m_Annotations.find(label)->second;
+    return this->m_Annotations.find(label)->second.position;
+}
+
+template<typename TImage>
+float
+ClustersToAnnotationsCalculator<TImage>
+::GetAnnotationSize(typename ClustersToAnnotationsCalculator<TImage>::PixelType label) const
+{
+    return this->m_Annotations.find(label)->second.size;
 }
 
 template<typename TImage>
