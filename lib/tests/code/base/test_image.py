@@ -72,5 +72,19 @@ class TestImage(unittest.TestCase):
         self.assertTrue(self.un_initialized_image.is_inside((1,2,3)))
         self.assertFalse(self.un_initialized_image.is_inside((4,2,3)))
     
+    def test_index_to_physical(self):
+        image = medipy.base.Image((64,64,64), numpy.uint8, 
+                                  spacing=(1,2,3), origin=(4,5,6))
+        index = (8,9,10)
+        physical = image.index_to_physical(index)
+        numpy.testing.assert_array_almost_equal(physical, (12, 23, 36))
+    
+    def test_physical_to_index(self):
+        image = medipy.base.Image((64,64,64), numpy.uint8, 
+                                  spacing=(1,2,3), origin=(4,5,6))
+        physical = (12.,23.,36.)
+        index = image.physical_to_index(physical)
+        numpy.testing.assert_array_almost_equal(index, (8, 9, 10))
+    
 if __name__ == '__main__':
     unittest.main()
