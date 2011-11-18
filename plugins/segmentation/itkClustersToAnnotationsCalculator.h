@@ -31,7 +31,14 @@ public :
     typedef typename TImage::PixelType PixelType;
     typedef typename TImage::IndexType IndexType;
     typedef typename TImage::RegionType RegionType;
-    typedef std::map<PixelType, IndexType> MapType;
+
+    struct Annotation
+    {
+        IndexType position;
+        float size;
+    };
+
+    typedef std::map<PixelType, Annotation> MapType;
 
     itkSetConstObjectMacro(Image, ImageType);
 
@@ -39,7 +46,8 @@ public :
 
     MapType const & GetAnnotations() const;
     std::vector<typename MapType::key_type> GetAnnotationsLabels() const;
-    IndexType GetAnnotation(PixelType label) const;
+    IndexType GetAnnotationPosition(PixelType label) const;
+    float GetAnnotationSize(PixelType label) const;
 
 protected:
     ClustersToAnnotationsCalculator();
