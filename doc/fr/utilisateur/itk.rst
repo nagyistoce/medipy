@@ -22,5 +22,5 @@ Pour compiler et créer les paquets dans le répertoire courant en utilisant tro
 
     MAINTAINER="John Doe <john@example.com>"
     JOBS=3
-    $HOME/src/medipy/deployement/package_itk.sh
+    $HOME/src/medipy/deployement/itk/package.py -j $JOBS 
     $HOME/src/medipy/deployement/package_wrapitk.sh
