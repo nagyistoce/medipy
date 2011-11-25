@@ -47,6 +47,8 @@ def load(url, dtype=numpy.single) :
     if dtype :
         image.data = image.data.astype(dtype)
     
+    image.metadata.setdefault("loader", {})["url"] = url
+    
     return image    
 
 def save(image, url) :
