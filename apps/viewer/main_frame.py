@@ -57,16 +57,12 @@ class MainFrame(medipy.gui.base.Frame):
             self.ui.image.reset_view()
             
             if "loader" in image.metadata :
-                filename = image.metadata["loader"]["filename"]
-            elif image.metadata.get("series_description", "") :
-                filename = image.metadata["series_description"]
-                if "series_instance_uid" in image.metadata :
-                    filename += "/" + str(image.metadata["series_instance_uid"])
+                url = image.metadata["loader"]["url"]
             else :
-                filename = None
+                url = None
             
             if filename :
-                self.SetTitle("{0} ({1})".format(self._title, filename))
+                self.SetTitle("{0} ({1})".format(self._title, url))
             else :
                 self.SetTitle(self._title)
     
