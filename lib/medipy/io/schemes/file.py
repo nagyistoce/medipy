@@ -15,6 +15,8 @@
       * index : specifies the index of the image to load. Defaults to 0.
 """
 
+import urlparse
+
 from medipy.base import Image
 
 from medipy.io.ipb import IPB
@@ -102,8 +104,7 @@ def _parse_fragment(fragment) :
     """ Return the index value in the fragment
     """
     
-    for element in fragment.split("&") :
-        tag, value = element.split("=")
+    for tag, value in urlparse.parse_qsl(fragment) :
         if tag == "index" :
             try :
                 index = int(value)
