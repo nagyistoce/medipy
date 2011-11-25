@@ -23,6 +23,7 @@
 """
 
 import re
+import urlparse
 
 import medipy.io.dicom
 
@@ -50,8 +51,7 @@ def _get_filters(fragment) :
     """
     
     filters = []
-    for element in fragment.split("&") :
-        tag, value = element.split("=")
+    for tag, value in urlparse.parse_qsl(fragment) :
         matches = [re.match(r"^\((?:0x)?([\da-fA-F]{4}),(?:0x)?([\da-fA-F]{4})\)$", tag),
                    re.match(r"^(?:0x)?([\da-fA-F]+)$", tag)]
         if matches[0] :
