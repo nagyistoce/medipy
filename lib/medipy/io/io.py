@@ -83,12 +83,12 @@ def _split(url):
         given url.
     """
     
-    # Parse the URL
-    for s in schemes.__all__ :
-        urlparse.uses_fragment.append(s)
-    scheme, _, path, _, fragment = urlparse.urlsplit(url)
-    for s in schemes.__all__ :
-        del urlparse.uses_fragment[urlparse.uses_fragment.index(s)]
+    # Parse the URL : first get the scheme, then parse the URL without scheme
+    # to deal with fragment. Doing this avoids modifying urlparse.uses_fragment
+    parse_result = urlparse.urlsplit(url)
+    scheme = parse_result[0]
+    url_without_scheme = ("",)+parse_result[1:]
+    _, _, path, _, fragment = urlparse.urlsplit(urlparse.urlunsplit(url_without_scheme))
     
     scheme = scheme or "file"
     try :
