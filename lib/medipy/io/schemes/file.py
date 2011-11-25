@@ -40,9 +40,7 @@ def load(path, fragment=None, loader=None) :
     data = loader.load_data(index)
     metadata = loader.load_metadata(index)
     metadata["loader"] = {
-        "filename" : path,
         "index" : index,
-        "type" : type,
         "loader" : loader
     }
     
