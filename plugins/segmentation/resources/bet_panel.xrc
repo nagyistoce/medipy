@@ -55,6 +55,7 @@
         </object>
         <option>1</option>
       </object>
+      
       <object class="sizeritem">
         <object class="wxStaticText">
           <label>Local threshold : </label>
@@ -66,6 +67,20 @@
           <orient>wxHORIZONTAL</orient>
           <object class="sizeritem">
             <object class="medipy.gui.control.Float" name="local_threshold"/>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Smoothness : </label>
+        </object>
+        <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.Int" name="smoothness"/>
           </object>
         </object>
       </object>
