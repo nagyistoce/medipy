@@ -149,7 +149,7 @@ BETImageFilter<TInputImage, TOutputImage>
 ::BETImageFilter()
 : m_BT(0.5),
   m_T2(0), m_T98(0), m_t(0), are_thresholds_specified_(false),
-  is_cog_specified_(false)
+  is_cog_specified_(false), m_SmoothnessFactor(0)
 {
     // Nothing more to do
 }
@@ -242,76 +242,68 @@ BETImageFilter<TInputImage, TOutputImage>
     * 3.4 Main iterated loop (p. 8-14) *
     ***********************************/
 
-    unsigned int pass = 0;
-    bool done = false;
-    while(!done)
+    for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
     {
-        for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
+        float smoothness;
+        if(iteration<=0.75*nbIterations)
         {
-            float smoothness;
-            if(iteration<=0.75*nbIterations)
-            {
-                smoothness = std::pow(10.f, float(pass));
-            }
-            else
-            {
-                // Linear interpolation between 1 and 10^pass
-                float const alpha = (iteration-0.75*nbIterations)/(0.25*nbIterations);
-                smoothness = (1-alpha)*std::pow(10.f, float(pass))+alpha;
-            }
+            smoothness = std::pow(10.f, float(this->m_SmoothnessFactor));
+        }
+        else
+        {
+            // Linear interpolation between 1 and 10^pass
+            float const alpha = (iteration-0.75*nbIterations)/(0.25*nbIterations);
+            smoothness = (1-alpha)*std::pow(10.f, float(this->m_SmoothnessFactor))+alpha;
+        }
 
-            // Update l
-            this->meanVertexDistance();
-            itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
+        // Update l
+        this->meanVertexDistance();
+        itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
 
-            /*************************************
-            * 3.4.1 Local Surface Normal (p.8-9) *
-            *************************************/
-            vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-            normalFilter->SetInput(this->sphere_);
-            // We know that all the normals on the original model are outward-pointing
-            normalFilter->AutoOrientNormalsOff();
-            normalFilter->ConsistencyOff();
-            // Don't create new points at sharp edges
-            normalFilter->SplittingOff();
-            normalFilter->Update();
-            vtkPolyData* normals = normalFilter->GetOutput();
+        /*************************************
+        * 3.4.1 Local Surface Normal (p.8-9) *
+        *************************************/
+        vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+        normalFilter->SetInput(this->sphere_);
+        // We know that all the normals on the original model are outward-pointing
+        normalFilter->AutoOrientNormalsOff();
+        normalFilter->ConsistencyOff();
+        // Don't create new points at sharp edges
+        normalFilter->SplittingOff();
+        normalFilter->Update();
+        vtkPolyData* normals = normalFilter->GetOutput();
 
-            vtkDataArray* pointsDataArray = normals->GetPoints()->GetData();
-            vtkDataArray* normalsDataArray = normals->GetPointData()->GetNormals();
-            if(pointsDataArray->GetDataType() != VTK_FLOAT || normalsDataArray->GetDataType() != VTK_FLOAT)
-            {
-                throw std::runtime_error("Points should be VTK_FLOAT");
-            }
+        vtkDataArray* pointsDataArray = normals->GetPoints()->GetData();
+        vtkDataArray* normalsDataArray = normals->GetPointData()->GetNormals();
+        if(pointsDataArray->GetDataType() != VTK_FLOAT || normalsDataArray->GetDataType() != VTK_FLOAT)
+        {
+            throw std::runtime_error("Points should be VTK_FLOAT");
+        }
 
-            std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
+        std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
 
-            MultiThreader::Pointer threader = MultiThreader::New();
-            threader->SetNumberOfThreads(this->GetNumberOfThreads());
+        MultiThreader::Pointer threader = MultiThreader::New();
+        threader->SetNumberOfThreads(this->GetNumberOfThreads());
 
-            Self::ThreadStruct thread_structure;
-            thread_structure.filter = this;
-            thread_structure.pointsDataArray = pointsDataArray;
-            thread_structure.normalsDataArray = normalsDataArray;
-            thread_structure.E = E;
-            thread_structure.F = F;
-            thread_structure.d1 = d1;
-            thread_structure.d2 = d2;
-            thread_structure.smoothness = smoothness;
-            thread_structure.displacements = &displacements;
-            threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
-            threader->SingleMethodExecute();
+        Self::ThreadStruct thread_structure;
+        thread_structure.filter = this;
+        thread_structure.pointsDataArray = pointsDataArray;
+        thread_structure.normalsDataArray = normalsDataArray;
+        thread_structure.E = E;
+        thread_structure.F = F;
+        thread_structure.d1 = d1;
+        thread_structure.d2 = d2;
+        thread_structure.smoothness = smoothness;
+        thread_structure.displacements = &displacements;
+        threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
+        threader->SingleMethodExecute();
 
-            for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
-            {
-                vnl_vector_fixed_ref<float, 3> p((float*)pointsDataArray->GetVoidPointer(3*pointId));
-                p += displacements[pointId];
-            }
-        } // for all iterations
-        ++pass;
-        // TODO : implement self-intersection test
-        done = true;
-    } // for all passes
+        for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
+        {
+            vnl_vector_fixed_ref<float, 3> p((float*)pointsDataArray->GetVoidPointer(3*pointId));
+            p += displacements[pointId];
+        }
+    } // for all iterations
 
     this->voxelize();
 

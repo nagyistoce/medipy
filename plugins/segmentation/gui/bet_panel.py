@@ -27,11 +27,12 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
             self.estimate_intensity_range = None
             
             self.local_threshold = None
+            self.smoothness = None
             
             self.controls = [
                 "show_cog", "estimate_cog", "set_cog_to_cursor",
                 "intensity_range", "display_intensity_range", "estimate_intensity_range",
-                "local_threshold"]
+                "local_threshold", "smoothness"]
     
     def __init__(self, parent=None, *args, **kwargs):
         self.ui = BETPanel.UI()
@@ -39,16 +40,19 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
         xrc_file = medipy.base.find_resource(
             os.path.join("segmentation", "resources", "bet_panel.xrc"))
         handlers = [medipy.gui.xrc_wrapper.FloatIntervalXMLHandler(),
-                    medipy.gui.xrc_wrapper.FloatXMLHandler()]
+                    medipy.gui.xrc_wrapper.FloatXMLHandler(),
+                    medipy.gui.xrc_wrapper.IntXMLHandler()]
         medipy.gui.base.Panel.__init__(self, xrc_file, "bet_panel", 
             handlers, self.ui, self.ui.controls,
             parent, *args, **kwargs)
         medipy.base.Observable.__init__(
-            self, ["center_of_gravity", "t_2", "t_98", "b_t"])
+            self, ["center_of_gravity", "t_2", "t_98", "b_t", "smoothness"])
 
         self.ui.intensity_range.orientation = "horizontal"
         self.ui.local_threshold.range = (0,1)
         self.ui.local_threshold.value = 0.5
+        self.ui.smoothness.range = (0,10)
+        self.ui.smoothness.value = 0
 
         self.ui.show_cog.Bind(wx.EVT_BUTTON, self.OnShowCOG)
         self.ui.estimate_cog.Bind(wx.EVT_BUTTON, self.OnEstimateCOG)
@@ -59,6 +63,7 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
         self.ui.estimate_intensity_range.Bind(wx.EVT_BUTTON, self.OnEstimateIntensityRange)
         
         self.ui.local_threshold.add_observer("value", self.on_local_threshold)
+        self.ui.smoothness.add_observer("value", self.on_smoothness)
         
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         
@@ -161,6 +166,13 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
     def _set_b_t(self, value):
         self._bet_filter.SetBT(value)
         self.notify_observers("b_t")
+    
+    def _get_smoothness(self):
+        return self._bet_filter.GetSmoothnessFactor()
+    
+    def _set_smoothness(self, value):
+        self._bet_filter.SetSmoothnessFactor(value)
+        self.notify_observers("smoothness")
      
     image = property(_get_image, _set_image)
     layer = property(_get_layer, _set_layer)
@@ -168,6 +180,7 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
     t_98 = property(_get_t_98, _set_t_98)
     center_of_gravity = property(_get_center_of_gravity, _set_center_of_gravity)
     b_t = property(_get_b_t, _set_b_t)
+    smoothness = property(_get_smoothness, _set_smoothness)
     
     ##################
     # Event handlers #
@@ -187,6 +200,9 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
         self.center_of_gravity = self._image.cursor_physical_position
     
     def on_intensity_range_value(self, dummy):
+        if not self.ui.intensity_range.validate() :
+            return
+        
         self.ui.intensity_range.remove_observer("value", self.on_intensity_range_value)
         t_2, t_98 = self.ui.intensity_range.value
         self.t_2 = t_2
@@ -203,7 +219,16 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
         self.estimate_thresholds()
     
     def on_local_threshold(self, dummy):
+        if not self.ui.local_threshold.validate() :
+            return 
+        
         self.b_t = self.ui.local_threshold.value
+    
+    def on_smoothness(self, dummy):
+        if not self.ui.smoothness.validate() :
+            return 
+        
+        self.smoothness = self.ui.smoothness.value
     
     def OnClose(self, event):
         event.Skip()

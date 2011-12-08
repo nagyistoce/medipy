@@ -81,6 +81,12 @@ public :
     /** Estimate the center of gravity. */
     void EstimateCenterOfGravity();
 
+    /** Smoothing factor, defaults to 0. */
+    itkGetMacro(SmoothnessFactor, unsigned int);
+    itkSetMacro(SmoothnessFactor, unsigned int);
+
+    // TODO : implement self-intersection test
+
 protected :
     BETImageFilter();
     ~BETImageFilter() {}
@@ -118,6 +124,8 @@ private :
 
     typename TInputImage::PointType m_CenterOfGravity;
     bool is_cog_specified_;
+
+    unsigned int m_SmoothnessFactor;
 
     float r_;
     typename TInputImage::PixelType tm_;
