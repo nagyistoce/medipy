@@ -71,11 +71,9 @@ class Circle(Base):
         bounding_box = numpy.transpose(numpy.indices(last-first+1))+first
         bounding_box = bounding_box.reshape(diameter**dimension, dimension)
         
-        self._indices = []
-        
-        for index in bounding_box :
-            distance_to_plane = numpy.abs(numpy.dot(index, self._normal))
-            distance_to_origin = numpy.linalg.norm(index)
-            if distance_to_plane < 0.5 and distance_to_origin <= self._radius :
-                self._indices.append(index.astype(int))
+        # Index must be in the plane defined by the normal (dot(x,normal))
+        # and less than radius from origin
+        self._indices = [x.astype(int) for x in bounding_box 
+                         if numpy.abs(numpy.dot(x, self._normal)) < 0.5 and
+                            numpy.linalg.norm(x)<=self._radius]
         

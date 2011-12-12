@@ -6,6 +6,7 @@
 # for details.                                                      
 ##########################################################################
 
+import numpy
 import medipy.base
 
 class Base(object):
@@ -29,7 +30,8 @@ class Base(object):
         """ Set the value of the voxels in self.indices(position) to self.value. 
         """
         
-        image[self.indices(position)] = self._value
+        where = list(numpy.transpose(self.indices(position)))
+        image[where] = self._value
         image.modified()
     
     ##############
