@@ -59,15 +59,13 @@ class Sphere(Base):
     
     def _compute_indices(self):
         diameter = 2*self._radius+1
-        bounding_box = numpy.transpose(numpy.indices(self._dimension*[diameter]))
-        bounding_box -= self._dimension*[self._radius]
+        
+        first = numpy.asarray(self._dimension*[-self._radius], float)
+        last = numpy.asarray(self._dimension*[self._radius], float)
+        
+        bounding_box = numpy.transpose(numpy.indices(last-first+1))+first
         bounding_box = bounding_box.reshape(diameter**self._dimension, self._dimension)
-        bounding_box = bounding_box.astype(float)
         
-        self._indices = []
-        
-        for index in bounding_box :
-            distance_to_origin = numpy.linalg.norm(index)
-            if distance_to_origin <= self._radius :
-                self._indices.append(index.astype(int))
+        self._indices = [x.astype(int) for x in bounding_box 
+                         if numpy.linalg.norm(x)<=self._radius]
         
