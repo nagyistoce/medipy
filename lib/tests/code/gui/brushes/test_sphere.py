@@ -3,15 +3,13 @@ import unittest
 import numpy
 import numpy.testing
 
-import medipy.base
 import medipy.gui.brushes
 
 class TestSphere(unittest.TestCase):
     def test_indices(self):
         radius = 3
         
-        image = medipy.base.Image(3*(256,))
-        brush = medipy.gui.brushes.Sphere(1, image, radius)
+        brush = medipy.gui.brushes.Sphere(1, radius)
         
         diameter = 2*radius+1
         bounding_box = numpy.transpose(

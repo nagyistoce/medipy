@@ -17,35 +17,30 @@ class Circle(Base):
         by its normal direction.
     """
     
-    def __init__(self, value, image, radius, normal):
+    def __init__(self, value, radius, normal):
         self._radius = None
         self._normal = None
         self._indices = None
         
-        super(Circle, self).__init__(value, image)
+        super(Circle, self).__init__(value)
         self._set_radius(radius)
         self._set_normal(normal)
     
     def indices(self, position=None):
         if position is None :
-            position = numpy.zeros(self._image.ndim)
+            position = numpy.zeros(len(self._normal))
         return numpy.add(self._indices, position)
     
     ##############
     # Properties #
     ##############
     
-    def _set_image(self, image):
-        super(Circle, self)._set_image(image)
-        if None not in [self._image, self._radius, self._normal] :
-            self._compute_indices()
-    
     def _get_radius(self):
         return self._radius
     
     def _set_radius(self, radius):
         self._radius = radius
-        if None not in [self._image, self._radius, self._normal] :
+        if None not in [self._radius, self._normal] :
             self._compute_indices()
     
     def _get_normal(self):
@@ -55,8 +50,8 @@ class Circle(Base):
         return self._normal
     
     def _set_normal(self, normal):
-        self._normal = normal
-        if None not in [self._image, self._radius, self._normal] :
+        self._normal = numpy.asarray(normal, float)
+        if None not in [self._radius, self._normal] :
             self._compute_indices()
     
     radius = property(_get_radius, _set_radius)
@@ -68,10 +63,13 @@ class Circle(Base):
     
     def _compute_indices(self):
         diameter = 2*self._radius+1
-        bounding_box = numpy.transpose(numpy.indices(self._image.ndim*[diameter]))
-        bounding_box -= self._image.ndim*[self._radius]
-        bounding_box = bounding_box.reshape(diameter**self._image.ndim, self._image.ndim)
-        bounding_box = bounding_box.astype(float)
+        dimension = len(self._normal)
+        
+        first = numpy.asarray(dimension*[-self._radius], float)
+        last = numpy.asarray(dimension*[self._radius], float)
+        
+        bounding_box = numpy.transpose(numpy.indices(last-first+1))+first
+        bounding_box = bounding_box.reshape(diameter**dimension, dimension)
         
         self._indices = []
         

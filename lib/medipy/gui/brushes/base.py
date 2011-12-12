@@ -12,12 +12,10 @@ class Base(object):
     """ Base class for all brushes
     """
     
-    def __init__(self, value, image):
+    def __init__(self, value):
         self._value = None
-        self._image = None
         
         self._set_value(value)
-        self._set_image(image)
     
     def indices(self, position=None):
         """ Return a list of indices that will be affected when painting at the
@@ -27,11 +25,12 @@ class Base(object):
         
         raise NotImplementedError()
     
-    def paint(self, position):
+    def paint(self, image, position):
         """ Set the value of the voxels in self.indices(position) to self.value. 
         """
         
-        self._image[self.indices(position)] = self._value
+        image[self.indices(position)] = self._value
+        image.modified()
     
     ##############
     # Properties #
@@ -46,14 +45,4 @@ class Base(object):
     def _set_value(self, value):
         self._value = value
     
-    def _get_image(self):
-        """ Image to draw on.
-        """
-        
-        return self._image
-    
-    def _set_image(self, image):
-        self._image = image
-    
     value = medipy.base.LateBindingProperty(_get_value, _set_value)
-    image = medipy.base.LateBindingProperty(_get_image, _set_image)
