@@ -33,35 +33,34 @@ class Select(MouseTool) :
     def stop_interaction(self, rwi, slice) :
         pass
 
-class Pencil(MouseTool) :
-    """ Draw on the image with a given color
+class Paint(MouseTool) :
+    """ Paint the specified image using a brush
     """
-    def __init__(self, value, layer=0):
-        super(Pencil, self).__init__()
-        self.value = value
-        self.layer = layer
     
-    def start_interaction(self, rwi, slice):
+    def __init__(self, brush, image) :
+        super(Paint, self).__init__()
+        self.brush = brush
+        self.image = image
+    
+    def start_interaction(self, rwi, slice) :
         self._paint(rwi, slice)
     
     def dispatch_interaction(self, rwi, slice) :
         self._paint(rwi, slice)
     
     def _paint(self, rwi, slice) :
-        slice_position = self._display_to_slice(rwi.GetEventPosition(), slice)
+        if hasattr(self.brush, "normal") :
+            normal = slice.slice_to_world[:,0]
+            if (self.brush.normal != normal).any() :
+                self.brush.normal = normal
         
-        slice_position[0] = numpy.dot(slice.world_to_slice, 
-                                      slice.cursor_physical_position)[0]
+        position = self._display_to_image_index(rwi.GetEventPosition(), slice)
+        self.brush.paint(self.image, position.astype(int))
         
-        world_position = numpy.dot(slice.slice_to_world, slice_position)
+        if not slice.layers or slice.layers[0].image.is_inside(position) :
+            slice.cursor_index_position = position
         
-        image = slice.layers[self.layer].image
-        index_position = tuple(((world_position-image.origin)/image.spacing).round())
-        
-        if image.is_inside(index_position) :
-            image[index_position] = self.value
-            image.modified()
-            rwi.Render()
+        rwi.Render()
 
 class Zoom(MouseTool) :
     """ Zoom in (or out, depending on factor)
