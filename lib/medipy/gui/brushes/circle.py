@@ -28,7 +28,7 @@ class Circle(Base):
     
     def indices(self, position=None):
         if position is None :
-            position = numpy.zeros(len(self._normal))
+            position = numpy.zeros(self._image.ndim)
         return numpy.add(self._indices, position)
     
     ##############
