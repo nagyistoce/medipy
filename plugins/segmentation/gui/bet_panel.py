@@ -241,9 +241,8 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
     def OnClose(self, event):
         event.Skip()
         if None not in [self.image, self.layer] :
-            self.image.delete_layer(self.layer)
+            self.image.delete_layer(self._intensity_range_layer)
             self.image.render()
-        print "pouet"
     
     #####################
     # Private interface #
