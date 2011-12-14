@@ -90,12 +90,19 @@ BETImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void
 BETImageFilter<TInputImage, TOutputImage>
-::SetCenterOfGravity(typename TInputImage::PointType & _arg)
+::SetCenterOfGravity(typename TInputImage::IndexType & _arg)
 {
     itkDebugMacro("setting CenterOfGravity to " << _arg);
     if(this->m_CenterOfGravity != _arg)
     {
         this->m_CenterOfGravity = _arg;
+
+        for(unsigned int d=0; d<TInputImage::ImageDimension; ++d)
+        {
+            this->m_CenterOfGravityPoint[d] =
+                this->m_CenterOfGravity[d]*this->GetInput()->GetSpacing()[d];
+        }
+
         this->Modified();
     }
     this->is_cog_specified_ = true;
@@ -107,7 +114,8 @@ BETImageFilter<TInputImage, TOutputImage>
 ::EstimateCenterOfGravity()
 {
     float totalMass = 0;
-    this->m_CenterOfGravity.Fill(0.);
+
+    vnl_vector_fixed<float, TInputImage::ImageDimension> cog(0.);
 
     ImageRegionConstIteratorWithIndex<InputImageType> it(
         this->GetInput(), this->GetInput()->GetRequestedRegion());
@@ -125,20 +133,17 @@ BETImageFilter<TInputImage, TOutputImage>
 
             for(unsigned int i=0; i<TInputImage::ImageDimension; ++i)
             {
-                this->m_CenterOfGravity[i] += float(mass)*float(index[i]);
+                cog[i] += float(mass)*float(index[i]);
             }
         }
         ++it;
     }
 
-    for(unsigned int d=0; d<this->m_CenterOfGravity.Size(); ++d)
-    {
-        this->m_CenterOfGravity[d] /= totalMass;
-    }
+    cog /= totalMass;
 
     for(unsigned int d=0; d<TInputImage::ImageDimension; ++d)
     {
-        this->m_CenterOfGravity[d] *= this->GetInput()->GetSpacing()[d];
+        this->m_CenterOfGravity[d] = cog[d];
     }
 
     this->is_cog_specified_ = true;
@@ -545,7 +550,7 @@ BETImageFilter<TInputImage, TOutputImage>
         }
 
         if(value >= this->m_T2 && value <= this->m_T98 &&
-           p.SquaredEuclideanDistanceTo(this->m_CenterOfGravity) <= rSquared)
+           p.SquaredEuclideanDistanceTo(this->m_CenterOfGravityPoint) <= rSquared)
         {
             intensities.push_back(value);
         }
@@ -590,9 +595,9 @@ BETImageFilter<TInputImage, TOutputImage>
     }
 
     vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    transform->Translate(this->m_CenterOfGravity[0],
-                         this->m_CenterOfGravity[1],
-                         this->m_CenterOfGravity[2]);
+    transform->Translate(this->m_CenterOfGravityPoint[0],
+                         this->m_CenterOfGravityPoint[1],
+                         this->m_CenterOfGravityPoint[2]);
     transform->Scale(this->r_, this->r_, this->r_);
 
     vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
