@@ -99,7 +99,7 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
     
     def show_center_of_gravity(self):
         cog = list(reversed(self._bet_filter.GetCenterOfGravity()))
-        self._image.cursor_physical_position = cog
+        self._image.cursor_index_position = cog
         self._image.render()
     
     ##############
@@ -205,7 +205,7 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
     
     def OnSetCOGToCursor(self, event):
         event.Skip()
-        self.center_of_gravity = self._image.cursor_physical_position
+        self.center_of_gravity = [int(x) for x in self._image.cursor_index_position]
     
     def on_intensity_range_value(self, dummy):
         if not self.ui.intensity_range.validate() :
