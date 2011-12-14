@@ -123,7 +123,6 @@ private :
     bool are_thresholds_specified_;
 
     typename TInputImage::IndexType m_CenterOfGravity;
-    typename TInputImage::PointType m_CenterOfGravityPoint;
     bool is_cog_specified_;
 
     unsigned int m_SmoothnessFactor;
