@@ -61,21 +61,31 @@ public :
     itkGetMacro(BT, float);
     itkSetClampMacro(BT, float, 0., 1.);
 
+    /** Low threshold. */
+    itkGetMacro(T2, InputImagePixelType);
+    virtual void SetT2(InputImagePixelType _arg);
+
+    /** High threshold. */
+    itkGetMacro(T98, InputImagePixelType);
+    virtual void SetT98(InputImagePixelType _arg);
+
+    /** Estimate the t_2 and t_98 thresholds. */
+    void EstimateThresholds();
+
     /** Center of gravity of the brain in physical units.
      * Will be computed if user does not provide it.
      */
     itkGetMacro(CenterOfGravity, typename TInputImage::PointType);
-    virtual void SetCenterOfGravity(typename TInputImage::PointType & _arg)
-    {
-        itkDebugMacro("setting CenterOfGravity to " << _arg);
-        if(this->m_CenterOfGravity != _arg)
-        {
-            this->m_CenterOfGravity = _arg;
-            this->Modified();
-        }
-        this->userDefinedCOG_ = true;
-    }
+    virtual void SetCenterOfGravity(typename TInputImage::PointType & _arg);
 
+    /** Estimate the center of gravity. */
+    void EstimateCenterOfGravity();
+
+    /** Smoothing factor, defaults to 0. */
+    itkGetMacro(SmoothnessFactor, unsigned int);
+    itkSetMacro(SmoothnessFactor, unsigned int);
+
+    // TODO : implement self-intersection test
 
 protected :
     BETImageFilter();
@@ -107,13 +117,16 @@ private :
 
     float m_BT;
 
+    typename TInputImage::PixelType m_T2;
+    typename TInputImage::PixelType m_T98;
+    typename TInputImage::PixelType m_t;
+    bool are_thresholds_specified_;
+
     typename TInputImage::PointType m_CenterOfGravity;
+    bool is_cog_specified_;
 
-    bool userDefinedCOG_;
+    unsigned int m_SmoothnessFactor;
 
-    typename TInputImage::PixelType t2_;
-    typename TInputImage::PixelType t98_;
-    typename TInputImage::PixelType t_;
     float r_;
     typename TInputImage::PixelType tm_;
     vtkSmartPointer<vtkPolyData> sphere_;
@@ -123,8 +136,6 @@ private :
     BETImageFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
-    void thresholds();
-    void centerOfGravity();
     void radius();
     void medianIntensity();
     void buildSphere(unsigned int subdivisions);

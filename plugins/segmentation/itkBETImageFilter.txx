@@ -37,9 +37,119 @@ namespace itk
 {
 
 template<typename TInputImage, typename TOutputImage>
+void
+BETImageFilter<TInputImage, TOutputImage>
+::SetT2(InputImagePixelType _arg)
+{
+    itkDebugMacro("Setting T2 to " << _arg);
+    if(this->m_T2 != _arg)
+    {
+        this->m_T2 = _arg;
+        this->m_t = this->m_T2+0.1*(this->m_T98-this->m_T2);
+        this->Modified();
+    }
+    this->are_thresholds_specified_ = true;
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+BETImageFilter<TInputImage, TOutputImage>
+::SetT98(InputImagePixelType _arg)
+{
+    itkDebugMacro("Setting T98 to " << _arg);
+    if(this->m_T98 != _arg)
+    {
+        this->m_T98 = _arg;
+        this->m_t = this->m_T2+0.1*(this->m_T98-this->m_T2);
+        itkDebugMacro("Setting t to " << this->m_t);
+        this->Modified();
+    }
+    this->are_thresholds_specified_ = true;
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+BETImageFilter<TInputImage, TOutputImage>
+::EstimateThresholds()
+{
+    typedef Statistics::ScalarImageToHistogramGenerator<InputImageType> HistogramGenerator;
+    unsigned long bins = 256;
+
+    typename HistogramGenerator::Pointer histogramGenerator = HistogramGenerator::New();
+    histogramGenerator->SetInput(this->GetInput());
+    histogramGenerator->SetNumberOfBins(bins);
+    histogramGenerator->SetMarginalScale(10.0);
+    histogramGenerator->Compute();
+    typedef typename HistogramGenerator::HistogramType Histogram;
+    typename Histogram::ConstPointer histogram = histogramGenerator->GetOutput();
+
+    this->SetT2(histogram->Quantile(0, 0.2));
+    this->SetT98(histogram->Quantile(0, 0.98));
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+BETImageFilter<TInputImage, TOutputImage>
+::SetCenterOfGravity(typename TInputImage::PointType & _arg)
+{
+    itkDebugMacro("setting CenterOfGravity to " << _arg);
+    if(this->m_CenterOfGravity != _arg)
+    {
+        this->m_CenterOfGravity = _arg;
+        this->Modified();
+    }
+    this->is_cog_specified_ = true;
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+BETImageFilter<TInputImage, TOutputImage>
+::EstimateCenterOfGravity()
+{
+    float totalMass = 0;
+    this->m_CenterOfGravity.Fill(0.);
+
+    ImageRegionConstIteratorWithIndex<InputImageType> it(
+        this->GetInput(), this->GetInput()->GetRequestedRegion());
+
+    while(!it.IsAtEnd())
+    {
+        typename TInputImage::PixelType const & value = it.Get();
+        typename TInputImage::IndexType const & index = it.GetIndex();
+
+        if(value >= this->m_t)
+        {
+            // 3.2, p. 7 : Intensity values are upper limited at t_98
+            float const mass = std::max(value, this->m_T98);
+            totalMass += mass;
+
+            for(unsigned int i=0; i<TInputImage::ImageDimension; ++i)
+            {
+                this->m_CenterOfGravity[i] += float(mass)*float(index[i]);
+            }
+        }
+        ++it;
+    }
+
+    for(unsigned int d=0; d<this->m_CenterOfGravity.Size(); ++d)
+    {
+        this->m_CenterOfGravity[d] /= totalMass;
+    }
+
+    for(unsigned int d=0; d<TInputImage::ImageDimension; ++d)
+    {
+        this->m_CenterOfGravity[d] *= this->GetInput()->GetSpacing()[d];
+    }
+
+    this->is_cog_specified_ = true;
+}
+
+template<typename TInputImage, typename TOutputImage>
 BETImageFilter<TInputImage, TOutputImage>
 ::BETImageFilter()
-: m_BT(0.5), userDefinedCOG_(false)
+: m_BT(0.5),
+  m_T2(0), m_T98(0), m_t(0), are_thresholds_specified_(false),
+  is_cog_specified_(false), m_SmoothnessFactor(0)
 {
     // Nothing more to do
 }
@@ -50,6 +160,19 @@ BETImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     Superclass::PrintSelf(os,indent);
+    os << indent << "BT (main BET parameter) : " << this->m_BT << "\n";
+    os << indent << "T2 : " << this->m_T2 << ", T98 : " << this->m_T98;
+    if(!this->are_thresholds_specified_)
+    {
+        os << " (thresholds will be estimated during Update)";
+    }
+    os << "\n";
+    os << indent << "CenterOfGravity : " << this->m_CenterOfGravity;
+    if(!this->is_cog_specified_)
+    {
+        os << " (center of gravity will be estimated during Update)";
+    }
+    os << "\n";
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -78,13 +201,15 @@ BETImageFilter<TInputImage, TOutputImage>
     * 3.2 Estimation of Basic Image and Brain Parameters (p. 5-7) *
     **************************************************************/
     // Thresholds
-    this->thresholds();
-    itkDebugMacro(<< "t2 : " << this->t2_ << ", t : " << this->t_ << ", t98 : " << this->t98_);
+    if(!this->are_thresholds_specified_)
+    {
+        this->EstimateThresholds();
+    }
 
     // Center of gravity
-    if(!this->userDefinedCOG_)
+    if(!this->is_cog_specified_)
     {
-        this->centerOfGravity();
+        this->EstimateCenterOfGravity();
     }
     else
     {
@@ -117,76 +242,68 @@ BETImageFilter<TInputImage, TOutputImage>
     * 3.4 Main iterated loop (p. 8-14) *
     ***********************************/
 
-    unsigned int pass = 0;
-    bool done = false;
-    while(!done)
+    for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
     {
-        for(unsigned int iteration=0; iteration<nbIterations; ++iteration)
+        float smoothness;
+        if(iteration<=0.75*nbIterations)
         {
-            float smoothness;
-            if(iteration<=0.75*nbIterations)
-            {
-                smoothness = std::pow(10.f, float(pass));
-            }
-            else
-            {
-                // Linear interpolation between 1 and 10^pass
-                float const alpha = (iteration-0.75*nbIterations)/(0.25*nbIterations);
-                smoothness = (1-alpha)*std::pow(10.f, float(pass))+alpha;
-            }
+            smoothness = std::pow(10.f, float(this->m_SmoothnessFactor));
+        }
+        else
+        {
+            // Linear interpolation between 1 and 10^pass
+            float const alpha = (iteration-0.75*nbIterations)/(0.25*nbIterations);
+            smoothness = (1-alpha)*std::pow(10.f, float(this->m_SmoothnessFactor))+alpha;
+        }
 
-            // Update l
-            this->meanVertexDistance();
-            itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
+        // Update l
+        this->meanVertexDistance();
+        itkDebugMacro(<< "Mean vertex distance updated to : " << this->l_);
 
-            /*************************************
-            * 3.4.1 Local Surface Normal (p.8-9) *
-            *************************************/
-            vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
-            normalFilter->SetInput(this->sphere_);
-            // We know that all the normals on the original model are outward-pointing
-            normalFilter->AutoOrientNormalsOff();
-            normalFilter->ConsistencyOff();
-            // Don't create new points at sharp edges
-            normalFilter->SplittingOff();
-            normalFilter->Update();
-            vtkPolyData* normals = normalFilter->GetOutput();
+        /*************************************
+        * 3.4.1 Local Surface Normal (p.8-9) *
+        *************************************/
+        vtkSmartPointer<vtkPolyDataNormals> normalFilter = vtkSmartPointer<vtkPolyDataNormals>::New();
+        normalFilter->SetInput(this->sphere_);
+        // We know that all the normals on the original model are outward-pointing
+        normalFilter->AutoOrientNormalsOff();
+        normalFilter->ConsistencyOff();
+        // Don't create new points at sharp edges
+        normalFilter->SplittingOff();
+        normalFilter->Update();
+        vtkPolyData* normals = normalFilter->GetOutput();
 
-            vtkDataArray* pointsDataArray = normals->GetPoints()->GetData();
-            vtkDataArray* normalsDataArray = normals->GetPointData()->GetNormals();
-            if(pointsDataArray->GetDataType() != VTK_FLOAT || normalsDataArray->GetDataType() != VTK_FLOAT)
-            {
-                throw std::runtime_error("Points should be VTK_FLOAT");
-            }
+        vtkDataArray* pointsDataArray = normals->GetPoints()->GetData();
+        vtkDataArray* normalsDataArray = normals->GetPointData()->GetNormals();
+        if(pointsDataArray->GetDataType() != VTK_FLOAT || normalsDataArray->GetDataType() != VTK_FLOAT)
+        {
+            throw std::runtime_error("Points should be VTK_FLOAT");
+        }
 
-            std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
+        std::vector<vnl_vector_fixed<float, 3> > displacements(normals->GetNumberOfPoints());
 
-            MultiThreader::Pointer threader = MultiThreader::New();
-            threader->SetNumberOfThreads(this->GetNumberOfThreads());
+        MultiThreader::Pointer threader = MultiThreader::New();
+        threader->SetNumberOfThreads(this->GetNumberOfThreads());
 
-            Self::ThreadStruct thread_structure;
-            thread_structure.filter = this;
-            thread_structure.pointsDataArray = pointsDataArray;
-            thread_structure.normalsDataArray = normalsDataArray;
-            thread_structure.E = E;
-            thread_structure.F = F;
-            thread_structure.d1 = d1;
-            thread_structure.d2 = d2;
-            thread_structure.smoothness = smoothness;
-            thread_structure.displacements = &displacements;
-            threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
-            threader->SingleMethodExecute();
+        Self::ThreadStruct thread_structure;
+        thread_structure.filter = this;
+        thread_structure.pointsDataArray = pointsDataArray;
+        thread_structure.normalsDataArray = normalsDataArray;
+        thread_structure.E = E;
+        thread_structure.F = F;
+        thread_structure.d1 = d1;
+        thread_structure.d2 = d2;
+        thread_structure.smoothness = smoothness;
+        thread_structure.displacements = &displacements;
+        threader->SetSingleMethod(Self::adjust_model_callback, &thread_structure);
+        threader->SingleMethodExecute();
 
-            for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
-            {
-                vnl_vector_fixed_ref<float, 3> p((float*)pointsDataArray->GetVoidPointer(3*pointId));
-                p += displacements[pointId];
-            }
-        } // for all iterations
-        ++pass;
-        // TODO : implement self-intersection test
-        done = true;
-    } // for all passes
+        for(vtkIdType pointId=0; pointId<this->sphere_->GetNumberOfPoints(); ++pointId)
+        {
+            vnl_vector_fixed_ref<float, 3> p((float*)pointsDataArray->GetVoidPointer(3*pointId));
+            p += displacements[pointId];
+        }
+    } // for all iterations
 
     this->voxelize();
 
@@ -319,7 +436,7 @@ BETImageFilter<TInputImage, TOutputImage>
             InputImagePixelType const lastIntensity = input->GetPixel(lastIndex);
 
             InputImagePixelType I_min = std::min(filter->tm_, std::min(firstIntensity, lastIntensity));
-            InputImagePixelType I_max = std::max(filter->t_, std::max(firstIntensity, lastIntensity));
+            InputImagePixelType I_max = std::max(filter->m_t, std::max(firstIntensity, lastIntensity));
 
             for(float d=2; d<d1; ++d)
             {
@@ -339,13 +456,13 @@ BETImageFilter<TInputImage, TOutputImage>
                 }
             }
 
-            I_min = std::max(filter->t2_, I_min);
+            I_min = std::max(filter->m_T2, I_min);
             I_max = std::min(filter->tm_, I_max);
 
-            float const tl = (I_max-filter->t2_)*filter->m_BT+filter->t2_;
-            if(float(I_max)-filter->t2_>0)
+            float const tl = (I_max-filter->m_T2)*filter->m_BT+filter->m_T2;
+            if(float(I_max)-filter->m_T2>0)
             {
-                f3 = 2.*(I_min-tl)/(float(I_max)-filter->t2_);
+                f3 = 2.*(I_min-tl)/(float(I_max)-filter->m_T2);
             }
             else
             {
@@ -374,69 +491,6 @@ BETImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void
 BETImageFilter<TInputImage, TOutputImage>
-::thresholds()
-{
-    typedef Statistics::ScalarImageToHistogramGenerator<InputImageType> HistogramGenerator;
-    unsigned long bins = 256;
-
-    typename HistogramGenerator::Pointer histogramGenerator = HistogramGenerator::New();
-    histogramGenerator->SetInput(this->GetInput());
-    histogramGenerator->SetNumberOfBins(bins);
-    histogramGenerator->SetMarginalScale(10.0);
-    histogramGenerator->Compute();
-    typedef typename HistogramGenerator::HistogramType Histogram;
-    typename Histogram::ConstPointer histogram = histogramGenerator->GetOutput();
-
-    this->t2_ = histogram->Quantile(0, 0.2);
-    this->t98_ = histogram->Quantile(0, 0.98);
-    this->t_ = this->t2_+0.1*(this->t98_-this->t2_);
-}
-
-template<typename TInputImage, typename TOutputImage>
-void
-BETImageFilter<TInputImage, TOutputImage>
-::centerOfGravity()
-{
-    float totalMass = 0;
-    this->m_CenterOfGravity.Fill(0.);
-
-    ImageRegionConstIteratorWithIndex<InputImageType> it(
-        this->GetInput(), this->GetInput()->GetRequestedRegion());
-
-    while(!it.IsAtEnd())
-    {
-        typename TInputImage::PixelType const & value = it.Get();
-        typename TInputImage::IndexType const & index = it.GetIndex();
-
-        if(value >= this->t_)
-        {
-            // 3.2, p. 7 : Intensity values are upper limited at t_98
-            float const mass = std::max(value, this->t98_);
-            totalMass += mass;
-
-            for(unsigned int i=0; i<TInputImage::ImageDimension; ++i)
-            {
-                this->m_CenterOfGravity[i] += float(mass)*float(index[i]);
-            }
-        }
-        ++it;
-    }
-
-    for(unsigned int d=0; d<this->m_CenterOfGravity.Size(); ++d)
-    {
-        this->m_CenterOfGravity[d] /= totalMass;
-    }
-
-    for(unsigned int d=0; d<TInputImage::ImageDimension; ++d)
-    {
-        this->m_CenterOfGravity[d] *= this->GetInput()->GetSpacing()[d];
-    }
-
-}
-
-template<typename TInputImage, typename TOutputImage>
-void
-BETImageFilter<TInputImage, TOutputImage>
 ::radius()
 {
     // Radius : count number of voxels >= t, assume this is a sphere, and derive
@@ -449,7 +503,7 @@ BETImageFilter<TInputImage, TOutputImage>
     while(!it.IsAtEnd())
     {
         typename InputImageType::PixelType const & value = it.Get();
-        if(value >= this->t_)
+        if(value >= this->m_t)
         {
             ++nbPoints;
         }
@@ -490,7 +544,7 @@ BETImageFilter<TInputImage, TOutputImage>
             p[d] = index[d]*this->GetInput()->GetSpacing()[d];
         }
 
-        if(value >= this->t2_ && value <= this->t98_ &&
+        if(value >= this->m_T2 && value <= this->m_T98 &&
            p.SquaredEuclideanDistanceTo(this->m_CenterOfGravity) <= rSquared)
         {
             intensities.push_back(value);

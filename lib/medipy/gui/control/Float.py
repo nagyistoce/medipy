@@ -72,7 +72,9 @@ class Float(wx.Panel, Observable):
         except :
             pass
         try :
-            self._slider.SetValue(self._value)
+            slider_factor = (float(self._slider.GetMax()-self._slider.GetMin())/
+                             float(self.range[1]-self.range[0]))
+            self._slider.SetValue((self._value-self.range[0])*slider_factor)
         except :
             pass
         self.validate()
@@ -85,13 +87,15 @@ class Float(wx.Panel, Observable):
         self._range = range
         if range is not None :
             if range[0] != range[1] :
-                self._slider.SetMin(range[0])
-                self._slider.SetMax(range[1])
+                self._slider.SetMin(0) #range[0])
+                self._slider.SetMax(1024) #range[1])
                 self._slider.Enable()
             else :
                 self._slider.Disable()
             if self.validate() :
-                self._slider.SetValue(self._value)
+                slider_factor = (float(self._slider.GetMax()-self._slider.GetMin())/
+                                 float(self.range[1]-self.range[0]))
+                self._slider.SetValue((self._value-self.range[0])*slider_factor)
             self._slider.Show()
         else : 
             self._slider.Hide()
@@ -115,7 +119,9 @@ class Float(wx.Panel, Observable):
         self.validate()
     
     def OnSlider(self, event):
-        self._set_value(self._slider.GetValue())
+        slider_factor = (float(self._slider.GetMax()-self._slider.GetMin())/
+                         float(self.range[1]-self.range[0]))
+        self._set_value(self._slider.GetValue()/slider_factor+self.range[0])
         self.validate()
         
 
