@@ -77,7 +77,11 @@ cmake ../wrapitk-0.3.0
 # Compile
 make $MAKE_OPTIONS
 
-# Install to local dir
+# Install to local dir, add missing file on Debian 6.0 (?)
+if test ! -f Libraries/Base/Doc/man3/itk_NarrowBand.3
+then
+    touch Libraries/Base/Doc/man3/itk_NarrowBand.3
+fi
 mkdir -p local_install/usr
 sed -e "s/^FILE/#FILE/" -i install_wrapitk_compatibility.cmake
 cmake -D CMAKE_INSTALL_PREFIX=local_install/usr -P cmake_install.cmake
