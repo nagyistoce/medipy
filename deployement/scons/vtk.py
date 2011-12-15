@@ -70,7 +70,7 @@ def configuration_variables() :
         vtk_install_prefix = os.path.dirname(os.path.dirname(vtk_dir))
         
         headers_found = False
-        for dir in ["vtk-5.0", "vtk-5.2", "vtk"] :
+        for dir in ["vtk-5.0", "vtk-5.2", "vtk-5.4", "vtk"] :
             path = os.path.join(vtk_install_prefix, "include", dir)
             if os.path.isdir(path) :
                 result["CPPPATH"].append(path)
