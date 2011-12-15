@@ -75,8 +75,8 @@ public :
     /** Center of gravity of the brain in physical units.
      * Will be computed if user does not provide it.
      */
-    itkGetMacro(CenterOfGravity, typename TInputImage::PointType);
-    virtual void SetCenterOfGravity(typename TInputImage::PointType & _arg);
+    itkGetMacro(CenterOfGravity, typename TInputImage::IndexType);
+    virtual void SetCenterOfGravity(typename TInputImage::IndexType & _arg);
 
     /** Estimate the center of gravity. */
     void EstimateCenterOfGravity();
@@ -122,7 +122,7 @@ private :
     typename TInputImage::PixelType m_t;
     bool are_thresholds_specified_;
 
-    typename TInputImage::PointType m_CenterOfGravity;
+    typename TInputImage::IndexType m_CenterOfGravity;
     bool is_cog_specified_;
 
     unsigned int m_SmoothnessFactor;

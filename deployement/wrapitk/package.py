@@ -79,3 +79,20 @@ elif sys.platform == "win32" :
         cwd=build_directory)
 else : 
     raise Exception("Unknown platform {0}".format(sys.platform))
+
+# Install to local dir
+if sys.platform == "win32" :
+    local_install_dir = os.path.join(build_directory, "local_install")
+else :
+    local_install_dir = os.path.join(build_directory, "local_install", "usr")
+os.makedirs(local_install_dir)
+subprocess.call(
+    ["sed", "-e", "s/^FILE/#FILE/", "-i", "install_wrapitk_compatibility.cmake"],
+    cwd=build_directory)
+subprocess.call(
+    ["cmake", "-D", "CMAKE_INSTALL_PREFIX={0}".format(local_install_dir),
+     "-D", "BUILD_TYPE=RelWithDebInfo", "-P", "cmake_install.cmake"], 
+    cwd=build_directory)
+subprocess.call(
+    ["sed", "-e", "s/^#FILE/FILE/", "-i", "install_wrapitk_compatibility.cmake"],
+    cwd=build_directory)
