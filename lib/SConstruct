@@ -1,0 +1,22 @@
+import os
+import sys
+
+sys.path.append(os.path.abspath(".."))
+from deployement.scons import Environment
+
+env = Environment(ENV = {"PATH" : os.environ["PATH"]})
+env.Alias("install", "$PREFIX")
+Export("env") 
+
+targets = []
+
+modules = ["base", "gui", "io", "itk", "resources", "vtk"]
+for module in modules :
+    module_targets = SConscript(os.path.join("medipy", module, "SConstruct"))
+    if module_targets :
+        targets.extend(module_targets)
+    else :
+        print "No target defined for module {0}".format(module)
+
+env = env.Clone()
+targets.extend(env.Glob("*.py"))

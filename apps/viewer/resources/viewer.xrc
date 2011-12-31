@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxFrame" name="main_frame">
+    <title>MediPy/Viewer</title>
+    <object class="wxMenuBar" name="menu_bar">
+      <object class="wxMenu" name="file">
+        <object class="wxMenuItem" name="open">
+          <label>&amp;Open</label>
+          <accel>Ctrl+O</accel>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="save">
+          <label>&amp;Save</label>
+          <accel>Ctrl+S</accel>
+        </object>
+        <object class="wxMenuItem" name="save_as">
+          <label>Save As...</label>
+          <accel>Ctrl+Shift+S</accel>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="quit">
+          <label>&amp;Quit</label>
+          <accel>Ctrl+Q</accel>
+        </object>
+        <label>&amp;File</label>
+      </object>
+      <object class="wxMenu" name="view">
+        <label>&amp;View</label>
+        <object class="wxMenuItem" name="reset_view">
+          <label>&amp;Reset view</label>
+          <accel>Ctrl+0</accel>
+        </object>
+        <object class="wxMenu" name="slices">
+          <label>&amp;Slices</label>
+          <object class="wxMenuItem" name="multiplanar">
+            <label>&amp;Multi-planar</label>
+            <accel>Alt+M</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="axial">
+            <label>&amp;Axial</label>
+            <accel>Alt+A</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="coronal">
+            <label>&amp;Coronal</label>
+            <accel>Alt+C</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="sagittal">
+            <label>&amp;Sagittal</label>
+            <accel>Alt+S</accel>
+            <radio>1</radio>
+          </object>
+        </object>
+        <object class="wxMenuItem" name="interpolation">
+          <label>Interpolation</label>
+          <accel>Alt+I</accel>
+          <checkable>1</checkable>
+        </object>
+      </object>
+      <object class="wxMenu" name="help">
+        <label>&amp;Help</label>
+        <object class="wxMenuItem" name="about">
+          <label>&amp;About...</label>
+        </object>
+      </object>
+    </object>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxPanel" name="panel"/>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+    <object class="wxStatusBar" name="status_bar">
+      <fields>1</fields>
+      <widths>-1</widths>
+      <style>wxST_SIZEGRIP</style>
+    </object>
+  </object>
+</resource>
