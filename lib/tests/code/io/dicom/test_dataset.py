@@ -20,11 +20,14 @@ class TestDataSet(unittest.TestCase):
         
         self.assertFalse(0x00100040 in self.dataset)
         self.assertFalse((0x0010,0x0040) in self.dataset)
-        self.assertFalse(0xffffffff in self.dataset)
-        self.assertFalse((0xffff,0xffff) in self.dataset)
+        self.assertFalse(0x00100040 in self.dataset)
+        self.assertFalse((0x0010,0x0040) in self.dataset)
         
         self.dataset[0x00100040] = "O"
         self.assertEqual(self.dataset[0x0010,0x0040], "O")
+        
+        del self.dataset[0x00100020]
+        self.assertFalse(0x00100020 in self.dataset)
     
     def test_named_tag_access(self):
         self.assertEqual(self.dataset["patients_name"], "Doe^John")
@@ -37,6 +40,9 @@ class TestDataSet(unittest.TestCase):
         
         self.dataset.patients_sex = "O"
         self.assertEqual(self.dataset["patients_sex"], "O")
+        
+        delattr(self.dataset, "patients_name")
+        self.assertFalse("patients_name" in self.dataset)
     
     def test_dict_interface(self):
         self.assertEqual(set(self.dataset.keys()), set([0x00100010, 0x00100020]))

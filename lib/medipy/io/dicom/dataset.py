@@ -156,6 +156,13 @@ class DataSet(dict):
 #                data_element.private_creator = self[private_creator_tag]
         dict.__setitem__(self, tag, value)
     
+    def __delitem__(self, item) :
+        """ Delete an item using a numerical or named tag.
+        """
+        
+        tag = self._get_tag(item)
+        dict.__delitem__(self, tag)
+    
     ###########################
     # Member access functions #
     ###########################
@@ -188,7 +195,7 @@ class DataSet(dict):
             self.__dict__[name] = value
     
     def __delattr__(self, name):
-        """ Access to an item using a named tag.
+        """ Delete an item using a named tag.
         """
         
         tag = name_dictionary.get(name, None)
