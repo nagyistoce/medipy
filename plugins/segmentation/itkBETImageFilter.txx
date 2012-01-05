@@ -304,7 +304,6 @@ BETImageFilter<TInputImage, TOutputImage>
     } // for all iterations
 
     this->voxelize();
-
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -508,12 +507,28 @@ BETImageFilter<TInputImage, TOutputImage>
         ++it;
     }
 
-    float spacing = 1.;
+    float voxel_volume = 1.;
     for(unsigned int i=0; i<InputImageType::ImageDimension; ++i)
     {
-        spacing *= this->GetInput()->GetSpacing()[i];
+        voxel_volume *= this->GetInput()->GetSpacing()[i];
     }
-    this->r_ = std::pow(nbPoints*spacing*0.75/M_PI, 1./3.);
+    this->r_ = std::pow(nbPoints*voxel_volume*0.75/M_PI, 1./3.);
+
+    // Test if initial estimate is too large (i.e. sphere is not fully contained
+    // in image region. If so, use a smaller estimate.
+    typename InputImageType::SizeType const size =
+        this->GetInput()->GetRequestedRegion().GetSize();
+    typename InputImageType::SpacingType const spacing =
+        this->GetInput()->GetSpacing();
+    for(unsigned int d=0; d<InputImageType::ImageDimension; ++d)
+    {
+        if(this->m_CenterOfGravity[d]+this->r_*spacing[d] > size[d] ||
+           this->m_CenterOfGravity[d]-this->r_*spacing[d] < 0)
+        {
+            this->r_ /= 2.;
+            break;
+        }
+    }
 }
 
 template<typename TInputImage, typename TOutputImage>
