@@ -1,5 +1,5 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011
+ * MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -50,12 +50,9 @@ public :
     /** Run-time type information (and related methods). */
     itkTypeMacro(BETImageFilter, ImageToImageFilter);
 
-    /** Type for input image. */
-    typedef TInputImage InputImageType;
+    /** Useful typedefs */
+    typedef typename Superclass::InputImageType InputImageType;
     typedef typename Superclass::InputImagePixelType InputImagePixelType;
-
-    /** Type for the output image. */
-    typedef TOutputImage OutputImageType;
 
     /** Main BET parameter (b_t). Must be between 0 and 1. */
     itkGetMacro(BT, float);
@@ -117,9 +114,9 @@ private :
 
     float m_BT;
 
-    typename TInputImage::PixelType m_T2;
-    typename TInputImage::PixelType m_T98;
-    typename TInputImage::PixelType m_t;
+    InputImagePixelType m_T2;
+    InputImagePixelType m_T98;
+    InputImagePixelType m_t;
     bool are_thresholds_specified_;
 
     typename TInputImage::IndexType m_CenterOfGravity;
@@ -128,7 +125,7 @@ private :
     unsigned int m_SmoothnessFactor;
 
     float r_;
-    typename TInputImage::PixelType tm_;
+    InputImagePixelType tm_;
     vtkSmartPointer<vtkPolyData> sphere_;
     std::vector<std::vector<vtkIdType> > neighborhood_;
     float l_;
