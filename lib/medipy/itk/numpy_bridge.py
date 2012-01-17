@@ -221,3 +221,18 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
     medipy_image.spacing = [x for x in reversed(itk_image.GetSpacing())]
 
     return medipy_image
+
+def itk_image_type(medipy_image):
+    """ Return the ITK image type corresponding to the given medipy.base.Image
+    """
+    
+    if medipy_image.data_type == "scalar" :
+        itk_type = dtype_to_itk[medipy_image.dtype.type]
+        image_type = itk.Image[itk_type, medipy_image.ndim]
+    elif medipy_image.data_type == "vector" :
+        itk_type = dtype_to_itk[medipy_image.dtype.type]
+        image_type = itk.VectorImage[itk_type, medipy_image.ndim-1]
+    else :
+        raise Exception("Unknown image data_type : %s"%medipy_image.data_type)
+    
+    return image_type
