@@ -74,12 +74,12 @@ def euler_3d_transform(initialize=False, fixed=None, moving=None, moments=True) 
         performed.
     """
     
-    fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
-    moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)
-    
     transform = itk.Euler3DTransform[itk.D].New()
     
     if initialize :
+        fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
+        moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)
+        
         initial_transform = itk.VersorRigid3DTransform[itk.D].New()
         initializer = itk.CenteredTransformInitializer[
             initial_transform, fixed_itk, moving_itk].New(
