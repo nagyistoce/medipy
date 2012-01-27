@@ -20,6 +20,7 @@ from medipy.gui.xrc_wrapper.timectrl_xml_handler import TimeCtrlXMLHandler
 from medipy.gui.xrc_wrapper.bool_xml_handler import BoolXMLHandler
 from medipy.gui.xrc_wrapper.control_image_xml_handler import ControlImageXMLHandler
 from medipy.gui.xrc_wrapper.dicom_explorer_xml_handler import DICOMExplorerXMLHandler
+from medipy.gui.xrc_wrapper.directory_xml_handler import DirectoryXMLHandler
 from medipy.gui.xrc_wrapper.file_xml_handler import FileXMLHandler
 from medipy.gui.xrc_wrapper.float_xml_handler import FloatXMLHandler
 from medipy.gui.xrc_wrapper.float_interval_xml_handler import FloatIntervalXMLHandler
