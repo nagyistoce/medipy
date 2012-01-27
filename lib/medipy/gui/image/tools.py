@@ -39,12 +39,13 @@ class Tool(object) :
         slice_position = self._display_to_slice(p, slice)
         
         # _display_to_slice always returns the same z coordinate, adjust it.
-        if slice.display_coordinates == "physical": 
-            slice_position[0] = numpy.dot(slice.world_to_slice, 
-                                          slice.cursor_physical_position)[0]
+        if slice.display_coordinates == "physical":
+            position = slice.cursor_physical_position
         else :
-            slice_position[0] = numpy.dot(slice.world_to_slice, 
-                                          slice.cursor_index_position)[0]
+            position = slice.cursor_index_position
+        if len(position) == 2 :
+            position = numpy.hstack([0, position])
+        slice_position[0] = numpy.dot(slice.world_to_slice, position)[0]
         
         # Convert to renderer's world coordinates
         world_position = numpy.dot(slice.slice_to_world, slice_position)
@@ -77,7 +78,11 @@ class Tool(object) :
             # renderer's world coordinates match image physical coordinates
             if slice.layers :
                 origin = slice.layers[0].image.origin
+                if len(origin) == 2 :
+                    origin = numpy.hstack([0, origin])
                 spacing = slice.layers[0].image.spacing
+                if len(spacing) == 2 :
+                    spacing = numpy.hstack([1, spacing])
                 return (world_position-origin)/spacing
             else :
                 return world_position

@@ -714,9 +714,13 @@ class Slice(PropertySynchronized) :
         
         # Update cursor using slice position
         if self._display_coordinates == "physical" :
+            if len(physical_position) == 2 :
+                physical_position = numpy.hstack([0, physical_position])
             slice_position = numpy.dot(self._world_to_slice, physical_position)
             extent = self._slice_extent
         else :
+            if len(physical_position) == 2 :
+                index_position = numpy.hstack([0, index_position])
             slice_position = numpy.dot(self._world_to_slice, index_position)
             shape = self._layers[0].image.shape if self._layers else (100,100,100)
             slice_shape = numpy.dot(self._world_to_slice, shape)
