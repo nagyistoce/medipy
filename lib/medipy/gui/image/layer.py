@@ -257,8 +257,15 @@ class Layer(object) :
             return
             
         if self._display_coordinates == "physical" :
-            self._vtk_image.SetOrigin(*reversed(self.image.origin))
-            self._vtk_image.SetSpacing(*reversed(self.image.spacing))
+            origin = list(reversed(self.image.origin))
+            if len(origin) == 2 :
+                origin.append(0)
+            self._vtk_image.SetOrigin(origin)
+            
+            spacing = list(reversed(self.image.spacing))
+            if len(spacing) == 2 :
+                spacing.append(1)
+            self._vtk_image.SetSpacing(spacing)
         else :
             self._vtk_image.SetOrigin(0,0,0)
             self._vtk_image.SetSpacing(1,1,1)

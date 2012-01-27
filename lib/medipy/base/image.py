@@ -152,8 +152,10 @@ class Image(Observable):
         """ Test if given position is inside the image
         """
         
+        shape = numpy.hstack([numpy.ones(len(position)-self.ndim), self.data.shape])
+        
         for i, p in enumerate(position) :
-            if p < 0 or p >= self.data.shape[i] :
+            if not 0 <= p < shape[i] :
                 return False
         
         return True
