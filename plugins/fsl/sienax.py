@@ -1,3 +1,6 @@
+import os
+import re
+
 from fsl_tool import FSLTool
 
 class Sienax(FSLTool):
@@ -33,7 +36,6 @@ class Sienax(FSLTool):
         super(Sienax, self).__init__(*args, **kwargs)
         
         self.input = input
-        
         self.output_directory = output_directory
         
         self.two_class_segmentation = two_class_segmentation
@@ -47,6 +49,51 @@ class Sienax(FSLTool):
         
         self.bet_options = bet_options
         self.fast_options = fast_options
+    
+    def parse_report(self, path=None):
+        """ Return the volume informations contained in the SIENAX report. This
+            is a dictionary with keys "version" (version number, as string), 
+            "vscale" (scale between image and MNI152), "pgrey" (peripheral gray
+            matter), "vcsf" (ventricular CSF), "grey", "white", and "brain". 
+            The informations for the different tissues is a dictionary with the
+            normalized and raw values, in cubic millimeters.
+            
+            If path is None, use the file "report.sienax" in the default output
+            directory. 
+        """
+        
+        if path is None :
+            path = os.path.join(self.output_directory, "report.sienax")
+        
+        report = {}
+        
+        fd = open(path)
+        for line in fd.readlines() :
+            version = re.match(
+                r" running cross-sectional atrophy measurement: sienax version (\d+\.\d+)", 
+                line)
+            if version :
+                report["version"] = version.group(1)
+                continue
+            
+            for tissue in ["pgrey", "vcsf", "GREY", "WHITE", "BRAIN"] :
+                pattern = tissue + r"\s+([\d+\.]+)\s+([\d+\.]+)"
+                measure = re.match(pattern, line)
+                if measure :
+                    normalized = float(measure.group(1))
+                    raw = float(measure.group(2))
+                    report[tissue.lower()] = {"normalized" : normalized, "raw" : raw}
+                    continue
+            
+            vscale = re.match("VSCALING ([\d\.]+)", line)
+            if vscale :
+                report["vscale"] = float(vscale.group(1))
+        
+        return report
+    
+    ##############
+    # Properties #
+    ##############
     
     def _get_command(self):
         
@@ -79,3 +126,8 @@ class Sienax(FSLTool):
             command.append(["-S", "\"{0}\"".format(self.fast_options)])
         
         return command
+    
+    def _get_default_output_directory(self):
+        return self.input+"_sienax"
+    
+    default_output_directory = property(_get_default_output_directory)
