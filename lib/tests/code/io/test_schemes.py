@@ -75,7 +75,7 @@ class TestSchemes(unittest.TestCase):
         series_instance_uid = "1.3.46.670589.11.0.0.11.4.2.0.8743.5.5396.2006120114285654497"
         for tag in tags :
             url = "dicom:{0}#{1}={2}".format(
-                os.path.join(location, "BRAINIX", "2182114", "401"), 
+                os.path.join(location, "BRAINIX"), 
                 tag, series_instance_uid)
             image2 = medipy.io.load(url)
             numpy.testing.assert_array_equal(image1, image2)
