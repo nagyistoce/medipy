@@ -93,14 +93,16 @@ def _get_matching_datasets(path, fragment) :
     filenames = []
     if os.path.isdir(path) :
         if recursive :
-            for dirpath, dirnames, filenames in os.walk(path) :
-                filenames.extend([os.path.join(dirpath, x) for x in filenames])
+            for dirpath, dirnames, local_filenames in os.walk(path) :
+                filenames.extend([os.path.join(dirpath, x) for x in local_filenames])
         else :
             filenames = [os.path.join(path, x) for x in os.listdir(path)]
     elif os.path.isfile(path) :
         filenames = [path]
     else :
         raise Exception("Cannot find any dataset in \"{0}\"".format(path))
+    
+    print path, len(filenames)
     
     for filename in filenames :
         try :
