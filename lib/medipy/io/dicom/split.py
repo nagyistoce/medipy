@@ -142,7 +142,7 @@ def acquisitions(datasets):
             # Multi-frame : Diffusion Gradient Orientation (0018,9089) and 
             # Diffusion b-value (0018,9087) are in MR Diffusion Sequence (0018,9117)
             identifier = None
-        elif "MOSAIC" not in dataset.image_type and "echo_numbers" in dataset :
+        elif "MOSAIC" not in dataset.get("image_type", []) and "echo_numbers" in dataset :
             identifier = dataset.echo_numbers
         elif "acquisition_number" in dataset :
             identifier = dataset.acquisition_number
