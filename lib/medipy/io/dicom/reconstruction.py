@@ -187,8 +187,11 @@ def metadata(datasets, skipped_tags="default"):
                     private_creator = dataset.get((key.group, 0x0010), None)
                 name = str(key)
             else :
-                private_creator = None
-                name = data_dictionary[Tag(key, private_creator)][4]
+                if key not in data_dictionary :
+                    logging.warning("Element \"{0}\" not in dictionary "
+                                    "(value : {1})".format(key, repr(value)))
+                    continue
+                name = data_dictionary[key][4]
             
             if name not in result :
                 result[name] = []
