@@ -120,7 +120,7 @@ def data(datasets):
     else :
         sample_dataset = datasets[0]
     
-    if "MOSAIC" in sample_dataset.image_type :
+    if "MOSAIC" in sample_dataset.get("image_type", []) :
         image_csa = medipy.io.dicom.csa2.parse_csa(sample_dataset[0x0029,0x1010])
         number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
         mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
@@ -134,7 +134,7 @@ def data(datasets):
         # Get data
         if isinstance(dataset, tuple) :
             pixel_data = dataset[0].pixel_array[dataset[1]]
-        elif "MOSAIC" in dataset.image_type :
+        elif "MOSAIC" in dataset.get("image_type", []) :
             image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
             number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
             mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
@@ -207,7 +207,7 @@ def metadata(datasets, skipped_tags="default"):
         else :
             origin = (0,0,0)
     else :
-        if "MOSAIC" in datasets[0].image_type :
+        if "MOSAIC" in datasets[0].get("image_type", []) :
             origin = list(datasets[0].get("image_position_patient", (0,0,0))) + [0]
         else :
             origin = datasets[0].get("image_position_patient", (0,0,0))
@@ -237,7 +237,7 @@ def metadata(datasets, skipped_tags="default"):
     else :
         spacing = datasets[0].get("pixel_spacing", (1.,1.))
         
-        if "MOSAIC" in datasets[0].image_type :
+        if "MOSAIC" in datasets[0].get("image_type", []) :
             slice_spacing = 1
             spacing = list(spacing) + [datasets[0].get("slice_thickness", 1.)]
         else :
@@ -270,7 +270,7 @@ def metadata(datasets, skipped_tags="default"):
         (tuple(reversed(normal)), tuple(reversed(v2)), tuple(reversed(v1)))))
     
     sample_dataset = datasets[0][0] if isinstance(datasets[0], tuple) else datasets[0]
-    if "MOSAIC" in sample_dataset.image_type :
+    if "MOSAIC" in sample_dataset.get("image_type", []) :
         result["direction"] = numpy.insert(
             numpy.insert(result["direction"], 0, (0,0,0), 0), 
             0, (1,0,0,0), 1)
@@ -279,6 +279,8 @@ def metadata(datasets, skipped_tags="default"):
 
 def image(datasets, skipped_tags="default", do_sort=True, sort_function=None, 
           align_to_ras=True):
+
+    datasets = medipy.io.dicom.split.images(datasets)
     
     if do_sort :
         medipy.io.dicom.sort.sort(datasets, sort_function)

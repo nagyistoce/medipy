@@ -102,8 +102,6 @@ def _get_matching_datasets(path, fragment) :
     else :
         raise Exception("Cannot find any dataset in \"{0}\"".format(path))
     
-    print path, len(filenames)
-    
     for filename in filenames :
         try :
             dataset = medipy.io.dicom.parse(filename)
