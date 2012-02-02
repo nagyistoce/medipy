@@ -22,7 +22,7 @@ os.makedirs(build_directory)
 cmake_cache = open(os.path.join(build_directory, "CMakeCache.txt"), "w")
 cmake_cache.write("""BUILD_TESTING:BOOL=OFF
 
-CMAKE_BUILD_TYPE:STRING=RELEASE
+CMAKE_BUILD_TYPE:STRING=RelWithDebInfo
 CMAKE_INSTALL_PREFIX:PATH=/usr
 
 INSTALL_WRAP_ITK_COMPATIBILITY:BOOL=ON
@@ -59,9 +59,9 @@ WRAP_vector_float:BOOL=ON
 """)
 if sys.platform != "win32" :
     cmake_cache.write("CMAKE_INSTALL_PREFIX:STRING=/usr\n")
-    # TODO bigobj
 else :
     cmake_cache.write("CMAKE_INSTALL_PREFIX:STRING=C:/Program Files/ITK\n")
+    cmake_cache.write("CMAKE_CXX_FLAGS:STRING=/bigobj /DWIN32 /D_WINDOWS /W3 /Zm1000 /EHsc /GR\n")
 cmake_cache.close()
 
 # Run cmake
@@ -75,7 +75,7 @@ if sys.platform == "linux2" :
 elif sys.platform == "win32" :
     subprocess.call(
         ["devenv", "/build", "RelWithDebInfo", 
-         "/project", "ALL_BUILD", "ITK.sln"],
+         "/project", "ALL_BUILD", "WrapITK.sln"],
         cwd=build_directory)
 else : 
     raise Exception("Unknown platform {0}".format(sys.platform))
