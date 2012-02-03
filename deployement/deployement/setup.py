@@ -117,27 +117,38 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
     sys.path.pop()
     
     # Copy resources
-    medipy_resources = list(os.walk(os.path.join(medipy.__path__[0], "resources")))
-    project_resources = list(os.walk("resources"))
-    for dirpath, dirnames, filenames in medipy_resources+project_resources :
-        if ".svn" in dirnames :
-            del dirnames[dirnames.index(".svn")]
-        for filename in filenames :
-            skip_file = (filename == "SConstruct" or
-                         filename.endswith(".fbp"))
-            if not skip_file :
+    roots = [os.path.join(medipy.__path__[0], "resources")]
+    plugins = []
+    for name in medipy_plugins :
+        plugin = getattr(__import__("medipy.{0}".format(name)), name)
+        plugins.append(plugin)
+        roots.append(os.path.join(plugin.__path__[0], "resources"))
+    roots.append("resources")
+    
+    for root in roots :
+        print root[:-len("resources")-1], medipy.__path__[0]
+        for dirpath, dirnames, filenames in os.walk(root) :
+            if ".svn" in dirnames :
+                del dirnames[dirnames.index(".svn")]
+            for filename in filenames :
+                if filename == "SConstruct" or filename.endswith(".fbp") :
+                    continue
+                
                 source = os.path.join(dirpath, filename)
-            
-                if dirpath.startswith(os.path.join(medipy.__path__[0])) :
-                    prefix = dirpath[
-                        len(os.path.join(medipy.__path__[0]))+len(os.path.sep):]
-                    destination_dir = os.path.join(bin_directory, prefix)
+                if root[:-len("resources")-1] == medipy.__path__[0] :
+                    destination_dir = os.path.join("medipy", "resources")
+                elif root[:-len("resources")-1] in [x.__path__[0] for x in plugins] :
+                    plugin = [x for x in plugins 
+                              if x.__path__[0]==root[:-len("resources")-1]][0]
+                    destination_dir = os.path.join("medipy", plugin.__name__, "resources")
                 else :
-                    destination_dir = os.path.join(bin_directory, dirpath)
+                    destination_dir = "resources"
+                
+                destination_dir = os.path.join(
+                    bin_directory, destination_dir, dirpath[len(root)+1:])
                 if not os.path.isdir(destination_dir) :
                     os.makedirs(destination_dir)
                 
                 destination = os.path.join(destination_dir, filename)
                 print "copying {0} -> {1}".format(source, destination)
                 shutil.copyfile(source, destination)
-    
