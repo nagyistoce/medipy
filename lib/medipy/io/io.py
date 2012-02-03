@@ -86,14 +86,15 @@ def _split(url):
     """ Return the scheme (as a Python module), the path and the fragment from
         given url.
     """
-    
+
+    slash_added = False    
     if sys.platform == "win32" and re.match(r"[a-zA-Z]:", url) :
+        slash_added = True
         url = "/"+url
     
     # Parse the URL : first get the scheme, then parse the URL without scheme
     # to deal with fragment. Doing this avoids modifying urlparse.uses_fragment
     scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
-    slash_added = False
     if sys.platform == "win32" and re.match(r"[a-zA-Z]:", path) :
         path = "/"+path
         slash_added = True
