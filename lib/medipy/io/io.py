@@ -1,13 +1,15 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
+import os
 import re
 import urlparse
+import sys
 
 import numpy
 
@@ -85,6 +87,11 @@ def _split(url):
         given url.
     """
     
+    slash_added = False
+    if sys.platform == "win32" and re.match(r"[a-zA-Z]:", url) :
+        url = "/"+url
+        slash_added = True
+    
     # Parse the URL : first get the scheme, then parse the URL without scheme
     # to deal with fragment. Doing this avoids modifying urlparse.uses_fragment
     parse_result = urlparse.urlsplit(url)
@@ -97,5 +104,8 @@ def _split(url):
         scheme = getattr(schemes, scheme)
     except AttributeError :
         raise Exception("Unknown scheme : \"{0}\"".format(scheme))
+    
+    if slash_added :
+        path = path[1:]
     
     return scheme, path, fragment
