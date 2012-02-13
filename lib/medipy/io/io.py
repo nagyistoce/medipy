@@ -98,7 +98,7 @@ def _split(url):
     if sys.platform == "win32" and re.match(r"[a-zA-Z]:", path) :
         path = "/"+path
         slash_added = True
-    url_without_scheme = (scheme, netloc, path, query, fragment)
+    url_without_scheme = ("", netloc, path, query, fragment)
     _, _, path, _, fragment = urlparse.urlsplit(urlparse.urlunsplit(url_without_scheme))
     
     scheme = scheme or "file"
