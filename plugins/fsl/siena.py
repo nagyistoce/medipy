@@ -99,7 +99,7 @@ class Siena(FSLTool):
         if None in [self.input1, self.input2] :
             raise Exception("Both inputs must be specified") 
         
-        command = ["siena", self.input]
+        command = ["siena", self.input1, self.input2]
         
         if self.output_directory :
             command.extend(["-o", "{0}".format(self.output_directory)])
