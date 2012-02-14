@@ -61,5 +61,9 @@ class TestSienax(unittest.TestCase):
         self.assertEqual(report.get("vcsf", {}).get("normalized", None), 75373.30) 
         self.assertEqual(report.get("vcsf", {}).get("raw", None), 59914.32)
     
+    def test_default_output_directory(self):
+        self.sienax.input = "/foo/bar.nii"
+        self.assertEqual(self.sienax.default_output_directory, "bar_sienax")
+    
 if __name__ == "__main__" :
     unittest.main()

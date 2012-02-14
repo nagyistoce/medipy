@@ -128,6 +128,7 @@ class Sienax(FSLTool):
         return command
     
     def _get_default_output_directory(self):
-        return self.input+"_sienax"
+        root = os.path.splitext(os.path.basename(self.input))[0]
+        return "{0}_sienax".format(root)
     
     default_output_directory = property(_get_default_output_directory)
