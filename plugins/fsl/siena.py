@@ -1,5 +1,5 @@
 import os
-#import re
+import re
 
 from fsl_tool import FSLTool
 
@@ -49,46 +49,83 @@ class Siena(FSLTool):
         
         self.siena_diff_options = siena_diff_options
     
-#    def parse_report(self, path=None):
-#        """ Return the volume informations contained in the SIENAX report. This
-#            is a dictionary with keys "version" (version number, as string), 
-#            "vscale" (scale between image and MNI152), "pgrey" (peripheral gray
-#            matter), "vcsf" (ventricular CSF), "grey", "white", and "brain". 
-#            The informations for the different tissues is a dictionary with the
-#            normalized and raw values, in cubic millimeters.
-#            
-#            If path is None, use the file "report.sienax" in the default output
-#            directory. 
-#        """
-#        
-#        if path is None :
-#            path = os.path.join(self.output_directory, "report.sienax")
-#        
-#        report = {}
-#        
-#        fd = open(path)
-#        for line in fd.readlines() :
-#            version = re.match(
-#                r" running cross-sectional atrophy measurement: sienax version (\d+\.\d+)", 
-#                line)
-#            if version :
-#                report["version"] = version.group(1)
-#                continue
-#            
-#            for tissue in ["pgrey", "vcsf", "GREY", "WHITE", "BRAIN"] :
-#                pattern = tissue + r"\s+([\d+\.]+)\s+([\d+\.]+)"
-#                measure = re.match(pattern, line)
-#                if measure :
-#                    normalized = float(measure.group(1))
-#                    raw = float(measure.group(2))
-#                    report[tissue.lower()] = {"normalized" : normalized, "raw" : raw}
-#                    continue
-#            
-#            vscale = re.match("VSCALING ([\d\.]+)", line)
-#            if vscale :
-#                report["vscale"] = float(vscale.group(1))
-#        
-#        return report
+    def parse_report(self, path=None):
+        """ Return the volume informations contained in the SIENAX report. This
+            is a dictionary with keys "version" (version number, as string), 
+            "correction" (dictionary with keys "A_to_B", "B_to_A", "value", and
+            float values), "A_to_B" (dictionary with keys "area" (in mm^2), 
+            "volume_change" (in mm^3), "ratio" (in mm) and "pbvc" (in 
+            percentage points) and float values), "B_to_A" (idem), "pbvc" 
+            (percentage brain volume change, in percentage point)
+            
+            If path is None, use the file "report.sienax" in the default output
+            directory. 
+        """
+        
+        if path is None :
+            path = os.path.join(self.output_directory, "report.siena")
+        
+        report = {}
+        
+        # Siena first call "siena_diff ${B} ${A}", then "siena_diff ${A} ${B}" 
+        b_to_a_read = False
+        
+        fd = open(path)
+        for line in fd.readlines() :
+            version = re.match(
+                r" running longitudinal atrophy measurement: siena version (\d+\.\d+)", 
+                line)
+            if version :
+                report["version"] = version.group(1)
+                continue
+            
+            correction = re.match(
+                r"corr1=(.*) corr2=(.*) corr=(.*)",
+                line)
+            if correction :
+                report["correction"] = {
+                    "A_to_B" : float(correction.group(1)),
+                    "B_to_A" : float(correction.group(2)),
+                    "value" : float(correction.group(3))
+                }
+        
+            area = re.match(
+                r"AREA  (.*) mm\^2",
+                line)
+            if area :
+                key = "A_to_B" if b_to_a_read else "B_to_A"
+                report.setdefault(key, {})["area"] = float(area.group(1))
+            
+            volume_change = re.match(
+                r"VOLC  (.*) mm\^3",
+                line)
+            if volume_change :
+                key = "A_to_B" if b_to_a_read else "B_to_A"
+                report.setdefault(key, {})["volume_change"] = float(volume_change.group(1))
+            
+            ratio = re.match(
+                r"RATIO (.*) mm",
+                line)
+            if ratio :
+                key = "A_to_B" if b_to_a_read else "B_to_A"
+                report.setdefault(key, {})["ratio"] = float(ratio.group(1))
+            
+            pbvc_partial = re.match(
+                r"PBVC  (.*) %",
+                line)
+            if pbvc_partial :
+                key = "A_to_B" if b_to_a_read else "B_to_A"
+                report.setdefault(key, {})["pbvc"] = float(pbvc_partial.group(1))
+                b_to_a_read = True
+        
+            pbvc = re.match(
+                r"finalPBVC (.*) %",
+                line
+            )
+            if pbvc :
+                report["pbvc"] = float(pbvc.group(1))
+        
+        return report
     
     ##############
     # Properties #
