@@ -37,26 +37,26 @@ class TestSiena(unittest.TestCase):
         self.siena.ignore_downwards = 10
         self.assertEqual(self.siena.command, ["siena", "foo1.nii", "foo2.nii", "-b", "10"])
     
-#    def test_parse_report(self):
-#        report = self.sienax.parse_report(os.path.join(os.path.dirname(__file__), "report.sienax"))
-#        
-#        self.assertEqual(report.get("version", None), "2.6")
-#        self.assertEqual(report.get("vscale", None), 1.2580182223)
-#        
-#        self.assertEqual(report.get("grey", {}).get("normalized", None), 724097.23) 
-#        self.assertEqual(report.get("grey", {}).get("raw", None), 575585.64)
-#        
-#        self.assertEqual(report.get("white", {}).get("normalized", None), 639077.80) 
-#        self.assertEqual(report.get("white", {}).get("raw", None), 508003.61)
-#        
-#        self.assertEqual(report.get("brain", {}).get("normalized", None), 1363175.03) 
-#        self.assertEqual(report.get("brain", {}).get("raw", None), 1083589.25)
-#        
-#        self.assertEqual(report.get("pgrey", {}).get("normalized", None), 556299.24) 
-#        self.assertEqual(report.get("pgrey", {}).get("raw", None), 442202.84)
-#        
-#        self.assertEqual(report.get("vcsf", {}).get("normalized", None), 75373.30) 
-#        self.assertEqual(report.get("vcsf", {}).get("raw", None), 59914.32)
+    def test_parse_report(self):
+        report = self.siena.parse_report(os.path.join(os.path.dirname(__file__), "report.siena"))
+        
+        self.assertEqual(report.get("version", None), "2.6")
+        
+        self.assertEqual(report.get("correction", {}).get("A_to_B", None), 1.8183019155)
+        self.assertEqual(report.get("correction", {}).get("B_to_A", None), 1.7967950429)
+        self.assertEqual(report.get("correction", {}).get("value", None), 1.8075484792)
+        
+        self.assertEqual(report.get("B_to_A", {}).get("area", None), 297361)
+        self.assertEqual(report.get("B_to_A", {}).get("volume_change", None), -10995.9)
+        self.assertEqual(report.get("B_to_A", {}).get("ratio", None), -0.0369784)
+        self.assertEqual(report.get("B_to_A", {}).get("pbvc", None), -2.00521)
+        
+        self.assertEqual(report.get("A_to_B", {}).get("area", None), 295525)
+        self.assertEqual(report.get("A_to_B", {}).get("volume_change", None), -1277.55)
+        self.assertEqual(report.get("A_to_B", {}).get("ratio", None), -0.00432297)
+        self.assertEqual(report.get("A_to_B", {}).get("pbvc", None), -0.234419)
+        
+        self.assertEqual(report.get("pbvc", None), 0.8853955000)
     
     def test_default_output_directory(self):
         self.siena.input1 = "/foo/bar1.nii"
