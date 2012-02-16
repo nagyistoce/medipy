@@ -41,8 +41,8 @@ class Siena(FSLTool):
         
         super(Siena, self).__init__(*args, **kwargs)
         
-        self.input1 = input
-        self.input2 = input
+        self.input1 = input1
+        self.input2 = input2
         self.output_directory = output_directory
         
         self.bet_options = bet_options
