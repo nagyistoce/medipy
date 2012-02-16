@@ -73,6 +73,14 @@
         <option>1</option>
         <flag>wxEXPAND</flag>
       </object>
+      <object class="sizeritem">
+        <object class="wxPanel" name="layers_panel_container">
+          <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
     </object>
     <object class="wxStatusBar" name="status_bar">
       <fields>1</fields>

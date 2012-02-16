@@ -1,11 +1,11 @@
 # -*- coding: latin-1 -*-
 
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import os
@@ -15,6 +15,7 @@ import wx
 import medipy.base
 import medipy.gui.base
 import medipy.gui.image
+from medipy.gui.image.layers_panel import LayersPanel
 import medipy.gui.io
 
 class MainFrame(medipy.gui.base.Frame):
@@ -22,8 +23,10 @@ class MainFrame(medipy.gui.base.Frame):
         def __init__(self):
             self.panel = None
             self.image = None
+            self.layers_panel_container = None
+            self.layers_panel = None
             
-            self.controls = ["panel"]
+            self.controls = ["panel", "layers_panel_container"]
             
             medipy.gui.base.UI.__init__(self)
         
@@ -35,7 +38,13 @@ class MainFrame(medipy.gui.base.Frame):
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             sizer.Add(self.image, 1, wx.EXPAND)
             self.panel.SetSizer(sizer)
-            self.panel.Layout()
+            
+            self.layers_panel = LayersPanel(self.layers_panel_container)
+            self.layers_panel.image = self.image
+            
+            self.layers_panel_container.GetSizer().Add(self.layers_panel, 1, wx.EXPAND)
+            
+            window.Layout()
     
     def __init__(self, parent=None, *args, **kwargs):
         self._title = "MediPy/Viewer"
@@ -107,10 +116,10 @@ class MainFrame(medipy.gui.base.Frame):
     
     def OnAbout(self, dummy):
         info = wx.AboutDialogInfo()
-        info.AddDeveloper("Julien Lamy")
+        info.AddDeveloper("LINC-IPB")
         info.AddDeveloper("Based on the MediPy framework (http://code.google.com/p/medipy/)")
         info.SetCopyright(u"Copyright (C) Université de Strasbourg, 2011")
-        info.SetDescription("MediPy/iewer is a simple medical image viewer")
+        info.SetDescription("MediPy/Viewer is a simple medical image viewer")
         info.SetLicense("Distributed under the terms of the CeCILL-B license, " 
                         "as published by the CEA-CNRS-INRIA.\n"
                         "Refer to the LICENSE file or to "
