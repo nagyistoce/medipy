@@ -62,7 +62,7 @@ class MainFrame(medipy.gui.base.Frame):
             image = images[0]
             
             self.ui.image.delete_layer(0)
-            self.ui.image.append_layer(image)
+            self.ui.image.insert_layer(0, image)
             self.ui.image.reset_view()
             
             if "loader" in image.metadata :
@@ -70,7 +70,7 @@ class MainFrame(medipy.gui.base.Frame):
             else :
                 url = None
             
-            if filename :
+            if url :
                 self.SetTitle("{0} ({1})".format(self._title, url))
             else :
                 self.SetTitle(self._title)
