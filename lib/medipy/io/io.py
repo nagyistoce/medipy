@@ -94,7 +94,12 @@ def _split(url):
     
     # Parse the URL : first get the scheme, then parse the URL without scheme
     # to deal with fragment. Doing this avoids modifying urlparse.uses_fragment
+    # Note that "_" is not allowed in schemes (cf. http://tools.ietf.org/html/rfc3986#section-3.1)
+    # and that "-" is not allowed in Python names : any "-" in the scheme is
+    # transformed to "_" in the Python name
     scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
+    scheme = scheme.replace("-", "_")
+    
     if sys.platform == "win32" and re.match(r"[a-zA-Z]:", path) :
         path = "/"+path
         slash_added = True
