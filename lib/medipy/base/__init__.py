@@ -7,6 +7,7 @@
 ##########################################################################
 
 from command import Command, UndoableCommand
+from exception import Exception
 from find_resource import find_resource
 from history import History
 from image import Image
