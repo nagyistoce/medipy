@@ -81,6 +81,31 @@ class TestSchemes(unittest.TestCase):
             numpy.testing.assert_array_equal(image1, image2)
         
         self.clean_dicom(location)
+    
+    def test_dicom_series(self):
+        location = self.extract_dicom()
+        dicom_series = os.path.join(location, "dicom_series")
+        shutil.copy(os.path.join(self.data_directory, "dicom_series_brainix"),
+                    dicom_series)
+        
+        old_working_dir = os.getcwd()
+        os.chdir(location)
+        
+        fragments = [
+            "uid=1.3.46.670589.11.0.0.11.4.2.0.8743.5.5396.2006120114285654497",
+            "description=sT2W/FLAIR",
+            "custom_name=T2 Flair",
+        ]
+        
+        urls = ["dicom-series:{0}#{1}".format(dicom_series, x) for x in fragments]
+        images = [medipy.io.load(url) for url in urls]
+        
+        for image in images :
+            self.assertEqual(image.metadata["series_instance_uid"], "1.3.46.670589.11.0.0.11.4.2.0.8743.5.5396.2006120114285654497")
+            self.assertEqual(image.metadata["series_description"], "sT2W/FLAIR")
+        
+        os.chdir(old_working_dir)
+        self.clean_dicom(location)
         
 if __name__ == '__main__':
     unittest.main()
