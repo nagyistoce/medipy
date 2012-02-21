@@ -118,7 +118,7 @@ class MainFrame(medipy.gui.base.Frame):
         info = wx.AboutDialogInfo()
         info.AddDeveloper("LINC-IPB")
         info.AddDeveloper("Based on the MediPy framework (http://code.google.com/p/medipy/)")
-        info.SetCopyright(u"Copyright (C) Université de Strasbourg, 2011")
+        info.SetCopyright(u"Copyright (C) Université de Strasbourg, 2011-2012")
         info.SetDescription("MediPy/Viewer is a simple medical image viewer")
         info.SetLicense("Distributed under the terms of the CeCILL-B license, " 
                         "as published by the CEA-CNRS-INRIA.\n"
