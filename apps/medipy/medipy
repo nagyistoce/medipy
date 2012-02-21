@@ -42,7 +42,7 @@ try :
         # globals() instead of {}, any image allocated in globals will be 
         # referenced by globals() /and/ MediPyApp, and as such will not be 
         # deleted when MediPyApp.close_image is called
-        execfile(options.filename, {})
+        execfile(app.options.filename, {})
         dialog.Hide()
         dialog.Destroy()
 except :
