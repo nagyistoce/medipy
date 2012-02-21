@@ -59,6 +59,15 @@
           <checkable>1</checkable>
         </object>
       </object>
+      <object class="wxMenu" name="atlases">
+        <label>&amp;Atlases</label>
+        <object class="wxMenuItem" name="talairach">
+          <label>Talairach</label>
+        </object>
+        <object class="wxMenuItem" name="jhu_white">
+          <label>JHU White Matter</label>
+        </object>
+      </object>
       <object class="wxMenu" name="help">
         <label>&amp;Help</label>
         <object class="wxMenuItem" name="about">
