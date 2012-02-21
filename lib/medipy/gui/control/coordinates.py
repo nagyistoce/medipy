@@ -105,7 +105,7 @@ class Coordinates(wx.PyPanel, medipy.base.Observable) :
     
     def _set_display_coordinates(self, display_coordinates):
         if display_coordinates not in ["physical", "index"] :
-            raise Exception("Unknown display coordinates : %s"%(display_coordinates,))
+            raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._display_coordinates = display_coordinates
     

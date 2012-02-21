@@ -1,12 +1,14 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import weakref
+
+import exception
 
 class EventObject(object):
     pass
@@ -50,7 +52,7 @@ class Observable(object) :
         otherwise return True"""
         
         if not self.is_allowed_event(event) :
-            raise Exception("Event " + event + " is not allowed for type " + str(type(self)))
+            raise exception.Exception("Event " + event + " is not allowed for type " + str(type(self)))
         
         if "im_self" in dir(observer) and "im_func" in dir(observer) :
             return self._add_bound_method_observer(event, observer)
@@ -77,7 +79,7 @@ class Observable(object) :
         """
         
         if not self.is_allowed_event(event) :
-            raise Exception("Event " + event + " is not allowed for type " + str(type(self)))
+            raise exception.Exception("Event " + event + " is not allowed for type " + str(type(self)))
         
         if "im_self" in dir(observer) and "im_func" in dir(observer) :
             return self._remove_bound_method_observer(event, observer)
@@ -102,7 +104,7 @@ class Observable(object) :
         for name, value in kwargs.items() :
             setattr(event_info, name, value)
         
-        for observer in self._observers[event] :
+        for observer in self._observers.get(event, []) :
             if type(observer) is tuple : 
                 self._notify_bound_method_observer(observer, event_info)
             else : 

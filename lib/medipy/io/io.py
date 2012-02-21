@@ -13,6 +13,8 @@ import sys
 
 import numpy
 
+import medipy.base
+
 import schemes
 
 def load(url, dtype=numpy.single) :
@@ -42,7 +44,7 @@ def load(url, dtype=numpy.single) :
     try :
         loader = getattr(scheme, "load")
     except AttributeError :
-        raise Exception("Scheme \"{0}\" cannot load files".format(scheme))
+        raise medipy.base.Exception("Scheme \"{0}\" cannot load files".format(scheme))
 
     image = loader(path, fragment)
     
@@ -65,7 +67,7 @@ def save(image, url) :
     try :
         saver = getattr(scheme, "save")
     except AttributeError :
-        raise Exception("Scheme \"{0}\" cannot save files".format(scheme))
+        raise medipy.base.Exception("Scheme \"{0}\" cannot save files".format(scheme))
 
     saver(image, path)
 
@@ -78,7 +80,7 @@ def number_of_images(url):
     try :
         function = getattr(scheme, "save")
     except AttributeError :
-        raise Exception("Scheme \"{0}\" cannot compute number of images".format(scheme))
+        raise medipy.base.Exception("Scheme \"{0}\" cannot compute number of images".format(scheme))
 
     function(path, fragment)
 
@@ -110,7 +112,7 @@ def _split(url):
     try :
         scheme = getattr(schemes, scheme)
     except AttributeError :
-        raise Exception("Unknown scheme : \"{0}\"".format(scheme))
+        raise medipy.base.Exception("Unknown scheme : \"{0}\"".format(scheme))
     
     if slash_added :
         path = path[1:]

@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -20,6 +20,7 @@ from vtk import vtkPlanes, vtkPoints, vtkPolyData
 import wx
 import wx.xrc
 
+import medipy.base
 from medipy.base import Object3D, Observable, ObservableList
 import medipy.io
 import medipy.gui.xrc_wrapper
@@ -1128,7 +1129,7 @@ if __name__ == "__main__" :
         
         if generic_reader.OpenVTKFile() and generic_reader.ReadHeader() :
             if generic_reader.IsFileStructuredPoints() :
-                raise Exception("Cannot read VTK structured points")
+                raise medipy.base.Exception("Cannot read VTK structured points")
             elif generic_reader.IsFilePolyData() :
                 reader = vtkPolyDataReader()
                 reader.SetFileName(path)
@@ -1146,7 +1147,7 @@ if __name__ == "__main__" :
                 reader.SetFileName(path)
                 object = Object3D(reader.GetOutput(), path)
             else : 
-                raise Exception("Cannot read VTK file containing type %i"%generic_reader.GetFileType())
+                raise medipy.base.Exception("Cannot read VTK file containing type %i"%generic_reader.GetFileType())
             self.objects_3d.append(object)
         else :
             importer = vtkVRMLImporter()

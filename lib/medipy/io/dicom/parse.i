@@ -1,5 +1,5 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011
+ * MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -17,6 +17,7 @@
 
 %pythoncode
 %{
+import medipy.base
 from dataset import DataSet
 
 def _get_dicomdir_records_hierarchy(dataset):
@@ -29,7 +30,7 @@ def _get_dicomdir_records_hierarchy(dataset):
         offsets.add(record.offset_of_referenced_lowerlevel_directory_entity)
     offsets.add(0)
     if len(offsets) != len(dataset.directory_record_sequence) :
-        raise Exception("Some records are not referenced")
+        raise medipy.base.Exception("Some records are not referenced")
     offsets = list(offsets)
     offsets.sort()
     

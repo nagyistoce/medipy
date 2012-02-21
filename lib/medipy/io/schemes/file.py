@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 """ Load and save files from the local filesystem.
@@ -17,6 +17,7 @@
 
 import urlparse
 
+import medipy.base
 from medipy.base import Image
 
 from medipy.io.ipb import IPB
@@ -84,7 +85,7 @@ def get_loader(path, report_progress=None) :
             return loader
     
     # If we get here, no loader was found
-    raise Exception("No loader available for {0}".format(path))
+    raise medipy.base.Exception("No loader available for {0}".format(path))
 
 def get_saver(image, path, report_progress=None) :
     """ Search for a suitable saver in io_classes.
@@ -96,7 +97,7 @@ def get_saver(image, path, report_progress=None) :
             return saver
     
     # If we get here, no loader was found
-    raise Exception("No saver available for {0}".format(path))
+    raise medipy.base.Exception("No saver available for {0}".format(path))
 
 def _parse_fragment(fragment) :
     """ Return the index value in the fragment
@@ -107,8 +108,8 @@ def _parse_fragment(fragment) :
             try :
                 index = int(value)
             except ValueError :
-                raise Exception("Invalid index : \"{0}\"".format(value))
+                raise medipy.base.Exception("Invalid index : \"{0}\"".format(value))
             else :
                 return index
         else :
-            raise Exception("Invalid fragment element : \"{0}\"".format(tag))
+            raise medipy.base.Exception("Invalid fragment element : \"{0}\"".format(tag))

@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -12,6 +12,7 @@ import os.path
 import numpy
 import wx
 
+import medipy.base
 from medipy.io.io_base import IOBase
 
 class WXImage(IOBase):
@@ -87,7 +88,7 @@ class WXImage(IOBase):
             buffer = StringIO(buffer)
                 
             if not wx.Image.CanReadStream(buffer) :
-                raise Exception("Cannot find a handler for file %s"%self._filename)
+                raise medipy.base.Exception("Cannot find a handler for file %s"%self._filename)
             self.__image = wx.ImageFromStream(buffer, wx.BITMAP_TYPE_ANY, index)
         return self.__image
     

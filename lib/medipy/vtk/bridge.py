@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -13,6 +13,7 @@ from vtk.util import vtkConstants
 
 from wx import GetTranslation as _
 
+import medipy.base
 from medipy.vtk import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
 
 def get_vtk_array_type(numeric_array_type) :
@@ -110,7 +111,7 @@ def build_vtk_colormap(colormap, vtk_colormap=None) :
     
     if type(colormap) not in [list, tuple] :
         colormap_type = str(type(colormap))
-        raise Exception(_("Cannot process colormap of type %s")%(colormap_type))
+        raise medipy.base.Exception(_("Cannot process colormap of type %s")%(colormap_type))
     
     if type(colormap[0][0]) in [list, tuple] :
         # Stage colormap

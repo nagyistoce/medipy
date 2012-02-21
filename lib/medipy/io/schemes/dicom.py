@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 """ Load images from a local filesystem path.
@@ -31,6 +31,7 @@ import os
 import re
 import urlparse
 
+import medipy.base
 import medipy.io.dicom
 
 import dicomdir
@@ -72,12 +73,12 @@ def _get_filters(fragment) :
             try :
                 recursive = bool(value)
             except ValueError :
-                raise Exception("Invalid recursive value : \"{0}\"".format(value))
+                raise medipy.base.Exception("Invalid recursive value : \"{0}\"".format(value))
         else :
             try :
                 tag = medipy.io.dicom.Tag(medipy.io.dicom.dictionary.name_dictionary[tag])
             except KeyError :
-                raise Exception("No such DICOM tag : \"{0}\"".format(tag))
+                raise medipy.base.Exception("No such DICOM tag : \"{0}\"".format(tag))
         filters.append((tag, value))
     
     return filters, recursive
@@ -100,7 +101,7 @@ def _get_matching_datasets(path, fragment) :
     elif os.path.isfile(path) :
         filenames = [path]
     else :
-        raise Exception("Cannot find any dataset in \"{0}\"".format(path))
+        raise medipy.base.Exception("Cannot find any dataset in \"{0}\"".format(path))
     
     for filename in filenames :
         try :
