@@ -1,13 +1,15 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import sys
 import os
+
+import exception
 
 def find_resource(where) :
     """ Return the absolute file name of a resource inside the project.
@@ -44,4 +46,4 @@ def find_resource(where) :
             return resource_path
     
     # Resource was not found, raise an exception        
-    raise Exception("Cannot find resource %s"%where)
+    raise exception.Exception("Cannot find resource %s"%where)

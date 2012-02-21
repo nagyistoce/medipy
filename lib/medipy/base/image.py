@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import copy
@@ -11,6 +11,7 @@ import logging
 
 import numpy
 
+import exception
 from observable import Observable
 from observable_list import ObservableList
 
@@ -107,12 +108,12 @@ class Image(Observable):
 #            elif kwargs["dti"] == "tensor_4" :
 #                pass
             else :
-                raise Exception("Unkown DTI model : %s"%kwargs["dti"])
+                raise exception.Exception("Unkown DTI model : %s"%kwargs["dti"])
             del kwargs["dti"]
         
         # Array initialization : either data or value
         if "data" in kwargs and "value" in kwargs :
-            raise Exception("Only one of data and value is allowed")
+            raise exception.Exception("Only one of data and value is allowed")
         if "data" in kwargs :
             self.data = numpy.asarray(kwargs["data"])
             del kwargs["data"]
@@ -269,7 +270,7 @@ class Image(Observable):
         elif self.data_type == "matrix" :
             dim = self.data.ndim-2
         else :
-            raise Exception("Unknown data_type : %s"%self.data_type)
+            raise exception.Exception("Unknown data_type : %s"%self.data_type)
         return numpy.ones(dim, dtype=numpy.float32)
     
     def _default_origin(self):
@@ -284,7 +285,7 @@ class Image(Observable):
         elif self.data_type == "matrix" :
             dim = self.data.ndim-2
         else :
-            raise Exception("Unknown data_type : %s"%self.data_type)
+            raise exception.Exception("Unknown data_type : %s"%self.data_type)
         return numpy.zeros(dim, dtype=numpy.float32)
     
     def _default_direction(self):
@@ -299,5 +300,5 @@ class Image(Observable):
         elif self.data_type == "matrix" :
             dim = self.data.ndim-2
         else :
-            raise Exception("Unknown data_type : %s"%self.data_type)
+            raise exception.Exception("Unknown data_type : %s"%self.data_type)
         return numpy.identity(dim, dtype=numpy.float32)

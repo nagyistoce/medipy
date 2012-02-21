@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import numpy
@@ -11,6 +11,7 @@ from vtk import *
 from math import *
 import wx
 
+import medipy.base
 from medipy.base import Observable, ObservableList
 from medipy.gui import wxVTKRenderWindowInteractor
 
@@ -174,7 +175,7 @@ class Viewer3D(wx.Panel, Observable):
     
     def _set_active_object(self, object):
         if object not in self.objects_3d :
-            raise Exception("Object is not in viewer's objects")
+            raise medipy.base.Exception("Object is not in viewer's objects")
         
         self._active_object = object
         self.notify_observers("active_object")
@@ -206,7 +207,7 @@ class Viewer3D(wx.Panel, Observable):
         elif event.event == "delete_item" :
             self._renderer.RemoveActor(event.old_value.actor)
         else :
-            raise Exception("Unmanaged event : %s" % event.event)
+            raise medipy.base.Exception("Unmanaged event : %s" % event.event)
         
         self._rwi.Render()
     

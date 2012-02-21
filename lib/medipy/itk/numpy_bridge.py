@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import itk
@@ -151,7 +151,7 @@ def medipy_image_to_itk_image(image, transferOwnership):
         itk_image = array_to_itk_vector_image(image.data, transferOwnership)
         matrix_type = itk.Matrix[itk.D, len(image.shape)-1, len(image.shape)-1]
     else :
-        raise Exception("Unknown image data_type : %s"%image.data_type)
+        raise medipy.base.Exception("Unknown image data_type : %s"%image.data_type)
     
     matrix_bridge = itk.MatrixBridge[matrix_type]
     itk_direction = matrix_bridge.GetMatrixFromArray(
@@ -233,6 +233,6 @@ def itk_image_type(medipy_image):
         itk_type = dtype_to_itk[medipy_image.dtype.type]
         image_type = itk.VectorImage[itk_type, medipy_image.ndim-1]
     else :
-        raise Exception("Unknown image data_type : %s"%medipy_image.data_type)
+        raise medipy.base.Exception("Unknown image data_type : %s"%medipy_image.data_type)
     
     return image_type

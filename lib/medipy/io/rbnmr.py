@@ -1,15 +1,17 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import os       
 import re       # regular expressions handling module
 import numpy
 import scipy
+
+import medipy.base
 
 #   RBNMR     Reads processed Bruker NMR-data.
 #
@@ -30,7 +32,7 @@ def rbnmr(path, report_progress = None):
     if os.path.isfile(os.path.join(working_dir, "proc2s")):
         A["Proc2s"] = readnmrpar(os.path.join(working_dir, "proc2s"))
     else :
-        raise Exception("RBNMR : Impossible to find : " + os.path.join(working_dir, "proc2s"))
+        raise medipy.base.Exception("RBNMR : Impossible to find : " + os.path.join(working_dir, "proc2s"))
             
     # Other configuration files like "acqu2s", for instance, are stored higher in the filesystem
     split_list = working_dir.split(os.path.sep)
@@ -43,12 +45,12 @@ def rbnmr(path, report_progress = None):
     if os.path.isfile(os.path.join(dir_path, "acqus")):
         A["Acqus"] = readnmrpar(os.path.join(dir_path, "acqus"))
     else :
-        raise Exception("RBNMR : Impossible to find : " + os.path.join(dir_path,"acqus"))               
+        raise medipy.base.Exception("RBNMR : Impossible to find : " + os.path.join(dir_path,"acqus"))               
 
     if os.path.isfile(os.path.join(working_dir, "procs")):
         A["Procs"] = readnmrpar(os.path.join(working_dir, "procs"))
     else :
-        raise Exception("RBNMR : Impossible to find : " + os.path.join(working_dir, "procs"))
+        raise medipy.base.Exception("RBNMR : Impossible to find : " + os.path.join(working_dir, "procs"))
     
     # Correct data for NC_proc-parameter
     coeff = numpy.power(2.,-float(A["Procs"]["NC_proc"]))

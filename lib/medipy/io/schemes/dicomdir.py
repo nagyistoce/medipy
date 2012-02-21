@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 """ Load images from a DICOMDIR.
@@ -25,6 +25,7 @@
 import re
 import urlparse
 
+import medipy.base
 import medipy.io.dicom
 
 def load(path, fragment=None) :
@@ -63,7 +64,7 @@ def _get_filters(fragment) :
             try :
                 tag = medipy.io.dicom.Tag(medipy.io.dicom.dictionary.name_dictionary[tag])
             except KeyError :
-                raise Exception("No such DICOM tag : \"{0}\"".format(tag))
+                raise medipy.base.Exception("No such DICOM tag : \"{0}\"".format(tag))
         filters.append((tag, value))
     
     return filters

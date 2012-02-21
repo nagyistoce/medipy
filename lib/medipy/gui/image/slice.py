@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import sys
@@ -13,6 +13,7 @@ import scipy.spatial
 from vtk import (vtkActor, vtkCornerAnnotation, vtkLineSource, 
     vtkPolyDataMapper, vtkRenderer, vtkScalarBarActor)
 
+import medipy.base
 from medipy.base import ObservableList, PropertySynchronized
 from medipy.gui import colormaps
 from medipy.gui.colormap import Colormap
@@ -520,7 +521,7 @@ class Slice(PropertySynchronized) :
     
     def _set_display_coordinates(self, display_coordinates) :
         if display_coordinates not in ["physical", "index"] :
-            raise Exception("Unknown display coordinates : %s"%(display_coordinates,))
+            raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._display_coordinates = display_coordinates
         

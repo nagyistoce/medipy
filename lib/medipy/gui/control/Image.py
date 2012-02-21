@@ -1,15 +1,17 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import math
 import weakref
 
 import wx
+
+import medipy.base
 from medipy.base import Observable
 
 class Image(wx.Panel, Observable):
@@ -29,13 +31,13 @@ class Image(wx.Panel, Observable):
         self._may_be_empty_checked = may_be_empty_checked
         
         if self._output and self._may_be_empty :
-            raise Exception("may_be_empty and output are mutually exclusive")
+            raise medipy.base.Exception("may_be_empty and output are mutually exclusive")
         
         if not self._output and self._output_checked :
-            raise Exception("output must exist to change its value")
+            raise medipy.base.Exception("output must exist to change its value")
         
         if not self._may_be_empty and self._may_be_empty_checked :
-            raise Exception("may_be_empty must exist to change its value")
+            raise medipy.base.Exception("may_be_empty must exist to change its value")
         
         if len(choices) > 0 : 
             if value :
@@ -160,14 +162,14 @@ class Image(wx.Panel, Observable):
     def _set_output(self, value):
         self._output = value
         if self._output and self._may_be_empty :
-            raise Exception("output and may_be_empty are mutually exclusive")
+            raise medipy.base.Exception("output and may_be_empty are mutually exclusive")
         self._update_gui()
         self.validate()
         
     
     def _set_output_checked(self, flag):
         if not self._output :
-            raise Exception("output must exist to change its value")
+            raise medipy.base.Exception("output must exist to change its value")
         self._output_checked = flag
         self.notify_observers("value")
         self._update_gui()
@@ -177,14 +179,14 @@ class Image(wx.Panel, Observable):
     def _set_may_be_empty(self, value):
         self._may_be_empty = value    
         if self._output and self._may_be_empty :
-            raise Exception("may_be_empty and output are mutually exclusive")
+            raise medipy.base.Exception("may_be_empty and output are mutually exclusive")
         self._update_gui()
         self.validate()
         
     
     def _set_may_be_empty_checked(self, flag):
         if not self._may_be_empty :
-            raise Exception("may_be_empty must exist to change its value")
+            raise medipy.base.Exception("may_be_empty must exist to change its value")
         self._may_be_empty_checked = flag
         self.notify_observers("value")
         self._update_gui()
