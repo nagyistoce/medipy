@@ -56,5 +56,6 @@ def skull(input):
         # Zero everything below
         output[...,:z_begin,:,:]=0 
     
+    output.copy_information(input)
     return output
     
