@@ -133,6 +133,9 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
         return self._bet_filter.GetT2()
     
     def _set_t_2(self, value):
+        # Cast value to input pixel type of BETImageFilter
+        itk_type = itk.template(itk.template(self._bet_filter)[1][1])[1][0]
+        value = medipy.itk.itk_to_dtype[itk_type](value)
         self._bet_filter.SetT2(value)
         
         colormap = self._image.get_layer_colormap(self._intensity_range_layer)
@@ -148,6 +151,9 @@ class BETPanel(medipy.gui.base.Panel, medipy.base.Observable) :
         return self._bet_filter.GetT98()
     
     def _set_t_98(self, value):
+        # Cast value to input pixel type of BETImageFilter
+        itk_type = itk.template(itk.template(self._bet_filter)[1][1])[1][0]
+        value = medipy.itk.itk_to_dtype[itk_type](value)
         self._bet_filter.SetT98(value)
         
         colormap = self._image.get_layer_colormap(self._intensity_range_layer)
