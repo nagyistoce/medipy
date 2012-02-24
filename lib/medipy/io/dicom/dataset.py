@@ -248,7 +248,7 @@ class DataSet(dict):
     # Misc. functions #
     ###################
     
-    def __str__(self):
+    def __unicode__(self):
         
         result = []
         for tag in sorted(self.keys()):
@@ -275,11 +275,11 @@ class DataSet(dict):
                         name = tag
                         vr = None
             else :
-                name = data_dictionary.setdefault(tag, ("UN", "1", str(tag)))[2]
+                name = data_dictionary.setdefault(tag, ("UN", "1", unicode(tag)))[2]
                 vr = data_dictionary[tag][0]
             
             if vr == "SQ" :
-                elements = [item.__str__() for item in value]
+                elements = [unicode(item) for item in value]
                 value = []
                 for index, element in enumerate(elements) :
                     value.append(4*" "+"Item %i"%index)
@@ -299,7 +299,11 @@ class DataSet(dict):
             result.append("%s : %s"%(name, value))
         return "\n".join(result)
     
-    __repr__ = __str__
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+    
+    def __repr__(self):
+        return object.__repr__(self)
     
     @staticmethod
     def _get_tag(value):
