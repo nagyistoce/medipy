@@ -41,7 +41,10 @@ class Nmr2D(IOBase) :
         return 1
     
     def load_data(self, index=0) :
-        return self._struct["Data"]
+        data = self._struct["Data"]
+        if data.ndim == 2 :
+            data = data.reshape(1, *data.shape)
+        return data
     
     def load_metadata(self, index=0) :
         metadata = {}
