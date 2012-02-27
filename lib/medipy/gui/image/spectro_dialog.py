@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import os
@@ -53,7 +53,7 @@ class SpectroDialog(medipy.gui.xrc_wrapper.Dialog):
         self._image_path = None
         self._reference_path = None
         self._annotations_path = None
-        self._file_dialog._wildcard = "annotation file|peaklist.xml"
+        self._file_dialog._wildcard = "Annotation file|*.xml"
         self._file_dialog._button.Disable()
         
         # Events
@@ -225,26 +225,24 @@ class SpectroDialog(medipy.gui.xrc_wrapper.Dialog):
         # Load a list of annotations if an annotation file has been specified
         if self._annotations_path is not None:
             image.metadata["Data"] = image.data
-            image.metadata["annotations"] = []
             dom = md.parse(self._annotations_path)
             peaks = dom.getElementsByTagName("Peak2D")
+            image.annotations = ObservableList()
             for peak in peaks:
                 annotation = ImageAnnotation()
                 ppm = (float(peak.getAttribute("F1")),float(peak.getAttribute("F2")))
                 point = rbnmr.ppm_to_point(ppm, 
-                    image.metadata["header"]["Procs"],
-                    image.metadata["header"]["Proc2s"])
+                    image.metadata["Procs"],
+                    image.metadata["Proc2s"])
                 annotation.position = [0, point[-2], point[-1]]
                 annotation.label = peak.getAttribute("annotation")
                 annotation.shape = ImageAnnotation.Shape.cross
                 annotation.size = 10
                 annotation.color = [0, 1., 0.]
                 annotation.filled = False
-                annotation.depth = 10    
-                image.metadata["annotations"].append(annotation)  
+                annotation.depth = 10
+                image.annotations.append(annotation)
                 
-            image.annotations = ObservableList(image.metadata["annotations"])
-        
         wx.GetApp().append_image(image)
         
         # Close the window
