@@ -36,7 +36,17 @@ class TestSchemes(unittest.TestCase):
             os.path.join(self.data_directory, "avg152T1_LR_nifti.nii.gz"))
         image = medipy.io.load(url)
         self.assertTrue(isinstance(image, medipy.base.Image))
-        self.assertEqual(image.metadata["loader"]["url"], url) 
+        self.assertEqual(image.metadata["loader"]["url"], url)
+    
+    def test_file_dicom(self): 
+        location = self.extract_dicom()
+        url = os.path.join(os.path.join(location, "BRAINIX", "2182114", "401",
+                                        "00020004"))
+        image = medipy.io.load(url)
+        self.assertTrue(isinstance(image, medipy.base.Image))
+        self.assertEqual(image.shape, (1, 288, 288))
+        numpy.testing.assert_array_almost_equal(image.spacing, (1, 0.7986111, 0.7986111))
+        self.clean_dicom(location)
     
     def test_dicomdir(self):
         location = self.extract_dicom()
