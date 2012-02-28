@@ -68,7 +68,7 @@ class DataSet(dict):
         return dataset
     
     def __init__(self):
-        dict.__init__()
+        dict.__init__({})
         self.normalized = False
     
     def tags(self):
