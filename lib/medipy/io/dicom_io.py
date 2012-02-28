@@ -30,6 +30,8 @@ class Dicom(IOBase) :
                 return False
             else :
                 datasets = medipy.io.dicom.normalize.normalize(dataset)
+                if isinstance(datasets, medipy.io.dicom.DataSet) :
+                    datasets = [datasets]
                 self._stacks = medipy.io.dicom.stacks(datasets)
                 return True
         else :
