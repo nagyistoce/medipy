@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource>
+  <object class="wxDialog" name="main_dialog">
+    <title></title>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Directory :</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <border>5</border>
+            <object class="medipy.gui.control.Directory" name="dir_dialog"/>
+            <option>1</option>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <cols>2</cols>
+          <rows>3</rows>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Study :</label>
+            </object>
+            <flag>wxALIGN_RIGHT</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxListBox" name="dir_listbox">
+                  <content/>
+                </object>
+                <flag>wxEXPAND</flag>
+                <option>1</option>
+                <border>5</border>
+              </object>
+              <object class="sizeritem">
+                <object class="wxListBox" name="image_listbox">
+                  <content/>
+                </object>
+                <flag>wxEXPAND</flag>
+                <option>1</option>
+                <border>5</border>
+              </object>
+            </object>
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>1D ref spectrum :</label>
+            </object>
+            <flag>wxALIGN_RIGHT</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxListBox" name="reference_listbox">
+              <content/>
+            </object>
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Annotations :</label>
+            </object>
+            <flag>wxALIGN_RIGHT</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxListBox" name="annotations_listbox">
+                  <content/>
+                </object>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="wxCheckBox" name="annotations_checkbox">
+                  <label>Use custom</label>
+                </object>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.File" name="file_dialog"/>
+            	<option>1</option>
+              </object>
+            </object>
+            <flag>wxEXPAND</flag>
+            <border>5</border>
+          </object>
+          <growablecols>1</growablecols>
+          <growablerows>0</growablerows>
+          <growablerows>1</growablerows>
+          <growablerows>2</growablerows>
+        </object>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="spacer">
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="open_button">
+              <label>Open</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="cancel_button">
+              <label>Cancel</label>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+    <style>wxRESIZE_BORDER</style>
+  </object>
+</resource>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
+      
+      
+      
