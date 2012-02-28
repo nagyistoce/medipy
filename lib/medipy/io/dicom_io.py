@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import medipy.base
 import medipy.io.dicom
 import medipy.io.dicom.normalize
 from medipy.io.io_base import IOBase
@@ -25,7 +26,7 @@ class Dicom(IOBase) :
         if self._filename is not None and self._stacks is None :
             try :
                 dataset = medipy.io.dicom.parse(self._filename)
-            except Exception :
+            except medipy.base.Exception :
                 return False
             else :
                 datasets = medipy.io.dicom.normalize.normalize(dataset)
@@ -39,15 +40,19 @@ class Dicom(IOBase) :
     
     def load_data(self, index=0):
         if self._index != index :
-            print "loading", index
             self._image = medipy.io.dicom.image(self._stacks[index])
+            self._index = index
         return self._image.data
     
     def load_metadata(self, index=0):
         if self._index != index :
-            print "loading", index
             self._image = medipy.io.dicom.image(self._stacks[index])
-        return self._image.metadata
+            self._index = index
+        metadata = self._image.metadata
+        metadata["direction"] = self._image.direction
+        metadata["origin"] = self._image.origin
+        metadata["spacing"] = self._image.spacing
+        return metadata
     
     def can_save(self):
         return False
