@@ -1,6 +1,8 @@
 import medipy.medimax.traitement
 import medipy.base
 import numpy
+import medipy.base.exception
+
 
 #-------------------------------------------------------------
 #  Correct Dark Bright Alternation of slices
@@ -41,7 +43,7 @@ def CorrectDarkBrightCoronalAlternation_gui(im, axis) :
 #  IntensityNormalisationForRegisteredImages_gui
 #-------------------------------------------------------------
 
-def IntensityNormalisationForRegisteredImages_gui(imsrc, imref, mask_imsrc=None, mask_imref=None, method="0") :
+def IntensityNormalisationForRegisteredImages_gui(imsrc, imref, mask_imsrc=None, mask_imref=None, method="oneParameterLinearRegression") :
     """
     Normalize intensity between two registered images
     
@@ -54,6 +56,12 @@ def IntensityNormalisationForRegisteredImages_gui(imsrc, imref, mask_imsrc=None,
                 <item name="method" type="Enum" initializer="('oneParameterLinearRegression','twoParameterLinearRegression','totalLeastSquare')" label="method of correction"/>
         </gui>
     """
+    
+    if imsrc.shape != imref.shape :
+        raise medipy.base.exception.Exception("Images must have the same size") 
+    
+    if mask_imsrc.shape != imsrc.shape or mask_imref.shape != imref.shape :
+        raise medipy.base.exception.Exception("Mask must have the same size") 
     
     dicoMethodNormalisation = {"oneParameterLinearRegression":0, "twoParameterLinearRegression":1, "totalLeastSquare":2}
     
