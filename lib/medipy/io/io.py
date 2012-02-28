@@ -30,6 +30,7 @@ def load(url, dtype=numpy.single) :
           * "dicomdir" : load an image using a DICOMDIR
           * "dicom" : load an image using a local filesystem directory 
             containing DICOM files
+          * "dicom-series" : load an image using a dicom_series file
         
         >>> import medipy.io
         >>> medipy.io.load("/some/where/image.nii") # Uses "file" scheme
