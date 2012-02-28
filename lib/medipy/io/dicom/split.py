@@ -1,16 +1,17 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import copy
+import logging
 
 import numpy
 
-from medipy.io.dicom import DataSet
+from medipy.io.dicom import DataSet, Tag
 
 def images(datasets):
     """ Return all Data Sets that are images.
@@ -68,14 +69,24 @@ def series(datasets, keep_only_images = True):
     
     return result.values()
 
-def stacks(datasets):
-    """ Split a sequence of images to stacks. Return a list of datasets or
-        pairs of (Data Set, frame number) if a dataset is a multi-frame
-        
-        All datasets must belong to the same Series.
+def stacks(datasets, use_dimension_index_sequence=True):
+    """ Return a list of stacks from the datasets. Stacks are defined as  
+        "groups of frames that have a geometric relationship" (PS 3.3-2011,
+        C.7.6.16.2.2.4). Stacks are formed using the following attributes : 
+          * Multi-frame images : attributes in the Dimension Index Sequence.
+            Private values are skipped since we don't know their semantics.
+          * NM images : attributes in the Frame Increment Pointer.
+          * Other images : Image Orientation (Patient), Echo Number, 
+            Acquisition Number, Diffusion Gradient Orientation and 
+            Diffusion b-Value.
+        Set use_dimension_index_sequence to False to bypass the processing of
+        multi-frame and NM images.
     """
     
     def orientation_comparator(o1, o2):
+        """ Compare two values of Image Orientation Patient.
+        """
+        
         if (o1, o2) == (None, None) :
             return True
         elif None in (o1, o2) :
@@ -83,72 +94,104 @@ def stacks(datasets):
         else :
             return (numpy.linalg.norm(numpy.subtract(o1,o2), numpy.inf) <= 0.05)
     
-    result = {}
-    
-    for dataset in datasets :
-        if "number_of_frames" in dataset :
-            # Number Of Frames : we have a Multi-frame image
-            per_frame_functional_groups = dataset.perframe_functional_groups_sequence
-            for frame_number, functional_group in enumerate(per_frame_functional_groups) :
-                # Plane Orientation Sequence
-                plane_orientation_sequence = functional_group.get("plane_orientation_sequence", None)
-                if plane_orientation_sequence :
-                    orientation = plane_orientation_sequence[0].get("image_orientation_patient", None)
+    if use_dimension_index_sequence and "dimension_index_sequence" in datasets[0] :
+        # A dimension is a set of attributes [...] which are especially 
+        # intended for presentation. (PS 3.3-2011, 7.5.2).
+        # Build a list of dimensions
+        dimensions = []
+        for item in datasets[0].dimension_index_sequence :
+            value = {
+                "dimension_index_pointer" : Tag(item.dimension_index_pointer)
+            }
+            if "functional_group_pointer" in item :
+                value["functional_group_pointer"] = Tag(item.functional_group_pointer)
+            dimensions.append(value)
+        
+        # Build a dictionary of stacks, where the key is the 
+        # Dimension Index Values (0020,9157) minus its last value which is an
+        # index in the stack
+        stacks_dictionary = {}
+        
+        for dataset in datasets :
+            index_values = dataset.frame_content_sequence[0].dimension_index_values
+            index = []
+            for dimension in dimensions :
+                if "functional_group_pointer" in dimension :
+                    if dimension["functional_group_pointer"].private :
+                        # Skip private Functional Groups, since their semantics
+                        # are unknown
+                        continue
+                    else :
+                        # Look for the index value in a Functional Group
+                        getter = dataset[dimension["functional_group_pointer"]][0].__getitem__
                 else :
-                    orientation = None
+                    # Look for the index value in the dataset itself
+                    getter = dataset.__getitem__
                 
-                if orientation is not None :
-                    orientation = tuple(orientation)
-                    
-                equal_values = [x for x in result.keys() if orientation_comparator(x, orientation)]
-                if equal_values :
-                    result[equal_values[0]].append((dataset, frame_number))
+                if dimension["dimension_index_pointer"].private :
+                    # Skip private indices, since their semantics are unknown
+                    continue
                 else :
-                    result[orientation] = [(dataset, frame_number)]
+                    index.append(getter(dimension["dimension_index_pointer"]))
+            
+            index = index[:-1]
+            stacks_dictionary.setdefault(tuple(index), []).append(dataset)
+        
+        # Process stacks that are not related to Dimension Index sequence
+        result = []
+        for stack in stacks_dictionary.values() :
+            result.extend(stacks(stack, False))
+        return result
+    elif use_dimension_index_sequence and "frame_increment_pointer" in datasets[0] :
+        # Nuclear Medicine image. Almost like a multi-frame image, but
+        # "dimensions" are stored in Frame Increment Pointer 
+        if isinstance(datasets[0].frame_increment_pointer, list) :
+            dimensions = datasets[0].frame_increment_pointer
         else :
-            # Single frame
-            orientation = dataset.get("image_orientation_patient", None)
-            
-            if orientation is not None :
-                orientation = tuple(orientation)
-            
-            equal_values = [x for x in result.keys() if orientation_comparator(x, orientation)]
-            if equal_values :
-                result[equal_values[0]].append(dataset)
-            else :
-                result[orientation] = [dataset]
-    
-    return result.values()
-
-def acquisitions(datasets):
-    """ Return a list of "acquisitions" present in the datasets. Acquisitions
-        are defined as sets of datasets that have a similar :
-          * Echo Number(s) (0018,0086)
-          * Acquisition Number (0020,0012)
-          * Diffusion Gradient Orientation (0018,9089)
-          * Diffusion b-value (0018,9087)
-          
-        All datasets
-        must belong to the same series.
+            dimensions = [datasets[0].frame_increment_pointer]
+        dimensions = [Tag(x) for x in dimensions]
         
-    """
-    
-    result = {}
-    for dataset in datasets :
-        if isinstance(dataset, tuple) :
-            # Dataset is a stack of a multi-frame image
-            # TODO
-            # TODO : test for mosaic ?
-            # Multi-frame : Diffusion Gradient Orientation (0018,9089) and 
-            # Diffusion b-value (0018,9087) are in MR Diffusion Sequence (0018,9117)
-            identifier = None
-        elif "MOSAIC" not in dataset.get("image_type", []) and "echo_numbers" in dataset :
-            identifier = dataset.echo_numbers
-        elif "acquisition_number" in dataset :
-            identifier = dataset.acquisition_number
-        else : 
-            identifier = None
+        stacks_dictionary = {}
+        for dataset in datasets :
+            index = []
+            for tag in dimensions :
+                index.append(dataset[tag][dataset.instance_number])
+            
+            index = index[:-1]
+            stacks_dictionary.setdefault(tuple(index), []).append(dataset)
         
-        result.setdefault(identifier, []).append(dataset)
-    
-    return [result[x] for x in sorted(result.keys())]
+        # Process stacks that are not related to Dimension Index sequence
+        result = []
+        for stack in stacks_dictionary.values() :
+            result.extend(stacks(stack, False))
+        return result
+    else :
+        # Regular, single-frame image.
+        getters = [
+            # Image Orientation (Patient) (0020,0037)
+            lambda x:tuple(x.get("image_orientation_patient", None)),
+            # Echo Number(s) (0018,0086)
+            lambda x:x.get("echo_numbers", None),
+            # Acquisition Number (0020,0012)
+            lambda x:x.get("acquisition_number", None),
+            # Diffusion Gradient Orientation (0018,9089)
+            lambda x:x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_gradient_orientation", None),
+            # Diffusion b-value (0018,9087)
+            lambda x:x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_b_value", None)
+        ]
+        
+        stacks_dictionary = {}
+        for dataset in datasets :
+            values = [x(dataset) for x in getters]
+            
+            # If a close value of Image Orientation Patient exists, use it
+            o1 = values[0]
+            for key in stacks_dictionary :
+                o2 = key[0]
+                if orientation_comparator(o1, o2) :
+                    values[0] = o2
+                    break
+            
+            stacks_dictionary.setdefault(tuple(values), []).append(dataset)
+        
+        return stacks_dictionary.values()
