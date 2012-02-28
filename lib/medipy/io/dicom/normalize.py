@@ -22,7 +22,7 @@ def normalize(dataset_or_datasets):
     
     if isinstance(dataset_or_datasets, DataSet) :
         if dataset_or_datasets.normalized :
-            return dataset
+            return dataset_or_datasets
         if "perframe_functional_groups_sequence" in dataset_or_datasets :
             single_frames = multi_frame(dataset_or_datasets)
             return [single_frame(x) for x in single_frames]
