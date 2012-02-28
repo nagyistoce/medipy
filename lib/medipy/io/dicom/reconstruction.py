@@ -14,11 +14,13 @@ import itk
 import numpy
 
 from medipy.base import Image
+import medipy.base
 import medipy.itk
 
 from medipy.io.dicom.dictionary import data_dictionary
 from medipy.io.dicom import Tag
 import medipy.io.dicom.csa2
+import medipy.io.dicom.normalize
 import medipy.io.dicom.sort
 import medipy.io.dicom.split
 
@@ -115,10 +117,7 @@ def data(datasets):
         All Data Sets must belong to the same stack and be geometrically sorted.
     """
     
-    if isinstance(datasets[0], tuple) :
-        sample_dataset = datasets[0][0]
-    else :
-        sample_dataset = datasets[0]
+    sample_dataset = datasets[0]
     
     if "MOSAIC" in sample_dataset.get("image_type", []) :
         image_csa = medipy.io.dicom.csa2.parse_csa(sample_dataset[0x0029,0x1010])
@@ -132,9 +131,7 @@ def data(datasets):
     
     for index, dataset in enumerate(datasets) :
         # Get data
-        if isinstance(dataset, tuple) :
-            pixel_data = dataset[0].pixel_array[dataset[1]]
-        elif "MOSAIC" in dataset.get("image_type", []) :
+        if "MOSAIC" in dataset.get("image_type", []) :
             image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
             number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
             mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
@@ -172,8 +169,6 @@ def metadata(datasets, skipped_tags="default"):
     
     result = {}
     for dataset in datasets :
-        if isinstance(dataset, tuple) :
-            dataset = dataset[0]
         for key, value in dataset.items() :
             
             if key in skipped_tags or key in special_processing :
@@ -203,68 +198,30 @@ def metadata(datasets, skipped_tags="default"):
             result[key] = value[0]
     
     # Origin
-    if isinstance(datasets[0], tuple) :
-        functional_group = datasets[0][0].perframe_functional_groups_sequence[datasets[0][1]]
-        if "plane_position_sequence" in functional_group :
-            origin = functional_group.plane_position_sequence[0].image_position_patient
-        else :
-            origin = (0,0,0)
+    if "MOSAIC" in datasets[0].get("image_type", []) :
+        origin = list(datasets[0].get("image_position_patient", (0,0,0))) + [0]
     else :
-        if "MOSAIC" in datasets[0].get("image_type", []) :
-            origin = list(datasets[0].get("image_position_patient", (0,0,0))) + [0]
-        else :
-            origin = datasets[0].get("image_position_patient", (0,0,0))
+        origin = datasets[0].get("image_position_patient", (0,0,0))
     result["origin"] = tuple(reversed(origin))
 
     # Spacing
-    if isinstance(datasets[0], tuple) :
-        functional_group = datasets[0][0].perframe_functional_groups_sequence[datasets[0][1]]
-        if "pixel_measures_sequence" in functional_group :
-            spacing = functional_group.pixel_measures_sequence[0].get("pixel_spacing", (1.,1.))
-        else :
-            spacing = (1., 1.)
-            
-        functional_group_0 = datasets[0][0].perframe_functional_groups_sequence[datasets[0][1]]
-        if "plane_position_sequence" in functional_group_0 :
-            p0 = functional_group_0.plane_position_sequence[0].image_position_patient
-        else :
-            p0 = (0,0,0)
+    spacing = datasets[0].get("pixel_spacing", (1.,1.))
         
-        functional_group_1 = datasets[1][0].perframe_functional_groups_sequence[datasets[1][1]]
-        if "plane_position_sequence" in functional_group_1 :
-            p1 = functional_group_1.plane_position_sequence[0].image_position_patient
-        else :
-            p1 = (0,0,0)
-        
-        slice_spacing = numpy.linalg.norm(numpy.subtract(p0, p1))
+    if "MOSAIC" in datasets[0].get("image_type", []) :
+        slice_spacing = 1
+        spacing = list(spacing) + [datasets[0].get("slice_thickness", 1.)]
     else :
-        spacing = datasets[0].get("pixel_spacing", (1.,1.))
-        
-        if "MOSAIC" in datasets[0].get("image_type", []) :
-            slice_spacing = 1
-            spacing = list(spacing) + [datasets[0].get("slice_thickness", 1.)]
-        else :
-            slice_spacing = numpy.linalg.norm(numpy.subtract(
-                datasets[0].get("image_position_patient", (0,0,0)), 
-                datasets[1].get("image_position_patient", (0,0,0))))
+        slice_spacing = numpy.linalg.norm(numpy.subtract(
+            datasets[0].get("image_position_patient", (0,0,0)), 
+            datasets[1].get("image_position_patient", (0,0,0))))
     
     if slice_spacing == 0 :
         slice_spacing = 1.
     result["spacing"] = (slice_spacing,)+tuple(reversed(spacing))
     
     # Orientation
-    if isinstance(datasets[0], tuple) :
-        functional_group = datasets[0][0].perframe_functional_groups_sequence[datasets[0][1]]
-        if "plane_orientation_sequence" in functional_group :
-            orientation = functional_group.plane_orientation_sequence[0].get(
-                "image_orientation_patient", (1., 0., 0., 
-                                              0., 1., 0))
-        else :
-            logging.warning("Plane Orientation Sequence absent")
-            orientation = (1., 0., 0., 0., 1., 0)
-    else :
-        orientation = datasets[0].get("image_orientation_patient", (1., 0., 0., 
-                                                                        0., 1., 0))
+    orientation = datasets[0].get("image_orientation_patient", (1., 0., 0., 
+                                                                0., 1., 0))
     # Use column vectors, cf. PS 3.3, C.7.6.2.1.1
     v1 = orientation[:3]
     v2 = orientation[3:]
@@ -272,7 +229,7 @@ def metadata(datasets, skipped_tags="default"):
     result["direction"] = numpy.transpose(numpy.asarray(
         (tuple(reversed(normal)), tuple(reversed(v2)), tuple(reversed(v1)))))
     
-    sample_dataset = datasets[0][0] if isinstance(datasets[0], tuple) else datasets[0]
+    sample_dataset = datasets[0]
     if "MOSAIC" in sample_dataset.get("image_type", []) :
         result["direction"] = numpy.insert(
             numpy.insert(result["direction"], 0, (0,0,0), 0), 
@@ -282,23 +239,31 @@ def metadata(datasets, skipped_tags="default"):
 
 def image(datasets, skipped_tags="default", do_sort=True, sort_function=None, 
           align_to_ras=True):
+    """ Create an Image from the datasets. All datasets must belong to the same
+        stack.
+    """
 
     datasets = medipy.io.dicom.split.images(datasets)
+    datasets = medipy.io.dicom.normalize.normalize(datasets)
+    stacks = medipy.io.dicom.split.stacks(datasets)
     
+    if len(stacks)>1 :
+        raise medipy.base.Exception("All datasets must belong to the same stack")
+
     if do_sort :
-        medipy.io.dicom.sort.sort(datasets, sort_function)
+        medipy.io.dicom.sort.sort(stacks[0], sort_function)
     
-    dictionary = metadata(datasets, skipped_tags)
+    dictionary = metadata(stacks[0], skipped_tags)
     origin, spacing, direction = dictionary["origin"], dictionary["spacing"], dictionary["direction"]
     del dictionary["origin"]
     del dictionary["spacing"]
     del dictionary["direction"]
     
-    image = Image(data=data(datasets), 
+    _image = Image(data=data(stacks[0]), 
                   origin=origin, spacing=spacing, direction=direction,
                   metadata=dictionary)
     
     if align_to_ras :
-        to_axis_aligned_ras_space(image)
+        to_axis_aligned_ras_space(_image)
     
-    return image
+    return _image
