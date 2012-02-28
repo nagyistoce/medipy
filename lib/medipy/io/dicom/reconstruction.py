@@ -211,9 +211,13 @@ def metadata(datasets, skipped_tags="default"):
         slice_spacing = 1
         spacing = list(spacing) + [datasets[0].get("slice_thickness", 1.)]
     else :
-        slice_spacing = numpy.linalg.norm(numpy.subtract(
-            datasets[0].get("image_position_patient", (0,0,0)), 
-            datasets[1].get("image_position_patient", (0,0,0))))
+        if len(datasets) >= 2 :
+            slice_spacing = numpy.linalg.norm(numpy.subtract(
+                datasets[0].get("image_position_patient", (0,0,0)), 
+                datasets[1].get("image_position_patient", (0,0,0))))
+        else :
+            # Sane default
+            slice_spacing = 1.0
     
     if slice_spacing == 0 :
         slice_spacing = 1.
