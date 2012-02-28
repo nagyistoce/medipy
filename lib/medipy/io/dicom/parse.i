@@ -44,7 +44,10 @@ def _get_dicomdir_records_hierarchy(dataset):
         record.children = children
 
 def parse(filename) :
-    dictionary = parse_file(str(filename))
+    try :
+        dictionary = parse_file(str(filename))
+    except Exception, e :
+        raise medipy.base.Exception(e)
     if dictionary is not None :
         dataset = DataSet.from_dict(dictionary)
         if "directory_record_sequence" in dataset :
