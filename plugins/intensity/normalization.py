@@ -8,6 +8,7 @@
 
 import numpy
 import medipy.base
+import medipy.base.exception
 
 def mean_stdev_normalization(reference, image):
     """ Return a normalized version of image, so that the mean and standard 
@@ -30,5 +31,28 @@ def mean_stdev_normalization(reference, image):
     data = alpha*image.data+beta
     output = medipy.base.Image(data=data)
     output.copy_information(image)
+    
+    return output
+
+
+def one_parameter_linear_regression_normalization(src,ref):
+    """ Return a normalized version of image, so that the mean and standard 
+        deviation match those of reference.
+        
+        <gui>
+            <item name="src" type="Image" label="Image to normalize"/>
+            <item name="ref" type="Image" label="Reference"/>
+            <item name="output" type="Image" initializer="output=True"
+                role="return" label="Output"/>
+        </gui>
+    """
+    
+    if src.shape != ref.shape :
+        raise medipy.base.exception.Exception("Images must have the same size") 
+         
+    alpha=numpy.sum(numpy.multiply(src,ref),dtype=float)/numpy.sum(numpy.multiply(src,src),dtype=float)
+    data=alpha*src.data
+    output = medipy.base.Image(data=data)
+    output.copy_information(src)
     
     return output
