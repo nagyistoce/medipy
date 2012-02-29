@@ -16,9 +16,9 @@ from medipy.itk import itk_image_to_array, medipy_image_to_itk_image
 
 class ITK(IOBase) :
     
-    _io_classes = [itk.BMPImageIO, itk.GDCMImageIO, itk.JPEGImageIO, 
-                   itk.MetaImageIO, itk.NiftiImageIO, itk.NrrdImageIO, 
-                   itk.PNGImageIO, itk.TIFFImageIO, itk.VTKImageIO]
+    _io_classes = [itk.BMPImageIO, itk.JPEGImageIO, itk.MetaImageIO, 
+                   itk.NiftiImageIO, itk.NrrdImageIO, itk.PNGImageIO, 
+                   itk.TIFFImageIO, itk.VTKImageIO]
     
     _larger_type = {
         itk.UC : itk.US,
