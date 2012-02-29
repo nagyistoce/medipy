@@ -79,7 +79,7 @@ def multi_frame(dataset):
         (0x0020,0x9450), # Patient Orientation in Frame Sequence
         #TODO (0018,9472) Frame Display Shutter Sequence
         #(0020,9253) Respiratory Synchronization Sequence : skip, attributes not present anywhere else
-        (0x0018,0x9477), # Irradiation Event Identification Sequence
+        #(0x0018,0x9477), # Irradiation Event Identification Sequence
         #TODO (1+ items) (0018,9737) Radiopharmaceutical Usage Sequence
         #TODO (0018,9771) Patient Physiological State Sequence
         #TODO (0020,930E) Plane Position (Volume) Sequence
@@ -166,6 +166,17 @@ def multi_frame(dataset):
             if key == (0x0028,0x0008) :
                 # Number of Frames : do not store it in frame dataset
                 pass
+            elif key == (0x5200,0x9229) :
+                # Shared Functional Groups Sequence : get the group and assign
+                # elements in the group to the frame dataset
+                for group_key, group_value in value[0].items() :
+                    if group_key in merge_groups : 
+                        # Copy the values of the only sequence item directly to
+                        # the frame dataset
+                        frame.update(group_value[0])
+                    else :
+                        # Otherwise, copy the group element to the frame dataset
+                        frame[group_key] = group_value 
             elif key == (0x5200,0x9230) : 
                 # Per-frame Functional Groups Sequence : get the group based
                 # on the frame number, and assign elements in the group to
