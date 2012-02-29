@@ -44,8 +44,7 @@ class TestSchemes(unittest.TestCase):
                                         "00020004"))
         image = medipy.io.load(url)
         self.assertTrue(isinstance(image, medipy.base.Image))
-        self.assertEqual(image.shape, (1, 288, 288))
-        numpy.testing.assert_array_almost_equal(image.spacing, (1, 0.7986111, 0.7986111))
+        self.assertEqual(image.metadata["loader"]["url"], url)
         self.clean_dicom(location)
     
     def test_dicomdir(self):
