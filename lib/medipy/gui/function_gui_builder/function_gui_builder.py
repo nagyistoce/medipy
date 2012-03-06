@@ -160,6 +160,15 @@ class FunctionGUIBuilder(object):
         
         self._run_button.Enable(all_controls_valid)
     
+    ##############
+    # Properties #
+    ##############
+    
+    def _get_controls(self):
+        return self._controls
+    
+    controls = property(_get_controls)
+    
     ##########
     # Events #
     ##########
