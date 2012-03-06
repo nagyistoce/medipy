@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import os
@@ -20,6 +20,7 @@ import medipy.gui.dicom.reconstruction
 
 from medipy.gui.annotations.annotations_dialog import AnnotationsDialog
 from medipy.gui.base import Application
+import medipy.gui.control
 from medipy.gui.image.cine_dialog import CineDialog
 from medipy.gui.image.layers_dialog import LayersDialog
 from medipy.gui.image.tools import MouseTool
@@ -350,6 +351,10 @@ class MediPyApp(Application) :
         if self._annotations_dialog is not None :
             self._annotations_dialog.image = gui_image
             self._annotations_dialog.annotations = gui_image.annotations
+        if hasattr(self._frame.current_ui, "controls") :
+            for control in self._frame.current_ui.controls.values() :
+                if isinstance(control, medipy.gui.control.Coordinates) :
+                    control.image = gui_image
     
     def _get_active_image(self):
         if self._active_image_index != -1 :
