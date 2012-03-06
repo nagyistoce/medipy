@@ -53,7 +53,7 @@ extern void 	histo_joint_maxentropie_3d_p	(grphic3d *im1, grphic3d *im2, grphic 
 
 
 
-/******* Normalisation par mï¿½lange de gaussiennes sans calcul de l'histogramme joint ********/
+/******* Normalisation par mélange de gaussiennes sans calcul de l'histogramme joint ********/
 
 extern void  		normalisation_gaussienne2d				(void);
 extern void  		normalisation_gaussienne2d_p			(grphic3d *im1,grphic3d *im2,grphic3d *imres,int nb_classe);
@@ -67,7 +67,7 @@ extern void 		apply_normalisation_gaussienne2d	(grphic3d *imreca,grphic3d *imref
 
 
 
-/******* Normalisation par mï¿½lange de gaussiennes avec calcul de l'histogramme joint ********/
+/******* Normalisation par mélange de gaussiennes avec calcul de l'histogramme joint ********/
 extern void  		normalisation_gaussienne2d_histo_joint								(void);
 extern void  		imx_normalisation_gaussienne2d_histo_joint_standart_p	(grphic3d *im1,grphic3d *im2,grphic3d *imres,int nb_classe);
 extern void  		normalisation_gaussienne2d_histo_joint_standart_p			(grphic3d *im1,grphic3d *im2,grphic3d *imres,grphic *histo,int nb_classe);
@@ -86,7 +86,7 @@ extern void 		apply_normalisation_gaussienne_histo_joint_multimodal	(grphic3d *i
 
 
 
-/******* Normalisation par mï¿½lange de gaussiennes (cas multimodal)  ********/
+/******* Normalisation par mélange de gaussiennes (cas multimodal)  ********/
 
 extern void  	normalisation_gaussienne2d_histo_joint_multimodal				(void);
 extern void  	imx_normalisation_gaussienne2d_histo_joint_multimodal_p	(grphic3d *im1,grphic3d *im2,grphic3d *imres,int nb_classe);

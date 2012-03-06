@@ -56,7 +56,7 @@ class Dicom(IOBase) :
         metadata["spacing"] = self._image.spacing
         return metadata
     
-    def can_save(self):
+    def can_save(self,image):
         return False
     
     ##############

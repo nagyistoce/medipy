@@ -38,8 +38,8 @@
 #include "noyau/imagix.h"
 #include "noyau/gtkimagix.h" 
 #include "combinaisons_sujetcpp.h"
-
 #include "appel_combinaisons_sujet.h"
+
 
  
 /******************************************************************************
@@ -55,7 +55,7 @@
 
 void cout_combinaisons_sujet()
 {
-  int result,err,k,taille_img,im_rec;
+  int result,err,k,im_rec;
   char* dossier_sujet =CALLOC(80,char);
   char* chemin_cout_sujet =CALLOC(80,char);
 
@@ -176,7 +176,7 @@ void apprentissage_erreur_moment()
 void imx_apprentissage_erreur_moment(int im_ref,char* chemin_erreur_sujets,char* chemin_apprentissage_erreur)
 {
   grphic3d *imref;
-
+  imref=ptr_img_3d(im_ref);
   FILE * fic1, * fic2, * fic3;
   char* chemin_erreur =CALLOC(80,char);
   field3d *champ;
@@ -188,8 +188,7 @@ void imx_apprentissage_erreur_moment(int im_ref,char* chemin_erreur_sujets,char*
   float Mx,My,Mz,Vx,Vy,Vz,Vxy,Vxz,Vyz;     		
 int n;
 /*********Initialisation du fichier d'apprentissage d'erreur chemin_apprentissage_erreur a ZERO pour tte les statistiques***********/
-imref=ptr_img_3d(im_ref);
-fic2 = fopen(chemin_apprentissage_erreur, "w");
+  fic2 = fopen(chemin_apprentissage_erreur, "w"); 
   wdth=imref->width;
   hght=imref->height;
   dpth=imref->depth;
@@ -199,10 +198,10 @@ fic2 = fopen(chemin_apprentissage_erreur, "w");
   {
   	if(imref->mri[i][j][k] != 0)
   	{
-	fprintf(fic2, "%f %f %f %f %f %f %f %f %f \n",0,0,0,0,0,0,0,0,0);	
+	fprintf(fic2, "%f %f %f %f %f %f %f %f %f \n",0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0);	
 	}
   }
-  close(fic2);
+  fclose(fic2);
 /*********ouverture et parcours du fichier contenant la liste des fichiers d'erreur***********/
   fic1 = fopen(chemin_erreur_sujets, "r"); 	
   while( fscanf(fic1,"%s",chemin_erreur) !=EOF )
@@ -241,8 +240,8 @@ n=n+1;
 
 	/*******fermer le fichier contenant l'apprentissage d'erreur et le fichier temporaire*******/
 	fflush(fic3);
-	close(fic2);
-	close(fic3);
+	fclose(fic2);
+	fclose(fic3);
 	/*La copie des nouvelles val statistique dans le fichier réel et suppression du fichier temporaire*/
 	rename("tmpAP.txt",chemin_apprentissage_erreur);
 
@@ -252,7 +251,7 @@ free_field3d(champ);
 free_transf3d(transfo);  
 
 fflush(stdout);
-close(fic1);
+fclose(fic1);
 
   /**************Finir le calcul des statistiques**********/
   fic2 = fopen(chemin_apprentissage_erreur, "r"); 
@@ -268,8 +267,8 @@ n=n+1;
   fprintf(fic3, "%f %f %f %f %f %f %f %f %f \n",Mx/nbr_suj,My/nbr_suj,Mz/nbr_suj,(Vx/nbr_suj)-pow((Mx/nbr_suj),2),(Vy/nbr_suj)-pow((My/nbr_suj),2),(Vz/nbr_suj)-pow((Mz/nbr_suj),2), (Vxy/nbr_suj)-(Mx/nbr_suj)*(My/nbr_suj), (Vxz/nbr_suj)-(Mx/nbr_suj)*(Mz/nbr_suj), (Vyz/nbr_suj)-(Mz/nbr_suj)*(My/nbr_suj));
   }
   fflush(fic3);
-  close(fic2);
-  close(fic3);
+  fclose(fic2);
+  fclose(fic3);
   /*La copie des nouvelles val statistique dans le fichier réel*/ 
   rename("tmpAP.txt",chemin_apprentissage_erreur);
 
@@ -318,14 +317,13 @@ void EMV_champs_moments()
 void imx_EMV_champs_moments(int im_ref,char* chemin_champ_covr,char* chemin_champ_combine)
 {
   grphic3d *imref;
-
-  int err,i,j,k,indice;
+  imref=ptr_img_3d(im_ref);
+  int i,j,k;
   FILE * fic_cov, *fic_normalisation, *fic_tmp;					
   FILE * fic;
   transf3d *transf,*transfres;
   field3d *ch=NULL,*chres=NULL;
   TDimension wdth, hght,dpth;
-  vector3d ***data,***datares;
   double dx,dy,dz;
   char chemin_champ[80],chemin_cov[80];
   double Mx,My,Mz,Vx,Vy,Vz,Vxy,Vxz,Vyz;
@@ -334,7 +332,7 @@ void imx_EMV_champs_moments(int im_ref,char* chemin_champ_covr,char* chemin_cham
   double **cov_vox=NULL;
   double **inv_cov_vox;					
 
-  imref=ptr_img_3d(im_ref);
+
 
 /********************espace mémoire du champ résultat, son intitialisation a 0 et initialisation des somme de cov inverse a 0*************************/
   fic_normalisation = fopen("normalisation.txt", "w"); 
@@ -351,11 +349,11 @@ void imx_EMV_champs_moments(int im_ref,char* chemin_champ_covr,char* chemin_cham
   chres->raw[i][j][k].x=0;					///////////////ja i le droit de donner à comme valeur de champs pour les voxel nul 
   chres->raw[i][j][k].y=0;
   chres->raw[i][j][k].z=0;
-  if(imref->mri[i][j][k] != 0) fprintf(fic_normalisation, "%f %f %f %f %f %f \n",0,0,0,0,0,0);
+  if(imref->mri[i][j][k] != 0) fprintf(fic_normalisation, "%f %f %f %f %f %f \n",0.0,0.0,0.0,0.0,0.0,0.0);
 		
   }
   fflush(fic_normalisation);
-  close(fic_normalisation);
+  fclose(fic_normalisation);
 
 /********************Parcour du fichier contenant les mesure (cad les champs trf des moment retenus et leur fichier de covariance)*************************/
   fic = fopen(chemin_champ_covr, "r"); 
@@ -396,7 +394,7 @@ void imx_EMV_champs_moments(int im_ref,char* chemin_champ_covr,char* chemin_cham
 			inv_cov_vox=matrix_inversion(cov_vox, 3);	
 /***le tableau normalisation contient la somme des inverse des matrice de covariance en chaque voxel******/
 fscanf(fic_normalisation,"%lf %lf %lf %lf %lf %lf \n",&Vx,&Vy,&Vz,&Vxy,&Vxz,&Vyz);
-fprintf(fic_tmp,"",Vx+inv_cov_vox[0][0],Vy+inv_cov_vox[1][1],Vz+inv_cov_vox[2][2],Vxy+inv_cov_vox[0][1],Vxz+inv_cov_vox[0][2],Vyz+inv_cov_vox[1][2]);
+fprintf(fic_tmp,"%lf %lf %lf %lf %lf %lf \n",Vx+inv_cov_vox[0][0],Vy+inv_cov_vox[1][1],Vz+inv_cov_vox[2][2],Vxy+inv_cov_vox[0][1],Vxz+inv_cov_vox[0][2],Vyz+inv_cov_vox[1][2]);
 
 
 			tmp_vox = matrix_multiply_vector(inv_cov_vox,3,3,ch_vox);
@@ -413,14 +411,14 @@ fprintf(fic_tmp,"",Vx+inv_cov_vox[0][0],Vy+inv_cov_vox[1][1],Vz+inv_cov_vox[2][2
 
 
   	fflush(fic_tmp);
-	close(fic_tmp);
-	close(fic_normalisation);
+	fclose(fic_tmp);
+	fclose(fic_normalisation);
 	rename("tmpNRM.txt","normalisation.txt");
 
   	free_field3d(ch);
-	close(fic_cov);
+	fclose(fic_cov);
   }
-  close(fic);
+  fclose(fic);
 /********************Parcour du champs combiné résultat et sa normalisation (division par l inverse de la somme des inverse des covariance****************/
   fic_normalisation = fopen("normalisation.txt", "r"); 
 
@@ -454,7 +452,7 @@ fprintf(fic_tmp,"",Vx+inv_cov_vox[0][0],Vy+inv_cov_vox[1][1],Vz+inv_cov_vox[2][2
 	}
   }
 
-  close(fic_normalisation);
+  fclose(fic_normalisation);
 /********************Enregistrement du champs combiné résultat*************************/
   transfres=field_to_transf_3d(chres,NULL,NULL);
   transfres->dx=dx;					
@@ -505,12 +503,11 @@ void calcul_statistiques()
 
 void imx_calcul_statistiques(int im_ref,char* chemin_statistiques)
 {
-  int 	i,j,k,Nbpas;
+  int 	i,j,k;
   int wdth,hght,dpth,inb;
   float moy,ecty;
   float rcoeff;
   double a1;
-  float tmp;
   double std_tmp, moy_tmp;
   grphic3d *imref;
   FILE * fic;
@@ -554,7 +551,7 @@ void imx_calcul_statistiques(int im_ref,char* chemin_statistiques)
 
   fic = fopen(chemin_statistiques, "a"); 
   fprintf(fic,"%f %f \n",moy,ecty);
-  close(fic);
+  fclose(fic);
 
 
 }

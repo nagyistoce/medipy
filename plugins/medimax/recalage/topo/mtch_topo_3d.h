@@ -5,13 +5,20 @@
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * for details.
  ************************************************************************/
+#include <config.h>
 
 #ifndef mtch_topo_3d_h
 #define mtch_topo_3d_h
+
+#ifndef COMPILE_FOR_MEDIPY
+#include "dti/dti_3d.h"
+#endif //fin COMPILE_FOR_MEDIPY
+
 #include "recalage/mtch_3d.h"
 #include "recalage/topo/analyse_intervalle.h"
 #include "recalage/topo/normalisation_topo.h"
 #include "recalage/topo/divers_topo.h"
+#include "math/imx_matrix.h"
 
 
 #define TOPO_DEBUG      	/* On commente la ligne pour passer en mode Debug */
@@ -64,6 +71,11 @@ typedef struct s_hessien3d {
 
 typedef struct s_ParamRecalageBspline {
 field3d *chref;
+
+#ifndef COMPILE_FOR_MEDIPY
+ptr_dti_3d  item_ref,item_reca,item_res;
+#endif //fin COMPILE_FOR_MEDIPY
+
 grphic3d** serie_groupwise;
 grphic3d* reca_groupwise,*ref_groupwise,*ref2_groupwise;
 double ***dbl_ref_groupwise,***dbl_ref2_groupwise;
@@ -77,8 +89,8 @@ int nb_reca_groupwise;
 
 typedef struct s_HistoJoint {
 int nbI,nbJ; // taille de l'histogramme joint
-int Ntot; //nombre d'ï¿½lï¿½ments total
-double maxI,maxJ; // valeurs maximales dans les images I (image reca) et J (image rï¿½fï¿½rence)
+int Ntot; //nombre d'éléments total
+double maxI,maxJ; // valeurs maximales dans les images I (image reca) et J (image référence)
 double normI,normJ; // coefficient de normalisation pour obtenir la valeur correspondante dans l'histojoint : normI = nbI/maxI
 double **hij; // proba jointe
 double *hi,*hj; // proba marginales
@@ -189,8 +201,8 @@ extern int 	imx_matching_Bspline_topo_symetrique_3d_p(grphic3d *imref, grphic3d 
 																				  double Jmin, double Jmax, int normalisation_type, int nb_classe,int adaptatif);
 /************************ Projection d'un champ pour qu'il preserve la topologie  ************************************/
 void Project_Field_Bspline_topo_3d();
-int imx_Project_Field_Bspline_topo_3d(char *nomfichier,char* nomfichres,int min_type,int resolf,double Jmin,double Jmax,int reg_type,double prec, int im_invariant);
-void imx_Project_Field_Bspline_topo_3d_p(field3d* ch,transf3d *transfores,transf3d *transfo_opp,int min_type,int resolf,double Jmin,double Jmax,int reg_type, double prec,grphic3d *mask);
+int imx_Project_Field_Bspline_topo_3d(char *nomfichier,char* nomfichres,int min_type,int resolf,double Jmin,double Jmax,int reg_type,double prec, int im_invariant, int im_ROI);
+void imx_Project_Field_Bspline_topo_3d_p(field3d* ch,transf3d *transfores,transf3d *transfo_opp,int min_type,int resolf,double Jmin,double Jmax,int reg_type, double prec,grphic3d *mask, grphic3d *ROI);
 int imx_dti_matching_Bspline_topo_3d_p(int func_type, int dist_type, int reg_type, int inter_type, int min_type, int save_type, char *nomfichres, int resolf, double Jmin, double Jmax, int normalisation_type, int nb_classe);
 extern void dti_matching_Bspline_topo_3d();
 void groupwise_matching_Bspline_topo_3d();

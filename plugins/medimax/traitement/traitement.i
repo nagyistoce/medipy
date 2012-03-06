@@ -9,6 +9,8 @@
 %module traitement
 %{
 #include "correction.h"
+#include "fonctions_wrappees_traitement.h"
+
 %}
 
 %include ../wrapping/grphic3d.i
@@ -23,9 +25,26 @@ MEDIMAX_FUNCTION_MACRO(imx_corr_sagittal_3d_p,
 """
 Correct Dark Bright Alternation of sections along Y axis
 
-	imori  	: Image to correct
-	imres	: resulting image 	
-""", imres.data = numpy.ndarray(imori.shape, imori.data.dtype), imori, imres)
+    imori   : Image to correct
+    imres   : resulting image   
+""", , imori, imres)
 
+
+//-------------------------------------------------------------
+//     Normalize intensity between two registered images 
+//-------------------------------------------------------------
+void IntensityNormalisationForRegisteredImages(grphic3d *imsrc, grphic3d *imref, grphic3d *imres, grphic3d *mask_imsrc,grphic3d * mask_imref, int method);
+MEDIMAX_FUNCTION_MACRO(IntensityNormalisationForRegisteredImages,
+"""
+Normalize intensity between two registered images
+
+    imsrc : Image to correct
+    imref : Reference image
+    imres : Corrected image
+    mask_imsrc : mask of Image to correct
+    mask_imref : mask of Reference image
+    method : 0->oneParameterLinearRegression, 1->twoParameterLinearRegression, 2->totalLeastSquare
+    
+""",, imsrc, imref, imres, mask_imsrc, mask_imref, method )
 
 

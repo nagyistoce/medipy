@@ -14,6 +14,11 @@
 #include "recalage/topo/divers_topo.h"
 #include "math/imx_matrix.h"
 #include "noyau/gui/imx_picture3d.h"
+
+#ifndef COMPILE_FOR_MEDIPY
+#include "noyau/gui/imx_plot.h"
+#endif //fin COMPILE_FOR_MEDIPY
+
 #include "math/imx_bspline.h"	/* pour les fonctions d'interpolation */
 #include "noyau/mani_3d.h"
 #ifdef __GTK_GUI
@@ -31,6 +36,7 @@
 #include "morpho/morpho_3d.h"
 #include "noyau/io/imx_file.h"
 #include "noyau/io/imx_head.h"
+#include "noyau/io/file_3d.h"
 
 int NB_BLOC_POINT_FIXE;
 int INV_BSPLINE_RESOL=-1;
@@ -142,7 +148,7 @@ for (i=0;i<nb_param/3;i++)
 	   {
   	   
 			
-		//test de la nouvelle fonction d'ï¿½valuation du jacobien 
+		//test de la nouvelle fonction d'évaluation du jacobien 
 		eval_jacobien_transfo_bspline1_3d(p, nb_param, wdth, hght, dpth, i, j, k, toto);
 		tmpJ=toto[0][0]*(toto[1][1]*toto[2][2]-toto[1][2]*toto[2][1])
 					-toto[1][0]*(toto[0][1]*toto[2][2]-toto[0][2]*toto[2][1])
@@ -223,9 +229,9 @@ double auxdbl[20],auxdbl21a[21], auxdbl21b[21];
 double  ***J;
 double maxJ=-100000,minJ=100000,rcoeff,tmpJ,xt,yt,zt,xt1,yt1,zt1,aux2,Jtot=0;
 int singularite=0,vol;
-int D;
+
 nb_param=transfo->nb_param;
-D = TOP_D(nb_param); 			      // D : valeur max des indices i, j, k
+int D = TOP_D(nb_param); 			      // D : valeur max des indices i, j, k
 
 param_norm=malloc(nb_param*sizeof(double));
    
@@ -991,7 +997,7 @@ void apply_inverse_transf_3d(void)
 /*******************************************************************************
 ** 	inverse_transf_3d                                   
 **                                                                   
-**	Cette fonction permet de calculer l'inverse d'un champ avec la mï¿½thode   
+**	Cette fonction permet de calculer l'inverse d'un champ avec la méthode   
 **     itkInverseDeformationFieldImageFilter de Itk 
 *******************************************************************************/
 void	itkInverseDeformationFieldImageFilter_3d(void)
@@ -1068,7 +1074,6 @@ float dxres, dyres, dzres;
 double *param,prec;
 field3d /**ch1,*/*chres;
  char *quest[4];
- grphic3d *imref;
  
  for(i=0;i<4;i++)
     quest[i]=CALLOC(80,char);
@@ -1095,7 +1100,7 @@ field3d /**ch1,*/*chres;
   strcpy(quest[2],"Preciser a partir d'une image");
   strcpy(quest[3],"\0");
 
-  choix=GETV_QCM("Caracteristiques de l'espace de depart",(char **)quest);
+  choix=GETV_QCM("Caracteristiques de l'espace de depart",(const char **)quest);
 
   switch(choix)
   	{
@@ -1115,7 +1120,7 @@ field3d /**ch1,*/*chres;
 	
 	case 2:
 	im_ref= GET_PLACE3D("image de reference");
-
+	grphic3d *imref;
 	imref=ptr_img_3d(im_ref);
 	
 	wdth_res=imref->width;
@@ -1458,7 +1463,7 @@ p = CALLOC(transfo->nb_param,double);
 
 if (p==NULL)
 	{
-	printf("Problï¿½me d'allocation dans inv_bspline_3d \n");
+	printf("Problème d'allocation dans inv_bspline_3d \n");
 	exit(-1);
 	}
 
@@ -1630,7 +1635,7 @@ for (i=0;i<wdth;i++)
 
 	}
 
-/* verification a posteriori de la prï¿½cision */
+/* verification a posteriori de la précision */
 for (i=0;i<wdth;i++)
    for (j=0;j<hght;j++)
     for (k=0;k<dpth;k++)
@@ -1671,7 +1676,7 @@ for (i=0;i<wdth;i++)
      aff_log("TEMPS PARTIEL: %dh %dm %ds \n",h,m,s);
     }
 
-/* estimation de la prï¿½cision de la transfo inverse */
+/* estimation de la précision de la transfo inverse */
 
 max=0;
 Ntot=0;N=0;
@@ -1701,7 +1706,7 @@ for (i=0;i<wdth;i++)
 moyenne = moyenne/Ntot;
 
 printf("Erreur max = %f \t Erreur min = %f \t Erreur moyenne %f \n",max,min,moyenne);
-printf("Pourcentage de voxel avec une prï¿½cision inferieur ï¿½ %f :  %f pourcent \n",prec,100.0*N/Ntot);
+printf("Pourcentage de voxel avec une précision inferieur à %f :  %f pourcent \n",prec,100.0*N/Ntot);
 printf("Nombre de voxel : %d \t Pourcentage de voxel pour lesquels le point fixe n'a pas fonctionne :  %f pourcent \n",NB_BLOC_POINT_FIXE,100.0*(double)NB_BLOC_POINT_FIXE/(double)Ntot2);
 
 
@@ -1765,8 +1770,8 @@ return(1);
 /*******************************************************************************
 ** 	transfo* ConvertTransfoField3dToBase3d(ch);                                   
 **                                                                   
-**	Converti une transfo field3d en une transfo Bspline de degrï¿½ 1  
-** transfo est allouï¿½ dans la fonction
+**	Converti une transfo field3d en une transfo Bspline de degré 1  
+** transfo est alloué dans la fonction
 *******************************************************************************/
 transf3d* ConvertTransfoField3dToBase3d(transf3d *transfo_field3d )
 {
@@ -1834,7 +1839,7 @@ return(transfo_base3d);
 /*******************************************************************************
 ** 	ProjectBase3dintoTopologyPreservingTransformation(ch);                                   
 **                                                                   
-**	Modifie les parametres d'une transfo Bspline pour qu'elle prï¿½serve la topologie
+**	Modifie les parametres d'une transfo Bspline pour qu'elle préserve la topologie
 *******************************************************************************/
 int ProjectBase3dintoTopologyPreservingTransformation(transf3d *transfo_base3d )
 {
@@ -2655,7 +2660,7 @@ void filtre_champ_gaussien_3d(void)
   strcpy(quest[3],"9 x 9 x 9");
   strcpy(quest[4],"\0"); 
 
-  val=GETV_QCM("Mask ?",(char **)quest);
+  val=GETV_QCM("Mask ?",(const char **)quest);
 
 
   for(i=0;i<5;i++)
@@ -2992,8 +2997,8 @@ free_field3d(ch_res);
 *********
 *********  ----------------- eval_deplacement_bspline1_3d
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 void eval_deplacement_bspline1_3d(double *param, int nb_param, int wdth, int hght, int dpth, double x, double y, double z, dvector3d* u)
@@ -3045,7 +3050,7 @@ zm=((double)topk+1.0)*(double)dpth/(double)coeff2l;
 norm=(xm-x0)*(ym-y0)*(zm-z0);
 
 
-/* recopie des paramï¿½tres relatif au bloc considï¿½rï¿½ */
+/* recopie des paramètres relatif au bloc considéré */
 	
 	if ((topi<topMax)&&(topj<topMax)&&(topk<topMax))
 		{
@@ -3179,7 +3184,7 @@ u->z=
 u->z=u->z/norm;
 
 
-/* Forme factorisee pour gagner peut-ï¿½tre du temps CPU */
+/* Forme factorisee pour gagner peut-être du temps CPU */
 /*u->x=
  dzm*(
  		dym*(ax000*dxm+ax100*dx0)+
@@ -3222,8 +3227,8 @@ u->z=u->z/norm;
 *********
 *********  ----------------- eval_transfo_bspline1_3d
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 void eval_transfo_bspline1_3d(double *param, int nb_param, int wdth, int hght, int dpth, double x, double y, double z, dvector3d* u)
@@ -3238,8 +3243,8 @@ u->z=u->z+z;
 *********
 *********  ----------------- eval_jacobien_transfo_bspline1_3d
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles de la matrice jacobienne 
-*********    d'un champ de dï¿½formation de Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles de la matrice jacobienne 
+*********    d'un champ de déformation de Bspline de degré 1
 ********************************************************************************/
 
 void eval_jacobien_transfo_bspline1_3d(double *param, int nb_param, int wdth, int hght, int dpth, double x, double y, double z, double** J)
@@ -3277,7 +3282,7 @@ zm=(topk+1)*dpth/coeff2l;
 
 norm=(xm-x0)*(ym-y0)*(zm-z0);
 
-/* recopie des paramï¿½tres relatif au bloc considï¿½rï¿½ */
+/* recopie des paramètres relatif au bloc considéré */
 	
 	if ((topi<topMax)&&(topj<topMax)&&(topk<topMax))
 		{
@@ -3490,8 +3495,8 @@ J[2][2]=1.0+(
 *********
 *********  ----------------- eval_jacobien_transfo_bspline1_BoiteInvBspline_3d
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles de la matrice jacobienne 
-*********    d'un champ de dï¿½formation de Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles de la matrice jacobienne 
+*********    d'un champ de déformation de Bspline de degré 1
 ********************************************************************************/
 
 void eval_jacobien_transfo_bspline1_BoiteInvBspline_3d(BoiteInvBspline *ParamInvBspline, double x, double y, double z, double** J)
@@ -3635,14 +3640,12 @@ double raffinement_bspline_inv_3d(double *param,int nb_param,field3d *chdepart,f
  dvector3d hmid;
  double distance,distance2,prec_tmp/*,prec_num=0.0001*/,reduc;
  int wdth,hght,dpth,umin,umax,vmin,vmax,wmin,wmax,nb_boite=0;
-
-int resol,coeff2l,imin,imax,jmin,jmax,kmin,kmax,ii,jj,kk;
- int u,v,w,u1,v1,w1,nb_iter=0;
- double  xmid,ymid,zmid;
-
  prec_tmp=prec;
  myQ.nelem = 0;
  myL.nelem = 0;
+int resol,coeff2l,imin,imax,jmin,jmax,kmin,kmax,ii,jj,kk;
+ int u,v,w,u1,v1,w1,nb_iter=0;
+ double  xmid,ymid,zmid;
  
 if (INV_BSPLINE_RESOL!=-1)
 	resol=INV_BSPLINE_RESOL;
@@ -3698,7 +3701,7 @@ NB_BLOC_POINT_FIXE++;
 
 
 
- //---- On dï¿½coupe la boite pour que chaque sous-boite soi incluse sur un Slpqr
+ //---- On découpe la boite pour que chaque sous-boite soi incluse sur un Slpqr
 
  if (umin<wdth)
  	imin=floor(1.0*umin/wdth*coeff2l);
@@ -3846,7 +3849,7 @@ NB_BLOC_POINT_FIXE++;
 			chres->raw[i][j][k].x=hmid.x-i;
 			chres->raw[i][j][k].y=hmid.y-j;
 			chres->raw[i][j][k].z=hmid.z-k;
-			// on vide la liste chainï¿½e
+			// on vide la liste chainée
 			while (myQ.nelem>0)
 				depile_end(&myQ);
 				
@@ -3925,14 +3928,14 @@ while (myQ.nelem>0)
 			}
 			else
 			{
-			//-- La boite est suffisamment prï¿½cise, on peut quitter la fonction
+			//-- La boite est suffisamment précise, on peut quitter la fonction
 				
 			empile_front(&myL,myB);
 				/*chres->raw[i][j][k].x=xmid-i;
 				chres->raw[i][j][k].y=ymid-j;
 				chres->raw[i][j][k].z=zmid-k;
 				
-				// on vide la liste chainï¿½e
+				// on vide la liste chainée
 				while (myQ.nelem>0)
 					depile_end(&myQ);
 									
@@ -3992,7 +3995,7 @@ while (myL.nelem>0)
 	chres->raw[i][j][k].y=ymid-j;
 	chres->raw[i][j][k].z=zmid-k;
 	 
-	 // on vide la liste chainï¿½e
+	 // on vide la liste chainée
 	while (myQ.nelem>0)
 	  depile_end(&myQ);
 				
@@ -4411,7 +4414,7 @@ double xmid,ymid,zmid;
 double distance,distance2,pourcentage_reduction=0.9;
 dvector3d hmid;
 
-//---- Initialisation des paramï¿½tres caractï¿½ristiques du bloc myB considï¿½rï¿½  -----
+//---- Initialisation des paramètres caractéristiques du bloc myB considéré  -----
 
 if (INV_BSPLINE_RESOL!=-1)
 	resol=INV_BSPLINE_RESOL;
@@ -4451,7 +4454,7 @@ zm=(double)(topk+1.0)*dpth/coeff2l;
 norm=(xm-x0)*(ym-y0)*(zm-z0);
 
 
-// recopie des paramï¿½tres relatif au bloc considï¿½rï¿½ 
+// recopie des paramètres relatif au bloc considéré 
 	
 	if ((topi<topMax)&&(topj<topMax)&&(topk<topMax))
 		{
@@ -4539,7 +4542,7 @@ norm=(xm-x0)*(ym-y0)*(zm-z0);
 
 
 
-//----- Mise ï¿½ jour de ParamInvBspline
+//----- Mise à jour de ParamInvBspline
 ParamInvBspline.resol=resol;
 ParamInvBspline.topi=topi;
 ParamInvBspline.topj=topj;
@@ -4611,7 +4614,7 @@ else
 while((pourcentage<pourcentage_reduction)&&((distance>precis)||(distance2>precis))&&(pourcentage>0)&&(nb_iter<20));
 
 //if (pourcentage<1)
-//printf("Le grignotage a fontionnï¿½  en %d iteration sur la boite %d %d %d  et la reduction est de %f \n",nb_iter,(int)i,(int)j,(int)k,result);   
+//printf("Le grignotage a fontionné  en %d iteration sur la boite %d %d %d  et la reduction est de %f \n",nb_iter,(int)i,(int)j,(int)k,result);   
 
 
 if ((distance<precis)&&(distance2<precis))
@@ -4646,7 +4649,7 @@ int comp_double(const void *num1, const void *num2)
 *********  ----------------- grignote_boite_suivant_x
 *********
 *********		Grignotte une boite suivant x
-*********		valeur de retour : pourcentage de rï¿½duction de la boite
+*********		valeur de retour : pourcentage de réduction de la boite
 *********				
 ********************************************************************************/
 double grignote_boite_suivant_x(BoiteInvBspline *ParamInvBspline, TOPTbox* myB,double i,double j,double k)
@@ -4694,7 +4697,7 @@ if ((is_xm!=0)||(is_xM!=0))
 size_arrive=myB->xM-myB->xm;
 
 if (myB->xm>myB->xM)
-	printf("Il y a un problï¿½me pour x!!!\n");
+	printf("Il y a un problème pour x!!!\n");
 
 pourcentage=1.0-(size_depart-size_arrive)/size_depart;
 
@@ -4713,7 +4716,7 @@ int l,stop;
 
 size_depart=myB->xM-myB->xm;
 
-//---- on considï¿½re les valeurs 4 coins des faces d'abscisse x
+//---- on considère les valeurs 4 coins des faces d'abscisse x
 
 grignote_eval_proposition_x(ParamInvBspline,myB,myB->ym, myB->zm,i,j,k, &x1, &x2, &x3);
 tabx[0]=x1;tabx[1]=x2;tabx[2]=x3;
@@ -4772,7 +4775,7 @@ if (!isinf(xM)&&(xM<myB->xM))
 size_arrive=myB->xM-myB->xm;
 
 if (myB->xm>myB->xM)
-	printf("Il y a un problï¿½me pour x!!!\n");
+	printf("Il y a un problème pour x!!!\n");
 
 pourcentage=1.0-(size_depart-size_arrive)/size_depart;
 return(pourcentage);
@@ -4792,7 +4795,7 @@ dvector3d h[8];
 double xmin,xmax,ymin,ymax,zmin,zmax;
 int l,retour=0;
 
-//Pour ce prï¿½munir des erreurs de precision 
+//Pour ce prémunir des erreurs de precision 
 x=x-PRECISION_NUMERIQUE_INV_BSPLINE;
 
 /* on verifie si xm est effectivement une borne inf */
@@ -4846,7 +4849,7 @@ dvector3d h[8];
 double xmin,xmax,ymin,ymax,zmin,zmax;
 int l,retour=0;
 
-//Pour ce prï¿½munir des erreurs de precision 
+//Pour ce prémunir des erreurs de precision 
 x=x+PRECISION_NUMERIQUE_INV_BSPLINE;
 
 /* on verifie si xM est effectivement une borne inf */
@@ -4892,7 +4895,7 @@ return(retour);
 *********  ----------------- grignote_boite_suivant_y
 *********
 *********		Grignotte une boite suivant y
-*********		valeur de retour : pourcentage de rï¿½duction de la boite
+*********		valeur de retour : pourcentage de réduction de la boite
 *********				
 ********************************************************************************/
 double grignote_boite_suivant_y(BoiteInvBspline *ParamInvBspline, TOPTbox* myB,double i,double j,double k)
@@ -4941,7 +4944,7 @@ if ((is_ym!=0)||(is_yM!=0))
 size_arrive=myB->yM-myB->ym;
 
 if (myB->ym>myB->yM)
-	printf("Il y a un problï¿½me pour y!!!\n");
+	printf("Il y a un problème pour y!!!\n");
 
 pourcentage=1.0-(size_depart-size_arrive)/size_depart;
 return(pourcentage);
@@ -4957,7 +4960,7 @@ int l,stop;
 
 size_depart=myB->yM-myB->ym;
 
-//---- on considï¿½re les valeurs 4 coins des faces d'abscisse y
+//---- on considère les valeurs 4 coins des faces d'abscisse y
 
 grignote_eval_proposition_y(ParamInvBspline,myB,myB->xm, myB->zm,i,j,k, &x1, &x2, &x3);
 tabx[0]=x1;tabx[1]=x2;tabx[2]=x3;
@@ -5017,7 +5020,7 @@ while ((stop==0)&&(l>=0))
 
 
 if (myB->ym>myB->yM)
-	printf("Il y a un problï¿½me pour y!!!\n");
+	printf("Il y a un problème pour y!!!\n");
 	
 		
 size_arrive=myB->yM-myB->ym;
@@ -5039,7 +5042,7 @@ dvector3d h[8];
 double xmin,xmax,ymin,ymax,zmin,zmax;
 int l,retour=0;
 
-//Pour ce prï¿½munir des erreurs de precision 
+//Pour ce prémunir des erreurs de precision 
 y=y-PRECISION_NUMERIQUE_INV_BSPLINE;
 
 /* on verifie si xm est effectivement une borne inf */
@@ -5092,7 +5095,7 @@ dvector3d h[8];
 double xmin,xmax,ymin,ymax,zmin,zmax;
 int l,retour=0;
 
-//Pour ce prï¿½munir des erreurs de precision 
+//Pour ce prémunir des erreurs de precision 
 y=y+PRECISION_NUMERIQUE_INV_BSPLINE;
 
 /* on verifie si xM est effectivement une borne inf */
@@ -5136,7 +5139,7 @@ return(retour);
 *********  ----------------- grignote_boite_suivant_z
 *********
 *********		Grignotte une boite suivant z
-*********		valeur de retour : pourcentage de rï¿½duction de la boite
+*********		valeur de retour : pourcentage de réduction de la boite
 *********				
 ********************************************************************************/
 double grignote_boite_suivant_z(BoiteInvBspline *ParamInvBspline, TOPTbox* myB,double i,double j,double k)
@@ -5185,7 +5188,7 @@ if ((is_zm!=0)||(is_zM!=0))
 size_arrive=myB->zM-myB->zm;
 
 if (myB->zm>myB->zM)
-	printf("Il y a un problï¿½me pour z!!!\n");
+	printf("Il y a un problème pour z!!!\n");
 
 pourcentage=1.0-(size_depart-size_arrive)/size_depart;
 return(pourcentage);
@@ -5195,11 +5198,11 @@ return(pourcentage);
 double grignote_boite_suivant_z2(BoiteInvBspline *ParamInvBspline, TOPTbox* myB,double i,double j,double k)
 {
 double size_depart,size_arrive,pourcentage,x1,x2,x3;
-
+size_depart=myB->zM-myB->zm;
 double tabx[12];
 int l,stop;
-size_depart=myB->zM-myB->zm;
-//---- on considï¿½re les valeurs 4 coins des faces d'abscisse z
+
+//---- on considère les valeurs 4 coins des faces d'abscisse z
 
 grignote_eval_proposition_z(ParamInvBspline,myB,myB->xm, myB->ym,i,j,k, &x1, &x2, &x3);
 tabx[0]=x1;tabx[1]=x2;tabx[2]=x3;
@@ -5246,7 +5249,7 @@ while ((stop==0)&&(l>=0))
 	
 
 if (myB->zm>myB->zM)
-	printf("Il y a un problï¿½me pour z!!!\n");
+	printf("Il y a un problème pour z!!!\n");
 
 /*if (!isinf(zm)&&(zm>myB->zm))
 	{
@@ -5280,7 +5283,7 @@ dvector3d h[8];
 double xmin,xmax,ymin,ymax,zmin,zmax;
 int l,retour=0;
 
-//Pour ce prï¿½munir des erreurs de precision 
+//Pour ce prémunir des erreurs de precision 
 z=z-PRECISION_NUMERIQUE_INV_BSPLINE;
 
 /* on verifie si xm est effectivement une borne inf */
@@ -5337,7 +5340,7 @@ dvector3d h[8];
 double xmin,xmax,ymin,ymax,zmin,zmax;
 int l,retour=0;
 
-//Pour ce prï¿½munir des erreurs de precision 
+//Pour ce prémunir des erreurs de precision 
 z=z+PRECISION_NUMERIQUE_INV_BSPLINE;
 
 /* on verifie si xM est effectivement une borne inf */
@@ -5380,7 +5383,7 @@ return(retour);
 *********
 *********  ----------------- grignote_eval_proposition_x
 *********
-*********		Propose un intervale xmin et xmax correspondant ï¿½ un couple (y,z)
+*********		Propose un intervale xmin et xmax correspondant à un couple (y,z)
 *********		
 ********************************************************************************/
 
@@ -5491,7 +5494,7 @@ if (tmp!=0)
 *********
 *********  ----------------- grignote_eval_proposition_y
 *********
-*********		Propose un intervale ymin et ymax correspondant ï¿½ un couple (x,z)
+*********		Propose un intervale ymin et ymax correspondant à un couple (x,z)
 *********		
 ********************************************************************************/
 
@@ -5605,7 +5608,7 @@ if (tmp!=0)
 *********
 *********  ----------------- grignote_eval_proposition_z
 *********
-*********		Propose un intervale ymin et ymax correspondant ï¿½ un couple (x,y)
+*********		Propose un intervale ymin et ymax correspondant à un couple (x,y)
 *********		
 ********************************************************************************/
 
@@ -5718,7 +5721,7 @@ if (tmp!=0)
 *********
 *********  ----------------- update_bloc_transfo_bspline1_3d
 *********
-*********		Evaluation du champ de dï¿½formation aux 8 sommets du bloc
+*********		Evaluation du champ de déformation aux 8 sommets du bloc
 *********   
 ********************************************************************************/
 
@@ -5739,8 +5742,8 @@ eval_transfo_bspline1_3d(param, nb_param, wdth, hght, dpth, myB->xM, myB->yM, my
 *********
 *********  ----------------- eval_deplacement_bspline1_BoiteInvBspline_3d
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 void eval_deplacement_bspline1_BoiteInvBspline_3d(BoiteInvBspline *ParamInvBspline, double x, double y, double z, dvector3d* u)
@@ -5804,8 +5807,8 @@ u->z=u->z/norm;
 *********
 *********  ----------------- eval_transfo_bspline1_BoiteInvBspline_3d
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 void eval_transfo_bspline1_BoiteInvBspline_3d(BoiteInvBspline *ParamInvBspline, double x, double y, double z, dvector3d* u)
@@ -5823,8 +5826,8 @@ u->z=u->z+z;
 *********
 *********  ----------------- eval_deplacement_bspline1_BoiteInvBspline_3d_x
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 double eval_deplacement_bspline1_BoiteInvBspline_3d_x(BoiteInvBspline *ParamInvBspline, double x, double y, double z)
@@ -5862,8 +5865,8 @@ return(res);
 *********
 *********  ----------------- eval_transfo_bspline1_BoiteInvBspline_3d_x
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 double eval_transfo_bspline1_BoiteInvBspline_3d_x(BoiteInvBspline *ParamInvBspline, double x, double y, double z)
@@ -5877,8 +5880,8 @@ return(eval_deplacement_bspline1_BoiteInvBspline_3d_x(ParamInvBspline, x, y,  z)
 *********
 *********  ----------------- eval_deplacement_bspline1_BoiteInvBspline_3d_y
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 double eval_deplacement_bspline1_BoiteInvBspline_3d_y(BoiteInvBspline *ParamInvBspline, double x, double y, double z)
@@ -5916,8 +5919,8 @@ return(res);
 *********
 *********  ----------------- eval_transfo_bspline1_BoiteInvBspline_3d_y
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 double eval_transfo_bspline1_BoiteInvBspline_3d_y(BoiteInvBspline *ParamInvBspline, double x, double y, double z)
@@ -5929,8 +5932,8 @@ return(eval_deplacement_bspline1_BoiteInvBspline_3d_y(ParamInvBspline, x, y,  z)
 *********
 *********  ----------------- eval_deplacement_bspline1_BoiteInvBspline_3d_z
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 double eval_deplacement_bspline1_BoiteInvBspline_3d_z(BoiteInvBspline *ParamInvBspline, double x, double y, double z)
@@ -5969,8 +5972,8 @@ return(res);
 *********
 *********  ----------------- eval_transfo_bspline1_BoiteInvBspline_3d_z
 *********
-*********		Evaluation en un point ï¿½ coordonnï¿½es rï¿½elles d'un champ de dï¿½formation
-*********    Bspline de degrï¿½ 1
+*********		Evaluation en un point à coordonnées réelles d'un champ de déformation
+*********    Bspline de degré 1
 ********************************************************************************/
 
 double eval_transfo_bspline1_BoiteInvBspline_3d_z(BoiteInvBspline *ParamInvBspline, double x, double y, double z)
@@ -6094,9 +6097,9 @@ for (l=0;l<nb_param/3;l++)
 *********
 *********  ----------------- inv_bspline_find_solution_with_fixed_point_algo
 *********
-*********		Essaie de trouver l'inverse sur une boite avec la mï¿½thode
+*********		Essaie de trouver l'inverse sur une boite avec la méthode
 *********		du point fixe
-*********    Retourne 1 si une solution avec une prï¿½cision prec est trouve, 0 sinon
+*********    Retourne 1 si une solution avec une précision prec est trouve, 0 sinon
 ********************************************************************************/
 
 
@@ -6118,7 +6121,7 @@ mat3d A,invA;
 
 
 
-//---- Initialisation des paramï¿½tres caractï¿½ristiques du bloc myB considï¿½rï¿½  -----
+//---- Initialisation des paramètres caractéristiques du bloc myB considéré  -----
 
 if (INV_BSPLINE_RESOL!=-1)
 	resol=INV_BSPLINE_RESOL;
@@ -6158,7 +6161,7 @@ zm=(double)(topk+1.0)*dpth/coeff2l;
 norm=(xm-x0)*(ym-y0)*(zm-z0);
 
 
-/* recopie des paramï¿½tres relatif au bloc considï¿½rï¿½ */
+/* recopie des paramètres relatif au bloc considéré */
 	
 	if ((topi<topMax)&&(topj<topMax)&&(topk<topMax))
 		{
@@ -6246,7 +6249,7 @@ norm=(xm-x0)*(ym-y0)*(zm-z0);
 
 
 
-//----- Mise ï¿½ jour de ParamInvBspline
+//----- Mise à jour de ParamInvBspline
 ParamInvBspline.resol=resol;
 ParamInvBspline.topi=topi;
 ParamInvBspline.topj=topj;
@@ -6417,7 +6420,7 @@ free_dvector(prod,3);
  }
  while (nb_iter<100);
  
- printf("Nombre d'iteration depassï¿½ dans inv_bspline_find_solution_with_fixed_point_algo pour %f %f %f \n",i,j,k);
+ printf("Nombre d'iteration depassé dans inv_bspline_find_solution_with_fixed_point_algo pour %f %f %f \n",i,j,k);
  free_dmatrix(J, 3, 3);
  free_dmatrix(invJ, 3, 3);
 
@@ -6429,9 +6432,9 @@ return(0);
 *********
 *********  ----------------- inv_bspline_find_solution_with_fixed_point_algo_global
 *********
-*********		Essaie de trouver l'inverse sur une boite avec la mï¿½thode
+*********		Essaie de trouver l'inverse sur une boite avec la méthode
 *********		du point fixe
-*********    Retourne 1 si une solution avec une prï¿½cision prec est trouve, 0 sinon
+*********    Retourne 1 si une solution avec une précision prec est trouve, 0 sinon
 ********************************************************************************/
 
 
@@ -6562,7 +6565,7 @@ free_dmatrix(invJ, 3, 3);
  }
  while (nb_iter<100);
  
- printf("Nombre d'iteration depassï¿½ dans inv_bspline_find_solution_with_fixed_point_algo pour %f %f %f \n",i,j,k);
+ printf("Nombre d'iteration depassé dans inv_bspline_find_solution_with_fixed_point_algo pour %f %f %f \n",i,j,k);
  free_dmatrix(J, 3, 3);
 return(0); 
  }
@@ -8222,22 +8225,19 @@ void imx_ComputeMoment3D_p(grphic3d * imdeb, grphic3d * imres, int p, int q, int
  int i,j,k,l,m,n,wdth,hght,dpth;
  double ***res;
  double ***masque;
-
+ wdth=imdeb->width;
+ hght=imdeb->height;
+ dpth=imdeb->depth;
+ grphic3d *tmp;
  double pow1, pow2, max1, min1, max2, min2, max3, min3;
  double norm;
 
 
- grphic3d *tmp;
-
- wdth=imdeb->width;
- hght=imdeb->height;
- dpth=imdeb->depth;
-
  tmp=cr_grphic3d(imdeb);
- imx_dilat_3d_p(imdeb,tmp,4,2);//4 pour voisinage sphï¿½rique sauf que je ne sais pas le rayon utilisï¿½, 2 = nombre d'itï¿½ration ca sert ï¿½ quoi???
+ imx_dilat_3d_p(imdeb,tmp,4,2);//4 pour voisinage sphérique sauf que je ne sais pas le rayon utilisé, 2 = nombre d'itération ca sert à quoi???
  res = alloc_dmatrix_3d(wdth, hght, dpth);
 
- //prï¿½paration du masque de convolution
+ //préparation du masque de convolution
  masque = alloc_dmatrix_3d(2*rayon+1, 2*rayon+1, 2*rayon+1);
  norm=0;
    for (i=0;i<2*rayon+1;i++)
@@ -8353,7 +8353,7 @@ void imx_ComputeRotationInvariantMoment3D_p(grphic3d * imdeb, grphic3d * imres, 
 
  grphic3d *tmp1, *tmp2, *tmp3 ;
 ////je dois ecrire les equations pour QUE LA PROGRAMMATION SOIT CLAIRE
-//travailler sur une copi de imres puis utiliser la fonction imx_copi_3d_p dans imres, ceci ï¿½vite le problï¿½me quand src=dst dans l'affichage
+//travailler sur une copi de imres puis utiliser la fonction imx_copi_3d_p dans imres, ceci évite le problème quand src=dst dans l'affichage
 
 tmp1=cr_grphic3d(imdeb);
 tmp2=cr_grphic3d(imdeb);
@@ -8653,19 +8653,11 @@ free(serie_groupwise);
 
 void NLMWeightOnePoint3D(grphic3d* Image, double *** weights, float NLMsmooth, int NLMhwnx, int NLMhwny, int NLMhwnz, int NLMhwvsx, int NLMhwvsy, int NLMhwvsz,  int x, int y, int z)
 {
-double value = 0;
 double sum = 0;
 int xx,yy,zz;
 int sx,sy,sz;
 int px,py,pz;
 double constante= Image->rcoeff * Image->rcoeff /NLMsmooth;
-
-int minsx, minsy, minsz, maxsx, maxsy, maxsz, minpx, minpy, minpz, maxpx, maxpy, maxpz;
-int xpx,ypy,zpz,xxpx,yypy,zzpz;
-
-double diff=0;
-  	      double weight = 0;
-	      double dist = 0;
 
   //initialisation de weights
   for(xx=0; xx!=2*NLMhwvsx+1; xx++)
@@ -8674,13 +8666,13 @@ double diff=0;
         weights[xx][yy][zz] = 0;
 
 
- minsx=MAXI(-x,-NLMhwvsx);
- minsy=MAXI(-y,-NLMhwvsy);
- minsz=MAXI(-z,-NLMhwvsz);
+int minsx=MAXI(-x,-NLMhwvsx);
+int minsy=MAXI(-y,-NLMhwvsy);
+int minsz=MAXI(-z,-NLMhwvsz);
 
- maxsx=MINI(Image->width-x-1,NLMhwvsx);
- maxsy=MINI(Image->height-y-1,NLMhwvsy);
- maxsz=MINI(Image->depth-z-1,NLMhwvsz);
+int maxsx=MINI(Image->width-x-1,NLMhwvsx);
+int maxsy=MINI(Image->height-y-1,NLMhwvsy);
+int maxsz=MINI(Image->depth-z-1,NLMhwvsz);
 
   //Voxel selection in search volume
   for( sx=minsx;sx<=maxsx;sx++){		    
@@ -8690,28 +8682,30 @@ double diff=0;
           for( sz=minsz;sz<=maxsz;sz++){
             zz = z+sz;
 		      
-
+ 	      double diff=0;	    
+  	      double weight = 0;
+	      double dist = 0;
 			    
-		   minpx=MAXI(-x,-NLMhwnx);
+		  int minpx=MAXI(-x,-NLMhwnx);
           minpx=MAXI(minpx,-xx);
 		  
-		   minpy=MAXI(-y,-NLMhwny);
+		  int minpy=MAXI(-y,-NLMhwny);
           minpy=MAXI(minpy,-yy);
 		  
-		   minpz=MAXI(-z,-NLMhwnz);
+		  int minpz=MAXI(-z,-NLMhwnz);
           minpz=MAXI(minpz,-zz);
 		  
-		   maxpx=MINI(Image->width-x-1,NLMhwnx);
+		  int maxpx=MINI(Image->width-x-1,NLMhwnx);
           maxpx=MINI(maxpx,Image->width-xx-1);
 		  
-		  maxpy=MINI(Image->height-y-1,NLMhwny);
+		 int maxpy=MINI(Image->height-y-1,NLMhwny);
           maxpy=MINI(maxpy,Image->height-yy-1);
 		
-		  maxpz=MINI(Image->depth-z-1,NLMhwnz);
+		 int maxpz=MINI(Image->depth-z-1,NLMhwnz);
           maxpz=MINI(maxpz,Image->depth-zz-1);
 		
 				
-
+	      int xpx,ypy,zpz,xxpx,yypy,zzpz;		    
               //distance computation between patches
               for( px=minpx;px<=maxpx;px++){
 	        xpx = x + px;
@@ -8754,23 +8748,22 @@ double diff=0;
 
 float NLMSmoothComputation3D(grphic3d* Image, int NLMhwnx, int NLMhwny, int NLMhwnz, float NLMbeta, int padding)
 {
-  unsigned int count = 0;
+  uint count = 0;
   double sigma2 = 0;
   int x,y,z;
-  float ei; float NLMsmooth;
   for(x=1;x<Image->width-1;x++)
     for(y=1;y<Image->height-1;y++)
       for(z=1;z<Image->depth-1;z++)
         if(Image->mri[x][y][z] * Image->rcoeff >padding)
         {
-	 ei = sqrt(6/7.0)*Image->rcoeff*(Image->mri[x][y][z] -(Image->mri[x+1][y][z]+Image->mri[x-1][y][z]+Image->mri[x][y+1][z]+Image->mri[x][y-1][z]
+	float ei = sqrt(6/7.0)*Image->rcoeff*(Image->mri[x][y][z] -(Image->mri[x+1][y][z]+Image->mri[x-1][y][z]+Image->mri[x][y+1][z]+Image->mri[x][y-1][z]
 				+Image->mri[x][y][z+1]+Image->mri[x][y][z-1])/6.0);
 	sigma2 += ei*ei;
 	count ++;
         }
 
   sigma2 = sigma2 / count;
-   NLMsmooth = 2 * NLMbeta * sigma2 * (2*NLMhwnx+1) * (2*NLMhwny+1) * (2*NLMhwnz+1);
+  float NLMsmooth = 2 * NLMbeta * sigma2 * (2*NLMhwnx+1) * (2*NLMhwny+1) * (2*NLMhwnz+1);
   return NLMsmooth;
 
 }

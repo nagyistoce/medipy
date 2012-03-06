@@ -2224,7 +2224,7 @@ return(-1);
 /*******************************************************************************
 **  			update_TOPO_ALPHA_ROBUST_global
 **
-**	Calcul global du parametre d'ï¿½chelle dans la fonction de Geman Mcclure
+**	Calcul global du parametre d'échelle dans la fonction de Geman Mcclure
 *******************************************************************************/
 
 void update_TOPO_ALPHA_ROBUST_global(grphic3d *imref, grphic3d *imreca, int nb_param, double *param)
@@ -2279,7 +2279,7 @@ free_grphic3d(imres);
 /*******************************************************************************
 **  			update_TOPO_ALPHA_ROBUST_local
 **
-**	Calcul local du parametre d'ï¿½chelle dans la fonction de Geman Mcclure
+**	Calcul local du parametre d'échelle dans la fonction de Geman Mcclure
 *******************************************************************************/
 
 void update_TOPO_ALPHA_ROBUST_local(grphic3d *imref, grphic3d *imreca, int nb_param, double *param,int topi, int topj, int topk)
@@ -3610,7 +3610,7 @@ return(E);
 /*******************************************************************************
 **  Energie_ML_locale_3d(imref,imreca,imres,param,champ_ini,topi,topj,topk)
 **
-**	Calcule de la vraisemblance relative a une boite entre une image labelisï¿½e et une image rï¿½elle
+**	Calcule de la vraisemblance relative a une boite entre une image labelisée et une image réelle
 *******************************************************************************/
 
 double Energie_ML_locale_3d(grphic3d *imref, grphic3d *imreca,int nb_param, double *param, double *param_norm,int topi, int topj, int topk, TSlpqr *Slpqr,reg_func_locale_t regularisation)
@@ -3796,7 +3796,7 @@ hght=imref->height;
 dpth=imref->depth;
 
 
-/* calcul de l'image dï¿½formï¿½e */
+/* calcul de l'image déformée */
 imres=cr_grphic3d(imreca);imx_copie_param_3d_p(imreca,imres);
 champ=cr_field3d(wdth,hght,dpth);
 base_to_field_3d(nb_param,param,champ,NULL,NULL);
@@ -4005,7 +4005,7 @@ HISTOJOINT.Ntot=Ntot;
 
 for (i=0;i<HISTOJOINT.nbI;i++)
 for (j=0;j<HISTOJOINT.nbJ;j++)
-if (HISTOJOINT.aux_hij[i][j]>0.00000001) /* pour ï¿½viter des bug numï¿½riques */
+if (HISTOJOINT.aux_hij[i][j]>0.00000001) /* pour éviter des bug numériques */
 	IM-=HISTOJOINT.aux_hij[i][j]*log(HISTOJOINT.Ntot*HISTOJOINT.aux_hij[i][j]/HISTOJOINT.aux_hi[i]/HISTOJOINT.aux_hj[j]);
 	
 	
@@ -4315,7 +4315,7 @@ for (i=0;i<topDx;i++)
 		}
 
 
-// On balaye chacun des pixels de la boite de l'image complï¿½mentaire
+// On balaye chacun des pixels de la boite de l'image complémentaire
 for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
 		for (k=0;k<topDz;k++)
@@ -4720,7 +4720,7 @@ for (i=0;i<topDx;i++)
     i3=i2+1;j3=j2+1;k3=k2+1;
     
 		
-		/* calcul de la valeur interpolï¿½e dans imreca */
+		/* calcul de la valeur interpolée dans imreca */
     if (i2>=0 && i3<width && j2>=0 && j3<height && k2>=0 && k3<depth)
       {
         xrel=dxreca-(double)i2;yrel=dyreca-(double)j2;zrel=dzreca-(double)k2;
@@ -4781,7 +4781,7 @@ for (i=0;i<topDx;i++)
     
 
 			
-		/* calcul de la valeur interpolï¿½e dans imref */
+		/* calcul de la valeur interpolée dans imref */
     if (i2>=0 && i3<width && j2>=0 && j3<height && k2>=0 && k3<depth)
       {
         xrel=dxref-(double)i2;yrel=dyref-(double)j2;zrel=dzref-(double)k2;
@@ -4947,7 +4947,7 @@ for (i=0;i<topDx;i++)
     i3=i2+1;j3=j2+1;k3=k2+1;
     
 		
-		/* calcul de la valeur interpolï¿½e dans imreca */
+		/* calcul de la valeur interpolée dans imreca */
     if (i2>=0 && i3<width && j2>=0 && j3<height && k2>=0 && k3<depth)
       {
         xrel=dxreca-(double)i2;yrel=dyreca-(double)j2;zrel=dzreca-(double)k2;
@@ -5008,7 +5008,7 @@ for (i=0;i<topDx;i++)
     
 
 			
-		/* calcul de la valeur interpolï¿½e dans imref */
+		/* calcul de la valeur interpolée dans imref */
     if (i2>=0 && i3<width && j2>=0 && j3<height && k2>=0 && k3<depth)
       {
         xrel=dxref-(double)i2;yrel=dyref-(double)j2;zrel=dzref-(double)k2;
@@ -5162,17 +5162,19 @@ for (i=MAXI(topi-1,0);i<=MINI(topi+1,topD-1);i++)
 for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
 		for (k=0;k<topDz;k++)
-	   	{
+		{
 		i2=i+bx0;
 		j2=j+by0;
 		k2=k+bz0;
 		
-		dx=data[i][j][k].x-_ParamRecalageBspline.chref->raw[i2][j2][k2].x;
-		dy=data[i][j][k].y-_ParamRecalageBspline.chref->raw[i2][j2][k2].y;
-		dz=data[i][j][k].z-_ParamRecalageBspline.chref->raw[i2][j2][k2].z;
+		if (imref->mri[i2][j2][k2]>0)
+			{
+			dx=data[i][j][k].x-_ParamRecalageBspline.chref->raw[i2][j2][k2].x;
+			dy=data[i][j][k].y-_ParamRecalageBspline.chref->raw[i2][j2][k2].y;
+			dz=data[i][j][k].z-_ParamRecalageBspline.chref->raw[i2][j2][k2].z;
 		
-		E+=dx*dx+dy*dy+dz*dz;
-		
+			E+=dx*dx+dy*dy+dz*dz;
+			}
    		}
    
 
@@ -5197,7 +5199,7 @@ return(E);
 /*******************************************************************************
 **  Energie_DTI_quad_locale_3d(imref,imreca,imres,param,champ_ini,topi,topj,topk)
 **
-**	Calcule l'energie locale quadratique relative a une boite pour une sï¿½rie DTI
+**	Calcule l'energie locale quadratique relative a une boite pour une série DTI
 *******************************************************************************/
 
 double Energie_DTI_quad_locale_3d(grphic3d *imref, grphic3d *imreca,int nb_param, double *param, double *param_norm,int topi, int topj, int topk, TSlpqr *Slpqr,reg_func_locale_t regularisation)
@@ -5356,7 +5358,7 @@ return(E);
 /*******************************************************************************
 **  Energie_groupwise_variance_locale_3d(imref,imreca,imres,param,champ_ini,topi,topj,topk)
 **
-**	Calcule l'energie locale quadratique relative a une boite pour une sï¿½rie DTI
+**	Calcule l'energie locale quadratique relative a une boite pour une série DTI
 *******************************************************************************/
 
 double Energie_groupwise_variance_locale_3d(grphic3d *imref, grphic3d *imreca,int nb_param, double *param, double *param_norm,int topi, int topj, int topk, TSlpqr *Slpqr,reg_func_locale_t regularisation)
@@ -5430,7 +5432,7 @@ for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
 		for (k=0;k<topDz;k++)
 	   	{
-    	/* calcul de la valeur interpolï¿½e dans reca */
+    	/* calcul de la valeur interpolée dans reca */
    		dxreca=(double)i+data[i][j][k].x+bx0;
     	dyreca=(double)j+data[i][j][k].y+by0;
     	dzreca=(double)k+data[i][j][k].z+bz0;
@@ -5462,7 +5464,7 @@ for (i=0;i<topDx;i++)
 			return(HUGE_VAL);
 			}
       			
-		/* calcul de la valeur interpolï¿½e dans ref et ref2 */
+		/* calcul de la valeur interpolée dans ref et ref2 */
     	dxref=(double)i-lambda_ref*data[i][j][k].x+bx0;
     	dyref=(double)j-lambda_ref*data[i][j][k].y+by0;
     	dzref=(double)k-lambda_ref*data[i][j][k].z+bz0;
@@ -5664,7 +5666,7 @@ for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
 		for (k=0;k<topDz;k++)
 	   	{
-    	/* calcul de la valeur interpolï¿½e dans reca */
+    	/* calcul de la valeur interpolée dans reca */
    		dxreca=(double)i+data[i][j][k].x+bx0;
     	dyreca=(double)j+data[i][j][k].y+by0;
     	dzreca=(double)k+data[i][j][k].z+bz0;
@@ -5756,41 +5758,7 @@ double *fx,*fy,*fz;
 int i,j,k;
 double E=0,Ereg;
 double auxE;
-
-int xref,yref,zref;
-double xreca,yreca,zreca;
-int wx,wy,wz;
-int patchx,patchy,patchz;
-int hwn = 2;
-int nbp = hwn*2 + 1;
-int hwp = 1;
-int wx_ref,wy_ref,wz_ref;
- int wx_reca,wy_reca,wz_reca;
- int xpx,ypy,zpz,wxpx,wypy,wzpz;
- int x2px,y2py,z2pz,wx2px,wy2py,wz2pz;
- int indice;
-
- int xmin, ymin, zmin, xmax, ymax, zmax, chpx, chpy, chpz;
- int interpolation_choice = 0; // 0 NN, 1 TL
- int costfunction = 1; // 0 : L2, 1, patch
- dvector3d u;
- field3d *champ;
-  vector3d ***data;
-  double* wref = (double*)malloc(nbp*sizeof(double));
-       double* wreca = (double*)malloc(nbp*sizeof(double));
-
-double sum_ref = 0;
-double sum_reca = 0;
-
-int count = 0;
-
-double poids_ref = 0;
-double dist_ref = 0;
-double tmpd_ref = 0;
-double poids_reca = 0;
-double dist_reca = 0;
-double tmpd_reca = 0;
-
+	
 resol=BASE3D.resol;
 width=BASE3D.width;height=BASE3D.height;depth=BASE3D.depth;
 x0=BASE3D.x0;y0=BASE3D.y0;z0=BASE3D.z0;x1=BASE3D.x1;y1=BASE3D.y1;z1=BASE3D.z1;
@@ -5805,33 +5773,43 @@ topDy=by1-by0;
 topDz=bz1-bz0;
 
 
-
-
+dvector3d u;
+int xref,yref,zref;
+double xreca,yreca,zreca;
+int wx,wy,wz;
+int patchx,patchy,patchz;
+int hwn = 2;
+int nbp = hwn*2 + 1;
 nbp = nbp*nbp*nbp;
+int hwp = 1;
 
 
-
-
+ int wx_ref,wy_ref,wz_ref;
+ int wx_reca,wy_reca,wz_reca;
+ int xpx,ypy,zpz,wxpx,wypy,wzpz;
+ int x2px,y2py,z2pz,wx2px,wy2py,wz2pz;
+ int indice;
 
  //precalcul du champ de deplacement
-
+ field3d *champ;
+ vector3d ***data;
  //taille du champ :
- xmin = bx0 - hwn - hwp;
+ int xmin = bx0 - hwn - hwp;
  if(xmin < 0)
    xmin = 0;
- ymin = by0 - hwn - hwp;
+ int ymin = by0 - hwn - hwp;
  if(ymin < 0)
   ymin = 0;
- zmin = bz0 - hwn - hwp;
+ int zmin = bz0 - hwn - hwp;
  if(zmin < 0)
    zmin = 0;
-  xmax = bx1 + hwn + hwp;
+ int xmax = bx1 + hwn + hwp;
  if(xmax >= width)
    xmax = width-1;
-  ymax = by1 + hwn + hwp;
+ int ymax = by1 + hwn + hwp;
  if(ymax >= height)
    ymax = height-1;
-  zmax = bz1 + hwn + hwp;
+ int zmax = bz1 + hwn + hwp;
  if(zmax >= depth)
    zmax = depth-1;
 
@@ -5840,9 +5818,9 @@ nbp = nbp*nbp*nbp;
  //int chpz = zmax-zmin+1;
 
  //debug. calcul sur toute l'image
-  chpx = width;
-  chpy = height;
-  chpz = depth;
+ int chpx = width;
+ int chpy = height;
+ int chpz = depth;
 
  champ=cr_field3d(chpx,chpy,chpz);
  data=champ->raw;
@@ -5862,7 +5840,8 @@ nbp = nbp*nbp*nbp;
 	 data[i][j][k].z=u.z;
        }
 
-
+int interpolation_choice = 0; // 0 NN, 1 TL
+int costfunction = 1; // 0 : L2, 1, patch
 //int patchdef = 0; //0 non deforme, 1 deforme // non utilise pour le moment
 
 // On balaye chacun des pixels de la boite
@@ -5916,13 +5895,17 @@ for (i=0;i<topDx;i++)
      */
      if(costfunction==1)
      {
-
+     double wref[nbp];
+     double wreca[nbp];
      for(indice=0;indice<nbp;indice++)
        {
 	 wref[indice] = 0;
 	 wreca[indice] = 0;
        }
+     double sum_ref = 0;
+     double sum_reca = 0;
 
+     int count = 0;
 
      //parcours du voisinage
      for(wx=-hwn;wx<hwn+1;wx++)
@@ -5953,7 +5936,12 @@ for (i=0;i<topDx;i++)
 		 
 
 		 
-
+		 double poids_ref = 0;
+		 double dist_ref = 0;
+		 double tmpd_ref = 0;
+		 double poids_reca = 0;
+		 double dist_reca = 0;
+		 double tmpd_reca = 0;
 		 
 		 //parcours des patches
 		 for(patchx=-hwp;patchx<hwp+1;patchx++)
@@ -6054,7 +6042,7 @@ for (i=0;i<topDx;i++)
 		 //remplacer trilineaire par nearest neighbour (les indices sont deja des entiers !)
 		 //prendre le patch autour du point central (en nearest)
 		 //faire l'interpolation en dehors de la boucle 
-		 //calcul du champ de dï¿½placement en dehors de la boucle
+		 //calcul du champ de déplacement en dehors de la boucle
 		 
 		 poids_ref = exp(-dist_ref/PATCH_REF);
 		 sum_ref += poids_ref;
