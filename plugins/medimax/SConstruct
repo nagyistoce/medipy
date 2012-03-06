@@ -1,0 +1,43 @@
+import os.path
+import sys
+
+SConscript(os.path.join("wrapping", "SConstruct"))
+
+modules = ["noyau", "segmentation", "outils", "detection", "math", "morpho",
+           "recalage", "recalage/topo", "traitement", "noyau/io", "noyau/gui"]
+
+if sys.platform.startswith("win") :
+    modules.append("windowsOnly")
+
+for module in modules :
+    SConscript(os.path.join(module, "SConstruct"))
+
+Import('env')
+env.Use("openmp")
+env = env.Clone()
+
+files = []
+for module in modules :
+    c_files = Glob(os.path.join(module, "*.c"))
+    cpp_files = Glob(os.path.join(module, "*.cpp"))
+    files.extend(c_files)
+    files.extend(cpp_files)
+
+quarantined_files = [
+]
+
+file_names = [str(f) for f in files]
+quarantined_indices = []
+for file in quarantined_files :
+    if file in file_names :
+        quarantined_indices.append(file_names.index(file))
+for index in sorted(quarantined_indices, reverse=True) :
+    del files[index]
+
+#env["CPPPATH"].append("..")
+env["CPPPATH"].append(os.path.abspath("."))
+
+output_files = env.SharedLibrary("medimax", files)
+#env.Install(env["lib_dir"], output_files)
+
+env.Glob("*.py")

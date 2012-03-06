@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Paquets pour Ubuntu &mdash; MediPy v1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="MediPy v1.0 documentation" href="../index.html" />
+    <link rel="up" title="Guide de l’utilisateur" href="index.html" />
+    <link rel="next" title="Paquets pour Debian" href="paquets_debian.html" />
+    <link rel="prev" title="Installation d’ITK et de WrapITK" href="itk.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="paquets_debian.html" title="Paquets pour Debian"
+             accesskey="N">suivant</a> |</li>
+        <li class="right" >
+          <a href="itk.html" title="Installation d’ITK et de WrapITK"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../index.html">MediPy v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Guide de l&#8217;utilisateur</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table des matières</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Paquets pour Ubuntu</a><ul>
+<li><a class="reference external" href="#ubuntu-10-04-lts-lucid-lynx-9-10-karmic-koala-et-9-04-jaunty-jackalope">Ubuntu 10.04 LTS (Lucid Lynx), 9.10 (Karmic Koala) et 9.04 (Jaunty Jackalope)</a></li>
+<li><a class="reference external" href="#ubuntu-8-04-lts-hardy-heron">Ubuntu 8.04 LTS (Hardy Heron)</a><ul>
+<li><a class="reference external" href="#paquets-de-la-distribution">Paquets de la distribution</a></li>
+<li><a class="reference external" href="#scons">SCons</a></li>
+<li><a class="reference external" href="#pynifti">PyNifti</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Sujet précédent</h4>
+            <p class="topless"><a href="itk.html"
+                                  title="Chapitre précédent">Installation d&#8217;ITK et de WrapITK</a></p>
+            <h4>Sujet suivant</h4>
+            <p class="topless"><a href="paquets_debian.html"
+                                  title="Chapitre suivant">Paquets pour Debian</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Recherche rapide</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="paquets-pour-ubuntu">
+<h1>Paquets pour Ubuntu<a class="headerlink" href="#paquets-pour-ubuntu" title="Lien permanent vers ce titre">¶</a></h1>
+<div class="section" id="ubuntu-10-04-lts-lucid-lynx-9-10-karmic-koala-et-9-04-jaunty-jackalope">
+<h2>Ubuntu 10.04 LTS (Lucid Lynx), 9.10 (Karmic Koala) et 9.04 (Jaunty Jackalope)<a class="headerlink" href="#ubuntu-10-04-lts-lucid-lynx-9-10-karmic-koala-et-9-04-jaunty-jackalope" title="Lien permanent vers ce titre">¶</a></h2>
+<p><strong>Outils</strong></p>
+<div class="highlight-python"><pre>sudo aptitude install scons mercurial python-setuptools swig ipython cmake doxygen gccxml cableswig</pre>
+</div>
+<p><strong>Bilbiothèques</strong></p>
+<div class="highlight-python"><pre>sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
+    libboost-python-dev python-nifti python-docutils python-wxtools</pre>
+</div>
+<p>ITK et WrapITK sont aussi nécessaires : voir <a class="reference external" href="itk.html"><em>la page les concernant</em></a>.</p>
+</div>
+<div class="section" id="ubuntu-8-04-lts-hardy-heron">
+<h2>Ubuntu 8.04 LTS (Hardy Heron)<a class="headerlink" href="#ubuntu-8-04-lts-hardy-heron" title="Lien permanent vers ce titre">¶</a></h2>
+<div class="section" id="paquets-de-la-distribution">
+<h3>Paquets de la distribution<a class="headerlink" href="#paquets-de-la-distribution" title="Lien permanent vers ce titre">¶</a></h3>
+<div class="highlight-python"><pre>sudo aptitude install python-setuptools python-docutils python-numpy \
+    python-scipy python-wxgtk2.8 python-vtk subversion \
+    libstdc++6-dev g++ python-dev swig libboost-python-dev \
+    libvtk5-dev zlib1g-dev</pre>
+</div>
+</div>
+<div class="section" id="scons">
+<h3>SCons<a class="headerlink" href="#scons" title="Lien permanent vers ce titre">¶</a></h3>
+<div class="highlight-python"><pre>cd ~/src
+wget http://prdownloads.sourceforge.net/scons/scons-1.2.0.tar.gz
+tar zxf scons-1.2.0.tar.gz
+rm scons-1.2.0.tar.gz
+cd scons-1.2.0
+python setup.py build
+python setup.py install --prefix=$HOME/local</pre>
+</div>
+</div>
+<div class="section" id="pynifti">
+<h3>PyNifti<a class="headerlink" href="#pynifti" title="Lien permanent vers ce titre">¶</a></h3>
+<div class="highlight-python"><pre>cd ~/src
+wget http://downloads.sourceforge.net/niftilib/pynifti_0.20090303.1.tar.gz
+tar zxf pynifti_0.20090303.1.tar.gz
+rm pynifti_0.20090303.1.tar.gz
+cd pynifti-0.20090303.1
+make
+python setup.py install --prefix=$HOME/local</pre>
+</div>
+<p>ITK et WrapITK sont aussi nécessaires : voir <a class="reference external" href="itk.html"><em>la page les concernant</em></a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="paquets_debian.html" title="Paquets pour Debian"
+             >suivant</a> |</li>
+        <li class="right" >
+          <a href="itk.html" title="Installation d’ITK et de WrapITK"
+             >précédent</a> |</li>
+        <li><a href="../index.html">MediPy v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Guide de l&#8217;utilisateur</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
