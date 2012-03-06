@@ -12,6 +12,12 @@
 #include "noyau/gtkimagix.h"
 #include "noyau/imx_3d.h"
 #include "noyau/gui/imx_picture3d.h"
+
+#ifndef COMPILE_FOR_MEDIPY
+#include "noyau/gui/imx_plot.h"
+#endif //fin COMPILE_FOR_MEDIPY
+
+
 #include "noyau/mani_3d.h"
 
 #ifdef __GTK_GUI
@@ -2164,7 +2170,7 @@ free_grphic(histo);
 void  normalisation_gaussienne2d_histo_joint_norm_p(grphic3d *im1,grphic3d *im2,grphic3d *imres,grphic *histo,int nb_classe)
 { 
 
-grphic3d *im1temp,*im2temp;Param_Gaussienne_2d *param;
+grphic3d *im1temp,*im2temp;
 im1temp=cr_grphic3d(im1);
 im2temp=cr_grphic3d(im2);
 
@@ -2181,7 +2187,7 @@ imx_norm_seuil_meanecty_3d_p(im1temp,im2temp,im1temp);
 //imx_copie_3d_p(im1,im1temp);
 //imx_copie_3d_p(im2,im2temp);
 
-
+Param_Gaussienne_2d *param;
 
 param=(Param_Gaussienne_2d *) malloc(nb_classe*sizeof(Param_Gaussienne_2d));
 
@@ -3740,8 +3746,8 @@ return(Uz);
 /*********************************************************************/
 void calcul_fonction_partition_potts(void)
 {
-double phi_max, incr,*Z,reel,err;
-int nb_classe,nb_elt,entier;
+double phi_max, incr,*Z,reel;
+int nb_classe,nb_elt,entier,err;
 char     nom[256];
 FILE     *fichier;
 HEADER header;
@@ -3755,7 +3761,7 @@ header.lines = (char **)malloc(2000 * sizeof(char *));;
   
 
 
-phi_max = GET_DOUBLE("Phi_max",2,&err);
+phi_max = GET_DOUBLE("Phi_max",2.0,&err);
 incr = GET_DOUBLE("Increment",0.1,&err);
 nb_classe= GET_INT("Nombre de classe", 10, &err);
 

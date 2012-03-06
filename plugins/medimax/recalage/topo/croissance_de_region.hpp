@@ -32,7 +32,7 @@ extern "C"
 struct CRvoxel
 {
   int i,j,k;
-  int label; /* codï¿½ entre 1 et nb_classe */
+  int label; /* codé entre 1 et nb_classe */
   double distance;
 };
 

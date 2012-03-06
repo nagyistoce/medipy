@@ -21,7 +21,7 @@
 typedef struct s_BoiteInvBspline {
 int resol; 									// Resolution du modele de deformation Bspline
 int topi,topj,topk; 				// Indices de la boite considere
-double x0,y0,z0,xm,ym,zm;		// Coordonnï¿½es des bornes de la boite
+double x0,y0,z0,xm,ym,zm;		// Coordonnées des bornes de la boite
 double ax000,ax001,ax010,ax100,ax110,ax101,ax011,ax111;  	// Coefficients suivant x des fonctions Bsplines intervenant sur la boite
 double ay000,ay001,ay010,ay100,ay110,ay101,ay011,ay111;		// Coefficients suivant y des fonctions Bsplines intervenant sur la boite
 double az000,az001,az010,az100,az110,az101,az011,az111;		// Coefficients suivant z des fonctions Bsplines intervenant sur la boite
@@ -176,5 +176,7 @@ void Compute_energie_groupwise_variance(void);
 void NLMWeightOnePoint3D(grphic3d* Image, double *** weights, float NLMsmooth, int NLMhwnx, int NLMhwny, int NLMhwnz, int NLMhwvsx, int NLMhwvsy, int NLMhwvsz,  int x, int y, int z);
 
 float NLMSmoothComputation3D(grphic3d* Image, int NLMhwnx, int NLMhwny, int NLMhwnz, float NLMbeta, int padding);
+
+int	integrale_jacobien_bspline1_compute(transf3d *transfo, grphic3d *imres);
 
 #endif
