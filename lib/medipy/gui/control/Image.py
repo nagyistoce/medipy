@@ -297,7 +297,6 @@ class Image(wx.Panel, Observable):
                 enable_widget = flag1 and flag2
                 button.Enable(enable_widget)
             
-
             if self._last_choosed is not None :
                 index = self._choices.index(self._last_choosed())
             else : 
@@ -306,50 +305,3 @@ class Image(wx.Panel, Observable):
             choosed_button.SetValue(True)
         
         self.Fit()
-
-if __name__ == "__main__" :
-    import sys
-    
-    from medipy.base import ObservableList
-    from medipy.base import Image as ImageBase
-    
-    app = wx.App()
-    
-    frame = wx.Frame(None)
-    app.SetTopWindow(frame)
-    
-    ok_button = wx.Button(frame, id=wx.ID_OK, label="OK")
-    reset_button = wx.Button(frame, id=wx.ID_RESET, label="Reset")
-    
-    ok_button.Bind(wx.EVT_BUTTON, lambda event : sys.stdout.write("Value is %s (%s)\n"%(control.value, "valid" if control.validate() else "invalid")))
-    reset_button.Bind(wx.EVT_BUTTON, lambda event : control.reset())
-    
-    images = ObservableList([ImageBase(shape=(1,1,1)), ImageBase(shape=(2,2,2)), ImageBase(shape=(3,3,3))])
-    
-    #control = Image(frame, 
-    #                choices = images, 
-    #                value=images[1], 
-    #                output=True,
-    #                output_checked=True,
-    #                may_be_empty = False,
-    #                may_be_empty_checked=False
-    #               )
-    
-    control = Image(frame, ObservableList())
-    control.choices = images
-    
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    
-    sizer.Add(control, flag=wx.EXPAND)
-    
-    button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    button_sizer.Add(ok_button)
-    button_sizer.Add(reset_button)
-    sizer.Add(button_sizer)
-    
-    frame.SetSizer(sizer)
-    sizer.SetSizeHints(frame)
-    sizer.Layout()
-    
-    frame.Show()
-    app.MainLoop()
