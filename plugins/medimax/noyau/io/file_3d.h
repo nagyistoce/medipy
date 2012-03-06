@@ -40,13 +40,13 @@ extern "C"
 #ifdef __GTK_GUI
   extern int    load_picture_3d_cst(int pos, const char *file, int max, int step, int numfirst) ;
   extern int    load_picture_3d(int pos, char *file, int max, int step, int numfirst) ;
-  extern int    load_mri_3d(const char *file, grphic3d *graphic, int numfirst, int max, int step) ;
   extern int    load_picture_raw_3d(const char *file, int numfirst, int wdth, int hght, int dpth, int pos, int taille) ;
   extern grphic3d *load_mri_bruker_3d(const char *file, grphic3d *graphic, int dpth, int numfirst) ;
 #endif /* __GTK_GUI */
   extern int load_mri_ipb_3d(const char *file, grphic3d *image, int number) ;
   extern int save_mri_ipb_3d_p(char *file, grphic3d *image) ;
-
+  extern int    load_mri_3d(const char *file, grphic3d *graphic, int numfirst, int max, int step) ;
+ 
 #ifdef __GTK_GUI
   extern int save_pictures_3d(char *file, int start, int num_images, int step) ;
   extern int save_pictures_3d_std(char *file, int start, int num_images, int step) ;

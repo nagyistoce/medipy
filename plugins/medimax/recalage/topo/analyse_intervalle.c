@@ -266,7 +266,7 @@ return(status);
 
 
 /*---------------------------------------------------------------------------*/
-/*----- retourne la valeur max autorisï¿½e du pas -----------------------------*/
+/*----- retourne la valeur max autorisée du pas -----------------------------*/
 /*---------------------------------------------------------------------------*/
 double TOP_linemin_maxpas_3d(int nb_param,double *param,double *moins_direc,int i,int j,int k, double Jm, double JM, TSlpqr *Slpqr)
 { int aux0,aux1;  								// variables auxiliaires
@@ -522,7 +522,7 @@ do
   //----- mise a jour de aux_s ---------------------------------------------
   if (bsup_s<seuil)
   { pen = TOP_eval_poly(bsupx_s,bsupy_s,bsupz_s,Slpqr->alpha,1.0,0.0);
-    if (pen<0)  																// pbs numï¿½riques possibles (bsup_s<seuil et pen>0, d'oï¿½ pb si pas d'accolades)
+    if (pen<0)  																// pbs numériques possibles (bsup_s<seuil et pen>0, d'où pb si pas d'accolades)
 	{ gamma_s = (seuil-bsup_s) / pen + aux_s_old;
       *aux_s = gamma_s;
 	}  
@@ -549,7 +549,7 @@ do
   	if (binf_i<=seuil)
 		*aux_i = aux_i_old;
 
-  //----- pour ï¿½tre certain de se premunir contre d'improbables problemes numeriques...----
+  //----- pour être certain de se premunir contre d'improbables problemes numeriques...----
   *aux_s = MAX2(*aux_s,0.0);
   *aux_i = MAX2(*aux_i,0.0);
   binf_i = MIN2(*aux_i,*aux_s);
@@ -560,7 +560,7 @@ do
 if(*aux_s<=0) 
 {
 #ifndef TOPO_VERBOSE
-printf("ATTENTION !!!!!!!!!!!! Probable pb numï¿½rique !!!!!!!!!!!! *aux_s = %f    *aux_i= %f \n ",*aux_s,*aux_i);
+printf("ATTENTION !!!!!!!!!!!! Probable pb numérique !!!!!!!!!!!! *aux_s = %f    *aux_i= %f \n ",*aux_s,*aux_i);
 #endif
 }
  nb_iter++;
@@ -672,7 +672,7 @@ void TOP_initialization_delta(TSlpqr *Slpqr)
     { for (k=0; k<2; k++)
       { pente  = TOP_eval_poly(x[i],y[j],z[k],Slpqr->alpha,1,0);
         ordorg = TOP_eval_poly(x[i],y[j],z[k],Slpqr->alpha,0,1);
-        if ((ordorg<=Slpqr->Jm)||(ordorg>=Slpqr->JM))    		// possible suite ï¿½ pb numï¿½rique
+        if ((ordorg<=Slpqr->Jm)||(ordorg>=Slpqr->JM))    		// possible suite à pb numérique
         { Slpqr->bdeltam = 0 ; Slpqr->bdeltaM = 0;
         }
         else if (pente>0)
@@ -748,16 +748,16 @@ void master_minim_main(double seuil_arret, double *a, Tparall b, double *binf, d
 %----- fichier : minim_main.m
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
-%----- objet   : procï¿½dure de minimisation
+%----- objet   : procédure de minimisation
 %-----           routine principale
 %-----
 %-----           retourne bornes inf et sup du minimum
 %-----                    argument de la borne sup
 %-----
-%-----           recherche dans le pavï¿½ xinf,xsup,yinf,ysup,zinf,zsup
+%-----           recherche dans le pavé xinf,xsup,yinf,ysup,zinf,zsup
 %-----
-%-----           precis : prï¿½cision de la recherche
-%-----           binf et bsup sont calculï¿½es sur des pavï¿½s dont les dim < precis
+%-----           precis : précision de la recherche
+%-----           binf et bsup sont calculées sur des pavés dont les dim < precis
 %-----------------------------------------------------------
 
 
@@ -823,7 +823,7 @@ void minim_main(double seuil_arret, double precis, double *a, double xinf, doubl
 
 //    printf("%4d %4d %4d \n",niter,myQ.nelem,myL.nelem);
 
-    myB = depile_end(&myQ);                     //myB = myQ(:,length(myQ(1,:)));    myQ = myQ(:,1:length(myQ(1,:))-1);         % on traite les petits pavï¿½s d'abord pour ï¿½viter d'avoir une longue liste chainï¿½e (casser des gros pavï¿½s ne donne pas d'indication prï¿½cise sur l'encadrement du minimum)
+    myB = depile_end(&myQ);                     //myB = myQ(:,length(myQ(1,:)));    myQ = myQ(:,1:length(myQ(1,:))-1);         % on traite les petits pavés d'abord pour éviter d'avoir une longue liste chainée (casser des gros pavés ne donne pas d'indication précise sur l'encadrement du minimum)
 
     if (myB.fm<=c_bar)										// myBox = (*myListe).tete.b;
     {
@@ -913,7 +913,7 @@ void minim_main(double seuil_arret, double precis, double *a, double xinf, doubl
   //%-----------------------------------------------------------
   //% borne sup retenue : min sur les sommets (+ l'argument)
 
-  //binf = min(myL(7,:));                   //% et pas max(myL(7,:)) car ce n'est pas forcï¿½ment le mï¿½me minimum qui est encadrï¿½ dans chaque cas
+  //binf = min(myL(7,:));                   //% et pas max(myL(7,:)) car ce n'est pas forcément le même minimum qui est encadré dans chaque cas
 
   *binf = c_bar;
   *bsup = HUGE_VAL;
@@ -975,7 +975,7 @@ double dim_max_box(TOPTbox b)
 %----- fichier : pave_grignote.m
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
-%----- objet   : contraction d'un pavï¿½ par encradrement du gradient
+%----- objet   : contraction d'un pavé par encradrement du gradient
 %-----           Voir classeur OPT 4 et 5
 %-----------------------------------------------------------
 
@@ -1012,9 +1012,9 @@ void pave_grignote(double precis,double *a,TOPTbox *b, int *status)
   {
     //-----------------------------------------------------------
     xi = myinf[i]; xs = mysup[i];
-    modxi = 0; modxs = 0;                        // boolï¿½ens indiquant la modification des bornes
+    modxi = 0; modxs = 0;                        // booléens indiquant la modification des bornes
 
-    poly_marg_poly_fast(i,mygrad,big_mat);		 // ATTENTION : modification par rapport ï¿½ la version matlab
+    poly_marg_poly_fast(i,mygrad,big_mat);		 // ATTENTION : modification par rapport à la version matlab
     //big_mat = poly_marg_poly_fast(i,mygrad(:,i));
 
     for (j=1; j<=20; j++)
@@ -1083,14 +1083,14 @@ void pave_grignote(double precis,double *a,TOPTbox *b, int *status)
     if (modxi==1)
     { if (xi-precis/3 > myinf[i])
       { myinf[i] = xi - precis / 3;
-        myinf[i] = MIN2(mysup[i], myinf[i]);           // min([mysup(i) , myinf(i)]);   //% au cas oï¿½ on pourrait avoir myinf(i)>mysup(i) avec la ligne prï¿½cï¿½dente, ce qui est possible
+        myinf[i] = MIN2(mysup[i], myinf[i]);           // min([mysup(i) , myinf(i)]);   //% au cas où on pourrait avoir myinf(i)>mysup(i) avec la ligne précédente, ce qui est possible
       }
     }
 
     if (modxs==1)
     { if (xs+precis/3 < mysup[i])
       { mysup[i] = xs + precis / 3;
-        mysup[i] = MAX2(mysup[i], myinf[i]);                             // max([mysup(i) , myinf(i)]);                  % au cas oï¿½ on pourrait avoir mysup(i)<myinf(i) avec la ligne prï¿½cï¿½dente, ce qui est possible
+        mysup[i] = MAX2(mysup[i], myinf[i]);                             // max([mysup(i) , myinf(i)]);                  % au cas où on pourrait avoir mysup(i)<myinf(i) avec la ligne précédente, ce qui est possible
       }
     }
 
@@ -1122,7 +1122,7 @@ void pave_grignote(double precis,double *a,TOPTbox *b, int *status)
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
 %----- objet   : marginales du polynome
-%-----           Valeurs des coefficients en un point donnï¿½
+%-----           Valeurs des coefficients en un point donné
 %-----------------------------------------------------------
 function [marg] = poly_marg(indice,a,xt,yt,zt);*/
 
@@ -1170,20 +1170,20 @@ void poly_marg(int indice, double *a, double xt, double yt, double zt, double *m
 %-----------------------------------------------------------
 
 %-----------------------------------------------------------
-% Sortie de la procï¿½dure : matrice
+% Sortie de la procédure : matrice
 %   [ x2 x1 x0 y2 y1 y0 z2 z1 z0 ]
 % chaque colonne contient les coefficients du polynome.
 % Ex : colonne 4 : marginale en y, coefficient de y2 sous
-% forme de vecteur de coordonnï¿½es dans la base des polynomes
-% considï¿½rï¿½s.
+% forme de vecteur de coordonnées dans la base des polynomes
+% considérés.
 %-----------------------------------------------------------
 
 function [big_mat] = poly_marg_poly_fast(param,a); */
 
 //
-// ATTENTION : modification des paramï¿½tres d'appel par rapport ï¿½ la version matlab
+// ATTENTION : modification des paramètres d'appel par rapport à la version matlab
 //
-// a ci-dessus correspond dans la fonction appelante ï¿½ my_grad(:,param)
+// a ci-dessus correspond dans la fonction appelante à my_grad(:,param)
 //
 
 void poly_marg_poly_fast(int param, double my_grad[][4], double big_mat[][10])
@@ -1194,7 +1194,7 @@ void poly_marg_poly_fast(int param, double my_grad[][4], double big_mat[][10])
   for (i=1; i<=20; i++) a[i] = my_grad[i][param];
 
   //big_mat = zeros(length(a),9);
-  //r = zeros(size(a));                                 //% prï¿½sence de r car commoditï¿½ MuPad
+  //r = zeros(size(a));                                 //% présence de r car commodité MuPad
 
   for (i=1; i<=20; i++)
   { for (j=1; j<=9; j++)
@@ -1600,7 +1600,7 @@ alpha[20] = 1.0/a1/a2/(a3*a3)*a[20];*/
 %----- fichier : eval_fun.m
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
-%----- objet   : ï¿½valuation de la fonction associï¿½e au
+%----- objet   : évaluation de la fonction associée au
 %-----           polynome
 %-----------------------------------------------------------
 
@@ -1653,7 +1653,7 @@ void fast_eval_fun(double *a, double xt, double yt, double zt, double *aux, doub
 
 /*%-----------------------------------------------------------
 %----- fichier : eval_integrale_fun
-%----- objet   : ï¿½valuation de l'integrale du jacobien
+%----- objet   : évaluation de l'integrale du jacobien
 %-----          
 %-----------------------------------------------------------*/
 
@@ -1784,15 +1784,15 @@ void empile_front(TOPTliste *myListe, TOPTbox myB)
 %----- fichier : minim_iter.m
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
-%----- objet   : procï¿½dure de minimisation
-%-----           minimisation itï¿½rative
+%----- objet   : procédure de minimisation
+%-----           minimisation itérative
 %-----
 %-----           Gauss-Seidel car quadratique en les
 %-----           marginales
 %-----
 %-----           coin : indique si le minimum est atteint en un coin
 %-----
-%-----           Voir les commentaires en fin de procï¿½dure
+%-----           Voir les commentaires en fin de procédure
 %-----------------------------------------------------------
 
 
@@ -1859,7 +1859,7 @@ void minim_iter(double precis, double *a, TOPTbox myB, double *x_hat, double *y_
 %----- fichier : minim_min_ligne.m
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
-%----- objet   : procï¿½dure de minimisation
+%----- objet   : procédure de minimisation
 %-----           minimisation de ligne
 %-----------------------------------------------------------
 
@@ -1952,15 +1952,15 @@ end
 %----- fichier : pave_casser.m
 %----- auteur  : C. Heinrich
 %----- date    : juillet 2002
-%----- objet   : retourne une liste de pavï¿½s resultant de
+%----- objet   : retourne une liste de pavés resultant de
 %-----           casser myB en xcass, ycass, zcass
-%-----           bornes non initialisï¿½es
+%-----           bornes non initialisées
 %-----------------------------------------------------------
 
 
 function [myL] = pave_casser(precis,myB,xcass,ycass,zcass);*/
 
-// ATTENTION : xcass, ycass, zcass de dimension 2 nï¿½cessairement
+// ATTENTION : xcass, ycass, zcass de dimension 2 nécessairement
 
 
 void pave_casser(double precis, TOPTbox myB, double *xcass, double *ycass, double *zcass, TOPTliste *myL)
@@ -2014,7 +2014,7 @@ void pave_casser(double precis, TOPTbox myB, double *xcass, double *ycass, doubl
 %----- objet   : donne la pente (en fonction du pas) de
 %-----           chaque coefficient
 %-----
-%-----           dir_des : vecteur colonne de dimension 3, normï¿½
+%-----           dir_des : vecteur colonne de dimension 3, normé
 %-----           indice  : entier, entre 1 et 8 (i de alxi)
 %-----------------------------------------------------------*/
 

@@ -193,6 +193,7 @@ MEDIMAX_FUNCTION_MACRO(BsplineRegistration3d,
                     1 : Gradient Descent
                     2 : Levenberg-Marquardt
                     3 : Levenberg-Marquardt without topolgy preservation
+                    4 : Parallel implementation of Levenberg-Marquardt
     
     savetype    : saving of the transformation  
                     0 : Save as a deformation field

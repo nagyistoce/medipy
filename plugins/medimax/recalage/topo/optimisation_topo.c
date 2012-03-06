@@ -405,10 +405,10 @@ double TOP_min_desc_grad_locale_3d	(grphic3d *imref, grphic3d *imreca, grphic3d 
                           					field3d *champ_fin,transf_func_t the_transf, InterpolationFct inter,
                           					dist_func_locale_t dist, reg_func_locale_t regularisation, int nb_param,  double *param, int ***masque_param,double Jmin, double Jmax,char *nomfichiertrf)
 {
- int wdth,hght,dpth,i,j,k; 
+ int wdth,hght,dpth,i; 
  field3d  *gradIref,*maskgradIref=NULL;
  double *grad,*p,*p_i,gradl[3],*param_norm;
- double Edebut,Efin,E1,E2,E,Eprec,tmp,rcoef2;
+ double Edebut,Efin,E1,E2,E,Eprec;
  int	nb,nbreduc,stop;
  double prreduc,maxpx,maxpy,maxpz,precis,precisx,precisy,precisz;	
  int topi,topj,topk,topD,resol;
@@ -1116,6 +1116,347 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 }
 
 
+double TOP_min_marquardt_locale_3d_bloc(grphic3d *imref, grphic3d *imreca, grphic3d *imres, double *p, double *p_i, double *param_norm, double *opp_param_norm, int nb_param, double *grad, dist_func_locale_t dist, reg_func_locale_t regularisation, reg_grad_locale_t gradient_reg, field3d *gradIref, field3d *maskgradIref, reg_hessien_locale_t hessien_reg,
+ int (*gradient)(),  
+ int (*func_hessien)(),  
+ hessien3d *hessienIref, hessien3d *maskhessienIref, double Jmin, double Jmax, int ***masque_param,  int ***masque_bloc, int topi, int topj, int topk)
+{
+int topD1,i,j,itmp,imin;
+double xm,xM,ym,yM,zm,zM,p_ini[3], Etmp,Emin,gradl[3],p_tmp[3], E;
+int wdth,hght,dpth; 
+TSlpqr Slpqr[8];
+int *x00,*x11,*y00,*y11,*z00,*z11;
+int res_inv=0,continu,nb_iter,tutu;
+double nuk,ck=10,ck1,seuil_nuk;
+mat3d pseudo_hessien,hessien,inv_hessien;
+double energie_precision = 0.01;
+double lambda_ref = (1.0-TOPO_PONDERATION_RECALAGE_SYMETRIQUE)/TOPO_PONDERATION_RECALAGE_SYMETRIQUE;
+double maxpx,maxpy,maxpz,precis,precisx,precisy,precisz;	
+int nb_pas = NB_PAS_LINEMIN_TOPO; 
+int resol=BASE3D.resol;
+int topD=(int)pow(2.0,1.0*resol)-1;
+
+
+x00=BASE3D.x0;x11=BASE3D.x1;y00=BASE3D.y0;y11=BASE3D.y1;z00=BASE3D.z0;z11=BASE3D.z1;
+wdth=imref->width;hght=imref->height;dpth=imref->depth;
+ 
+ // --- On fixe la précision à 10% de la taille du support de spline
+ precis=MAXI(TOPO_PONDERATION_RECALAGE_SYMETRIQUE,1.0);  // pour que la précision en recalage symétrique soit équivalent que celle obtenue en non symetrique
+
+ if ((dist==Energie_atrophie_log_jacobien_locale_3d)||(dist==Energie_atrophie_jacobien_locale_3d)) {precis=pow(0.1,PRECISION_SIMULATION)*precis;}
+ 
+ precisx=CRITERE_ARRET_PARAM*precis*(x11[0]-x00[0]);
+ precisy=CRITERE_ARRET_PARAM*precis*(y11[0]-y00[0]);
+ precisz=CRITERE_ARRET_PARAM*precis*(z11[0]-z00[0]);
+ 
+
+	topD1=TOP_conv_ind(topi,topj,topk,nb_param);
+  		// printf("%d ieme bloc sur %d \r",topD1/3,nb_param/3);
+		
+			
+				
+		//---------------------------------------------------------------
+		//----- initialisation Slpqr            -------------------------
+  		//---------------------------------------------------------------
+				
+  		xm = 1.0*x00[topD1/3]/wdth; xM = 1.0*x11[topD1/3]/wdth; ym = 1.0*y00[topD1/3]/hght; 
+  		yM = 1.0*y11[topD1/3]/hght; zm = 1.0*z00[topD1/3]/dpth; zM =1.0*z11[topD1/3]/dpth;
+	
+  		Slpqr[0].b.xm = xm; Slpqr[0].b.xM = (xm+xM)/2;
+  		Slpqr[1].b.xm = xm; Slpqr[1].b.xM = (xm+xM)/2;
+  		Slpqr[2].b.xm = xm; Slpqr[2].b.xM = (xm+xM)/2;
+  		Slpqr[3].b.xm = xm; Slpqr[3].b.xM = (xm+xM)/2;
+  		Slpqr[4].b.xM = xM; Slpqr[4].b.xm = (xm+xM)/2;
+  		Slpqr[5].b.xM = xM; Slpqr[5].b.xm = (xm+xM)/2;
+  		Slpqr[6].b.xM = xM; Slpqr[6].b.xm = (xm+xM)/2;
+  		Slpqr[7].b.xM = xM; Slpqr[7].b.xm = (xm+xM)/2;
+
+  		Slpqr[0].b.ym = ym; Slpqr[0].b.yM = (ym+yM)/2;
+  		Slpqr[1].b.ym = ym; Slpqr[1].b.yM = (ym+yM)/2;
+  		Slpqr[4].b.ym = ym; Slpqr[4].b.yM = (ym+yM)/2;
+  		Slpqr[5].b.ym = ym; Slpqr[5].b.yM = (ym+yM)/2;
+  		Slpqr[2].b.yM = yM; Slpqr[2].b.ym = (ym+yM)/2;
+  		Slpqr[3].b.yM = yM; Slpqr[3].b.ym = (ym+yM)/2;
+  		Slpqr[6].b.yM = yM; Slpqr[6].b.ym = (ym+yM)/2;
+  		Slpqr[7].b.yM = yM; Slpqr[7].b.ym = (ym+yM)/2;
+
+  		Slpqr[0].b.zm = zm; Slpqr[0].b.zM = (zm+zM)/2;
+  		Slpqr[2].b.zm = zm; Slpqr[2].b.zM = (zm+zM)/2;
+  		Slpqr[4].b.zm = zm; Slpqr[4].b.zM = (zm+zM)/2;
+  		Slpqr[6].b.zm = zm; Slpqr[6].b.zM = (zm+zM)/2;
+  		Slpqr[1].b.zM = zM; Slpqr[1].b.zm = (zm+zM)/2;
+  		Slpqr[3].b.zM = zM; Slpqr[3].b.zm = (zm+zM)/2;
+  		Slpqr[5].b.zM = zM; Slpqr[5].b.zm = (zm+zM)/2;
+  		Slpqr[7].b.zM = zM; Slpqr[7].b.zm = (zm+zM)/2;
+		
+		for (i=0;i<3;i++)
+			p_ini[i]=p[topD1+i];
+	
+		if (dist==Energie_IM_locale_3d)
+				init_IM_locale_before_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+
+		Etmp=dist(imref,imreca,nb_param,p,param_norm,topi,topj,topk,Slpqr,regularisation);
+
+		
+		if (dist==Energie_IM_locale_3d)
+			init_IM_locale_after_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+	
+	
+	
+		continu=0;
+		nuk=0;
+		ck=10;
+		ck1=10;
+		seuil_nuk=0;
+		nb_iter=0;
+		tutu=1;
+		if (Etmp==0) continu=1;
+		do{
+		Emin=Etmp;
+		if (tutu>0)
+			{
+			// Calcul du gradient
+
+	
+			gradient(imref,imreca,nb_param,p,param_norm,gradIref,maskgradIref,gradl,topi,topj,topk,Slpqr,gradient_reg);
+			grad[topD1]=gradl[0];grad[topD1+1]=gradl[1];grad[topD1+2]=gradl[2];    
+			
+			func_hessien(imref, imreca, nb_param,p,param_norm,gradIref,maskgradIref,hessienIref,maskhessienIref,& hessien,topi,topj,topk,Slpqr,hessien_reg);
+			
+	
+			for (i=0;i<3;i++)
+				for (j=0;j<3;j++)
+					pseudo_hessien.H[i][j]=hessien.H[i][j];
+		
+		if ((nuk==0)&&(seuil_nuk==0))
+		 	{
+			nuk=0.01*sqrt(hessien.H[0][0]*hessien.H[0][0]+hessien.H[1][1]*hessien.H[1][1]+hessien.H[2][2]*hessien.H[2][2]);
+			seuil_nuk=100.0*sqrt(gradl[0]*gradl[0]+gradl[1]*gradl[1]+gradl[2]*gradl[2]);
+			
+			
+				if ((seuil_nuk<100*nuk)||(nuk<0.0001))
+				{
+				nuk=0.01;seuil_nuk=1000000; //on fixe des valeurs arbitraires
+				}
+			}
+			}	
+			
+		
+
+			
+		if((gradl[0]!=0)||(gradl[1]!=0)||(gradl[2]!=0))
+		{		
+		// Calcul du pseudo hessien Hk=H+nuk*I jusqu'a ce qu'il soit defini positif
+		res_inv=0;
+		while (res_inv==0)
+			{
+				for (i=0;i<3;i++)
+					pseudo_hessien.H[i][i]=hessien.H[i][i]+nuk;	
+			
+				res_inv=inversion_mat3d(&pseudo_hessien,&inv_hessien);
+				
+				if(res_inv==0)
+					nuk=nuk*ck;
+			}
+		
+		if (dist==Energie_IM_locale_3d)
+		init_IM_locale_before_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+
+		
+		for (i=0;i<3;i++)
+			p_tmp[i]=p[topD1+i];
+				
+			double max_delta_p=0, delta_p;	
+			for (i=0;i<3;i++)
+				for (j=0;j<3;j++)
+					{
+					delta_p=inv_hessien.H[i][j]*gradl[j];
+					max_delta_p=MAXI(max_delta_p,fabs(delta_p));
+					p[topD1+i]=p[topD1+i]-delta_p;
+					}
+		
+		
+		if (max_delta_p>TOPO_QUANTIFICATION_PARAM)  // on ne calcul le critere que si la modif des params est superieur a TOPO_QUANTIFICATION_PARAM
+			{
+			for (i=0;i<3;i++)  
+					if (fabs(p[topD1+i])<TOPO_QUANTIFICATION_PARAM)  /* C'est pour en finir avec les bug num�riques ... */
+						p[topD1+i]=0.0;
+		
+		
+		
+					param_norm[topD1]  =p[topD1]  /wdth;	
+					param_norm[topD1+1]=p[topD1+1]/hght;	
+					param_norm[topD1+2]=p[topD1+2]/dpth;	
+
+					
+										
+					Etmp=dist(imref,imreca,nb_param,p,param_norm,topi,topj,topk,Slpqr,regularisation);
+			}
+		else
+			Etmp=HUGE_VAL;
+	
+	
+		if (Etmp>Emin)
+				{
+				for (i=0;i<3;i++)
+					p[topD1+i]=p_tmp[i];
+					
+				param_norm[topD1]  =p[topD1]  /wdth;	
+				param_norm[topD1+1]=p[topD1+1]/hght;	
+				param_norm[topD1+2]=p[topD1+2]/dpth;
+				
+				nuk=nuk*ck;	
+				Etmp=Emin;
+				if (nuk>seuil_nuk) {continu=1;}
+				tutu=0;
+				nb_iter=0;	
+				}
+		else{
+				{
+				nuk=1.0*nuk/ck1; tutu=2;
+				nb_iter++;
+				if (((1.0*fabs((Emin-Etmp)/Emin))<energie_precision)||(nb_iter>10)||(Emin==0))
+					{continu=1;Emin=Etmp;}
+				}
+								
+				}
+			if (dist==Energie_IM_locale_3d)
+		 	init_IM_locale_after_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+					
+		}
+		else
+		{
+		continu=1;
+		}			
+		}while (continu==0);
+		
+		
+		// V�rification de la conservation de la topologie pour les nouveaux param
+		
+
+ 		if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d)||(dist==Energie_groupwise_variance_locale_3d)
+		 || ((dist==Energie_quad_sous_champ_locale_3d)&&(TOPO_PONDERATION_RECALAGE_SYMETRIQUE > 0.0)))
+		{
+		for(i=0;i<nb_param;i++)
+			opp_param_norm[i]=-1.0*lambda_ref*param_norm[i];
+		
+		}
+
+
+		if ((TOP_verification_locale(nb_param,p,param_norm,Jmin,Jmax,topi,topj,topk,Slpqr)==0)||(res_inv==-1)
+						||(TOP_verification_locale(nb_param,p,opp_param_norm,Jmin,Jmax,topi,topj,topk,Slpqr)==0))
+		{
+			for (i=0;i<3;i++)
+				p_tmp[i]=p[topD1+i];
+
+
+		if (dist==Energie_IM_locale_3d)
+			init_IM_locale_before_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+
+			Emin=HUGE_VAL;imin=0;
+			continu=1;
+			for (itmp=0;((itmp<nb_pas)&&(continu==1));itmp++)
+				{
+				
+				for (i=0;i<3;i++)
+				p[topD1+i]=p_ini[i]+1.0*itmp/nb_pas*(p_tmp[i]-p_ini[i]);
+			
+			
+				for (i=0;i<3;i++)
+					if (fabs(p[topD1+i])<TOPO_QUANTIFICATION_PARAM) /* C'est pour en finir avec les bug num�riques ... */
+						p[topD1+i]=0.0;
+		
+				param_norm[topD1]  =p[topD1]  /wdth;	
+				param_norm[topD1+1]=p[topD1+1]/hght;	
+				param_norm[topD1+2]=p[topD1+2]/dpth;	
+
+				Etmp=dist(imref,imreca,nb_param,p,param_norm,topi,topj,topk,Slpqr,regularisation);
+	
+ 				if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d)||(dist==Energie_groupwise_variance_locale_3d)
+				||((dist==Energie_quad_sous_champ_locale_3d)&&(TOPO_PONDERATION_RECALAGE_SYMETRIQUE > 0.0)))
+					{
+					for(i=0;i<3;i++)
+							opp_param_norm[topD1+i]=-1.0*lambda_ref*param_norm[topD1+i];
+		
+					}
+
+		
+				if ((TOP_verification_locale(nb_param,p,param_norm,Jmin,Jmax,topi,topj,topk,Slpqr)==0)
+					||(TOP_verification_locale(nb_param,p,opp_param_norm,Jmin,Jmax,topi,topj,topk,Slpqr)==0))
+				 continu=0;
+				else if (Etmp<Emin) {Emin=Etmp;imin=itmp;}
+				}
+				for (i=0;i<3;i++)
+				p[topD1+i]=p_ini[i]+1.0*imin/nb_pas*(p_tmp[i]-p_ini[i]);
+			
+				
+			
+				param_norm[topD1]  =p[topD1]  /wdth;	
+				param_norm[topD1+1]=p[topD1+1]/hght;	
+				param_norm[topD1+2]=p[topD1+2]/dpth;
+				
+				
+				if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d)||(dist==Energie_groupwise_variance_locale_3d)
+				||((dist==Energie_quad_sous_champ_locale_3d)&&(TOPO_PONDERATION_RECALAGE_SYMETRIQUE > 0.0)))
+					{
+					for(i=0;i<3;i++)
+							opp_param_norm[topD1+i]=-1.0*lambda_ref*param_norm[topD1+i];
+		
+					}
+
+				
+			if (dist==Energie_IM_locale_3d)
+		 	init_IM_locale_after_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+
+
+		}
+		
+		if (Emin==HUGE_VAL)
+			{//printf("c'est un bug issu des pb numerique de topologie ...\n");
+			
+			if (dist==Energie_IM_locale_3d)
+				init_IM_locale_before_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+
+			for (i=0;i<3;i++)
+				p[topD1+i]=p_ini[i];
+			
+				param_norm[topD1]  =p[topD1]  /wdth;	
+				param_norm[topD1+1]=p[topD1+1]/hght;	
+				param_norm[topD1+2]=p[topD1+2]/dpth;	
+				
+				Emin=dist(imref,imreca,nb_param,p,param_norm,topi,topj,topk,Slpqr,regularisation);
+		
+			if (dist==Energie_IM_locale_3d)
+		 	init_IM_locale_after_optimization_3d(imref, imreca, nb_param, p, topi, topj, topk);
+
+			}
+		E=E+Emin;
+		
+	
+		//-------Evaluation du deplacement max------------
+		maxpx=1.0*fabs(p_i[topD1]-p[topD1]);
+		maxpy=1.0*fabs(p_i[topD1+1]-p[topD1+1]);
+		maxpz=1.0*fabs(p_i[topD1+2]-p[topD1+2]);
+		
+		if ((maxpx<precisx)&&(maxpy<precisy)&&(maxpz<precisz)) masque_bloc[topi][topj][topk]=0;
+		else {/* on debloque les blocs voisins */
+				if (maxpx>precisx) 
+					{ 	if (topi>0) masque_bloc[topi-1][topj][topk]=1;
+						if (topi<topD-1) masque_bloc[topi+1][topj][topk]=1;
+					}
+				if (maxpy>precisy) 
+					{ 	if (topj>0) masque_bloc[topi][topj-1][topk]=1;
+						if (topj<topD-1) masque_bloc[topi][topj+1][topk]=1;
+					}
+				if (maxpz>precisz) 
+					{ 	if (topk>0) masque_bloc[topi][topj][topk-1]=1;
+						if (topk<topD-1) masque_bloc[topi][topj][topk+1]=1;
+					}
+			 }
+		
+
+return(Emin);
+}	
 /*******************************************************************************
 **     TOP_min_marquardt_locale_3d(imref,imreca,imres,champ_ini,champ_fin,the_transf,inter  
 **                   ,dist,nb_param,min_param,max_param,prec_param,param)
@@ -1142,19 +1483,19 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 **      la fonction retourne un double contenant la valeur du minimum
 **      Les parametres correspondant a ce minimum sont retourne dans param
 *******************************************************************************/
-double TOP_min_marquardt_locale_3d	(grphic3d *imref, grphic3d *imreca, grphic3d *imres, field3d *champ_fin,
+double TOP_min_marquardt_locale_3d_parallel	(grphic3d *imref, grphic3d *imreca, grphic3d *imres, field3d *champ_fin,
                           					transf_func_t the_transf, InterpolationFct inter, dist_func_locale_t dist, reg_func_locale_t regularisation,
 																	 	int nb_param,  double *param, int ***masque_param,double Jmin, double Jmax,char *nomfichiertrf)
 {
- int wdth,hght,dpth,i,j/*,k*/; 
+ int wdth,hght,dpth,i; 
  field3d *gradIref,*maskgradIref=NULL;
- double *grad,*p,*p_i,gradl[3],*param_norm,p_ini[3],p_tmp[3];
- double Edebut,Efin,E1,E2,E,Eprec,Emin,Etmp;
- int	nb,nbreduc,stop,nb_iter,nb_tmp;
- double prreduc,maxpx,maxpy,maxpz,precis,precisx,precisy,precisz;	
+ double *grad,*p,*p_i,*param_norm;
+ double Edebut,Efin,E1,E2,E,Eprec,Etmp;
+ int	nb,nbreduc,stop,nb_tmp;
+ double prreduc,precis,precisx,precisy,precisz;	
  int topi,topj,topk,topD,resol;
  int pari,parj,park;
- int compt,topD1;
+ int compt;
  int ***masque_bloc;
  transf3d *transfo;
  TSlpqr Slpqr[8];
@@ -1164,27 +1505,18 @@ double TOP_min_marquardt_locale_3d	(grphic3d *imref, grphic3d *imreca, grphic3d 
  reg_grad_locale_t gradient_reg;  
  reg_hessien_locale_t hessien_reg;
  hessien3d *hessienIref,*maskhessienIref=NULL; 
- mat3d pseudo_hessien,hessien,inv_hessien;
- //double cfmax;
- double xm,xM,ym,yM,zm,zM;
- int res_inv=0,continu;
- double nuk,ck=10,ck1,seuil_nuk;
- int tutu;
 #ifndef SAVE_INTERMEDIAIRE
  char nomfichier[255];
  char temp[2];
  char *ext;
 #endif
-int nb_pas = NB_PAS_LINEMIN_TOPO,itmp,imin; 
 double energie_precision = 0.01;
 double *opp_param_norm=NULL;
-double lambda_ref = (1.0-TOPO_PONDERATION_RECALAGE_SYMETRIQUE)/TOPO_PONDERATION_RECALAGE_SYMETRIQUE;
 int nb_iter_max=50;
-double max_delta_p=0, delta_p;
 
  if (dist==Energie_IM_locale_3d) energie_precision=0.0001;  /* les variations relatives de l'IM sont en g�n�ral bcp plus faibles */
 
- 
+
  wdth=imref->width;hght=imref->height;dpth=imref->depth;
  resol=BASE3D.resol;
  topD=(int)pow(2.0,1.0*resol)-1;
@@ -1411,6 +1743,417 @@ E=0;
 for(pari=MINI(2,resol)-1;pari>=0;pari--)
  	for(parj=MINI(2,resol)-1;parj>=0;parj--)
   for(park=MINI(2,resol)-1;park>=0;park--)
+	{
+ #pragma omp parallel for private(topi,topj,topk,Etmp) shared(E) schedule(dynamic)
+  for (topi=0; topi<topD; topi++)
+	for (topj=0; topj<topD; topj++)
+	  for (topk=0; topk<topD; topk++)
+	   if ((topi%2==pari)&&(topj%2==parj)&&(topk%2==park))
+	  	if ((masque_param[topi][topj][topk]!=0)&&(masque_bloc[topi][topj][topk]!=0))
+	  	{
+				
+		Etmp=TOP_min_marquardt_locale_3d_bloc(imref, imreca,imres, p, p_i, param_norm, opp_param_norm,  nb_param, grad,  dist,  regularisation,  gradient_reg, gradIref, maskgradIref,  hessien_reg, gradient,func_hessien, hessienIref, maskhessienIref, Jmin, Jmax, masque_param,  masque_bloc, topi, topj, topk);
+					
+	  	E=E+Etmp;
+	    }
+#pragma end parallel for
+
+	stop++;
+	}
+		for (i=0;i<nb_param;i++) p_i[i]=p[i];
+		printf("Minimisation sur %f %% des blocs Eprec : %f    E : %f\n",300.0*stop/nb_param,Eprec,E);
+		
+  #ifndef TOPO_DEBUG
+	{
+  	#ifndef TOPO_VERBOSE 
+	aff_log("Verif. fin iteration ..... "); 
+	#endif
+	TOP_verification_all(nb_param,p,masque_param,Jmin,Jmax); 
+	#ifndef TOPO_VERBOSE 
+	aff_log("finie \n");
+	#endif
+	}
+  #endif
+	
+	if (nomfichiertrf!=NULL)
+	{
+	#ifndef TOPO_COMPARE_CRITERE 
+	compare_critere(imref,imreca,imres,champ_fin,p,param_norm,nb_param,masque_param,nb);
+	#endif
+	}
+	
+			
+  nb++;
+ } while (nb<nb_iter_max && Eprec!=E);
+
+ //calcul de l'energie finale
+  Efin=Energie_globale_3d(imref,imreca,nb_param,p,param_norm,dist,regularisation,masque_param);
+  aff_log("nbiter: %d    Efin: %.2f  reduction: %.2f %%  \n",nb,Efin,(Edebut-Efin)/Edebut*100.0);
+
+  for (i=0;i<nb_param;i++) param[i]=p[i];
+
+  #ifndef TOPO_DEBUG
+	{
+	#ifndef TOPO_VERBOSE
+	aff_log("Verif. fin resolution..... ");
+	#endif 
+	TOP_verification_all(nb_param,param,masque_param,Jmin,Jmax); 
+	#ifndef TOPO_VERBOSE
+	aff_log("finie \n");
+	#endif
+	}
+  #endif
+
+	#ifndef SAVE_INTERMEDIAIRE
+	if (nomfichiertrf!=NULL)
+		{
+		 //si l'extension .trf existe on la supprime
+   		strcpy(nomfichier,nomfichiertrf);
+  		ext=strstr(nomfichier,".trf");
+  		if (ext!=NULL) *ext='\0';
+
+		strcat(nomfichier,"_");
+ 		temp[0]=(char)(resol+48);
+ 		temp[1]=0;
+ 		strcat(nomfichier,temp);
+ 	
+		save_transf_3d(transfo,nomfichier);
+		}
+	#endif
+
+
+ //liberation memoire des variables
+ free_dvector(p_i,nb_param);
+ free_dvector(param_norm,nb_param);
+ free_dvector(grad,nb_param);
+
+ if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d)||(dist==Energie_groupwise_variance_locale_3d)
+ ||((dist==Energie_quad_sous_champ_locale_3d)&&(TOPO_PONDERATION_RECALAGE_SYMETRIQUE > 0.0)))
+ 	free_dvector(opp_param_norm,nb_param);
+
+ free_imatrix_3d(masque_bloc);
+ 
+ if ((dist!=Energie_quad_sous_champ_locale_3d)&&(dist!=Energie_groupwise_variance_locale_3d)) free_hessien3d(hessienIref);
+
+ free_transf3d(transfo);
+
+ if ((dist==Energie_ICP_sym_locale_3d)||(dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d))
+	 {free_hessien3d(maskhessienIref);
+ 		free_field3d(maskgradIref);
+		}
+
+
+if (dist==Energie_groupwise_variance_locale_3d)
+		{
+		free_field3d(_ParamRecalageBspline.grad_reca_groupwise);
+	 	free_field3d(_ParamRecalageBspline.grad_ref_groupwise);
+	 	free_field3d(_ParamRecalageBspline.grad_ref2_groupwise);
+		
+		free_hessien3d(_ParamRecalageBspline.hessien_reca_groupwise);
+		free_hessien3d(_ParamRecalageBspline.hessien_ref_groupwise);
+		free_hessien3d(_ParamRecalageBspline.hessien_ref2_groupwise);
+		}
+		
+
+
+ return(Efin);
+}
+
+
+/*******************************************************************************
+**     TOP_min_marquardt_locale_3d(imref,imreca,imres,champ_ini,champ_fin,the_transf,inter  
+**                   ,dist,nb_param,min_param,max_param,prec_param,param)
+**                                                                       
+**     Minimisation par la méthode de Levenberg-Marquardt                      
+**                                                                       
+**     utilisation:                                                      
+**                  imref,imreca,imres: images       
+**                  champ_ini : champ initial
+**                              NULL = pas de champ initial
+**                  champ_fin : champ final resultat de la transfo
+**                  the_transf : pointeur sur la fonction de transformation
+**                           int the_transf(nb_param,param,champ)
+**                  inter : pointeur sur la fonction d'interpolation
+**                           int inter(imdeb,champ,imres)
+**                  dist : pointeur sur la fonction de distance
+**                         double dist(im1,im2)
+**                  nb_param: nombre de parametre a minimiser
+**                  min_param: bornes inferieures des parametres
+**                  max_param: bornes superieures des parametres
+**                  prec_param: precision demandee pour chaque parametre
+**                  param: resultats donnant la valeur des parametres au
+**                         point definissant le minimum
+**      la fonction retourne un double contenant la valeur du minimum
+**      Les parametres correspondant a ce minimum sont retourne dans param
+*******************************************************************************/
+double TOP_min_marquardt_locale_3d	(grphic3d *imref, grphic3d *imreca, grphic3d *imres, field3d *champ_fin,
+                          					transf_func_t the_transf, InterpolationFct inter, dist_func_locale_t dist, reg_func_locale_t regularisation,
+																	 	int nb_param,  double *param, int ***masque_param,double Jmin, double Jmax,char *nomfichiertrf)
+{
+ int wdth,hght,dpth,i,j/*,k*/; 
+ field3d *gradIref,*maskgradIref=NULL;
+ double *grad,*p,*p_i,gradl[3],*param_norm,p_ini[3],p_tmp[3];
+ double Edebut,Efin,E1,E2,E,Eprec,Emin,Etmp;
+ int	nb,nbreduc,stop,nb_iter,nb_tmp;
+ double prreduc,maxpx,maxpy,maxpz,precis,precisx,precisy,precisz;	
+ int topi,topj,topk,topD,resol;
+ int pari,parj,park;
+ int compt,topD1;
+ int ***masque_bloc;
+ transf3d *transfo;
+ TSlpqr Slpqr[8];
+ int *x00,*x11,*y00,*y11,*z00,*z11;
+ int (*gradient)();  
+ int (*func_hessien)();  
+ reg_grad_locale_t gradient_reg;  
+ reg_hessien_locale_t hessien_reg;
+ hessien3d *hessienIref,*maskhessienIref=NULL; 
+ mat3d pseudo_hessien,hessien,inv_hessien;
+ //double cfmax;
+ double xm,xM,ym,yM,zm,zM;
+ int res_inv=0,continu;
+ double nuk,ck=10,ck1,seuil_nuk;
+ int tutu;
+#ifndef SAVE_INTERMEDIAIRE
+ char nomfichier[255];
+ char temp[2];
+ char *ext;
+#endif
+int nb_pas = NB_PAS_LINEMIN_TOPO,itmp,imin; 
+double energie_precision = 0.01;
+double *opp_param_norm=NULL;
+double lambda_ref = (1.0-TOPO_PONDERATION_RECALAGE_SYMETRIQUE)/TOPO_PONDERATION_RECALAGE_SYMETRIQUE;
+int nb_iter_max=50;
+
+ if (dist==Energie_IM_locale_3d) energie_precision=0.0001;  /* les variations relatives de l'IM sont en général bcp plus faibles */
+
+ 
+ wdth=imref->width;hght=imref->height;dpth=imref->depth;
+ resol=BASE3D.resol;
+ topD=(int)pow(2.0,1.0*resol)-1;
+ x00=BASE3D.x0;x11=BASE3D.x1;y00=BASE3D.y0;y11=BASE3D.y1;z00=BASE3D.z0;z11=BASE3D.z1;
+ 
+
+ gradient=gradient_base_quad_locale_3d;
+ if (dist==Energie_quad_locale_3d) gradient=gradient_base_quad_locale_3d;
+ if (dist==Energie_quad_sym_locale_3d) gradient=gradient_base_quad_sym_locale_3d;
+ if (dist==Energie_L1L2_locale_3d) gradient=gradient_base_L1L2_locale_3d;
+ if (dist==Energie_L1L2_sym_locale_3d) gradient=gradient_base_L1L2_sym_locale_3d;
+ if (dist==Energie_quad_topo_locale_3d) gradient=gradient_base_quad_locale_3d;
+ if (dist==Energie_quad_sym_topo_locale_3d) gradient=gradient_base_quad_sym_locale_3d;
+ if (dist==Energie_geman_locale_3d) gradient=gradient_base_geman_locale_3d;
+ if (dist==Energie_IM_locale_3d) gradient=gradient_base_IM_locale_3d;
+ if (dist==Energie_ICP_locale_3d) gradient=gradient_base_ICP_locale_3d;
+ if (dist==Energie_ICP_sym_locale_3d) gradient=gradient_base_ICP_sym_locale_3d;
+ if (dist==Energie_atrophie_jacobien_locale_3d) gradient=gradient_atrophie_jacobien_locale_3d;
+ if (dist==Energie_atrophie_log_jacobien_locale_3d) gradient=gradient_atrophie_log_jacobien_locale_3d;
+ if (dist==Energie_quad_locale_symetrique_3d) gradient=gradient_quad_locale_symetrique_3d;
+ if (dist==Energie_quad_locale_symetrique_coupe_3d) gradient=gradient_quad_locale_symetrique_coupe_3d;
+ if (dist==Energie_quad_sous_champ_locale_3d) gradient=gradient_quad_sous_champ_locale_3d;
+ if (dist==Energie_groupwise_variance_locale_3d) gradient=gradient_groupwise_variance_locale_3d;
+ if (dist==Energie_groupwise_variance_locale_nonsym_3d) gradient=gradient_groupwise_variance_locale_nonsym_3d;
+ 
+ func_hessien=hessien_base_quad_locale_3d;
+ if (dist==Energie_quad_locale_3d) func_hessien=hessien_base_quad_locale_3d;
+ if (dist==Energie_quad_sym_locale_3d) func_hessien=hessien_base_quad_sym_locale_3d;
+ if (dist==Energie_L1L2_locale_3d) func_hessien=hessien_base_L1L2_locale_3d;
+ if (dist==Energie_L1L2_sym_locale_3d) func_hessien=hessien_base_L1L2_sym_locale_3d;
+ if (dist==Energie_quad_topo_locale_3d) func_hessien=hessien_base_quad_locale_3d;
+ if (dist==Energie_quad_sym_topo_locale_3d) func_hessien=hessien_base_quad_sym_locale_3d;
+ if (dist==Energie_geman_locale_3d) func_hessien=hessien_base_geman_locale_3d;
+ if (dist==Energie_IM_locale_3d) func_hessien=hessien_base_IM_locale_3d;
+ if (dist==Energie_ICP_locale_3d) func_hessien=hessien_base_ICP_locale_3d;
+ if (dist==Energie_ICP_sym_locale_3d) func_hessien=hessien_base_ICP_sym_locale_3d;
+ if (dist==Energie_atrophie_jacobien_locale_3d) func_hessien=hessien_atrophie_jacobien_locale_3d;
+ if (dist==Energie_atrophie_log_jacobien_locale_3d) func_hessien=hessien_atrophie_log_jacobien_locale_3d;
+ if (dist==Energie_quad_locale_symetrique_3d) func_hessien=hessien_quad_locale_symetrique_3d;
+ if (dist==Energie_quad_locale_symetrique_coupe_3d) func_hessien=hessien_quad_locale_symetrique_coupe_3d;
+ if (dist==Energie_quad_sous_champ_locale_3d) func_hessien=hessien_quad_sous_champ_locale_3d;
+ if (dist==Energie_groupwise_variance_locale_3d) func_hessien=hessien_groupwise_variance_locale_3d;
+ if (dist==Energie_groupwise_variance_locale_nonsym_3d) func_hessien=hessien_groupwise_variance_locale_nonsym_3d;
+
+ 
+ gradient_reg=gradient_regularisation_energie_membrane_local;
+ if (regularisation==regularisation_energie_membrane_local) gradient_reg=gradient_regularisation_energie_membrane_local;
+ if (regularisation==regularisation_energie_membrane_Lp_local) gradient_reg=gradient_regularisation_energie_membrane_Lp_local;
+ if (regularisation==regularisation_log_jacobien_local) gradient_reg=gradient_regularisation_log_jacobien_local;
+ if (regularisation==regularisation_dist_identite_local) gradient_reg=gradient_regularisation_dist_identite_local;
+ if (regularisation==regularisation_patch_imagebased_local) gradient_reg=gradient_regularisation_patch_imagebased_local;
+
+ hessien_reg=hessien_regularisation_energie_membrane_local;
+ if (regularisation==regularisation_energie_membrane_local) hessien_reg=hessien_regularisation_energie_membrane_local;
+ if (regularisation==regularisation_energie_membrane_Lp_local) hessien_reg=hessien_regularisation_energie_membrane_Lp_local;
+ if (regularisation==regularisation_log_jacobien_local) hessien_reg=hessien_regularisation_log_jacobien_local;
+ if (regularisation==regularisation_dist_identite_local) hessien_reg=hessien_regularisation_dist_identite_local;
+ if (regularisation==regularisation_patch_imagebased_local) hessien_reg=hessien_regularisation_patch_imagebased_local;
+
+ 
+ 	//allocation memoire des variables
+ 	//p=alloc_dvector(nb_param);
+ 	p_i=alloc_dvector(nb_param);
+ 	param_norm=alloc_dvector(nb_param);
+ 
+ 	if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d)||(dist==Energie_groupwise_variance_locale_3d)
+	||((dist==Energie_quad_sous_champ_locale_3d)&&(TOPO_PONDERATION_RECALAGE_SYMETRIQUE > 0.0)))
+ 	opp_param_norm=alloc_dvector(nb_param);
+ 	
+ 
+ 
+ 	grad=alloc_dvector(nb_param);
+  	//gradIref=cr_field3d(wdth,hght,dpth);   // pour economiser de la place memoire
+	gradIref=champ_fin;
+ 	masque_bloc=alloc_imatrix_3d(topD,topD,topD);
+
+	
+	if ((dist!=Energie_quad_sous_champ_locale_3d)&&(dist!=Energie_groupwise_variance_locale_3d))
+	hessienIref=cr_hessien3d(wdth,hght,dpth);
+	else
+	hessienIref=NULL;
+	
+	if (dist==Energie_groupwise_variance_locale_3d)
+		{
+		_ParamRecalageBspline.grad_reca_groupwise=cr_field3d(wdth,hght,dpth);
+	 	_ParamRecalageBspline.grad_ref_groupwise=cr_field3d(wdth,hght,dpth);
+	 	_ParamRecalageBspline.grad_ref2_groupwise=cr_field3d(wdth,hght,dpth);
+		
+		_ParamRecalageBspline.hessien_reca_groupwise=cr_hessien3d(wdth,hght,dpth);
+		_ParamRecalageBspline.hessien_ref_groupwise=cr_hessien3d(wdth,hght,dpth);
+		_ParamRecalageBspline.hessien_ref2_groupwise=cr_hessien3d(wdth,hght,dpth);
+		}
+		
+		
+	
+	
+	 if ((dist==Energie_ICP_sym_locale_3d)||(dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d))
+		{	
+		maskhessienIref=cr_hessien3d(wdth,hght,dpth);
+		maskgradIref=cr_field3d(wdth,hght,dpth);
+		}
+		
+ transfo=cr_transf3d(wdth,hght,dpth,NULL);
+ transfo->nb_param=nb_param;transfo->param=CALLOC(nb_param,double);
+ transfo->typetrans=BSPLINE3D;
+ transfo->resol=BASE3D.resol;transfo->degre=1;   // Valeur codee en dur car ca ne marche que pour les splines de degre 1
+ p = transfo->param; 
+
+
+//Initialisation de masque_bloc
+  for (topi=0; topi<topD; topi++)
+	for (topj=0; topj<topD; topj++)
+	  for (topk=0; topk<topD; topk++)
+		masque_bloc[topi][topj][topk]=1;
+
+for (i=0;i<nb_param;i++) p_i[i]=p[i]=param[i];
+
+// initialisation des parametres normalises sur [0,1] 
+ for (i=0;i<nb_param/3;i++)
+ 	{
+	param_norm[3*i]  =1.0*p[3*i]  /wdth;
+	param_norm[3*i+1]=1.0*p[3*i+1]/hght;
+	param_norm[3*i+2]=1.0*p[3*i+2]/dpth;
+	}
+
+//Mise a jour de Jm et JM dans les Slpqr
+for (i=0;i<8;i++)
+	{
+	Slpqr[i].Jm=Jmin;
+	Slpqr[i].JM=Jmax;
+	} 
+		
+ //calcul de l'energie de depart
+ 	Edebut=Energie_globale_3d(imref,imreca,nb_param,p,param_norm,dist,regularisation,masque_param);
+  E2=Edebut;
+
+ // calcul du gradient de l'image a recaler 
+ if ((dist==Energie_ICP_sym_locale_3d)||(dist==Energie_ICP_locale_3d))
+		imx_gradient_3d_p(imreca,gradIref,0,4);
+ else
+if ((dist!=Energie_quad_sous_champ_locale_3d)&&(dist!=Energie_groupwise_variance_locale_3d))
+	imx_gradient_3d_p(imreca,gradIref,2,4);
+
+ if (dist==Energie_ICP_sym_locale_3d)
+ 	imx_gradient_3d_p(imreca->mask,maskgradIref,0,4);
+	
+ 
+ //--- Pour le recalage symetrique, on calcule le gradient de imref -----
+	if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d))
+ 		imx_gradient_3d_p(imref,maskgradIref,2,4);
+ 
+ 
+ // calcul du Hessien de l'image 
+ if ((dist==Energie_ICP_sym_locale_3d)||(dist==Energie_ICP_locale_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d))
+ 		imx_hessien_3d_p(imreca,hessienIref,0,4);
+ else
+  if ((dist!=Energie_quad_sous_champ_locale_3d)&&(dist!=Energie_groupwise_variance_locale_3d))
+		imx_hessien_3d_p(imreca,hessienIref,2,4);
+
+ if (dist==Energie_ICP_sym_locale_3d)
+	imx_hessien_3d_p(imreca->mask,maskhessienIref,0,4);
+
+
+ //--- Pour le recalage symetrique, on calcule le hessien de imref -----
+	if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d))
+	imx_hessien_3d_p(imref,maskhessienIref,2,4);
+
+
+//---- Pour le recalage groupwise, calcul des gradients et hessiens
+if (dist==Energie_groupwise_variance_locale_3d)
+		{
+		imx_gradient_3d_p(_ParamRecalageBspline.reca_groupwise,_ParamRecalageBspline.grad_reca_groupwise,2,4);
+		mul_field_3d(_ParamRecalageBspline.grad_reca_groupwise,_ParamRecalageBspline.grad_reca_groupwise, _ParamRecalageBspline.reca_groupwise->rcoeff);
+
+		imx_gradient_3d_p(_ParamRecalageBspline.ref_groupwise,_ParamRecalageBspline.grad_ref_groupwise,2,4);
+		mul_field_3d(_ParamRecalageBspline.grad_ref_groupwise,_ParamRecalageBspline.grad_ref_groupwise, _ParamRecalageBspline.ref_groupwise->rcoeff);
+		
+		imx_gradient_3d_p(_ParamRecalageBspline.ref2_groupwise,_ParamRecalageBspline.grad_ref2_groupwise,2,4);
+		mul_field_3d(_ParamRecalageBspline.grad_ref2_groupwise,_ParamRecalageBspline.grad_ref2_groupwise, _ParamRecalageBspline.ref2_groupwise->rcoeff);
+
+		imx_hessien_3d_p(_ParamRecalageBspline.reca_groupwise,_ParamRecalageBspline.hessien_reca_groupwise,2,4);
+		mul_hessien_3d(_ParamRecalageBspline.hessien_reca_groupwise, _ParamRecalageBspline.hessien_reca_groupwise, _ParamRecalageBspline.reca_groupwise->rcoeff);
+
+		imx_hessien_3d_p(_ParamRecalageBspline.ref_groupwise,_ParamRecalageBspline.hessien_ref_groupwise,2,4);
+		mul_hessien_3d(_ParamRecalageBspline.hessien_ref_groupwise, _ParamRecalageBspline.hessien_ref_groupwise, _ParamRecalageBspline.ref_groupwise->rcoeff);
+
+		imx_hessien_3d_p(_ParamRecalageBspline.ref2_groupwise,_ParamRecalageBspline.hessien_ref2_groupwise,2,4);
+		mul_hessien_3d(_ParamRecalageBspline.hessien_ref2_groupwise, _ParamRecalageBspline.hessien_ref2_groupwise, _ParamRecalageBspline.ref2_groupwise->rcoeff);
+		
+		}
+
+
+
+ aff_log("Edebut: %.2f   nb_param: %d \n",Edebut,nb_param);
+
+
+ nb=nbreduc=0;prreduc=0.1/100.0;
+ stop=1;
+ 
+ 
+ // --- On fixe la précision à 10% de la taille du support de spline
+ precis=MAXI(TOPO_PONDERATION_RECALAGE_SYMETRIQUE,1.0);  // pour que la précision en recalage symétrique soit équivalent que celle obtenue en non symetrique
+
+ if ((dist==Energie_atrophie_log_jacobien_locale_3d)||(dist==Energie_atrophie_jacobien_locale_3d)) {precis=pow(0.1,PRECISION_SIMULATION)*precis; nb_iter_max=200;}
+ 
+ precisx=CRITERE_ARRET_PARAM*precis*(x11[0]-x00[0]);
+ precisy=CRITERE_ARRET_PARAM*precis*(y11[0]-y00[0]);
+ precisz=CRITERE_ARRET_PARAM*precis*(z11[0]-z00[0]);
+ 
+ 
+
+E=0;
+
+ do
+ {
+  Eprec=E;
+  E=0;
+  E1=E2;
+  compt=1;
+  stop=0;
+	nb_tmp=0;
+
+
+for(pari=MINI(2,resol)-1;pari>=0;pari--)
+ 	for(parj=MINI(2,resol)-1;parj>=0;parj--)
+  for(park=MINI(2,resol)-1;park>=0;park--)
 	
 	{
   for (topi=0; topi<topD; topi++)
@@ -1536,7 +2279,7 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 		for (i=0;i<3;i++)
 			p_tmp[i]=p[topD1+i];
 				
-
+			double max_delta_p=0, delta_p;	
 			for (i=0;i<3;i++)
 				for (j=0;j<3;j++)
 					{
@@ -1549,7 +2292,7 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 		if (max_delta_p>TOPO_QUANTIFICATION_PARAM)  // on ne calcul le critere que si la modif des params est superieur a TOPO_QUANTIFICATION_PARAM
 			{
 			for (i=0;i<3;i++)  
-					if (fabs(p[topD1+i])<TOPO_QUANTIFICATION_PARAM)  /* C'est pour en finir avec les bug num�riques ... */
+					if (fabs(p[topD1+i])<TOPO_QUANTIFICATION_PARAM)  /* C'est pour en finir avec les bug numériques ... */
 						p[topD1+i]=0.0;
 		
 		
@@ -1601,7 +2344,7 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 		}while (continu==0);
 		
 		
-		// V�rification de la conservation de la topologie pour les nouveaux param
+		// Vérification de la conservation de la topologie pour les nouveaux param
 		
 
  		if ((dist==Energie_quad_locale_symetrique_3d)||(dist==Energie_quad_locale_symetrique_coupe_3d)||(dist==Energie_groupwise_variance_locale_3d)
@@ -1633,7 +2376,7 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 			
 			
 				for (i=0;i<3;i++)
-					if (fabs(p[topD1+i])<TOPO_QUANTIFICATION_PARAM) /* C'est pour en finir avec les bug num�riques ... */
+					if (fabs(p[topD1+i])<TOPO_QUANTIFICATION_PARAM) /* C'est pour en finir avec les bug numériques ... */
 						p[topD1+i]=0.0;
 		
 				param_norm[topD1]  =p[topD1]  /wdth;	
@@ -1828,6 +2571,13 @@ if (dist==Energie_groupwise_variance_locale_3d)
 
  return(Efin);
 }
+
+
+
+
+
+
+
 
 /*******************************************************************************
 **     TOP_min_marquardt_locale_lent_3d(imref,imreca,imres,champ_ini,champ_fin,the_transf,inter  

@@ -2460,7 +2460,7 @@ for (i=0;i<3;i++)
 		j0=(int)floor(y);
 
 
-// calcul de dpij grace ï¿½ la formule (24) de l'article Thevenaz IEEETMI dec 2000
+// calcul de dpij grace à la formule (24) de l'article Thevenaz IEEETMI dec 2000
 
 					if ((x>0)&&(y>0))
 					for (u=i0;u<MINI(HISTOJOINT.nbI,i0+2);u++)
@@ -2888,7 +2888,7 @@ for (i=0;i<3;i++)
 		}
 
  
- //on rempli le vecteur gradient avec l'image complï¿½mentaire
+ //on rempli le vecteur gradient avec l'image complémentaire
 	 
  for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
@@ -4134,13 +4134,15 @@ for (i=0;i<3;i++)
 	k2=k+bz0;
 		
   
-      	temp=fx[i]*fy[j]*fz[k];
-	temp=2*temp*temp;
-	Ntot++;
+      	if (I2->mri[i2][j2][k2]>0)
+			{
+			temp=fx[i]*fy[j]*fz[k];
+			temp=2*temp*temp;
+			Ntot++;
 	
-	for (auxi=0;auxi<3;auxi++)
-		hessien->H[auxi][auxi]+=temp;
-	
+			for (auxi=0;auxi<3;auxi++)
+				hessien->H[auxi][auxi]+=temp;
+			}
 	}
 	
    
@@ -4289,7 +4291,7 @@ for (i=0;i<topDx;i++)
 		for (k=0;k<topDz;k++)
 	 	{
 		   
-		/* calcul de la valeur interpolï¿½e dans reca */
+		/* calcul de la valeur interpolée dans reca */
    		dxreca=(double)i+data[i][j][k].x+bx0;
     	dyreca=(double)j+data[i][j][k].y+by0;
     	dzreca=(double)k+data[i][j][k].z+bz0;
@@ -4618,7 +4620,7 @@ for (i=0;i<topDx;i++)
 		for (k=0;k<topDz;k++)
 	 	{
 		   
-		/* calcul de la valeur interpolï¿½e dans reca */
+		/* calcul de la valeur interpolée dans reca */
    		dxreca=(double)i+data[i][j][k].x+bx0;
     	dyreca=(double)j+data[i][j][k].y+by0;
     	dzreca=(double)k+data[i][j][k].z+bz0;
