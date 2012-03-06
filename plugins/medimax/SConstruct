@@ -13,6 +13,7 @@ for module in modules :
     SConscript(os.path.join(module, "SConstruct"))
 
 Import('env')
+env.Use("openmp")
 env = env.Clone()
 
 files = []

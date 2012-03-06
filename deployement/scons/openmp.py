@@ -12,10 +12,12 @@ def configuration_variables() :
     if sys.platform.startswith("win") :
         result = {
             "CXXFLAGS" : ["/openmp"],
+			"CFLAGS" : ["/openmp"],			
         }
     else :
         result = {
             "CXXFLAGS" : ["-fopenmp"],
+			"CFLAGS" : ["-fopenmp"],
             "LIBS" : ["gomp"]
         }
     
