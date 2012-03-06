@@ -1,0 +1,5 @@
+import os
+
+modules = [ "gui", "components" ]
+for module in modules :
+    SConcript(os.path.join(module, "SConstruct"))

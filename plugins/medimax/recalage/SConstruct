@@ -1,0 +1,12 @@
+SConscript('topo/SConstruct')
+Import('env')
+
+env = env.Clone()
+env["LIBPATH"].append("../wrapping")
+env["LIBPATH"].append("../")
+env["CPPPATH"].append("../")
+
+env.PythonModule("_recalage", ["recalage.i"], 
+                 LIBS=["medimax_wrapping", "medimax"])
+
+env.Glob("*.py")
