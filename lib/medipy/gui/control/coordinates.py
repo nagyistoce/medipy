@@ -139,25 +139,3 @@ class Coordinates(wx.PyPanel, medipy.base.Observable) :
     def OnSet(self, dummy):
         name = "cursor_{0}_position".format(self.display_coordinates)
         self.value = getattr(self.image, name)
-
-if __name__ == "__main__" :
-    import sys
-    import medipy.io
-    import medipy.gui.image
-    
-    image = medipy.io.load(sys.argv[1])
-    
-    app = wx.PySimpleApp()
-    frame = wx.Frame(None)
-    viewer = medipy.gui.image.Image(frame, layers=[{"image":image}])
-    viewer.SetMinSize((400,400))
-    coordinates = Coordinates(frame, image=viewer, display_coordinates="physical")
-    
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    sizer.Add(viewer, 1, wx.EXPAND)
-    sizer.Add(coordinates, 1, wx.EXPAND)
-    frame.SetSizer(sizer)
-    sizer.SetSizeHints(frame)
-    
-    frame.Show()
-    app.MainLoop()

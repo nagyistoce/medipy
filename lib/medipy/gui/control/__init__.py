@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+from array import Array
 from Bool import Bool
 from coordinates import Coordinates 
 from Directory import Directory
