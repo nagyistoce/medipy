@@ -177,7 +177,7 @@ for (unsigned int k=0;k<ImageTemplateNonDecoupe->depth;k++)
 	}
 ImageTemplateNonDecoupe->max_pixel=1;
 
-aff_log("\nSEGMENTATION RESOLUTION %d    nb param %d \n",BASE3D.resol,nb_param);
+aff_log((char *)"\nSEGMENTATION RESOLUTION %d    nb param %d \n",BASE3D.resol,nb_param);
 
 //creation des images temporaires segmentees
 temporaire  	      = cr_grphic3d_modif(ImageResultat->width, ImageResultat->height, ImageResultat->depth, 0,1, 1); 
@@ -207,20 +207,19 @@ if (RESOLUTION == 6)
 	bande = 2;		
 
 //Calcul des images templates
-char nomfichier_nrj[255];
 if (chres!=NULL)
 	{
-	for (int i=0;i<ImageTemplate->width;i++)
-	for (int j=0;j<ImageTemplate->height;j++)
-	for (int k=0;k<ImageTemplate->depth;k++)
+	for (int i=0;i<(int)ImageTemplate->width;i++)
+	for (int j=0;j<(int)ImageTemplate->height;j++)
+	for (int k=0;k<(int)ImageTemplate->depth;k++)
 		if (ImageTemplate->mri[i][j][k]!=0)
 			ImageTemplate->mri[i][j][k]=1;
 	ImageTemplate->rcoeff = 1;
 	ImageTemplate->icomp = 0;
 	ImageTemplate->max_pixel=1;          
-	for (int i=0;i<ImageTemplateNonDecoupe->width;i++)
-	for (int j=0;j<ImageTemplateNonDecoupe->height;j++)
-	for (int k=0;k<ImageTemplateNonDecoupe->depth;k++)
+	for (int i=0;i<(int)ImageTemplateNonDecoupe->width;i++)
+	for (int j=0;j<(int)ImageTemplateNonDecoupe->height;j++)
+	for (int k=0;k<(int)ImageTemplateNonDecoupe->depth;k++)
 		if (ImageTemplateNonDecoupe->mri[i][j][k]!=0)
 			ImageTemplateNonDecoupe->mri[i][j][k]=1;
 	ImageTemplateNonDecoupe->rcoeff = 1;
@@ -232,9 +231,9 @@ if (chres!=NULL)
 	
 	
 	imx_dilat_3d_p(temporaire,ImageTemplateOsDilate,1,bande);   
-	for (int i=0;i<ImageTemplateOsDilate->width;i++)
-	for (int j=0;j<ImageTemplateOsDilate->height;j++)
-	for (int k=0;k<ImageTemplateOsDilate->depth;k++)
+	for (int i=0;i<(int)ImageTemplateOsDilate->width;i++)
+	for (int j=0;j<(int)ImageTemplateOsDilate->height;j++)
+	for (int k=0;k<(int)ImageTemplateOsDilate->depth;k++)
 		if (ImageTemplateOsDilate->mri[i][j][k]!=0)
 			ImageTemplateOsDilate->mri[i][j][k]=1;
 	ImageTemplateOsDilate->rcoeff = 1;
@@ -551,7 +550,7 @@ for (int topk=0; topk<topD; topk++)
 				if (p1>0.95)
 					p1 = 0.95;
 				int th = ChoixSeuil(histoC,min,p1);	
-				if ( (th == histoC.size()+min) ) //Il n y a pas d os dans le bloc.
+				if ( (th == (int)histoC.size()+min) ) //Il n y a pas d os dans le bloc.
 					{
 					masque_param[topi][topj][topk]=-1;
 					th =  MAXIMAL- seuilBas ;	
@@ -635,9 +634,9 @@ for (int i=0;i<tailleHisto;i++)
 	{
 	histoPartieMolle[i] = histoOs[i] = 0;
 	}
-for (int i=0;i<ImageResultat->width;i++)
-for (int j=0;j<ImageResultat->height;j++)
-for (int k=0;k<ImageResultat->depth;k++)
+for (int i=0;i<(int)ImageResultat->width;i++)
+for (int j=0;j<(int)ImageResultat->height;j++)
+for (int k=0;k<(int)ImageResultat->depth;k++)
 	{
 	if ((ImageTemplateOsDilate->mri[i][j][k]!=0)&&(ImageASegmenter->mri[i][j][k]!=0))
 		{
@@ -783,10 +782,10 @@ double Jmin,Jmax;
 int resolf, e, err;
  
 //question sur les images a recaler
-int im_reca=GET_PLACE3D(TEXT0030);
-int im_ref = GET_PLACE3D("template decoupe");
-int im_ref2= GET_PLACE3D("template non decoupe");
-int im_res= GET_PLACE3D(TEXT0006);
+int im_reca=GET_PLACE3D((char *)TEXT0030);
+int im_ref = GET_PLACE3D((char *)"template decoupe");
+int im_ref2= GET_PLACE3D((char *)"template non decoupe");
+int im_res= GET_PLACE3D((char *)TEXT0006);
 
 for(i=0;i<15;i++)
    quest[i]=CALLOC(80,char);
@@ -810,22 +809,22 @@ min_type = 1;
 nomfichres=quest_save_result_3d(&save_type);
 
 //resolution finale
-resolf= GET_INT("resolution", 4, &e);
+resolf= GET_INT((char *)"resolution", 4, &e);
 
 //bornes sur le jacobien
 Jmin = 2;
 while (Jmin>=1)  
-	Jmin = GET_DOUBLE("Jmin<1",0,&err);
+	Jmin = GET_DOUBLE((char *)"Jmin<1",0,&err);
 Jmax = 0;
 while (Jmax<=1)  
-	Jmax = GET_DOUBLE("Jmax>1",100000,&err);
+	Jmax = GET_DOUBLE((char *)"Jmax>1",100000,&err);
 
 
 //regularisation 
 strcpy(quest[0],"Pas de regularisation");
 strcpy(quest[1],"Regularisation membrane elastique");
 strcpy(quest[3],"\0");
-//reg_type= GETV_QCM("Rï¿½gularisation ?",(char **)quest);
+//reg_type= GETV_QCM("Régularisation ?",(char **)quest);
 reg_type= 1;
 TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=0;
 if (reg_type>0)
@@ -869,7 +868,7 @@ imx_Copie_imgmask_3d_p(imref2,imref2);*/
 
 if ((imref->dx!=imreca->dx)||(imref->dy!=imreca->dy)||(imref->dz!=imreca->dz))
     {
-      PUT_WARN("Les images n'ont pas les memes dx,dy,dz !");
+      PUT_WARN((char *)"Les images n'ont pas les memes dx,dy,dz !");
       printf("Les images n'ont pas les memes dx,dy,dz !\n");
       
 			return(-1) ;
@@ -877,7 +876,7 @@ if ((imref->dx!=imreca->dx)||(imref->dy!=imreca->dy)||(imref->dz!=imreca->dz))
 
 if ((imref->width!=imreca->width)||(imref->height!=imreca->height)||(imref->depth!=imreca->depth))
     {
-      PUT_WARN("Les images n'ont pas la meme taille !");
+      PUT_WARN((char *)"Les images n'ont pas la meme taille !");
       printf("Les images n'ont pas la meme taille !\n");
       return(-1) ;
     }
@@ -896,7 +895,7 @@ for (l=0;l<10;l++)
 
 if (continu!=6)
 	{
-      PUT_WARN("Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp");
+      PUT_WARN((char *)"Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp");
 		  printf("Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp\n");
 			//return(-1) ;
 			save_type=3;
@@ -935,7 +934,6 @@ scal_func_t scal_func;
 double  mini;
 int tdebut,tfin;
 int nbmax_param;
-char nomfichier_nrj[255];
 
 //#ifndef SAVE_INTERMEDIAIRE_2 
 char nomfichier[255];
@@ -972,20 +970,20 @@ nbmax_param=3*(int)pow((pow(2.0,resolf)-1.0),3.0);
 // Allocation 
 if((param = (double*)calloc(nbmax_param, sizeof(double))) == NULL) 
 	{
-	PUT_ERROR("[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
+	PUT_ERROR((char *)"[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
 	}
 if((param_norm = (double*)calloc(nbmax_param, sizeof(double))) == NULL) 
 	{
-	PUT_ERROR("[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
+	PUT_ERROR((char *)"[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
 	}
 if((param_segmentation = (double*)calloc(nbmax_param, sizeof(double))) == NULL) 
 	{
-	PUT_ERROR("[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
+	PUT_ERROR((char *)"[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
 	}
 
 if((paramBidon = (double*)calloc(nbmax_param, sizeof(double))) == NULL) 
 	{
-	PUT_ERROR("[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
+	PUT_ERROR((char *)"[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); return(0); 
 	}
 for (i=0;i<nbmax_param;i++)
 	{
@@ -993,7 +991,7 @@ for (i=0;i<nbmax_param;i++)
 	}
 	
 init_log(NULL);
-aff_log("\nRECALAGE ");
+aff_log((char *)"\nRECALAGE ");
  
 //mise en place des parametres du recalage
 scal_func=topo_choose_bspline(func_type);
@@ -1003,8 +1001,8 @@ minimisation=topo_choose_optimisation(min_type);
 if (reg_type>0)
 	regularisation=regularisation_energie_membrane_local;
 
-aff_log("\n");
-aff_log("recalage de %s sur %s \n",(imreca->patient).name,(imref->patient).name);
+aff_log((char *)"\n");
+aff_log((char *)"recalage de %s sur %s \n",(imreca->patient).name,(imref->patient).name);
  
 //creation des images temporaires
 imtref=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref);
@@ -1090,7 +1088,7 @@ for (r=resol;r<=resolf;r++)
 		TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=lambda;
 	D=(int)TOP_D(nb_param);	
 	 
-	//calcul du mask de imref avec l'image complï¿½mentaire 
+	//calcul du mask de imref avec l'image complémentaire 
 	imx_inv_3d_p(imtseg,imtmp);	
 	
 	//calcul des cartes de distance 
@@ -1102,7 +1100,7 @@ for (r=resol;r<=resolf;r++)
 
 	
 	
-	aff_log("\nRESOLUTION %d    nb param %d \n",r,nb_param);
+	aff_log((char *)"\nRESOLUTION %d    nb param %d \n",r,nb_param);
 	base_to_field_3d(nb_param,param,champ,NULL,NULL);
 	interpol(imtseg,champ,imtres); 	
 	bande=(int)((x1[0]-x0[0])/4.0);	
@@ -1111,7 +1109,7 @@ for (r=resol;r<=resolf;r++)
 		imx_dilat_3d_p(imtref,imtref->mask,1,bande);
 		imx_sub_3d_p(imtref->mask,imtref,imtref->mask);
 		}
-	//Creation du masque binaire rï¿½fï¿½rencant les Slpqr sur lesquel l'image ne contient pas d'info 
+	//Creation du masque binaire référencant les Slpqr sur lesquel l'image ne contient pas d'info 
 	masque_param=alloc_imatrix_3d(D,D,D);
 	// Remplissage de masque_param 
 	topo_masque_param_primitive (imtref, masque_param, nb_param);
@@ -1347,17 +1345,17 @@ for (r=resol;r<=resolf;r++)
 		char n2[200];
 		char n1[200];
 		 
-		put_file_extension(nomfichier,".trf",n1);
-		put_file_extension(nomfichier2,".trf",n2);
+		put_file_extension(nomfichier,(char*)".trf",n1);
+		put_file_extension(nomfichier2,(char*)".trf",n2);
 		 end_base_3d(); // On supprime BASE3D pour faire les changements d echelles avec les parametres de segmentation
 		 transf3d *transfo1=load_transf_3d(n1);
 		 transf3d *transfo2=load_transf_3d(n2);
 		 field3d *champ1=transf_to_field_3d(transfo1,NULL,NULL);
 		 field3d *champ2=transf_to_field_3d(transfo2,NULL,NULL);
 		 double valueMax = 0;
-		  for(i=0;i<transfo1->width;i++)
-		  for(j=0;j<transfo1->height;j++)
-		  for(k=0;k<transfo1->depth;k++)
+		  for(i=0;i<(int)transfo1->width;i++)
+		  for(j=0;j<(int)transfo1->height;j++)
+		  for(k=0;k<(int)transfo1->depth;k++)
 			{
 			double value = 0;
 			value+= ( (champ2->raw[i][j][k].x - champ1->raw[i][j][k].x)*(champ2->raw[i][j][k].x - champ1->raw[i][j][k].x));
@@ -1445,17 +1443,17 @@ for (r=resol;r<=resolf;r++)
 		char n2[200];
 		char n1[200];
 		 end_base_3d();
-		put_file_extension(nomfichier,".trf",n1);
-		put_file_extension(nomfichier2,".trf",n2);
+		put_file_extension(nomfichier,(char *)".trf",n1);
+		put_file_extension(nomfichier2,(char *)".trf",n2);
 		  
 		 transf3d *transfo1=load_transf_3d(n1);
 		 transf3d *transfo2=load_transf_3d(n2);
 		 field3d *champ1=transf_to_field_3d(transfo1,NULL,NULL);
 		 field3d *champ2=transf_to_field_3d(transfo2,NULL,NULL);
 		 double valueMax = 0;
-		  for(i=0;i<transfo1->width;i++)
-		  for(j=0;j<transfo1->height;j++)
-		  for(k=0;k<transfo1->depth;k++)
+		  for(i=0;i<(int)transfo1->width;i++)
+		  for(j=0;j<(int)transfo1->height;j++)
+		  for(k=0;k<(int)transfo1->depth;k++)
 			{
 			double value = 0;
 			value+= ( (champ2->raw[i][j][k].x - champ2->raw[i][j][k].x)*(champ1->raw[i][j][k].x - champ1->raw[i][j][k].x));
@@ -1593,7 +1591,7 @@ if (chres!=NULL)
 	chres=NULL;
 	}
 //caracteristique du champ
-aff_log("CHAMP: ");carac_field_3d(champ);
+aff_log((char *)"CHAMP: ");carac_field_3d(champ);
 
 
 //liberation memoire du champ
@@ -1616,7 +1614,7 @@ ttotal=tfin-tdebut;
 h=ttotal/3600;
 m=(ttotal-h*3600)/60;
 s=(ttotal-h*3600-m*60);
-aff_log("TEMPS TOTAL: %dh %dm %ds \n",h,m,s);
+aff_log((char *)"TEMPS TOTAL: %dh %dm %ds \n",h,m,s);
 }
 end_log();
 if (nomfichres!=NULL)
@@ -1643,7 +1641,7 @@ return(1);
 **  Conversion d'une matrice de double dans
 **  une image grphic3d
 **
-** renvoie 0 si problï¿½me et 1 sinon
+** renvoie 0 si problème et 1 sinon
 **  
 ********************************************/
 
@@ -1709,10 +1707,10 @@ double	**t2;
 int	i;
 	
 if	((t2=(double**)calloc((width),sizeof(double*))) == NULL)
-	{PUT_WNDMSG( ERR_MEM_ALLOC);return NULL;}
+	{PUT_WNDMSG((char *) ERR_MEM_ALLOC);return NULL;}
 	
 if	((t2[0]=(double*)calloc((width*height),sizeof(double))) == NULL)
-	{free(t2);PUT_WNDMSG( ERR_MEM_ALLOC);return NULL;}
+	{free(t2);PUT_WNDMSG((char *) ERR_MEM_ALLOC);return NULL;}
 	
 for	(i=1 ; i<width ; i++) 
 	t2[i]=t2[i-1]+height; 
@@ -1736,23 +1734,22 @@ double res1 = 0;
 double res2 = 0;
 double res = 0;
 int entre = 0;
-double pp1Opt;
 //printf("on recherche sur l intervalle :%d %d\n",min,min+cumul.size()-1);
 
 double total = 0;
-for (int i=0;i<cumul.size();i++) //Le seuil est fixe a la valeur de i
+for (int i=0;i<(int)cumul.size();i++) //Le seuil est fixe a la valeur de i
 	{
 	total += cumul[i];
 	}
 
-for (int i=0;i<cumul.size()+1;i++) //Le seuil est fixe a la valeur de i // ce qui est egal a superieur ou egal a i est considere comme os...
+for (int i=0;i<(int)cumul.size()+1;i++) //Le seuil est fixe a la valeur de i // ce qui est egal a superieur ou egal a i est considere comme os...
 	{
 	//if ( (pp1<p1*1.3)&&(pp1>p1*0.5) )
 		{
 		res1=0;
 		res2=0;
 		res =0;
-		for (int j=i;j<cumul.size();j++) //On compte combien de parties molles va apparaitre a tord dans la partie droite.
+		for (int j=i;j<(int)cumul.size();j++) //On compte combien de parties molles va apparaitre a tord dans la partie droite.
 			{
 			 double facteur = (1.-p1)*(double)histoPartieMolle[j+min-MINIMAL] /
 		 	( (1.-p1)*(double)histoPartieMolle[j+min-MINIMAL]+p1*(double)histoOs[j+min-MINIMAL]);
@@ -1809,7 +1806,7 @@ void filtrage(double *y, long int nbpts)
   /* Allocation du tableau de  yres */
   if( (yres = (double*)malloc(sizeof(double)*nbpts)) == NULL)
   {
-    PUT_WNDMSG( ERR_MEM_ALLOC);
+    PUT_WNDMSG( (char *)ERR_MEM_ALLOC);
     return;
   }
 
@@ -2329,8 +2326,8 @@ min = min /2.;
     imres : segmentation (binaire !) et image resultat
 
     Dans imres :
-    0 = non segmentï¿½
-    1 = segmentï¿½
+    0 = non segmenté
+    1 = segmenté
     */
     for(int x=0;x<256;x++)
     {
@@ -2375,8 +2372,8 @@ min = min /2.;
     imres : segmentation (binaire !) et image resultat
 
     Dans imres :
-    0 = non segmentï¿½
-    1 = segmentï¿½
+    0 = non segmenté
+    1 = segmenté
     */
     for(int x=0;x<256;x++)
     {
@@ -2436,10 +2433,10 @@ min = min /2.;
     imres : image resultat
     
     Dans imres :
-    0 = non segmentï¿½
-    1 = segmentï¿½
-    2 = segmentï¿½ au bord de l'objet
-    3 = non segmentï¿½ au bord de l'objet
+    0 = non segmenté
+    1 = segmenté
+    2 = segmenté au bord de l'objet
+    3 = non segmenté au bord de l'objet
     */
 
     pt** F; 
@@ -2619,9 +2616,9 @@ min = min /2.;
 	}
 	if (idx!=1)
 	{
-	  unsigned int x = F[idx][B[idx]].x;
-	  unsigned int y = F[idx][B[idx]].y;
-	  unsigned int z = F[idx][B[idx]].z;
+	   int x = F[idx][B[idx]].x;
+	   int y = F[idx][B[idx]].y;
+	   int z = F[idx][B[idx]].z;
 	  B2[idx]--;
 	  B[idx]=(B[idx]+1)%(N[idx]);
           if (simple(x,y,z,imres))
@@ -2657,11 +2654,11 @@ min = min /2.;
 	}
       }
 
-      for(unsigned int x=0;x<le;x++)
+      for(int x=0;x<le;x++)
       {
-	for(unsigned int y=0;y<le;y++)
+	for(int y=0;y<le;y++)
 	{
-          for(unsigned int z=0;z<le;z++)
+          for(int z=0;z<le;z++)
           {
 	    if (imres->mri[x][y][z]!=0)
 	    {
@@ -2832,10 +2829,10 @@ void segmentationNicolas2(short***imth,short***imtb,grphic3d*imin,grphic3d*impr,
     Add : liste des coord. des points supprimes
 
     Dans imres et impr :
-    0 = non segmentï¿½
-    1 = segmentï¿½
-    2 = segmentï¿½ au bord de l'objet
-    3 = non segmentï¿½ au bord de l'objet
+    0 = non segmenté
+    1 = segmenté
+    2 = segmenté au bord de l'objet
+    3 = non segmenté au bord de l'objet
     */
 
     pt** F; 
@@ -3289,7 +3286,7 @@ int OptimisationLigne(int topi	     	         ,
 			 double pas                      ) 
 {
 double E,Eopt;
-int i,j,jMin;
+int j,jMin;
 double paramCourant;
 
 int l = TOP_conv_ind(topi,topj,topk,nb_param);
@@ -3326,9 +3323,8 @@ void DetermineParameter(double *param	             ,
 			double seuilBas               ,
 		  	int ***masque_param	      )
 {
-double functionCoutAncien = 0,E=0;
 double *moyenne;
-int pari,parj,park,stop,i,j,k,topi,topj,topk,lance,iteration=0;
+int pari,parj,park,stop,i,j,k,topi,topj,topk,iteration=0;
 double Eanc = 0;
 double pas = 5.;	
 int resol = BASE3D.resol;
@@ -3338,7 +3334,7 @@ int tutu = 0;
 
 if((moyenne = (double*)calloc(nb_param, sizeof(double))) == NULL) 
 	{
-	PUT_ERROR("[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); 
+	PUT_ERROR((char*)"[imx_matching_Bspline_topo_3d_p] memory allocation error !\n"); 
 	return; 
 	}
 	

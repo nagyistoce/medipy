@@ -3417,7 +3417,7 @@ for (j=0;j<HISTOJOINT.nbJ;j++)
 		j0=(int)floor(y);
 
 
-// calcul de dpij grace ï¿½ la formule (24) de l'article Thevenaz IEEETMI dec 2000
+// calcul de dpij grace à la formule (24) de l'article Thevenaz IEEETMI dec 2000
 
 					if ((x>0)&&(y>0))
 					for (u=i0;u<MINI(HISTOJOINT.nbI,i0+2);u++)
@@ -3449,7 +3449,7 @@ dpij->raw[i][j][0].y=dpij->raw[i][j][0].y/temp;
 dpij->raw[i][j][0].z=dpij->raw[i][j][0].z/temp;
 }	 
 	 
-// calcul de dIM grace ï¿½ la formule (23) de l'article Thevenaz IEEETMI dec 2000
+// calcul de dIM grace à la formule (23) de l'article Thevenaz IEEETMI dec 2000
 
 grad[0]=grad[1]=grad[2]=0.0;
 
@@ -3807,7 +3807,7 @@ mask=I2;
 	}
 
 
- /*on rempli le vecteur gradient en ï¿½chantillonnant sur l'image complï¿½mentaire */
+ /*on rempli le vecteur gradient en échantillonnant sur l'image complémentaire */
 	 
  for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
@@ -5227,24 +5227,25 @@ int gradient_quad_sous_champ_locale_3d(grphic3d *I2, grphic3d *Im, int nb_param,
  for (i=0;i<topDx;i++)
 	for (j=0;j<topDy;j++)
 		for (k=0;k<topDz;k++)
-	 {
+	 	{
 	   /* Evaluation du gradient de l'image en s=s+u avec interrpolation lineaire */
 	
 		i2=i+bx0;
 		j2=j+by0;
 		k2=k+bz0;
 		
-		dx=data[i][j][k].x-_ParamRecalageBspline.chref->raw[i2][j2][k2].x;
-		dy=data[i][j][k].y-_ParamRecalageBspline.chref->raw[i2][j2][k2].y;
-		dz=data[i][j][k].z-_ParamRecalageBspline.chref->raw[i2][j2][k2].z;
+		if (I2->mri[i2][j2][k2]>0)
+			{
+			dx=data[i][j][k].x-_ParamRecalageBspline.chref->raw[i2][j2][k2].x;
+			dy=data[i][j][k].y-_ParamRecalageBspline.chref->raw[i2][j2][k2].y;
+			dz=data[i][j][k].z-_ParamRecalageBspline.chref->raw[i2][j2][k2].z;
 
-	
-				
 	      	temp=2*fx[i]*fy[j]*fz[k];
       		grad[0]=grad[0]+temp*dx;
       		grad[1]=grad[1]+temp*dy;
       		grad[2]=grad[2]+temp*dz;
-	}
+	 		}
+		}
    
  /* for (i=0;i<3;i++)
 	grad[i]=grad[i]/(double)(topDx*topDy*topDz);*/

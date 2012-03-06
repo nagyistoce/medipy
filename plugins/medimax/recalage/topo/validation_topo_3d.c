@@ -40,7 +40,7 @@
 /*******************************************************************************
 **       Superposition_damier_3d                                               
 **                                                                        
-**       gï¿½nï¿½re une superposition d'image en damier                          
+**       génére une superposition d'image en damier                          
 *******************************************************************************/
 void superposition_damier_3d(void)
 {
@@ -63,7 +63,7 @@ superposition_damier_3d_p(im_reca,im_ref,im_res,step);
 /*******************************************************************************
 **       superposition_damier_3d_p                                               
 **                                                                        
-**       gï¿½nï¿½re une superposition d'image en damier                          
+**       génére une superposition d'image en damier                          
 *******************************************************************************/
 void superposition_damier_3d_p(int im_reca,int im_ref,int im_res,int step)
 {
@@ -996,7 +996,7 @@ free_dmatrix_3d(LVV);
 **     verif_topo()                  
 **                                                                   
 **     A partir des param d'une deformation Bspline verifie si la transformation
-**		viole la topologie et prï¿½cise dans quel bloc 
+**		viole la topologie et précise dans quel bloc 
 *******************************************************************************/
 void verif_topo(void)
 {
@@ -1243,7 +1243,7 @@ for(i=0;i<nb_param;i++) param[i]=transfo->param[i];
 **     verif_poly()                  
 **                                                                   
 **     A partir des param d'une deformation Bspline verifie si la transformation
-**		viole la topologie et prï¿½cise dans quel bloc 
+**		viole la topologie et précise dans quel bloc 
 *******************************************************************************/
 
 
@@ -1603,7 +1603,7 @@ free_field3d(ch);
 **		field3d *champ_fin,double *param, double
 **		param_norm, int nb_param, int ***masque_param, int nb_iter)
 **
-** 				Calcul tout une sï¿½rie de critï¿½re 
+** 				Calcul tout une série de critère 
 *******************************************************************************/
 
 void compare_critere(grphic3d *imref, grphic3d *imreca, grphic3d *imres,field3d *champ_fin,double *param, double

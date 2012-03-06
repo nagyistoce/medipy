@@ -181,7 +181,7 @@ for (k=0;k<dpth;k++)
 	if (im_cl->mri[i][j][k]==-1)
 	Ntot++;
 
-/* initialisation de la liste des voxels de la frontiï¿½re */
+/* initialisation de la liste des voxels de la frontière */
 for (i=0;i<wdth;i++)
 for (j=0;j<hght;j++)
 for (k=0;k<dpth;k++)
@@ -257,7 +257,7 @@ while (size>0)
 		im_cl->mri[i][j][k]=label;
 		size--;
 		Ntot--;
-		/* mise ï¿½ jour de la moyenne et du nombre */
+		/* mise à jour de la moyenne et du nombre */
 		moyenne[indice]=moyenne[indice]*nb[indice]+im->mri[i][j][k];
 		nb[indice]++;
 		moyenne[indice]=moyenne[indice]/nb[indice];
@@ -337,7 +337,7 @@ while (size>0)
 				im_cl->mri[tmp.i][tmp.j][tmp.k]=-10;carte_label[tmp.i][tmp.j][tmp.k]=tmp.label;}
 
 		}
-		printf("nombre de voxel dans la liste %d   Nb voxel restant ï¿½ traiter %d  \n",size, Ntot);
+		printf("nombre de voxel dans la liste %d   Nb voxel restant à traiter %d  \n",size, Ntot);
 	}
 
 free (nb);
@@ -380,7 +380,7 @@ for (k=0;k<dpth;k++)
 		//printf("%d %d %d\n",i,j,k);
 		label=im->mri[i][j][k];
 		
-		tirage=rand()/float(RAND_MAX);
+		tirage=drand48();
 		new_label=(int)floor(tirage*nb_classe);
 		
 		im->mri[i][j][k]=new_label;
@@ -400,37 +400,37 @@ for (k=0;k<dpth;k++)
 			i0=tmp.i;j0=tmp.j;k0=tmp.k;
 			
 			if (i0>0) if ((im_visite->mri[i0-1][j0][k0]==0)&&(im->mri[i0-1][j0][k0]==label))
-					{tirage=rand()/float(RAND_MAX);
+					{tirage=drand48(); 
 						if (tirage<(1-exp(-phi))) 
 							{im->mri[i0-1][j0][k0]=new_label;im_visite->mri[i0-1][j0][k0]=1;
 							tmp.i=i0-1;tmp.j=j0; tmp.k=k0; liste_voxel.push_back(tmp);longueur++;}}
 			
 			if (j0>0) if ((im_visite->mri[i0][j0-1][k0]==0)&&(im->mri[i0][j0-1][k0]==label))
-					{tirage=rand()/float(RAND_MAX);
+					{tirage=drand48(); 
 						if (tirage<(1-exp(-phi))) 
 							{im->mri[i0][j0-1][k0]=new_label;im_visite->mri[i0][j0-1][k0]=1;
 							tmp.i=i0;tmp.j=j0-1; tmp.k=k0; liste_voxel.push_back(tmp);longueur++;}}
 			
 			if (k0>0) if ((im_visite->mri[i0][j0][k0-1]==0)&&(im->mri[i0][j0][k0-1]==label))
-					{tirage=rand()/float(RAND_MAX);
+					{tirage=drand48(); 
 						if (tirage<(1-exp(-phi))) 
 							{im->mri[i0][j0][k0-1]=new_label;im_visite->mri[i0][j0][k0-1]=1;
 							tmp.i=i0;tmp.j=j0; tmp.k=k0-1; liste_voxel.push_back(tmp);longueur++;}}
 			
 			if (i0<wdth1) if ((im_visite->mri[i0+1][j0][k0]==0)&&(im->mri[i0+1][j0][k0]==label))
-					{tirage=rand()/float(RAND_MAX);
+					{tirage=drand48(); 
 						if (tirage<(1-exp(-phi))) 
 							{im->mri[i0+1][j0][k0]=new_label;im_visite->mri[i0+1][j0][k0]=1;
 							tmp.i=i0+1;tmp.j=j0; tmp.k=k0; liste_voxel.push_back(tmp);longueur++;}}
 			
 			if (j0<hght1) if ((im_visite->mri[i0][j0+1][k0]==0)&&(im->mri[i0][j0+1][k0]==label))
-					{tirage=rand()/float(RAND_MAX);
+					{tirage=drand48(); 
 						if (tirage<(1-exp(-phi))) 
 							{im->mri[i0][j0+1][k0]=new_label;im_visite->mri[i0][j0+1][k0]=1;
 							tmp.i=i0;tmp.j=j0+1; tmp.k=k0; liste_voxel.push_back(tmp);longueur++;}}
 			
 			if (k0<dpth1) if ((im_visite->mri[i0][j0][k0+1]==0)&&(im->mri[i0][j0][k0+1]==label))
-					{tirage=rand()/float(RAND_MAX);
+					{tirage=drand48(); 
 						if (tirage<(1-exp(-phi))) 
 							{im->mri[i0][j0][k0+1]=new_label;im_visite->mri[i0][j0][k0+1]=1;
 							tmp.i=i0;tmp.j=j0; tmp.k=k0+1; liste_voxel.push_back(tmp);longueur++;}}

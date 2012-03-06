@@ -102,20 +102,20 @@ return true;
 }
 
 
-//Extern C car ces fonctions sont utilisï¿½es ï¿½ partir d un code C
+//Extern C car ces fonctions sont utilisées à partir d un code C
 extern "C"
 { 
  
 /******************************************************************************
 ** -- imx_cout_combinaisons_sujet ---------------------------------------------------------------
 ** 
-**   demande au user les entrï¿½es:
-**  -k : on va ï¿½tudier toutes les combinaison a k ï¿½lï¿½ments (ou encore a k moments)
-**  -dossier_sujet : le rï¿½pertoire du sujet contenant les 16 fichier d'erreur trf des 16 moments pour ce sujet la
-**  -im_rec : c'est l'atlas de rï¿½fï¿½rence, chaque voxel nul de cet atlas ne sera pas inclu pour le calcul d erreur
-**  ----->Pour une combinaison de k moments donnï¿½s : -pour chaque voxel non nul de l atlas je retient son erreur min sur les k erreur trf des k moments.
+**   demande au user les entrées:
+**  -k : on va étudier toutes les combinaison a k éléments (ou encore a k moments)
+**  -dossier_sujet : le répertoire du sujet contenant les 16 fichier d'erreur trf des 16 moments pour ce sujet la
+**  -im_rec : c'est l'atlas de référence, chaque voxel nul de cet atlas ne sera pas inclu pour le calcul d erreur
+**  ----->Pour une combinaison de k moments donnés : -pour chaque voxel non nul de l atlas je retient son erreur min sur les k erreur trf des k moments.
 ** 						     -Le cout de la combinaison est alors la somme sur l image des min retenu
-**  -chemin_cout_sujet : le fichier mis dans le rï¿½pertoire du sujet : il contiendra toute les combinaison possible d k moment et pour chaque **										   combinaison son cout
+**  -chemin_cout_sujet : le fichier mis dans le répertoire du sujet : il contiendra toute les combinaison possible d k moment et pour chaque **										   combinaison son cout
 **
 ******************************************************************************/
 
@@ -132,7 +132,7 @@ int tutu  = 0;
 field3d *champ;
 transf3d *transfo;
 vector3d ***data;
-TDimension wdth, hght,dpth;
+int wdth, hght,dpth;
 
 double cout_combinaison,cout;
 double ***image_cout;
@@ -161,12 +161,12 @@ moment[15]=CALLOC(50,char);sprintf(moment[15],"errN4_R9_%d.trf",taille);
 
 printf("%s %d %d \n",dossier_sujet,k,im_rec);
 /*************************Ouvrir le fichier dans lequel on va enregistrer les cout des combinaison Puis boucler sur les combinaisons*******************/
-//sprintf(chemin_cout_sujet,"%scout_%d_%d.txt",dossier_sujet,taille,k); gï¿½rï¿½ par l'automate
+//sprintf(chemin_cout_sujet,"%scout_%d_%d.txt",dossier_sujet,taille,k); géré par l'automate
 fic = fopen(chemin_cout_sujet, "w"); 						
 ///boucler sur les combinaisons
 while (true)
 	{
-	/*************************rester sur la premiï¿½re combinaison ou avancer a la suivante en cours*******************/
+	/*************************rester sur la première combinaison ou avancer a la suivante en cours*******************/
 	bool a = true;
 	if (tutu==0)	tutu=1;
 	else 		a = c->Successor();
@@ -178,11 +178,11 @@ while (true)
 		/*************************Boucler sur les moments de cette combinaison*******************/
 		for (r=0;r<k;r++)
 		{
-		/*************************ouvrir le fichier trf erreur trf de la composante numï¿½ro r de la combinaison*****************/
+		/*************************ouvrir le fichier trf erreur trf de la composante numéro r de la combinaison*****************/
 		sprintf(chemin_err_trf,"%s%s",dossier_sujet,moment[c->data[r]]);		
-		put_file_extension(chemin_err_trf,".trf",chemin_err_trf);
+		put_file_extension(chemin_err_trf,(char *)".trf",chemin_err_trf);
 		if ((test_fichier_transf_3d(chemin_err_trf))!=1) 
-		  {PUT_ERROR("This file contains no 3D transformation");return(0);}
+		  {PUT_ERROR((char *)"This file contains no 3D transformation");return(0);}
 		transfo=load_transf_3d(chemin_err_trf);
 		champ=transf_to_field_3d(transfo,NULL,NULL);
 		free_transf3d(transfo);
