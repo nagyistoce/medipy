@@ -7,17 +7,17 @@
  ************************************************************************/
 
 /*!**********************************************************************
-*** 
-*** \file       correction.c
+***	
+***	\file		correction.c
 ***
-*** project:    Imagix 2.01
-***         
+***	project:	Imagix 2.01
+***			
 ***
-*** \brief description: correction d'images
-*** 
-*** 
-*** Copyright (c) 1993, ULP-IPB Strasbourg.
-*** All rights are reserved.
+***	\brief description:	correction d'images
+***	
+***	
+***	Copyright (c) 1993, ULP-IPB Strasbourg.
+***	All rights are reserved.
 ***
 ***     Last user action by: H. Boisgontier (mars 2007)
 ***
@@ -27,12 +27,12 @@
 
 
 /************************ corr_sagittal_3d() ********************************/ 
-/*  Correction coupe par coupe ( coupes sagittales ) d'une image 3D     */
-/*                                      */
-/*      Normalisation des moyennes et ecarts types                  */ 
-/*                                      */
-/*          im_ori  :image a normaliser                         */ 
-/*          im_res  :image resultat                             */
+/*	Correction coupe par coupe ( coupes sagittales ) d'une image 3D     */
+/*									    */
+/*		Normalisation des moyennes et ecarts types                  */ 
+/*									    */
+/*			im_ori  :image a normaliser                         */ 
+/*			im_res  :image resultat                             */
 /*                                                                          */
 /****************************************************************************/
 void corr_sagittal_3d(void) {
@@ -48,10 +48,10 @@ void corr_sagittal_3d(void) {
 
 /****************************************************************************/
 
-void imx_corr_sagittal_3d(int im_ori, int im_res) { 
+void imx_corr_sagittal_3d(int im_ori, int im_res) {	
   grphic3d *imori, *imres;
   
-  imori=ptr_img_3d(im_ori); 
+  imori=ptr_img_3d(im_ori);	
   imres=ptr_img_3d(im_res);
   
   imx_corr_sagittal_3d_p(imori, imres); 
@@ -125,7 +125,7 @@ int imx_corr_sagittal_3d_p(grphic3d *imori, grphic3d *imres)
           imres->mri[x][y][z] = 0;
         } else {
           if(y%2==0) { // si coupe pair
-            imres->mri[x][y][z] = (imori->mri[x][y][z] - moyP) / etyP * etyM + moyM;
+            imres->mri[x][y][z] = 1;    //(imori->mri[x][y][z] - moyP) / etyP * etyM + moyM;
           } else { // si coupe impair
             imres->mri[x][y][z] = (imori->mri[x][y][z] - moyI) / etyI * etyM + moyM;
           }
