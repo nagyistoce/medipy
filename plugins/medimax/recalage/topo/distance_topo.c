@@ -5758,6 +5758,36 @@ double *fx,*fy,*fz;
 int i,j,k;
 double E=0,Ereg;
 double auxE;
+
+dvector3d u;
+int xref,yref,zref;
+double xreca,yreca,zreca;
+int wx,wy,wz;
+int patchx,patchy,patchz;
+int hwn = 2;
+int nbp = hwn*2 + 1;
+int hwp = 1;
+
+
+ int wx_ref,wy_ref,wz_ref;
+ int wx_reca,wy_reca,wz_reca;
+ int xpx,ypy,zpz,wxpx,wypy,wzpz;
+ int x2px,y2py,z2pz,wx2px,wy2py,wz2pz;
+ int indice;
+
+ //precalcul du champ de deplacement
+ field3d *champ;
+ vector3d ***data;
+	
+	
+
+int xmin,ymin,zmin,xmax,ymax,zmax;
+
+int interpolation_choice = 0; // 0 NN, 1 TL
+int costfunction = 1; // 0 : L2, 1, patch
+//int patchdef = 0; //0 non deforme, 1 deforme // non utilise pour le moment
+
+int chpx,chpy,chpz;
 	
 resol=BASE3D.resol;
 width=BASE3D.width;height=BASE3D.height;depth=BASE3D.depth;
@@ -5772,44 +5802,26 @@ topDx=bx1-bx0;
 topDy=by1-by0;
 topDz=bz1-bz0;
 
-
-dvector3d u;
-int xref,yref,zref;
-double xreca,yreca,zreca;
-int wx,wy,wz;
-int patchx,patchy,patchz;
-int hwn = 2;
-int nbp = hwn*2 + 1;
 nbp = nbp*nbp*nbp;
-int hwp = 1;
 
 
- int wx_ref,wy_ref,wz_ref;
- int wx_reca,wy_reca,wz_reca;
- int xpx,ypy,zpz,wxpx,wypy,wzpz;
- int x2px,y2py,z2pz,wx2px,wy2py,wz2pz;
- int indice;
-
- //precalcul du champ de deplacement
- field3d *champ;
- vector3d ***data;
  //taille du champ :
- int xmin = bx0 - hwn - hwp;
+ xmin = bx0 - hwn - hwp;
  if(xmin < 0)
    xmin = 0;
- int ymin = by0 - hwn - hwp;
+ ymin = by0 - hwn - hwp;
  if(ymin < 0)
   ymin = 0;
- int zmin = bz0 - hwn - hwp;
+ zmin = bz0 - hwn - hwp;
  if(zmin < 0)
    zmin = 0;
- int xmax = bx1 + hwn + hwp;
+ xmax = bx1 + hwn + hwp;
  if(xmax >= width)
    xmax = width-1;
- int ymax = by1 + hwn + hwp;
+ ymax = by1 + hwn + hwp;
  if(ymax >= height)
    ymax = height-1;
- int zmax = bz1 + hwn + hwp;
+ zmax = bz1 + hwn + hwp;
  if(zmax >= depth)
    zmax = depth-1;
 
@@ -5818,9 +5830,9 @@ int hwp = 1;
  //int chpz = zmax-zmin+1;
 
  //debug. calcul sur toute l'image
- int chpx = width;
- int chpy = height;
- int chpz = depth;
+ chpx = width;
+ chpy = height;
+ chpz = depth;
 
  champ=cr_field3d(chpx,chpy,chpz);
  data=champ->raw;
@@ -5840,9 +5852,6 @@ int hwp = 1;
 	 data[i][j][k].z=u.z;
        }
 
-int interpolation_choice = 0; // 0 NN, 1 TL
-int costfunction = 1; // 0 : L2, 1, patch
-//int patchdef = 0; //0 non deforme, 1 deforme // non utilise pour le moment
 
 // On balaye chacun des pixels de la boite
 
@@ -5897,16 +5906,17 @@ for (i=0;i<topDx;i++)
      {
      double wref[nbp];
      double wreca[nbp];
-     for(indice=0;indice<nbp;indice++)
-       {
-	 wref[indice] = 0;
-	 wreca[indice] = 0;
-       }
      double sum_ref = 0;
      double sum_reca = 0;
 
      int count = 0;
 
+	 for(indice=0;indice<nbp;indice++)
+       {
+	 wref[indice] = 0;
+	 wreca[indice] = 0;
+       }
+     
      //parcours du voisinage
      for(wx=-hwn;wx<hwn+1;wx++)
        for(wy=-hwn;wy<hwn+1;wy++)
@@ -5919,7 +5929,13 @@ for (i=0;i<topDx;i++)
 
 	     if( (wx_ref-xmin>=0) & (wx_ref<width) & (wy_ref-ymin>=0) & (wy_ref<height) & (wz_ref-zmin>=0) & (wz_ref<depth) )
 	       {
-
+		 double poids_ref = 0;
+		 double dist_ref = 0;
+		 double tmpd_ref = 0;
+		 double poids_reca = 0;
+		 double dist_reca = 0;
+		 double tmpd_reca = 0;
+		
 		 	       
 		 //eval_deplacement_bspline1_3d(param, nb_param, width, height, depth, wx_ref, wy_ref, wz_ref, &u);
 		 //position du voisin dans ima_reca
@@ -5936,12 +5952,6 @@ for (i=0;i<topDx;i++)
 		 
 
 		 
-		 double poids_ref = 0;
-		 double dist_ref = 0;
-		 double tmpd_ref = 0;
-		 double poids_reca = 0;
-		 double dist_reca = 0;
-		 double tmpd_reca = 0;
 		 
 		 //parcours des patches
 		 for(patchx=-hwp;patchx<hwp+1;patchx++)
