@@ -2171,6 +2171,8 @@ void  normalisation_gaussienne2d_histo_joint_norm_p(grphic3d *im1,grphic3d *im2,
 { 
 
 grphic3d *im1temp,*im2temp;
+Param_Gaussienne_2d *param;
+
 im1temp=cr_grphic3d(im1);
 im2temp=cr_grphic3d(im2);
 
@@ -2187,7 +2189,6 @@ imx_norm_seuil_meanecty_3d_p(im1temp,im2temp,im1temp);
 //imx_copie_3d_p(im1,im1temp);
 //imx_copie_3d_p(im2,im2temp);
 
-Param_Gaussienne_2d *param;
 
 param=(Param_Gaussienne_2d *) malloc(nb_classe*sizeof(Param_Gaussienne_2d));
 
