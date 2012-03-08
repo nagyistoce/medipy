@@ -711,3 +711,8 @@ int random()
 
 	return rand();
 }
+
+double drand48()
+{
+	return ((double)(random()))/(1.+(double)(RAND_MAX));
+}
