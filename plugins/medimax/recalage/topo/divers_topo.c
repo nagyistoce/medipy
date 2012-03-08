@@ -229,9 +229,9 @@ double auxdbl[20],auxdbl21a[21], auxdbl21b[21];
 double  ***J;
 double maxJ=-100000,minJ=100000,rcoeff,tmpJ,xt,yt,zt,xt1,yt1,zt1,aux2,Jtot=0;
 int singularite=0,vol;
+int D = TOP_D(nb_param); 			      // D : valeur max des indices i, j, k
 
 nb_param=transfo->nb_param;
-int D = TOP_D(nb_param); 			      // D : valeur max des indices i, j, k
 
 param_norm=malloc(nb_param*sizeof(double));
    
@@ -1073,8 +1073,9 @@ int	e=0,wdth,hght,dpth,i,choix, wdth_res, hght_res, dpth_res,im_ref;
 float dxres, dyres, dzres;
 double *param,prec;
 field3d /**ch1,*/*chres;
- char *quest[4];
- 
+char *quest[4];
+grphic3d *imref;
+	
  for(i=0;i<4;i++)
     quest[i]=CALLOC(80,char);
 
@@ -1119,8 +1120,8 @@ field3d /**ch1,*/*chres;
 	break;
 	
 	case 2:
+	
 	im_ref= GET_PLACE3D("image de reference");
-	grphic3d *imref;
 	imref=ptr_img_3d(im_ref);
 	
 	wdth_res=imref->width;
@@ -3635,17 +3636,18 @@ J[2][2]=1.0+(
 ********************************************************************************/
 double raffinement_bspline_inv_3d(double *param,int nb_param,field3d *chdepart,field3d *chres,field3d *chmin,field3d *chmax,int i,int j,int k,double prec)
 {
- TOPTliste myQ,myL;
- TOPTbox myB,auxB;
- dvector3d hmid;
- double distance,distance2,prec_tmp/*,prec_num=0.0001*/,reduc;
- int wdth,hght,dpth,umin,umax,vmin,vmax,wmin,wmax,nb_boite=0;
+TOPTliste myQ,myL;
+TOPTbox myB,auxB;
+dvector3d hmid;
+double distance,distance2,prec_tmp/*,prec_num=0.0001*/,reduc;
+int wdth,hght,dpth,umin,umax,vmin,vmax,wmin,wmax,nb_boite=0;
+int resol,coeff2l,imin,imax,jmin,jmax,kmin,kmax,ii,jj,kk;
+int u,v,w,u1,v1,w1,nb_iter=0;
+double  xmid,ymid,zmid;
+
  prec_tmp=prec;
  myQ.nelem = 0;
  myL.nelem = 0;
-int resol,coeff2l,imin,imax,jmin,jmax,kmin,kmax,ii,jj,kk;
- int u,v,w,u1,v1,w1,nb_iter=0;
- double  xmid,ymid,zmid;
  
 if (INV_BSPLINE_RESOL!=-1)
 	resol=INV_BSPLINE_RESOL;
@@ -5198,9 +5200,10 @@ return(pourcentage);
 double grignote_boite_suivant_z2(BoiteInvBspline *ParamInvBspline, TOPTbox* myB,double i,double j,double k)
 {
 double size_depart,size_arrive,pourcentage,x1,x2,x3;
-size_depart=myB->zM-myB->zm;
 double tabx[12];
 int l,stop;
+
+size_depart=myB->zM-myB->zm;
 
 //---- on considère les valeurs 4 coins des faces d'abscisse z
 
@@ -8225,13 +8228,14 @@ void imx_ComputeMoment3D_p(grphic3d * imdeb, grphic3d * imres, int p, int q, int
  int i,j,k,l,m,n,wdth,hght,dpth;
  double ***res;
  double ***masque;
- wdth=imdeb->width;
- hght=imdeb->height;
- dpth=imdeb->depth;
  grphic3d *tmp;
  double pow1, pow2, max1, min1, max2, min2, max3, min3;
  double norm;
 
+wdth=imdeb->width;
+hght=imdeb->height;
+dpth=imdeb->depth;
+ 
 
  tmp=cr_grphic3d(imdeb);
  imx_dilat_3d_p(imdeb,tmp,4,2);//4 pour voisinage sphérique sauf que je ne sais pas le rayon utilisé, 2 = nombre d'itération ca sert à quoi???
@@ -8658,14 +8662,6 @@ int xx,yy,zz;
 int sx,sy,sz;
 int px,py,pz;
 double constante= Image->rcoeff * Image->rcoeff /NLMsmooth;
-
-  //initialisation de weights
-  for(xx=0; xx!=2*NLMhwvsx+1; xx++)
-    for(yy=0; yy!=2*NLMhwvsy+1; yy++)
-      for(zz=0; zz!=2*NLMhwvsz+1; zz++)
-        weights[xx][yy][zz] = 0;
-
-
 int minsx=MAXI(-x,-NLMhwvsx);
 int minsy=MAXI(-y,-NLMhwvsy);
 int minsz=MAXI(-z,-NLMhwvsz);
@@ -8674,39 +8670,48 @@ int maxsx=MINI(Image->width-x-1,NLMhwvsx);
 int maxsy=MINI(Image->height-y-1,NLMhwvsy);
 int maxsz=MINI(Image->depth-z-1,NLMhwvsz);
 
+  //initialisation de weights
+  for(xx=0; xx!=2*NLMhwvsx+1; xx++)
+    for(yy=0; yy!=2*NLMhwvsy+1; yy++)
+      for(zz=0; zz!=2*NLMhwvsz+1; zz++)
+        weights[xx][yy][zz] = 0;
+
+
+
   //Voxel selection in search volume
   for( sx=minsx;sx<=maxsx;sx++){		    
     xx = x+sx;
       for( sy=minsy;sy<=maxsy;sy++){
         yy = y+sy;
           for( sz=minsz;sz<=maxsz;sz++){
-            zz = z+sz;
-		      
- 	      double diff=0;	    
+          double diff=0;	    
   	      double weight = 0;
 	      double dist = 0;
 			    
 		  int minpx=MAXI(-x,-NLMhwnx);
-          minpx=MAXI(minpx,-xx);
+          int minpy=MAXI(-y,-NLMhwny);
+          int minpz=MAXI(-z,-NLMhwnz);
+          int maxpx=MINI(Image->width-x-1,NLMhwnx);
+          int maxpy=MINI(Image->height-y-1,NLMhwny);
+          int maxpz=MINI(Image->depth-z-1,NLMhwnz);
+          int xpx,ypy,zpz,xxpx,yypy,zzpz;		    
+          
+		  zz = z+sz;
+		      
+ 	      minpx=MAXI(minpx,-xx);
 		  
-		  int minpy=MAXI(-y,-NLMhwny);
-          minpy=MAXI(minpy,-yy);
+		  minpy=MAXI(minpy,-yy);
 		  
-		  int minpz=MAXI(-z,-NLMhwnz);
-          minpz=MAXI(minpz,-zz);
+		  minpz=MAXI(minpz,-zz);
 		  
-		  int maxpx=MINI(Image->width-x-1,NLMhwnx);
-          maxpx=MINI(maxpx,Image->width-xx-1);
+		  maxpx=MINI(maxpx,Image->width-xx-1);
 		  
-		 int maxpy=MINI(Image->height-y-1,NLMhwny);
-          maxpy=MINI(maxpy,Image->height-yy-1);
+		  maxpy=MINI(maxpy,Image->height-yy-1);
 		
-		 int maxpz=MINI(Image->depth-z-1,NLMhwnz);
-          maxpz=MINI(maxpz,Image->depth-zz-1);
+		  maxpz=MINI(maxpz,Image->depth-zz-1);
 		
 				
-	      int xpx,ypy,zpz,xxpx,yypy,zzpz;		    
-              //distance computation between patches
+	          //distance computation between patches
               for( px=minpx;px<=maxpx;px++){
 	        xpx = x + px;
 	        xxpx= xx+ px;
@@ -8751,6 +8756,7 @@ float NLMSmoothComputation3D(grphic3d* Image, int NLMhwnx, int NLMhwny, int NLMh
   uint count = 0;
   double sigma2 = 0;
   int x,y,z;
+  float NLMsmooth;
   for(x=1;x<Image->width-1;x++)
     for(y=1;y<Image->height-1;y++)
       for(z=1;z<Image->depth-1;z++)
@@ -8763,7 +8769,7 @@ float NLMSmoothComputation3D(grphic3d* Image, int NLMhwnx, int NLMhwny, int NLMh
         }
 
   sigma2 = sigma2 / count;
-  float NLMsmooth = 2 * NLMbeta * sigma2 * (2*NLMhwnx+1) * (2*NLMhwny+1) * (2*NLMhwnz+1);
+  NLMsmooth = 2 * NLMbeta * sigma2 * (2*NLMhwnx+1) * (2*NLMhwny+1) * (2*NLMhwnz+1);
   return NLMsmooth;
 
 }

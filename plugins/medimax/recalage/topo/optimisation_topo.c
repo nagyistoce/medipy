@@ -1135,7 +1135,8 @@ double maxpx,maxpy,maxpz,precis,precisx,precisy,precisz;
 int nb_pas = NB_PAS_LINEMIN_TOPO; 
 int resol=BASE3D.resol;
 int topD=(int)pow(2.0,1.0*resol)-1;
-
+double max_delta_p=0, delta_p;	
+			
 
 x00=BASE3D.x0;x11=BASE3D.x1;y00=BASE3D.y0;y11=BASE3D.y1;z00=BASE3D.z0;z11=BASE3D.z1;
 wdth=imref->width;hght=imref->height;dpth=imref->depth;
@@ -1266,7 +1267,7 @@ wdth=imref->width;hght=imref->height;dpth=imref->depth;
 		for (i=0;i<3;i++)
 			p_tmp[i]=p[topD1+i];
 				
-			double max_delta_p=0, delta_p;	
+			max_delta_p=0;	
 			for (i=0;i<3;i++)
 				for (j=0;j<3;j++)
 					{
@@ -1924,7 +1925,8 @@ double energie_precision = 0.01;
 double *opp_param_norm=NULL;
 double lambda_ref = (1.0-TOPO_PONDERATION_RECALAGE_SYMETRIQUE)/TOPO_PONDERATION_RECALAGE_SYMETRIQUE;
 int nb_iter_max=50;
-
+double max_delta_p=0, delta_p;	
+			
  if (dist==Energie_IM_locale_3d) energie_precision=0.0001;  /* les variations relatives de l'IM sont en général bcp plus faibles */
 
  
@@ -2279,7 +2281,7 @@ for(pari=MINI(2,resol)-1;pari>=0;pari--)
 		for (i=0;i<3;i++)
 			p_tmp[i]=p[topD1+i];
 				
-			double max_delta_p=0, delta_p;	
+			max_delta_p=0;	
 			for (i=0;i<3;i++)
 				for (j=0;j<3;j++)
 					{
