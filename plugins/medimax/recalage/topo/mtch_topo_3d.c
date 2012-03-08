@@ -617,8 +617,6 @@ if (dist_type==12)
   int ny = imref->height;
   int nz = imref->depth;
   int nbp = (nx-2)*(ny-2)*(nz-2);
-  PATCH_REF = 0;
-  PATCH_RECA = 0;
   double ei_ref = 0;
   double ei_reca = 0;
   double sig_ref = 0;
@@ -626,6 +624,9 @@ if (dist_type==12)
   double beta = 0.5;
   int hwn = 3*3*3;
   int x,y,z;
+ 
+  PATCH_REF = 0;
+  PATCH_RECA = 0;
   
   for(x=1;x<nx-1;x++)
     for(y=1;y<ny-1;y++)
@@ -3491,6 +3492,8 @@ int imx_matching_Bspline_topo_symetrique_3d_p(grphic3d *imref, grphic3d *imreca,
  char nomfichier_reca[1000];
  char *ext2;
 double lambda_ref = (1.0-TOPO_PONDERATION_RECALAGE_SYMETRIQUE)/TOPO_PONDERATION_RECALAGE_SYMETRIQUE;
+ transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb, *transfo_tmp; 
+   int l;
 
 
 printf("TOPO_PONDERATION_RECALAGE_SYMETRIQUE = %f \n",TOPO_PONDERATION_RECALAGE_SYMETRIQUE);
@@ -3709,12 +3712,15 @@ if (dist_type==12)
             {
                
                
-                /*liberation de la base*/
-                end_base_3d();
-
+                
+           
                transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb; 
                 int l;
-  
+       			double *param_tmp;
+				
+				/*liberation de la base*/
+				end_base_3d();
+
                 // transfo direct
                 transfo=cr_transf3d(wdth,hght,dpth,NULL);
                 transfo->nb_param=nb_param;transfo->param=CALLOC(nb_param,double);
@@ -3759,7 +3765,7 @@ if (dist_type==12)
                 interpol(imtreca,champ,imrecad); 
 
         
-                double *param_tmp=CALLOC(nb_param,double);
+                param_tmp=CALLOC(nb_param,double);
                 
              nb_param=init_base_3d(wdth,hght,dpth,scal_func);
             
@@ -3863,8 +3869,6 @@ if (dist_type==12)
 }
   /*enregistrement du champ resultat dans un fichier*/
     
-   transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb, *transfo_tmp; 
-   int l;
   
   // transfo direct
   transfo=cr_transf3d(wdth,hght,dpth,NULL);
@@ -5537,10 +5541,10 @@ Jmax, int normalisation_type, int nb_classe,int adaptatif, char* nomfichiertrf)
 double lambda_ref = (1.0-TOPO_PONDERATION_RECALAGE_SYMETRIQUE)/TOPO_PONDERATION_RECALAGE_SYMETRIQUE;
  char nomfichier_ref[1000];
  char nomfichier_reca[1000];
+  transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb, *transfo_tmp; 
+   int l;
+ 
 
-
-printf("TOPO_PONDERATION_RECALAGE_GROUPWISE = %f \n",TOPO_PONDERATION_RECALAGE_SYMETRIQUE);
-printf("lambda_ref = %f \n",lambda_ref);
 char *ext2;
 
 #ifndef SAVE_INTERMEDIAIRE_2 
@@ -5555,6 +5559,9 @@ char temp[2];
 #ifndef WIN32
     setvbuf(stdout, (char *)NULL, _IONBF, 0); // setbuf(stdout,NULL);
 #endif
+
+printf("TOPO_PONDERATION_RECALAGE_GROUPWISE = %f \n",TOPO_PONDERATION_RECALAGE_SYMETRIQUE);
+printf("lambda_ref = %f \n",lambda_ref);
 
 wdth=_ParamRecalageBspline.serie_groupwise[0]->width;hght=_ParamRecalageBspline.serie_groupwise[0]->height;dpth=_ParamRecalageBspline.serie_groupwise[0]->depth;
 
@@ -5784,8 +5791,6 @@ free_imatrix_3d(masque_param);
 }
   /*enregistrement du champ resultat dans un fichier*/
     
-   transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb, *transfo_tmp; 
-   int l;
   
   // transfo direct
   transfo=cr_transf3d(wdth,hght,dpth,NULL);
@@ -6237,7 +6242,8 @@ int imx_matching_Bspline_topo_momentgeometrique_3d_p(grphic3d *imref, grphic3d *
  bool regu = FALSE;
  int num=1;
  float rayon=3;
- 
+ int x,y,z;
+
  
 wdth=imref->width;hght=imref->height;dpth=imref->depth;
     
@@ -6359,7 +6365,6 @@ for (r=resol;r<=resolf;r++)
                         
         // conversion du champ en voxel
         
-        int x,y,z;
         
         for (x=0;x<wdth; x++)
         for (y=0;y<hght; y++)

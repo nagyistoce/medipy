@@ -176,7 +176,6 @@ void apprentissage_erreur_moment()
 void imx_apprentissage_erreur_moment(int im_ref,char* chemin_erreur_sujets,char* chemin_apprentissage_erreur)
 {
   grphic3d *imref;
-  imref=ptr_img_3d(im_ref);
   FILE * fic1, * fic2, * fic3;
   char* chemin_erreur =CALLOC(80,char);
   field3d *champ;
@@ -188,6 +187,8 @@ void imx_apprentissage_erreur_moment(int im_ref,char* chemin_erreur_sujets,char*
   float Mx,My,Mz,Vx,Vy,Vz,Vxy,Vxz,Vyz;     		
 int n;
 /*********Initialisation du fichier d'apprentissage d'erreur chemin_apprentissage_erreur a ZERO pour tte les statistiques***********/
+  
+  imref=ptr_img_3d(im_ref);
   fic2 = fopen(chemin_apprentissage_erreur, "w"); 
   wdth=imref->width;
   hght=imref->height;
@@ -317,7 +318,6 @@ void EMV_champs_moments()
 void imx_EMV_champs_moments(int im_ref,char* chemin_champ_covr,char* chemin_champ_combine)
 {
   grphic3d *imref;
-  imref=ptr_img_3d(im_ref);
   int i,j,k;
   FILE * fic_cov, *fic_normalisation, *fic_tmp;					
   FILE * fic;
@@ -335,6 +335,8 @@ void imx_EMV_champs_moments(int im_ref,char* chemin_champ_covr,char* chemin_cham
 
 
 /********************espace mémoire du champ résultat, son intitialisation a 0 et initialisation des somme de cov inverse a 0*************************/
+  
+  imref=ptr_img_3d(im_ref);
   fic_normalisation = fopen("normalisation.txt", "w"); 
 
   wdth=imref->width;

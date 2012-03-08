@@ -48,24 +48,21 @@ int LinearRegistration( grphic3d *imref,
                         )
 {
     
-SetGrphic3dDxDyDzPositive(imref);
-SetGrphic3dDxDyDzPositive(imreca);
 
-
-   transf3d *inittrf=NULL;
-   transf3d *transfres=NULL;
-
+transf3d *inittrf=NULL;
+transf3d *transfres=NULL;
 
 char *nomfichtrf = NULL; // pas de transfo ini                                  
-
-printf("Imref: width=%d, height=%d, depth=%d, dx=%f, dy=%f, dz=%f \n",imref->width, imref->height,imref->depth, imref->dx, imref->dy, imref->dz);
-printf("Imreca: width=%d, height=%d, depth=%d, dx=%f, dy=%f, dz=%f \n",imreca->width, imreca->height,imreca->depth, imreca->dx, imreca->dy, imreca->dz);
 
 
 eMatchPrecision matchPrecision;
 
 //intervalle de recherche
 eResearchInterv FieldOfResearch = MEDIUM;
+
+SetGrphic3dDxDyDzPositive(imref);
+SetGrphic3dDxDyDzPositive(imreca);
+
 
 if (save_type==2)
     nomfichres=NULL;
@@ -186,14 +183,13 @@ switch(precision)
 int ApplyTransfo3d(grphic3d *imdeb, char *nomfichier, grphic3d *imres, int inter_type)
 {
  
- SetGrphic3dDxDyDzPositive(imdeb);
-
     transf3d *transfo;
     char tmp[PATH_LEN];
     InterpolationFct inter_fct;
     int err=0;
       
-    put_file_extension(nomfichier,".trf",tmp);
+    SetGrphic3dDxDyDzPositive(imdeb);
+	put_file_extension(nomfichier,".trf",tmp);
   
     /*chargement de la transformation*/
     transfo = load_transf_3d(tmp);
@@ -258,11 +254,11 @@ int BsplineRegistration3d(  grphic3d *imref,
                             int symetrique)
 {
 
-SetGrphic3dDxDyDzPositive(imref);
-SetGrphic3dDxDyDzPositive(imreca);
 
 int l,continu,func_type,inter_type,adaptatif;
 
+SetGrphic3dDxDyDzPositive(imref);
+SetGrphic3dDxDyDzPositive(imreca);
 
 // test sur la sauvegarde du fichier
 if (save_type==2) // pas d'enregistrement de transfo
@@ -695,7 +691,6 @@ void VisuTrfFile(char *nomfichier, grphic3d *output, int type)
 {
 transf3d *transfo;
 field3d *champ;
-int type_medimax;
 
 transfo=load_transf_3d(nomfichier);
 champ=transf_to_field_3d(transfo,NULL,NULL);
