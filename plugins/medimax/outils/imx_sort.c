@@ -31,12 +31,6 @@
 #include "math/imx_matrix.h"
 #include "outils/imx_sort.h"
 
-#ifdef WIN32
-   double drand48(void) {
-      return (double)rand()/RAND_MAX;
-   }
-#endif
-
 #define 	M		7
 #define  	NSTACK		50
 

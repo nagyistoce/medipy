@@ -16,9 +16,18 @@
 
 extern int save_mri_ipb_3d_p(char *file, grphic3d *image) ;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* http://www.eecg.utoronto.ca/~aamodt/sourceware/MSVC.html */
 double rint( double x);
 
 int random();
+double drand48();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
