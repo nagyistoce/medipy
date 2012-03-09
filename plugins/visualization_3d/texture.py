@@ -6,11 +6,17 @@
 # for details.                                                      
 ##########################################################################
 
+import logging
+import sys
 import numpy
 import scipy.ndimage
 
 from vtk import vtkFloatArray
-import vtk.util.numpy_support
+from vtk import vtkVersion
+if vtkVersion.GetVTKMajorVersion() == 5 and vtkVersion.GetVTKMinorVersion() < 2 :
+    logging.warning("This plugin may not work with {0}".format(vtkVersion.GetVTKVersion()))
+else :
+    import vtk.util.numpy_support
 
 def texture_from_depth(object_3d, image, depth, center_of_mass = None):
     """ Color the vertices of the object using color from  image with

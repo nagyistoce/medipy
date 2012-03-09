@@ -8753,7 +8753,7 @@ int maxsz=MINI(Image->depth-z-1,NLMhwvsz);
 
 float NLMSmoothComputation3D(grphic3d* Image, int NLMhwnx, int NLMhwny, int NLMhwnz, float NLMbeta, int padding)
 {
-  uint count = 0;
+  unsigned int count = 0;
   double sigma2 = 0;
   int x,y,z;
   float NLMsmooth;
