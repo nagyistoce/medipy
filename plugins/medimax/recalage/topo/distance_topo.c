@@ -5904,8 +5904,8 @@ for (i=0;i<topDx;i++)
      */
      if(costfunction==1)
      {
-     double wref[nbp];
-     double wreca[nbp];
+     double* wref = (double*)calloc(nbp, sizeof(double));
+     double* wreca = (double*)calloc(nbp, sizeof(double));
      double sum_ref = 0;
      double sum_reca = 0;
 
@@ -6076,6 +6076,8 @@ for (i=0;i<topDx;i++)
 	     E = E + auxE*auxE;
 	   }
        }
+     	 free(wref);
+     	 free(wreca);
      }
      //critere quadratique         
      /*
