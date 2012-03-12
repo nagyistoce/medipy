@@ -10,10 +10,14 @@
     images. Resulting datasets may not be DICOM-compliant.
 """
 
-import numpy
+import copy
+import math
 import operator
 
+import numpy
+
 import medipy.base
+import csa2
 from dataset import DataSet
 
 def normalize(dataset_or_datasets):
@@ -28,6 +32,9 @@ def normalize(dataset_or_datasets):
             return [single_frame(x) for x in single_frames]
         elif "frame_increment_pointer" in dataset_or_datasets :
             single_frames = nuclear_medicine(dataset_or_datasets)
+            return [single_frame(x) for x in single_frames]
+        elif "MOSAIC" in dataset_or_datasets.get("image_type", []) :
+            single_frames = mosaic(dataset_or_datasets)
             return [single_frame(x) for x in single_frames]
         else :
             return single_frame(dataset_or_datasets)
@@ -254,6 +261,65 @@ def nuclear_medicine(dataset):
         offset = frame_size*frame_number
         frame.pixel_data = dataset.pixel_data[offset:offset+frame_size]
         
+        result.append(frame)
+    
+    return result
+
+def mosaic(dataset):
+    """ Return a dataset for each frame (i.e. 2D pixel plane) of the input
+        dataset.
+    """
+    
+    csa_header = csa2.parse_csa(dataset[(0x0029,0x1010)])
+    
+    number_of_images_in_mosaic = csa_header["NumberOfImagesInMosaic"][0]
+    slice_normal_vector = numpy.asarray(csa_header["SliceNormalVector"])
+    
+    z_spacing = dataset.get("spacing_between_slices", 
+                            dataset.get("slice_thickness", 1.0))
+    slice_normal_vector[2] *= z_spacing
+    
+    number_of_tiles = int(math.ceil(math.sqrt(number_of_images_in_mosaic)))
+    
+    rows = dataset.rows/number_of_tiles
+    columns = dataset.columns/number_of_tiles
+    
+    # Re-arrange array so that tiles are contiguous
+    array = dataset.pixel_array.reshape(number_of_tiles, rows,
+                                        number_of_tiles, columns)
+    array = array.transpose((1,3,0,2))
+    array = array.reshape(rows, columns, number_of_tiles**2)
+    
+    result = []
+    for i in range(number_of_images_in_mosaic) :
+        frame = medipy.io.dicom.DataSet()
+        for key, value in dataset.items() :
+            if key == (0x0008,0x0008) :
+                # Image type
+                image_type = copy.copy(value)
+                del image_type[image_type.index("MOSAIC")]
+                frame[key] = image_type
+            elif key == (0x0028,0x0010) :
+                # Rows
+                frame[key] = rows
+            elif key == (0x0028,0x0011) :
+                # Columns
+                frame[key] = columns
+            elif key == (0x0020,0x0032) :
+                # Image Position (Patient)
+                position = dataset.image_position_patient+i*slice_normal_vector
+                frame[key] = list(position)
+            elif key == (0x7fe0,0x0010) :
+                # Pixel Data
+                row_begin = i*rows
+                row_end = row_begin+rows
+                
+                column_begin = i*columns
+                column_end = column_begin+columns
+                
+                frame[key] = array[...,i].tostring()
+            else :
+                frame[key] = value
         result.append(frame)
     
     return result
