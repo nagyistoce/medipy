@@ -198,26 +198,19 @@ def metadata(datasets, skipped_tags="default"):
             result[key] = value[0]
     
     # Origin
-    if "MOSAIC" in datasets[0].get("image_type", []) :
-        origin = list(datasets[0].get("image_position_patient", (0,0,0))) + [0]
-    else :
-        origin = datasets[0].get("image_position_patient", (0,0,0))
+    origin = datasets[0].get("image_position_patient", (0,0,0))
     result["origin"] = tuple(reversed(origin))
 
     # Spacing
     spacing = datasets[0].get("pixel_spacing", (1.,1.))
         
-    if "MOSAIC" in datasets[0].get("image_type", []) :
-        slice_spacing = 1
-        spacing = list(spacing) + [datasets[0].get("slice_thickness", 1.)]
+    if len(datasets) >= 2 :
+        slice_spacing = numpy.linalg.norm(numpy.subtract(
+            datasets[0].get("image_position_patient", (0,0,0)), 
+            datasets[1].get("image_position_patient", (0,0,0))))
     else :
-        if len(datasets) >= 2 :
-            slice_spacing = numpy.linalg.norm(numpy.subtract(
-                datasets[0].get("image_position_patient", (0,0,0)), 
-                datasets[1].get("image_position_patient", (0,0,0))))
-        else :
-            # Sane default
-            slice_spacing = 1.0
+        # Sane default
+        slice_spacing = 1.0
     
     if slice_spacing == 0 :
         slice_spacing = 1.
@@ -232,12 +225,6 @@ def metadata(datasets, skipped_tags="default"):
     normal = numpy.cross(v1, v2)
     result["direction"] = numpy.transpose(numpy.asarray(
         (tuple(reversed(normal)), tuple(reversed(v2)), tuple(reversed(v1)))))
-    
-    sample_dataset = datasets[0]
-    if "MOSAIC" in sample_dataset.get("image_type", []) :
-        result["direction"] = numpy.insert(
-            numpy.insert(result["direction"], 0, (0,0,0), 0), 
-            0, (1,0,0,0), 1)
     
     return result 
 
