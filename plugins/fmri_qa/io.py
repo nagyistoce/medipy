@@ -10,6 +10,7 @@
 import csv
 import datetime
 import inspect
+import locale
 import os
 
 import matplotlib.pyplot
@@ -252,6 +253,9 @@ def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
         "drift" : "Drift (%)",
     }
     
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
+    
     for name in ["snr", "sfnr", "fluctuation", "drift"] :
         data = locals()[name]
         figure = matplotlib.pyplot.figure()
@@ -286,11 +290,16 @@ def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
         plot.axes.set_ylabel(long_names[name])
         
         figure.savefig(os.path.join(directory, "%s.png"%name))
+    
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
 
 def spectrum_figure(spectrum):
     """ Return a matplotlib figure containing the Fourier spectrum, without its
         DC coefficient.
     """
+    
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
     
     figure = matplotlib.pyplot.figure()
     plot = figure.add_subplot(111)
@@ -298,11 +307,16 @@ def spectrum_figure(spectrum):
     plot.axes.set_xlabel("Frequency (Hz)")
     plot.axes.set_ylabel("Magnitude")
     
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
+    
     return figure
 
 def weisskoff_figure(fluctuations, theoretical_fluctuations, rdc):
     """ Return a matplotlib figure containing the Weisskoff analysis.
     """
+    
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
     
     figure = matplotlib.pyplot.figure()
     plot = figure.add_subplot(111)
@@ -317,12 +331,17 @@ def weisskoff_figure(fluctuations, theoretical_fluctuations, rdc):
     plot.yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter("%.2f"))
     plot.legend(("Measured", "Theoretical"), "upper right")
     
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
+    
     return figure
 
 def time_series_figure(time_series, polynomial) :
     """ Return a matplotlib figure containing the time series and its polynomial
         model.
     """
+    
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
     
     figure = matplotlib.pyplot.figure()
     plot = figure.add_subplot(111)
@@ -335,5 +354,7 @@ def time_series_figure(time_series, polynomial) :
     
     plot.axes.set_xlabel("Volume number")
     plot.axes.set_ylabel("Intensity")
+    
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
     
     return figure
