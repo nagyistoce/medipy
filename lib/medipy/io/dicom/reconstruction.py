@@ -18,27 +18,28 @@ import medipy.base
 import medipy.itk
 
 from medipy.io.dicom.dictionary import data_dictionary
+from medipy.io.dicom.private_dictionaries import private_dictionaries
 from medipy.io.dicom import Tag
 import medipy.io.dicom.csa2
 import medipy.io.dicom.normalize
 import medipy.io.dicom.sort
 import medipy.io.dicom.split
 
-default_skipped_tags = [
-    (0x0002,0x0003), # Media Storage SOP Instance UID
-    (0x0008,0x0018), # SOP Instance UID
-    (0x0020,0x0013), # Instance Number
-    (0x0020,0x0032), # Image Position (Patient)
-    (0x0020,0x1041), # Slice Location
-    (0x0020,0x9057), # In-Stack Position Number
-    (0x0028,0x0010), # Rows
-    (0x0028,0x0002), # Samples per Pixel
-    (0x0028,0x0011), # Columns
-    (0x0028,0x0106), # Smallest Image Pixel Value
-    (0x0028,0x0107), # Largest Image Pixel Value
-    (0x0028,0x1050), # Window Center
-    (0x0028,0x1051), # Window Center
-]
+default_skipped_tags = set([
+    Tag(0x0002,0x0003), # Media Storage SOP Instance UID
+    Tag(0x0008,0x0018), # SOP Instance UID
+    Tag(0x0020,0x0013), # Instance Number
+    Tag(0x0020,0x0032), # Image Position (Patient)
+    Tag(0x0020,0x1041), # Slice Location
+    Tag(0x0020,0x9057), # In-Stack Position Number
+    Tag(0x0028,0x0010), # Rows
+    Tag(0x0028,0x0002), # Samples per Pixel
+    Tag(0x0028,0x0011), # Columns
+    Tag(0x0028,0x0106), # Smallest Image Pixel Value
+    Tag(0x0028,0x0107), # Largest Image Pixel Value
+    Tag(0x0028,0x1050), # Window Center
+    Tag(0x0028,0x1051), # Window Center
+])
 
 def to_axis_aligned_ras_space(image):
     """ Transform the image to the closest axis-aligned approximation of RAS
@@ -160,12 +161,12 @@ def metadata(datasets, skipped_tags="default"):
     if skipped_tags == "default" :
         skipped_tags = default_skipped_tags
     
-    special_processing = [
-        (0x0020,0x0032), # Image Position (Patient) : keep only one
-        (0x0020,0x0037), # Image Orientation Patient : keep only one
-        (0x0028,0x0030), # Pixel Spacing : keep only one
-        (0x7fe0,0x0010), # Pixel Data : skip
-    ]
+    special_processing = set([
+        Tag(0x0020,0x0032), # Image Position (Patient) : keep only one
+        Tag(0x0020,0x0037), # Image Orientation Patient : keep only one
+        Tag(0x0028,0x0030), # Pixel Spacing : keep only one
+        Tag(0x7fe0,0x0010), # Pixel Data : skip
+    ])
     
     result = {}
     for dataset in datasets :
@@ -175,27 +176,41 @@ def metadata(datasets, skipped_tags="default"):
                 continue
             
             if key.private :
-                if key.element == 0x0010 :
-                    # Private creator
-                    private_creator = None
-                else :
+                if key.element != 0x0010 :
                     private_creator = dataset.get((key.group, 0x0010), None)
-                name = str(key)
-            else :
-                if key not in data_dictionary :
-                    logging.warning("Element \"{0}\" not in dictionary "
-                                    "(value : {1})".format(key, repr(value)))
+                    key = (private_creator, key)
+                else :
+                    # Private Creator : useless in here, skip it
                     continue
-                name = data_dictionary[key][4]
             
-            if name not in result :
-                result[name] = []
-            if value not in result[name] :
-                result[name].append(value)
+            if value not in result.setdefault(key, []) :
+                result[key].append(value)
     
+    # If all values are the same, replace list by value
     for key, value in result.items() :
-        if len(value) == 1 :
+        if len(result[key]) == 1 :
             result[key] = value[0]
+    
+    # Replace the tags in the keys by their names
+    named_result = {}
+    for key, value in result.items() :
+        if isinstance(key, Tag) :
+            if key in data_dictionary :
+                name = data_dictionary[key][4]
+            else :
+                logging.warning("Unknown public tag : {0}".format(str(key)))
+                name = str(key)
+        else :
+            private_creator, tag = key
+            if private_creator in private_dictionaries :
+                tag = "{0:04x}xx{1:02x}".format(tag.group, tag.element%0x100)
+                name = private_dictionaries[private_creator].get(
+                    tag, ("", "", "", "", str(tag)))[4]
+            else :
+                name = str(key)
+        
+        named_result[name] = value
+    result = named_result
     
     # Origin
     origin = datasets[0].get("image_position_patient", (0,0,0))
