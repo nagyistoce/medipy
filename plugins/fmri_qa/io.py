@@ -52,14 +52,26 @@ def load_data(directory):
         if (image.direction != images[0].direction).all() :
             raise medipy.base.Exception("Directions are not the same")
     
-    data = numpy.asarray([x.data for x in images])
+    data = numpy.ndarray((len(images),)+images[0].shape, images[0].dtype)
+    for index, image in enumerate(images) :
+        data[index,...] = image.data
+    
+    metadata = {}
+    for image in images :
+        for key, value in image.metadata.items() :
+            if value not in metadata.setdefault(key, []) :
+                metadata.setdefault(key, []).append(value)
+    for key in metadata :
+        if len(metadata[key]) == 1 :
+            metadata[key] = metadata[key][0]
+    
     origin = numpy.hstack((1, images[0].origin))
     spacing = numpy.hstack((1, images[0].spacing))
     direction = numpy.hstack((
         [[1]]+images[0].ndim*[[0]],
         numpy.vstack((images[0].ndim*[0], images[0].direction))))
     
-    return medipy.base.Image(data=data, 
+    return medipy.base.Image(data=data, metadata=metadata,
                              origin=origin, spacing=spacing, direction=direction)
 
 def save_signal(image, directory):
