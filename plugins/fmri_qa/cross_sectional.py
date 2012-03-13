@@ -1,22 +1,16 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import datetime
-import os
-import logging
-import sys
-
 import numpy
 
-from medipy.base import Image
-import medipy.io.dicom
+import medipy.base
 import medipy.io.dicom.misc
-import medipy.io.dicom.split
 
 from medipy.fmri_qa import io
 
@@ -25,37 +19,28 @@ def measure(image, output_directory):
     """
     
     # Discard the first two volumes (Scanning Protocol, p. 828)
-    logging.info("Discarding the first two volumes ... ")
     image.data = image.data[2:,...]
     
-    logging.info("1/8 : Computing signal image ... ")
     signal = get_signal_image(image)
     io.save_signal(signal, output_directory)
     
-    logging.info("2/8 : Computing temporal fluctuation noise image ... ")
     tfn = get_temporal_fluctuation_noise_image(image)
     io.save_temporal_fluctuation_noise(tfn, output_directory)
     
-    logging.info("3/8 : Computing signal-to-fluctuation-noise ratio image and summary ... ")
     sfnr_image, sfnr_summary = get_sfnr_image(signal, tfn)
     io.save_sfnr(sfnr_image, output_directory)
     
-    logging.info("4/8 : Computing static spatial noise ... ")
     ssn = get_static_spatial_noise_image(image)
     io.save_static_spatial_noise(ssn, output_directory)
     
-    logging.info("5/8 : Computing signal to noise ratio ... ")
     snr = get_snr(signal, ssn, image.shape[0])
     
-    logging.info("6/8 : Computing fluctuation and drift ... ")
     time_series, polynomial, residuals, fluctuation, drift = get_fluctuation_and_drift(image)
     io.save_fluctuation_and_drift(time_series, polynomial, residuals, output_directory)
     
-    logging.info("7/8 : Computing spectrum of residuals ... ")
     spectrum = get_residuals_spectrum(residuals, image.metadata["repetition_time"]/1000.)
     io.save_residuals_spectrum(spectrum, output_directory)
     
-    logging.info("8/8 : Weisskoff analysis ... ")
     fluctuations, theoretical_fluctuations, rdc = get_weisskoff_analysis(image)
     io.save_weisskoff_analysis(fluctuations, theoretical_fluctuations, rdc, output_directory)
 
@@ -77,9 +62,9 @@ def get_signal_image(image) :
         volumes (p. 828).
     """
     
-    return Image(data=numpy.average(image, 0).astype(numpy.single), 
-                 origin=image.origin[1:], spacing=image.spacing[1:],
-                 direction=image.direction[1:,1:])
+    return medipy.base.Image(data=numpy.average(image, 0).astype(numpy.single), 
+                             origin=image.origin[1:], spacing=image.spacing[1:],
+                             direction=image.direction[1:,1:])
 
 def get_temporal_fluctuation_noise_image(image, verbose=True) :
     """ To calculate the fluctuation noise image, the time-series across [all]
@@ -102,9 +87,9 @@ def get_temporal_fluctuation_noise_image(image, verbose=True) :
         residuals = y-model
         tfn[i] = numpy.std(residuals)
     
-    return Image(data=tfn.reshape(image.shape[1:]).astype(numpy.single), 
-                 origin=image.origin[1:], spacing=image.spacing[1:],
-                 direction=image.direction[1:,1:])
+    return medipy.base.Image(data=tfn.reshape(image.shape[1:]).astype(numpy.single), 
+                            origin=image.origin[1:], spacing=image.spacing[1:],
+                            direction=image.direction[1:,1:])
 
 def get_sfnr_image(signal_image, tfn_image, roi_radius=10) :
     """ The signal image and the temporal fluctuation image are divided voxel
@@ -113,7 +98,7 @@ def get_sfnr_image(signal_image, tfn_image, roi_radius=10) :
         voxels is the SFNR summary value. (p. 828)
     """
     
-    sfnr_image = Image(
+    sfnr_image = medipy.base.Image(
         data = numpy.divide(signal_image, tfn_image+numpy.finfo(float).eps).astype(numpy.single),
         origin=signal_image.origin, spacing=signal_image.spacing,
         direction=signal_image.direction)
@@ -143,9 +128,9 @@ def get_static_spatial_noise_image(image) :
     
     diff = sum_odd-sum_even
     
-    return Image(data=diff,
-                 origin=image.origin[1:], spacing=image.spacing[1:],
-                 direction=image.direction[1:,1:])
+    return medipy.base.Image(data=diff,
+                             origin=image.origin[1:], spacing=image.spacing[1:],
+                             direction=image.direction[1:,1:])
 
 def get_snr(signal_image, ssn_image, nb_time_points, roi_radius=10) :
     """ SNR = (signal summary value)/sqrt((variance summary value)/[all] time points).
