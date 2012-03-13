@@ -15,31 +15,76 @@ import os
 import matplotlib.pyplot
 import numpy
 
-from medipy.io import save
+import medipy.base
+import medipy.io
+import medipy.io.dicom
+import medipy.io.dicom.normalize
+
+def load_data(directory):
+    filenames = [os.path.join(directory, x) for x in os.listdir(directory)]
+    
+    datasets = []
+    for filename in filenames :
+        try :
+            dataset = medipy.io.dicom.parse(filename)
+        except medipy.base.Exception :
+            # Not a DICOM file
+            continue
+        else :
+            datasets.append(dataset)
+    
+    series = medipy.io.dicom.series(datasets)
+    if len(series) != 1 :
+        raise medipy.base.Exception("Directory must contain only one serie")
+    
+    normalized = medipy.io.dicom.normalize.normalize(datasets)
+    
+    # Create stacks and sort by acquisition time
+    stacks = medipy.io.dicom.stacks(normalized)
+    stacks.sort(key=lambda x:x[0].acquisition_time)
+    
+    images = [medipy.io.dicom.image(x) for x in stacks]
+    for image in images :
+        if (image.spacing != images[0].spacing).all() :
+            raise medipy.base.Exception("Spacings are not the same")
+        if (image.origin != images[0].origin).all() :
+            raise medipy.base.Exception("Origins are not the same")
+        if (image.direction != images[0].direction).all() :
+            raise medipy.base.Exception("Directions are not the same")
+    
+    data = numpy.asarray([x.data for x in images])
+    origin = numpy.hstack((1, images[0].origin))
+    spacing = numpy.hstack((1, images[0].spacing))
+    direction = numpy.hstack((
+        [[1]]+images[0].ndim*[[0]],
+        numpy.vstack((images[0].ndim*[0], images[0].direction))))
+    
+    return medipy.base.Image(data=data, 
+                             origin=origin, spacing=spacing, direction=direction)
 
 def save_signal(image, directory):
     """ Save the signal image to directory/signal.nii.gz
     """
     
-    save(image, os.path.join(directory, "signal.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "signal.nii.gz"))
 
 def save_temporal_fluctuation_noise(image, directory):
     """ Save the temporal fluctuation noise image to directory/tfn.nii.gz
     """
     
-    save(image, os.path.join(directory, "tfn.nii.gz"))
+    medipy.iosave(image, os.path.join(directory, "tfn.nii.gz"))
 
 def save_sfnr(image, directory):
     """ Save the signal-to-fluctuation-noise ratio image to directory/sfnr.nii.gz
     """
     
-    save(image, os.path.join(directory, "sfnr.nii.gz"))
+    medipy.iosave(image, os.path.join(directory, "sfnr.nii.gz"))
     
 def save_static_spatial_noise(image, directory):
     """ Save the static spatial noise image to directory/ssn.nii.gz
     """
     
-    save(image, os.path.join(directory, "ssn.nii.gz"))
+    medipy.iosave(image, os.path.join(directory, "ssn.nii.gz"))
 
 def save_fluctuation_and_drift(time_series, polynomial, residuals, directory) :
     """ Save fluctuation and drift data to given directory : 
