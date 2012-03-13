@@ -1,11 +1,12 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
+import copy
 import logging
 import os
 import sys
@@ -39,7 +40,9 @@ def build_menu(path) :
         api_globals = {}
         api_locals = {}
         
-        sys.path.append(path)
+        # Backup sys.path to avoid pollution
+        old_path = copy.copy(sys.path)
+        sys.path.insert(0, path)
         try :
             execfile(api_file, api_globals, api_locals)
         except Exception, e :
@@ -51,6 +54,6 @@ def build_menu(path) :
                 functions.append((label, api_locals[function_name], []))
             functions.sort(lambda x,y : cmp(x[0], y[0]))
             result.extend(functions)
-        sys.path.pop()
+        sys.path = old_path
     
     return result
