@@ -72,19 +72,19 @@ def save_temporal_fluctuation_noise(image, directory):
     """ Save the temporal fluctuation noise image to directory/tfn.nii.gz
     """
     
-    medipy.iosave(image, os.path.join(directory, "tfn.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "tfn.nii.gz"))
 
 def save_sfnr(image, directory):
     """ Save the signal-to-fluctuation-noise ratio image to directory/sfnr.nii.gz
     """
     
-    medipy.iosave(image, os.path.join(directory, "sfnr.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "sfnr.nii.gz"))
     
 def save_static_spatial_noise(image, directory):
     """ Save the static spatial noise image to directory/ssn.nii.gz
     """
     
-    medipy.iosave(image, os.path.join(directory, "ssn.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "ssn.nii.gz"))
 
 def save_fluctuation_and_drift(time_series, polynomial, residuals, directory) :
     """ Save fluctuation and drift data to given directory : 
