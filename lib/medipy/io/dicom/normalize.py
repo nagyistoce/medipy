@@ -293,33 +293,26 @@ def mosaic(dataset):
     result = []
     for i in range(number_of_images_in_mosaic) :
         frame = medipy.io.dicom.DataSet()
-        for key, value in dataset.items() :
-            if key == (0x0008,0x0008) :
-                # Image type
-                image_type = copy.copy(value)
-                del image_type[image_type.index("MOSAIC")]
-                frame[key] = image_type
-            elif key == (0x0028,0x0010) :
-                # Rows
-                frame[key] = rows
-            elif key == (0x0028,0x0011) :
-                # Columns
-                frame[key] = columns
-            elif key == (0x0020,0x0032) :
-                # Image Position (Patient)
-                position = dataset.image_position_patient+i*slice_normal_vector
-                frame[key] = list(position)
-            elif key == (0x7fe0,0x0010) :
-                # Pixel Data
-                row_begin = i*rows
-                row_end = row_begin+rows
-                
-                column_begin = i*columns
-                column_end = column_begin+columns
-                
-                frame[key] = array[...,i].tostring()
-            else :
-                frame[key] = value
+        frame.update(dataset)
+        
+        image_type = copy.copy(dataset.image_type)
+        del image_type[image_type.index("MOSAIC")]
+        frame.image_type = image_type
+        
+        frame.rows = rows
+        frame.columns = columns
+        
+        frame.image_position_patient = dataset.image_position_patient+i*slice_normal_vector
+        
+        # Pixel Data
+        row_begin = i*rows
+        row_end = row_begin+rows
+        
+        column_begin = i*columns
+        column_end = column_begin+columns
+        
+        frame.pixel_data = array[...,i].tostring()
+
         result.append(frame)
     
     return result
