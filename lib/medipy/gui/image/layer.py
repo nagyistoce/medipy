@@ -121,14 +121,7 @@ class Layer(object) :
             world_to_slice_3d = world_to_slice.copy()
         
         # Update reslicer, numpy axes -> VTK axes
-        vtk_matrix = world_to_slice_3d
-        
-        temp = vtk_matrix[0,:].copy()
-        vtk_matrix[0,:] = vtk_matrix[2,:]
-        vtk_matrix[2,:] = temp
-        temp = vtk_matrix[:,0].copy()
-        vtk_matrix[:,0] = vtk_matrix[:,2]
-        vtk_matrix[:,2] = temp
+        vtk_matrix = numpy.fliplr(numpy.flipud(world_to_slice_3d))
         self._reslicer.SetResliceAxesDirectionCosines(vtk_matrix.ravel())
         
         self._update_change_information()
