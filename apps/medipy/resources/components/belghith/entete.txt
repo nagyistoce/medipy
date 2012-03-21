@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PeakList>
+  <PeakList2D>
+    <PeakList2DHeader creator="nmr@DH6C3C3J" date="2008-06-27T11:35:31" expNo="999" name="17bombru1" owner="hp-colon_(MP)" procNo="1" source="C:/Bruker/TOPSPIN">
+      <PeakPickDetails># F2 peak picking range ( ppm )
+# 2 F1P=4.3633, 2 F2P=0.7602
+# F1 peak picking range ( ppm )
+# 1 F1P=78.7767, 1 F2P=12.3571
+# MI=0.025 (= 453963.24843750003), MAXI=1.0 (= 1.81585299375E7)
+# PEAK RESOL.=1, INTERPOL. TYPE=PARABOLIC, DIAG. GAP=-1, MAX. # PEAKS=2147483647
+</PeakPickDetails>
+    </PeakList2DHeader>
