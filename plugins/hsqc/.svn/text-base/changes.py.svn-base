@@ -1,0 +1,61 @@
+import numpy as np
+import os
+import wx
+from medipy.gui import colormaps
+from medipy.base import Image
+from numpy import linalg
+from medipy.components.io import load
+import medipy.components.belghith.segmentation as seg
+import fonc_util
+import corps
+import scipy
+from scipy.signal import sepfir2d
+import main_annotate
+def mass_load(input1) :
+    """
+    spectra mass loading
+
+    :gui:
+       
+       input1 : Directory
+           path
+      
+       
+     """
+    base_directory = input1
+    output=0
+    for root,dirs,files in os.walk(base_directory):
+
+        if '2rr'in files:
+            image = load(os.path.join(root,"2rr"))
+	    image.data = image.data.reshape(1, *image.shape)
+	    image.origin = np.insert(image.origin, 0, 0)
+	    image.spacing = np.insert(image.spacing, 0, 1)  	    
+            app=wx.GetApp()
+            app.append_image(image)
+            output=output+1
+
+def annotate(input1) :
+    """
+    Metabolite annotation
+    
+    :gui:
+       
+       input1 : Directory
+           path
+      
+       
+     """
+    base_directory = input1
+    i=0
+    k={}
+    for root,dirs,files in os.walk(base_directory):
+        if '2rr'in files:
+	   #print str(root)
+	   k[i]=str(root)
+	   i=i+1
+    if len(k)>0:
+	main_annotate.mainanno(k)
+    else:
+	 print 'No found spectrum '   
+    
