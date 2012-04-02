@@ -24,7 +24,8 @@ def ann(root):
     tabp,tabc=gen_in.ini(root)
     boc=-1
     lolo= load(os.path.join(root,"2rr"))
-    H=lolo.data
+    # Data is implicitely loaded as 3D, algorithm needs 2D data
+    H=lolo.data[0]
     list_exp=ser_xml.exceptions(root)
     raxep=[]
     while boc<len(tabp)-1:
