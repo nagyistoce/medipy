@@ -241,8 +241,9 @@ def save_longitudinal(snr, sfnr, fluctuation, drift, directory) :
     for name in ["snr", "sfnr", "fluctuation", "drift"] :
         data = locals()[name]
         writer = csv.writer(open(os.path.join(directory, "%s.csv"%name), "w"))
-        for date, value in data :
-            writer.writerow((date.year, date.month, date.day, date.hour, date.minute, date.second, value))
+        for date, value in sorted(data, key=lambda x:x[0]) :
+            date = date.isoformat()
+            writer.writerow((date, value))
 
 def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
     
