@@ -29,7 +29,7 @@ class Date(wx.PyPanel, medipy.base.Observable) :
         
         self._date.Bind(wx.EVT_DATE_CHANGED, self.OnDate)
         
-        #self.value = value
+        self.value = value or datetime.datetime.now()
     
     def validate(self):
         return self._date.GetValue().IsValid()
