@@ -272,7 +272,8 @@ class MainFrame(xrc_wrapper.Frame):
             if inspect.isfunction(item_data) :
                 function = item_data
                 function_gui=FunctionGUIBuilder(self._function_ui_panel,function,
-                                                wx.GetApp().images, wx.GetApp().viewer_3ds)
+                                                wx.GetApp().images, wx.GetApp().viewer_3ds,
+                                                "function_parameters")
                 if wx.GetApp().images :
                     for control in function_gui.controls.values() :
                         if isinstance(control, medipy.gui.control.Coordinates) :
