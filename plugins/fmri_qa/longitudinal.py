@@ -8,7 +8,7 @@
 
 from medipy.fmri_qa import io
 
-def measure(summary_files, output_directory):
+def measure(summary_files, output_directory, baseline=None):
     
     snr = []
     sfnr = []
@@ -23,5 +23,10 @@ def measure(summary_files, output_directory):
         fluctuation.append((summary["date"], summary["fluctuation"]))
         drift.append((summary["date"], summary["drift"]))
     
+    snr.sort(key=lambda x:x[0])
+    sfnr.sort(key=lambda x:x[0])
+    fluctuation.sort(key=lambda x:x[0])
+    drift.sort(key=lambda x:x[0])
+    
     io.save_longitudinal(snr, sfnr, fluctuation, drift, output_directory)
-    io.save_longitudinal_figures(snr, sfnr, fluctuation, drift, output_directory)
+    io.save_longitudinal_figures(snr, sfnr, fluctuation, drift, output_directory, baseline)

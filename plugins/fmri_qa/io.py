@@ -245,7 +245,8 @@ def save_longitudinal(snr, sfnr, fluctuation, drift, directory) :
             date = date.isoformat()
             writer.writerow((date, value))
 
-def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
+def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory, 
+                              baseline=None) :
     
     long_names = {
         "snr" : "Signal-to-noise ratio",
@@ -258,39 +259,43 @@ def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
     locale.setlocale(locale.LC_NUMERIC, "C")
     
     for name in ["snr", "sfnr", "fluctuation", "drift"] :
-        data = locals()[name]
+        # Create plot
         figure = matplotlib.pyplot.figure()
-        plot = figure.add_subplot(111)
+        plot = figure.add_subplot(1,1,1)
         
-        plot.plot([d[0] for d in data], [d[1] for d in data], "ko")
-        
-        date_range = data[-1][0]-data[0][0]
-        
-        if date_range.days > 365 :
-            major_locator = matplotlib.dates.YearLocator()
-            minor_locator = matplotlib.dates.MonthLocator()
-            format = "%Y"
-        elif date_range.days > 30 :
-            major_locator = matplotlib.dates.MonthLocator()
-            minor_locator = matplotlib.dates.DayLocator()
-            format = "%Y-%m"
-        else :
-            major_locator = matplotlib.dates.DayLocator()
-            minor_locator = matplotlib.dates.HourLocator(byhour=range(0,24,6))
-            format = "%Y-%m-%d"
-
-        plot.xaxis.set_major_locator(major_locator)
-        plot.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(format))
-        plot.xaxis.set_minor_locator(minor_locator)
+        # Configure plot axes
+        plot.axes.set_xlabel("Date")
+        plot.axes.xaxis_date()
         
         for label in plot.xaxis.get_ticklabels():
             label.set_rotation(30)
             label.set_horizontalalignment('right')
         
-        plot.axes.set_xlabel("Date")
         plot.axes.set_ylabel(long_names[name])
         
-        figure.savefig(os.path.join(directory, "%s.png"%name))
+        # Plot data
+        data = locals()[name]
+        plot.plot([d[0] for d in data], [d[1] for d in data], "ko")
+        plot.plot([d[0] for d in data], [d[1] for d in data], "k-")
+        
+        # Compute baseline stats
+        values = []
+        for date, value in data :
+            if date >= baseline[0] and date <= baseline[1] :
+                values.append(value)
+        mean = numpy.mean(values)
+        stdev = numpy.std(values)
+        
+        # Plot baseline : date range, mean, and 95 % confidence interval
+        plot.axes.axvline(x=baseline[0])
+        plot.axes.axvline(x=baseline[1])
+        plot.axes.axhline(y=mean, linestyle=":")
+        plot.axes.axhline(y=mean+1.96*stdev, linestyle="--")
+        plot.axes.axhline(y=mean-1.96*stdev, linestyle="--")
+        
+        # Save figure
+        figure.savefig(os.path.join(directory, "%s.png"%name), 
+                       bbox_inches="tight")
     
     locale.setlocale(locale.LC_NUMERIC, old_locale)
 
