@@ -6,6 +6,8 @@
 # for details.
 ##########################################################################
 
+import cPickle
+import hashlib
 import logging
 import re
 import sys
@@ -28,7 +30,7 @@ class FunctionGUIBuilder(object):
         extracted from the controls on this GUI.
     """
     
-    def __init__(self, parent, function, images, viewer_3ds):
+    def __init__(self, parent, function, images, viewer_3ds, config_path=None):
         
         self.panel = wx.Panel(parent)
         
@@ -36,6 +38,7 @@ class FunctionGUIBuilder(object):
         self._function = function
         self._images = images
         self._viewer_3ds = viewer_3ds
+        self._config_path = config_path
         
         self._parameters = parse_docstring(self._function.__doc__)
 
@@ -62,6 +65,9 @@ class FunctionGUIBuilder(object):
         self._viewer_3ds.add_observer("any", self._on_viewer_3ds_modified)
     
     def __call__(self):
+        
+        # Save the current value of the parameters
+        self._save_parameters()
         
         # Build the expression namespace
         namespace = {"function" : self._function}
@@ -255,3 +261,28 @@ class FunctionGUIBuilder(object):
             control.add_observer("value", self._on_control_value_changed)
         
         self.validate_form()
+
+    def _save_parameters(self):
+        """ Save the current values of the paramters (when possible)
+        """
+        
+        if self._config_path is None :
+            return
+        
+        function = self._function
+        
+        # Save the current parameters
+        identifier = "/".join([
+            sys.modules[function.__module__].__file__, function.__name__])
+        identifier = hashlib.md5(identifier).hexdigest() 
+        
+        for parameter in self._parameters :
+            path = self._config_path+"/"+identifier+"/"+parameter["name"]
+            value = self._controls[parameter["name"]].value
+            try :
+                value = cPickle.dumps(value)
+            except TypeError :
+                # Could not pickle, don't save it
+                continue
+            
+            #print path, value
