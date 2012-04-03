@@ -38,7 +38,7 @@ class FunctionGUIBuilder(object):
         self._function = function
         self._images = images
         self._viewer_3ds = viewer_3ds
-        self._config_path = config_path
+        self.config_path = config_path
         
         self._parameters = parse_docstring(self._function.__doc__)
 
@@ -52,6 +52,7 @@ class FunctionGUIBuilder(object):
         # Controls
         controls_sizer = wx.BoxSizer(wx.VERTICAL)
         self._create_gui(controls_sizer)
+        self._load_parameters()
         # Main layout
         panel_sizer = wx.BoxSizer(wx.VERTICAL)
         panel_sizer.Add(controls_sizer, flag=wx.EXPAND)
@@ -262,27 +263,71 @@ class FunctionGUIBuilder(object):
         
         self.validate_form()
 
-    def _save_parameters(self):
-        """ Save the current values of the paramters (when possible)
+    def _get_identifier(self, function):
+        """ Return the unique identifier for given function (used in 
+            _load_parameters and _save_parameters).
         """
         
-        if self._config_path is None :
-            return
-        
-        function = self._function
-        
-        # Save the current parameters
         identifier = "/".join([
             sys.modules[function.__module__].__file__, function.__name__])
-        identifier = hashlib.md5(identifier).hexdigest() 
+        identifier = hashlib.md5(identifier).hexdigest()
         
+        return identifier
+
+    def _load_parameters(self):
+        """ Load the previously-saved values of the parameters (when possible).
+        """
+        
+        if self.config_path is None :
+            return
+        
+        group = self.config_path+"/"+self._get_identifier(self._function)
+        
+        if not wx.ConfigBase_Get().HasGroup(group) :
+            return
+        
+        old_path = wx.ConfigBase_Get().GetPath()
+        wx.ConfigBase_Get().SetPath(group)
+        
+        has_next, entry, cookie = wx.ConfigBase_Get().GetFirstEntry()
+        while has_next :
+            value = wx.ConfigBase_Get().Read(entry)
+            try :
+                value = cPickle.loads(str(value))
+            except :
+                # Could not unpickle, don't restore
+                pass
+            else :
+                try :
+                    self._controls[entry].value = value
+                except :
+                    # Could not restore, ignore exception
+                    pass
+            has_next, entry, cookie = wx.ConfigBase_Get().GetNextEntry(cookie)
+        
+        wx.ConfigBase_Get().SetPath(old_path)
+
+    def _save_parameters(self):
+        """ Save the current values of the paramters (when possible).
+        """
+        
+        if self.config_path is None :
+            return
+        
+        group = self.config_path+"/"+self._get_identifier(self._function)
+        
+        old_path = wx.ConfigBase_Get().GetPath()
+        wx.ConfigBase_Get().SetPath(group)
+        
+        # Save the current parameters
         for parameter in self._parameters :
-            path = self._config_path+"/"+identifier+"/"+parameter["name"]
             value = self._controls[parameter["name"]].value
             try :
                 value = cPickle.dumps(value)
-            except TypeError :
+            except :
                 # Could not pickle, don't save it
                 continue
             
-            #print path, value
+            wx.ConfigBase_Get().Write(parameter["name"], value)
+
+        wx.ConfigBase_Get().SetPath(old_path)
