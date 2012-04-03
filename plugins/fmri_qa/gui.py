@@ -285,10 +285,12 @@ class CrossSectionalPanel(wx.Panel):
         self._run.Enable(
             self._input_directory.validate() and self._output_directory.validate())
 
-def longitudinal(input_directory, output_directory):
+def longitudinal(input_directory, output_directory, baseline_start, baseline_stop):
     """ <gui>
             <item name="input_directory" type="Directory" label="Input" />
             <item name="output_directory" type="Directory" label="output" />
+            <item name="baseline_start" type="Date" label="Baseline start" />
+            <item name="baseline_stop" type="Date" label="Baseline stop" />
         </gui>
     """
     
@@ -298,4 +300,9 @@ def longitudinal(input_directory, output_directory):
             dirnames[:] = []
             summary_files.append(os.path.join(dirpath, "summary")) 
     
-    longitudinal_module.measure(summary_files, output_directory)
+    baseline = (
+        datetime.datetime(*map(int, baseline_start.isoformat().split("-"))),
+        datetime.datetime(*map(int, baseline_stop.isoformat().split("-")))
+    )
+    
+    longitudinal_module.measure(summary_files, output_directory, baseline)
