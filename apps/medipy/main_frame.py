@@ -272,12 +272,19 @@ class MainFrame(xrc_wrapper.Frame):
             if inspect.isfunction(item_data) :
                 function = item_data
                 function_gui=FunctionGUIBuilder(self._function_ui_panel,function,
-                                                wx.GetApp().images, wx.GetApp().viewer_3ds)
+                                                wx.GetApp().images, wx.GetApp().viewer_3ds,
+                                                "function_parameters")
+                if wx.GetApp().images :
+                    for control in function_gui.controls.values() :
+                        if isinstance(control, medipy.gui.control.Coordinates) :
+                            control.image = wx.GetApp().active_image
                 self._current_ui = function_gui
                 self._function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
                 self._function_ui_sizer.Layout()
             else :
                 ui = item_data(self._function_ui_panel)
+                if hasattr(ui, "image") and wx.GetApp().images :
+                    ui.image = wx.GetApp().active_image
                 self._current_ui = ui
                 self._function_ui_sizer.Add(ui, 1, wx.EXPAND)
                 self._function_ui_sizer.Layout()
