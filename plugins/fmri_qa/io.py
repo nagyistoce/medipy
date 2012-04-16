@@ -10,36 +10,94 @@
 import csv
 import datetime
 import inspect
+import locale
 import os
 
 import matplotlib.pyplot
 import numpy
 
-from medipy.io import save
+import medipy.base
+import medipy.io
+import medipy.io.dicom
+import medipy.io.dicom.normalize
+
+def load_data(directory):
+    filenames = [os.path.join(directory, x) for x in os.listdir(directory)]
+    
+    datasets = []
+    for filename in filenames :
+        try :
+            dataset = medipy.io.dicom.parse(filename)
+        except medipy.base.Exception :
+            # Not a DICOM file
+            continue
+        else :
+            datasets.append(dataset)
+    
+    series = medipy.io.dicom.series(datasets)
+    if len(series) != 1 :
+        raise medipy.base.Exception("Directory must contain only one serie")
+    
+    normalized = medipy.io.dicom.normalize.normalize(datasets)
+    
+    # Create stacks and sort by acquisition time
+    stacks = medipy.io.dicom.stacks(normalized)
+    stacks.sort(key=lambda x:x[0].acquisition_time)
+    
+    images = [medipy.io.dicom.image(x) for x in stacks]
+    for image in images :
+        if (image.spacing != images[0].spacing).all() :
+            raise medipy.base.Exception("Spacings are not the same")
+        if (image.origin != images[0].origin).all() :
+            raise medipy.base.Exception("Origins are not the same")
+        if (image.direction != images[0].direction).all() :
+            raise medipy.base.Exception("Directions are not the same")
+    
+    data = numpy.ndarray((len(images),)+images[0].shape, images[0].dtype)
+    for index, image in enumerate(images) :
+        data[index,...] = image.data
+    
+    metadata = {}
+    for image in images :
+        for key, value in image.metadata.items() :
+            if value not in metadata.setdefault(key, []) :
+                metadata.setdefault(key, []).append(value)
+    for key in metadata :
+        if len(metadata[key]) == 1 :
+            metadata[key] = metadata[key][0]
+    
+    origin = numpy.hstack((1, images[0].origin))
+    spacing = numpy.hstack((1, images[0].spacing))
+    direction = numpy.hstack((
+        [[1]]+images[0].ndim*[[0]],
+        numpy.vstack((images[0].ndim*[0], images[0].direction))))
+    
+    return medipy.base.Image(data=data, metadata=metadata,
+                             origin=origin, spacing=spacing, direction=direction)
 
 def save_signal(image, directory):
     """ Save the signal image to directory/signal.nii.gz
     """
     
-    save(image, os.path.join(directory, "signal.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "signal.nii.gz"))
 
 def save_temporal_fluctuation_noise(image, directory):
     """ Save the temporal fluctuation noise image to directory/tfn.nii.gz
     """
     
-    save(image, os.path.join(directory, "tfn.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "tfn.nii.gz"))
 
 def save_sfnr(image, directory):
     """ Save the signal-to-fluctuation-noise ratio image to directory/sfnr.nii.gz
     """
     
-    save(image, os.path.join(directory, "sfnr.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "sfnr.nii.gz"))
     
 def save_static_spatial_noise(image, directory):
     """ Save the static spatial noise image to directory/ssn.nii.gz
     """
     
-    save(image, os.path.join(directory, "ssn.nii.gz"))
+    medipy.io.save(image, os.path.join(directory, "ssn.nii.gz"))
 
 def save_fluctuation_and_drift(time_series, polynomial, residuals, directory) :
     """ Save fluctuation and drift data to given directory : 
@@ -183,10 +241,12 @@ def save_longitudinal(snr, sfnr, fluctuation, drift, directory) :
     for name in ["snr", "sfnr", "fluctuation", "drift"] :
         data = locals()[name]
         writer = csv.writer(open(os.path.join(directory, "%s.csv"%name), "w"))
-        for date, value in data :
-            writer.writerow((date.year, date.month, date.day, date.hour, date.minute, date.second, value))
+        for date, value in sorted(data, key=lambda x:x[0]) :
+            date = date.isoformat()
+            writer.writerow((date, value))
 
-def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
+def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory, 
+                              baseline=None) :
     
     long_names = {
         "snr" : "Signal-to-noise ratio",
@@ -195,45 +255,57 @@ def save_longitudinal_figures(snr, sfnr, fluctuation, drift, directory) :
         "drift" : "Drift (%)",
     }
     
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
+    
     for name in ["snr", "sfnr", "fluctuation", "drift"] :
-        data = locals()[name]
+        # Create plot
         figure = matplotlib.pyplot.figure()
-        plot = figure.add_subplot(111)
+        plot = figure.add_subplot(1,1,1)
         
-        plot.plot([d[0] for d in data], [d[1] for d in data], "ko")
-        
-        date_range = data[-1][0]-data[0][0]
-        
-        if date_range.days > 365 :
-            major_locator = matplotlib.dates.YearLocator()
-            minor_locator = matplotlib.dates.MonthLocator()
-            format = "%Y"
-        elif date_range.days > 30 :
-            major_locator = matplotlib.dates.MonthLocator()
-            minor_locator = matplotlib.dates.DayLocator()
-            format = "%Y-%m"
-        else :
-            major_locator = matplotlib.dates.DayLocator()
-            minor_locator = matplotlib.dates.HourLocator(byhour=range(0,24,6))
-            format = "%Y-%m-%d"
-
-        plot.xaxis.set_major_locator(major_locator)
-        plot.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(format))
-        plot.xaxis.set_minor_locator(minor_locator)
+        # Configure plot axes
+        plot.axes.set_xlabel("Date")
+        plot.axes.xaxis_date()
         
         for label in plot.xaxis.get_ticklabels():
             label.set_rotation(30)
             label.set_horizontalalignment('right')
         
-        plot.axes.set_xlabel("Date")
         plot.axes.set_ylabel(long_names[name])
         
-        figure.savefig(os.path.join(directory, "%s.png"%name))
+        # Plot data
+        data = locals()[name]
+        plot.plot([d[0] for d in data], [d[1] for d in data], "ko")
+        plot.plot([d[0] for d in data], [d[1] for d in data], "k-")
+        
+        # Compute baseline stats
+        values = []
+        for date, value in data :
+            if date >= baseline[0] and date <= baseline[1] :
+                values.append(value)
+        mean = numpy.mean(values)
+        stdev = numpy.std(values)
+        
+        # Plot baseline : date range, mean, and 95 % confidence interval
+        plot.axes.axvline(x=baseline[0])
+        plot.axes.axvline(x=baseline[1])
+        plot.axes.axhline(y=mean, linestyle=":")
+        plot.axes.axhline(y=mean+1.96*stdev, linestyle="--")
+        plot.axes.axhline(y=mean-1.96*stdev, linestyle="--")
+        
+        # Save figure
+        figure.savefig(os.path.join(directory, "%s.png"%name), 
+                       bbox_inches="tight")
+    
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
 
 def spectrum_figure(spectrum):
     """ Return a matplotlib figure containing the Fourier spectrum, without its
         DC coefficient.
     """
+    
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
     
     figure = matplotlib.pyplot.figure()
     plot = figure.add_subplot(111)
@@ -241,11 +313,16 @@ def spectrum_figure(spectrum):
     plot.axes.set_xlabel("Frequency (Hz)")
     plot.axes.set_ylabel("Magnitude")
     
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
+    
     return figure
 
 def weisskoff_figure(fluctuations, theoretical_fluctuations, rdc):
     """ Return a matplotlib figure containing the Weisskoff analysis.
     """
+    
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
     
     figure = matplotlib.pyplot.figure()
     plot = figure.add_subplot(111)
@@ -260,12 +337,17 @@ def weisskoff_figure(fluctuations, theoretical_fluctuations, rdc):
     plot.yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter("%.2f"))
     plot.legend(("Measured", "Theoretical"), "upper right")
     
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
+    
     return figure
 
 def time_series_figure(time_series, polynomial) :
     """ Return a matplotlib figure containing the time series and its polynomial
         model.
     """
+    
+    old_locale = locale.getlocale(locale.LC_NUMERIC)
+    locale.setlocale(locale.LC_NUMERIC, "C")
     
     figure = matplotlib.pyplot.figure()
     plot = figure.add_subplot(111)
@@ -278,5 +360,7 @@ def time_series_figure(time_series, polynomial) :
     
     plot.axes.set_xlabel("Volume number")
     plot.axes.set_ylabel("Intensity")
+    
+    locale.setlocale(locale.LC_NUMERIC, old_locale)
     
     return figure

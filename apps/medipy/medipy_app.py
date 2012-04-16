@@ -22,6 +22,7 @@ from medipy.gui.annotations.annotations_dialog import AnnotationsDialog
 from medipy.gui.base import Application
 import medipy.gui.control
 from medipy.gui.image.cine_dialog import CineDialog
+from medipy.gui.function_gui_builder import FunctionGUIBuilder
 from medipy.gui.image.layers_dialog import LayersDialog
 from medipy.gui.image.tools import MouseTool
 
@@ -351,10 +352,14 @@ class MediPyApp(Application) :
         if self._annotations_dialog is not None :
             self._annotations_dialog.image = gui_image
             self._annotations_dialog.annotations = gui_image.annotations
-        if hasattr(self._frame.current_ui, "controls") :
+        
+        if (isinstance(self._frame.current_ui, FunctionGUIBuilder) and 
+            hasattr(self._frame.current_ui, "controls")) :
             for control in self._frame.current_ui.controls.values() :
                 if isinstance(control, medipy.gui.control.Coordinates) :
                     control.image = gui_image
+        elif hasattr(self._frame.current_ui, "image") :
+            self._frame.current_ui.image = gui_image
     
     def _get_active_image(self):
         if self._active_image_index != -1 :

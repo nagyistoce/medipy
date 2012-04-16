@@ -8,9 +8,7 @@ def crop(input, index, shape):
         <gui>
             <item name="input" type="Image" label="Input"/>
             <item name="index" type="Coordinates" label="Start"/>
-            <item name="shape" type="Array" 
-                initializer="type=int, min_length=${input}.ndim, max_length=${input}.ndim" 
-                label="Shape"/>
+            <item name="shape" type="Array" initializer="type=int" label="Shape"/>
             <item name="output" type="Image" initializer="output=True" role="return"
                 label="Output"/>
         </gui>
