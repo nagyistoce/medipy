@@ -26,6 +26,46 @@ def ini(root):
     
     return tabp,tabc
 
+def ini2(root):
+    CA,CB= conv.convc(root)
+    HA,HB= conv.convh(root)
+    rooti="ref.xml"
+    nom=os.path.join(root,rooti)
+    z=ser.read_etal(nom)
+    #print z
+    tabc=ordon.gen_ord1(z)
+    #print tabc
+    K=len(tabc)
+    tabp=[]
+    #print CA,CB,HA,HB
+    #print (1/float(CA))*(float(tabc[0][0])-float(CB))
+    #print tabc[0][0]
+    for k in range(K):
+        ta0=np.floor((1/float(CA))*(float(tabc[k][0])-float(CB)))
+        ta1=np.floor((1/float(HA))*(float(tabc[k][1])-float(HB)))
+        tabp.append((ta0,ta1,tabc[k][2],tabc[k][3],tabc[k][4],tabc[k][5],tabc[k][6],tabc[k][7]))
+    
+    return tabp,tabc
+
+def ini1(root):
+    CA,CB= conv.convc(root)
+    HA,HB= conv.convh(root)
+    rooti="peaknew.xml"
+    nom=os.path.join(root,rooti)
+    z=ser.read_etal(nom)
+    tabc=ordon.gen_ord1(z)
+    K=len(tabc)
+    tabp=[]
+    #print CA,CB,HA,HB
+    #print (1/float(CA))*(float(tabc[0][0])-float(CB))
+    #print tabc[0][0]
+    for k in range(K):
+        ta0=np.floor((1/float(CA))*(float(tabc[k][0])-float(CB)))
+        ta1=np.floor((1/float(HA))*(float(tabc[k][1])-float(HB)))
+        tabp.append((ta0,ta1,tabc[k][2],tabc[k][3],tabc[k][4],tabc[k][5],tabc[k][6],tabc[k][7]))
+    
+    return tabp,tabc
+
 def haya(root):
     CA,CB= conv.convc(root)
     HA,HB= conv.convh(root)

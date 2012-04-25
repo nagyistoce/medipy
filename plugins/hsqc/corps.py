@@ -17,7 +17,7 @@ def interquartile_range(values,scaletonormal=False):
     from scipy.special import erfinv
      
     x = n.array(values,copy=False).ravel()
-    res = scoreatpercentile(x,75) - scoreatpercentile(x,25)
+    res = scoreatpercentile(x,92) - scoreatpercentile(x,8)
     if scaletonormal:
         nrm = 8**0.5*erfinv(.5)
         return res/nrm

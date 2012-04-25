@@ -1,5 +1,6 @@
 import random, copy, math,sys
 import numpy as np
+import fonc_util as fon
 
 def k_means(t, nbclusters=2, nbiter=3, medoids=False, soft=False, beta=200.0,\
         distance=lambda x,y: math.sqrt(np.dot(x-y,(x-y).conj())),\
@@ -117,7 +118,57 @@ def flou(t,a,b,c):
     return nt
     
     
+def msatkin(tab):  
+    #print tab
+    ntab=np.array(tab)
+    ki5a=[]
+    baya=[]
+    a3lamb=[]
+    a3lamk=[]
+    yezzi=[]
     
-    
+    for h in range(len(ntab)):
+        for h1 in range(len(ntab)):
+            if h!=h1 and len(np.nonzero(np.array(yezzi)==h)[0])<1:
+                if np.abs(float(ntab[h1,0])-float(ntab[h,0]))<0.0001 and np.abs(float(ntab[h1,1])-float(ntab[h,1]))<0.00001 :
+                    #print h,yezzi,len(np.nonzero(np.array(yezzi)==h)[0])
+                    yezzi.append(h1)
+                    cond=0
+                    if np.abs(float(ntab[h,11]))<3 and np.abs(float(ntab[h,12]))<5:
+                        if np.abs(float(ntab[h1,11]))<3 and np.abs(float(ntab[h1,12]))<5:
+                            cond=1
+                            a3lamb.append(h1)
+                            a3lamb.append(h)
+
+                        else:
+                            ki5a.append(h1)
+                            baya.append(h)
+                    else:
+                        if np.abs(float(ntab[h1,11]))<3 and np.abs(float(ntab[h1,12]))<5:
+                            ki5a.append(h)
+                            baya.append(h1)
+                        else:
+                            cond=2
+                            a3lamk.append(h)
+                            a3lamk.append(h1)
+
+
+                    
+                    #print ntab[h1][2],ntab[h1][12],ntab[h1][12]
+                    #print ntab[h][2],ntab[h][12],ntab[h][12]
+                    #break
+    #print ki5a, ntab[ki5a,2],ntab[ki5a,11],ntab[ki5a,12]
+    #print '%%%%%%%%%%'
+    #print baya, ntab[baya,2],ntab[baya,11],ntab[baya,12]
+    #print '%%%%%%%%%%'
+    #if len(a3lamb)>0:
+        #print a3lamb, ntab[a3lamb,2],ntab[a3lamb,11],ntab[a3lamb,12]
+    #else:
+        #print 'que dalle'      
+    #print '%%%%%%%%%%'
+    #if len(a3lamk)>0:
+        #print a3lamk, ntab[a3lamk,2],ntab[a3lamk,11],ntab[a3lamk,12]
+    #else:
+        #print 'que dalle'
     
     

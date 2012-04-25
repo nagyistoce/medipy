@@ -30,15 +30,48 @@ def cauchy(p2,p3):
 	xxrange = np.arange(-siz[1],siz[1]+1)
 	yyrange = np.arange(-siz[1],siz[1]+1)
 	X,Y = np.meshgrid(xxrange,yyrange)
-	arg=((1/p3[0])/((1/p3[0])**2+(X*X)))*((1/p3[1])/((1/p3[1])**2+(Y*Y)))
+	arg=((1/(p3[0]*3.14159))/((1/p3[0])**2+(X*X)))*((1/(p3[1]*3.14159))/((1/p3[1])**2+(Y*Y)))
 	eps=2.2204*10**(-16)
-	h=(1/np.pi)*arg
+	h=arg
 	h[h<(eps*np.amax(h))]=0
 	sumh=np.sum(h)
 	if sumh!=0:
 		h=h/sumh
 	h=h/np.amax(h)
 	return h
+    
+def expon(p2,p3):
+    siz=(p2-1)/2*(np.ones(2))
+    xxrange = np.arange(-siz[1],siz[1]+1)
+    yyrange = np.arange(-siz[1],siz[1]+1)
+    X,Y = np.meshgrid(xxrange,yyrange)
+    #arg=((1/p3[0])/((1/p3[0])**2+(X*X)))*((1/p3[1])/((1/p3[1])**2+(Y*Y)))
+    arg=(1/6.28)*(1/p3[0])*np.exp(-X*X/(2*p3[0]**2))*(1/p3[1])*np.exp(-X*X/(2*p3[1]**2))
+    eps=2.2204*10**(-16)
+    h=arg
+    h[h<(eps*np.amax(h))]=0
+    sumh=np.sum(h)
+    if sumh!=0:
+        h=h/sumh
+    h=h/np.amax(h)
+    return h
+
+def exponcauchy(p2,p3):
+    siz=(p2-1)/2*(np.ones(2))
+    xxrange = np.arange(-siz[1],siz[1]+1)
+    yyrange = np.arange(-siz[1],siz[1]+1)
+    X,Y = np.meshgrid(xxrange,yyrange)
+    #arg=((1/p3[0])/((1/p3[0])**2+(X*X)))*((1/p3[1])/((1/p3[1])**2+(Y*Y)))
+    arg=(1/3.14159)*(1/p3[0])*np.exp(-X*X/(2*p3[0]**2))*((1/(p3[1]*3.14159))/((1/p3[1])**2+(Y*Y)))
+    eps=2.2204*10**(-16)
+    h=arg
+    h[h<(eps*np.amax(h))]=0
+    sumh=np.sum(h)
+    if sumh!=0:
+        h=h/sumh
+    h=h/np.amax(h)
+    return h
+
 def subpix(z,ii,jj):
     trange = np.arange(11)
     ttrange = np.arange(11)
@@ -142,13 +175,83 @@ def subpix2(z,ii,jj):
     #print ni,nj
     return[ni,nj]
 def dephc(z):
-    e = lambda v,z,: np.sum(np.abs(z-z[5,5]*cauchy(11,v)),1)
-    vi=[0.3,0.3]
+    e = lambda v,z,: np.sum(np.abs(z-z[5,5]*expon(11,v)),1)
+    vi=[1,1]
     #z[z<0]=0
-    v, success = leastsq(e, vi, args=(z), maxfev=10000)
+    v, success = leastsq(e, vi, args=(z), maxfev=1000)
+    cond='g'
+    if v[0]<0.1 or v[0]>4 or v[1]<0.1 or v[1]>4 :
+        cond='l'
+        e = lambda v,z,: np.sum(np.abs(z-z[9,9]*cauchy(19,v)),1)
+        vi=[0.3,0.3]    
+        v, success = leastsq(e, vi, args=(z), maxfev=1000)
+        if v[0]<0.001 or v[0]>2 or v[1]<0.001 or v[1]>2 :
+            v[0]=v[1]=0.3+np.random.normal(0, 0.05, 1)
+    return v,cond
+
+def dephcl(z):
+    e = lambda v,z,: np.sum(np.abs(z-z[9,9]*cauchy(19,v)),1)
+    vi=[0.3,0.3]    
+    v, success = leastsq(e, vi, args=(z), maxfev=1000)
     if v[0]<0.001 or v[0]>2 or v[1]<0.001 or v[1]>2 :
-        v[0]=v[1]=0.3
+        v[0]=v[1]=0.3+np.random.normal(0, 0.05, 1)
     return v
+
+def dephcg(z):
+    e = lambda v,z,: np.sum(np.abs(z-z[9,9]*expon(19,v)),1)
+    vi=[1,1]
+    #z[z<0]=0
+    v, success = leastsq(e, vi, args=(z), maxfev=1000)
+    if v[0]<0.1 or v[0]>4 or v[1]<0.1 or v[1]>4 :
+        v[0]=v[1]=2+np.random.normal(0, 0.05, 1)
+
+    return v
+
+def dephcaprio(z,a,b,c):
+    if c=='g':
+        e = lambda v,z,: np.sum(np.abs(z-z[9,9]*expon(19,v)),1)
+        vi=[a,b]
+        #z[z<0]=0
+        v, success = leastsq(e, vi, args=(z), maxfev=1000)
+        if np.abs(float(v[0]-a))>1: 
+            v[0]=a+np.random.normal(0, 0.05, 1)
+        if np.abs(float(v[1]-b))>1:    
+            v[1]=b+np.random.normal(0, 0.05, 1)
+    else:
+        e = lambda v,z,: np.sum(np.abs(z-z[9,9]*cauchy(19,v)),1)
+        vi=[a,b]    
+        v, success = leastsq(e, vi, args=(z), maxfev=1000)
+        if np.abs(float(v[0]-a))>0.5 or v[0]<0.08 or v[0]>8:
+            v[0]=a+np.random.normal(0, 0.05, 1)
+        if  np.abs(float(v[1]-b))>0.5 or v[1]<0.08:
+            v[1]=b+np.random.normal(0, 0.05, 1)
+    #print c                                        
+    return v,c
+
+def dephcaprio1(z,a,b,c):
+    if c=='g':
+        e = lambda v,z,: np.sum(np.abs(z-z[9,9]*expon(19,v)),1)
+        vi=[a,b]
+        #z[z<0]=0
+        v, success = leastsq(e, vi, args=(z), maxfev=1000)
+        if np.abs(float(v[0]-a))>1: 
+            v[0]=a+np.random.normal(0, 0.05, 1)
+        if np.abs(float(v[1]-b))>1:    
+            v[1]=b+np.random.normal(0, 0.05, 1)
+    else:
+        z[z<0]=0
+        e = lambda v,z,: np.sum(np.abs(z-z[9,9]*exponcauchy(19,v)),1)
+        vi=[2,0.3]    
+        v, success = leastsq(e, vi, args=(z), maxfev=1000)
+        #if np.abs(float(v[0]-a))>0.5 or v[0]<0.08:
+            #v[0]=a+np.random.normal(0, 0.05, 1)
+        #if  np.abs(float(v[1]-b))>0.5 or v[1]<0.08:
+            #v[1]=b+np.random.normal(0, 0.05, 1)
+        v[1]=1/v[1]
+    #print c                                        
+    return v,c
+
+
 def exp_hand(z,newn):
     c=0
     for i in range(len(z)):
@@ -161,6 +264,7 @@ def exp_yn(amp,ampref,test):
     ol=np.nonzero(artest==1)
     #print np.size(ol)
     #print len(amp)/2
+    #print amp
     if np.size(ol)>len(amp)/2:
         ver=0
     else:
