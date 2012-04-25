@@ -1,0 +1,5 @@
+Import('env')
+env = env.Clone()
+env.Python(Glob("*.py"))
+env.UseITK()
+env.PythonModule("_segmentation", ["segmentation.i", "threshold.cpp"])
