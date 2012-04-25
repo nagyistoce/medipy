@@ -46,7 +46,7 @@ def gen_s_ch(tab,root,nom):
     
     #tab=ser.read_s()
     k=len(tab)
-    f=open(find_resource(os.path.join("resources", "components", "belghith", 'entete.txt')), 'r')
+    f=open(find_resource(os.path.join("hsqc", "resources", 'entete.txt')), 'r')
     l=f.readlines()
     f.close()
     f=open(os.path.join(root,nom), 'w')
@@ -300,7 +300,7 @@ def gen_s(tab,root,nom):
     
     #tab=ser.read_s()
     k=len(tab)
-    f=open(find_resource(os.path.join("resources", "components", "belghith", 'entete.txt')), 'r')
+    f=open(find_resource(os.path.join("hsqc", "resources", 'entete.txt')), 'r')
     l=f.readlines()
     f.close()
     f=open(os.path.join(root,nom), 'w')
