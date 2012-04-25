@@ -1,4 +1,13 @@
+##########################################################################
+# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
+##########################################################################
+
 import datetime
+import os
 
 import wx
 
@@ -8,6 +17,7 @@ import medipy.gui.control
 
 import io
 import cross_sectional
+import longitudinal as longitudinal_module
 
 class CrossSectionalPanel(wx.Panel):
     
@@ -274,3 +284,18 @@ class CrossSectionalPanel(wx.Panel):
     def _update_gui(self):
         self._run.Enable(
             self._input_directory.validate() and self._output_directory.validate())
+
+def longitudinal(input_directory, output_directory):
+    """ <gui>
+            <item name="input_directory" type="Directory" label="Input" />
+            <item name="output_directory" type="Directory" label="output" />
+        </gui>
+    """
+    
+    summary_files = []
+    for dirpath, dirnames, filenames in os.walk(input_directory) :
+        if "summary" in filenames :
+            dirnames[:] = []
+            summary_files.append(os.path.join(dirpath, "summary")) 
+    
+    longitudinal_module.measure(summary_files, output_directory)

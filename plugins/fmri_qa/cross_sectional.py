@@ -66,7 +66,7 @@ def get_signal_image(image) :
                              origin=image.origin[1:], spacing=image.spacing[1:],
                              direction=image.direction[1:,1:])
 
-def get_temporal_fluctuation_noise_image(image, verbose=True) :
+def get_temporal_fluctuation_noise_image(image) :
     """ To calculate the fluctuation noise image, the time-series across [all]
         images for each voxel is detrended with a second-order polynomial.
         The fluctuation noise image is an image of the standard deviation (SD) 
