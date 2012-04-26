@@ -7,6 +7,7 @@
 ##########################################################################
 
 from command import Command, UndoableCommand
+import coordinate_system
 from exception import Exception
 from find_resource import find_resource
 from history import History
