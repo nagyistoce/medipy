@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import gzip
@@ -737,11 +737,3 @@ y_LM=0.000000""")
         data_filename += ".img"
         file = open(data_filename, "wb")
         data.tofile(file)
-
-if __name__ == "__main__" :
-    import sys
-    
-    loader = IPB(sys.argv[1])
-    metadata = loader.load_metadata()
-    del metadata["header"]
-    print metadata
