@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -62,7 +62,7 @@ def to_axis_aligned_ras_space(image):
     
     original_direction = image.direction
     
-    direction = best_fitting_axes_aligned_matrix(image.direction)
+    direction = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
     itk_direction = numpy.fliplr(numpy.flipud(direction))
     itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
     
@@ -82,35 +82,6 @@ def to_axis_aligned_ras_space(image):
     # Since directions are orthogonal matrices, we have :
     transformation = numpy.dot(image.direction, direction.T)
     image.direction = numpy.dot(transformation, original_direction)
-
-def best_fitting_axes_aligned_matrix(direction):
-    """ Compute the transformation matrix that best fits the given direction 
-        matrix while being aligned to the axes.
-    """
-        
-    transformation_matrix = numpy.zeros((3,3))
-    for index, v in enumerate(direction) :
-        max_alignment = None
-        best_model = None
-        for model in [(1,0,0), (0,1,0), (0,0,1)] :
-            model = numpy.asarray(model)
-            
-            alignment = numpy.dot(v, model)
-            
-            if alignment > max_alignment :
-                best_model = model
-                max_alignment = alignment
-            
-            model = -model
-            
-            alignment = numpy.dot(v, model)
-            
-            if alignment > max_alignment :
-                best_model = model
-                max_alignment = alignment
-        transformation_matrix[index,:] = best_model
-    
-    return transformation_matrix
 
 def data(datasets):
     """ Build 3-D or 4-D data from datasets.
