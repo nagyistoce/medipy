@@ -10,8 +10,10 @@
 The rows of the matrices are the orientation of the other coordinate system in 
 the LPS coordinate system. For example : 
   * the y axis of RAS is (0,-1,0), i.e. Anterior
-  * the normal of the coronal slice is (0,1,0), i.e. Posterior
-  * the normal of the sagittal slice is (0,0,-1), i.e. Right
+  * the normal of the coronal slice (radiological convention) is (0,-1,0), 
+    i.e. Anterior
+  * the normal of the sagittal slice (radiological convention) is (0,0,-1), 
+    i.e. Right
 
 Since column-vector matrices would transform to LPS (cf. below) and since the
 matrices are orthogonal (M^T=M^{-1}), the row-vector matrices transform from LPS
@@ -49,14 +51,74 @@ RAS = numpy.asarray([[1,  0,  0],
                      [0, -1,  0],
                      [0,  0, -1]], dtype=numpy.float)
 
-# Axial, coronal and sagittal slices, in LPS coordinates
-axial = numpy.identity(3, dtype=numpy.float)
-coronal = numpy.asarray([[ 0, 1, 0],
-                         [-1, 0, 0],
-                         [ 0, 0, 1]], dtype=numpy.float)
-sagittal = numpy.asarray([[ 0, 0, -1],
-                          [-1, 0,  0],
-                          [ 0, 1,  0]], dtype=numpy.float)
+# Transformation matrices from LPS to OpenGL coordinates, ZYX order
+# The ASCII representations are what would be displayed on a screen.
+slices = {
+    "radiological" : {
+        #      A
+        #      ^
+        #      |
+        # R <--o--> L
+        #      |
+        #      v
+        #      P
+        "axial"    : [[-1,  0, 0],
+                      [ 0, -1, 0],
+                      [ 0,  0, 1]],
+        #      S
+        #      ^
+        #      |
+        # R <--o--> L
+        #      |
+        #      v
+        #      I
+        "coronal"  : [[0, -1, 0],
+                      [1,  0, 0],
+                      [0,  0, 1]],
+        #      S
+        #      ^
+        #      |
+        # A <--o--> P
+        #      |
+        #      v
+        #      I
+        "sagittal" : [[0, 0, -1],
+                      [1, 0,  0],
+                      [0, 1,  0]],
+    },
+    "neurological" : {
+        #      A
+        #      ^
+        #      |
+        # L <--o--> R
+        #      |
+        #      v
+        #      P
+        "axial"    : [[1,  0,  0],
+                      [0, -1,  0],
+                      [0,  0, -1]],
+        #      S
+        #      ^
+        #      |
+        # L <--o--> R
+        #      |
+        #      v
+        #      I
+        "coronal"  : [[0, 1,  0],
+                      [1, 0,  0],
+                      [0, 0, -1]],
+        #      S
+        #      ^
+        #      |
+        # P <--o--> A
+        #      |
+        #      v
+        #      I
+        "sagittal" : [[0,  0, 1],
+                      [1,  0, 0],
+                      [0, -1, 0]],
+    },
+}
 
 def best_fitting_axes_aligned_matrix(direction):
     """ Compute the transformation matrix that best fits the given direction 
