@@ -210,6 +210,9 @@ class IPB(IOBase) :
     def load_metadata(self, index=0) :
         metadata = {}
         
+        # IPB images are in the NIfTI coordinate system
+        metadata["direction"] = coordinate_system.RAS
+        
         # Normalize rescaling
         metadata["slope"] = 2.**self.header["icomp"][index]
         
