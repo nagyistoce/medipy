@@ -1,0 +1,30 @@
+Import("env")
+env = env.Clone()
+
+import itertools
+from deployement.scons.wrapitk import (get_scalar_types, get_dimensions, 
+                                       get_instantiations)
+from deployement.scons.itk import wrapitk_root
+
+classes_template_info = []
+
+# NumpyBridge
+classes = ["itk::Image", "itk::VectorImage"]
+types = get_scalar_types(wrapitk_root())
+dimensions = get_dimensions(wrapitk_root())
+instantiations = []
+for class_ in classes :
+    instantiations.extend(itertools.product(get_instantiations(class_, types, dimensions)))
+classes_template_info.append(("itk::NumpyBridge", instantiations, None))
+
+# MatrixBridge
+types = ["float", "double"]
+instantiations = []
+for d in dimensions :
+    instantiations.extend(itertools.product(get_instantiations("itk::Matrix", types, [d], [d])))
+classes_template_info.append(("itk::MatrixBridge", instantiations, None))
+
+env.WrapITKPythonModule("MediPyBridge", classes_template_info)
+
+env.Glob("*.py")
+
