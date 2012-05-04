@@ -70,8 +70,8 @@ def mainanno(path):
         
         raxep,ttt=annotate.ann(nnroot,float(tabc[0][3]))
         
-        func.msatkin(raxep)
-        #xml_gen.gen_s_chggen(ttt,'/home/miv/belghith/Bureau','peaknew.xml')
+        raxep=func.msatkin(raxep)
+        #xml_gen.gen_s_chggen(ttt,'/home/miv/belghith/Bureau','peaknewuuuu.xml')
         #xml_gen.gen_s_ch(raxep,nnroot,'peaklistwithch.xml')
         #tab=ser_xml.read(os.path.join(nnroot,"peaklistwithch.xml"))
         #print tab

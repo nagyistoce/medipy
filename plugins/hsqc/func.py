@@ -119,8 +119,9 @@ def flou(t,a,b,c):
     
     
 def msatkin(tab):  
-    #print tab
+   # print tab
     ntab=np.array(tab)
+    #print ntab
     ki5a=[]
     baya=[]
     a3lamb=[]
@@ -139,18 +140,34 @@ def msatkin(tab):
                             cond=1
                             a3lamb.append(h1)
                             a3lamb.append(h)
+                            t,tt=fon.norm(float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]))
+                            ntab[h1,3]=str(t)
+                            ntab[h,3]=str(tt)
+                            #print t,tt,float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]),h,h1
 
                         else:
                             ki5a.append(h1)
                             baya.append(h)
+                            t,tt=fon.norm(float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]))
+                            ntab[h1,3]=str(t)
+                            ntab[h,3]=str(tt)
+                            #print t,tt,float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]),h,h1
                     else:
                         if np.abs(float(ntab[h1,11]))<3 and np.abs(float(ntab[h1,12]))<5:
                             ki5a.append(h)
                             baya.append(h1)
+                            t,tt=fon.norm(float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]))
+                            ntab[h1,3]=str(t)
+                            ntab[h,3]=str(tt)
+                            #print t,tt,float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]),h,h1
                         else:
                             cond=2
                             a3lamk.append(h)
                             a3lamk.append(h1)
+                            t,tt=fon.norm(float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]))
+                            ntab[h1,3]=str(t)
+                            ntab[h,3]=str(tt)
+                            #print t,tt,float(ntab[h1,4]),float(ntab[h,4]),float(ntab[h1,3]),h,h1
 
 
                     
@@ -164,11 +181,11 @@ def msatkin(tab):
     #if len(a3lamb)>0:
         #print a3lamb, ntab[a3lamb,2],ntab[a3lamb,11],ntab[a3lamb,12]
     #else:
-        #print 'que dalle'      
+       # print 'que dalle'      
     #print '%%%%%%%%%%'
     #if len(a3lamk)>0:
         #print a3lamk, ntab[a3lamk,2],ntab[a3lamk,11],ntab[a3lamk,12]
-    #else:
+   # else:
         #print 'que dalle'
     
-    
+    return ntab

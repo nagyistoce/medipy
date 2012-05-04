@@ -28,7 +28,7 @@ def detfark(Xt,Xo,inm,inp):
 
     
     #Xt = np.random.rand(10, np.size(tabp,0))
-    #Xo = np.random.rand(10, np.size(tabp,0))+5
+    Xo = 10*Xo
     iter=-1
     res=[]
     for i in range(len(inm)):

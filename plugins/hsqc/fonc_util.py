@@ -71,6 +71,21 @@ def exponcauchy(p2,p3):
         h=h/sumh
     h=h/np.amax(h)
     return h
+def cauchyexpon(p2,p3):
+    siz=(p2-1)/2*(np.ones(2))
+    xxrange = np.arange(-siz[1],siz[1]+1)
+    yyrange = np.arange(-siz[1],siz[1]+1)
+    X,Y = np.meshgrid(xxrange,yyrange)
+    #arg=((1/p3[0])/((1/p3[0])**2+(X*X)))*((1/p3[1])/((1/p3[1])**2+(Y*Y)))
+    arg=((1/(p3[0]*3.14159))/((1/p3[0])**2+(X*X)))*(1/3.14159)*(1/p3[1])*np.exp(-Y*Y/(2*p3[0]**2))
+    eps=2.2204*10**(-16)
+    h=arg
+    h[h<(eps*np.amax(h))]=0
+    sumh=np.sum(h)
+    if sumh!=0:
+        h=h/sumh
+    h=h/np.amax(h)
+    return h
 
 def subpix(z,ii,jj):
     trange = np.arange(11)
@@ -207,7 +222,8 @@ def dephcg(z):
 
     return v
 
-def dephcaprio(z,a,b,c):
+def dephcaprionn(z,a,b,c):
+    
     if c=='g':
         e = lambda v,z,: np.sum(np.abs(z-z[9,9]*expon(19,v)),1)
         vi=[a,b]
@@ -221,11 +237,75 @@ def dephcaprio(z,a,b,c):
         e = lambda v,z,: np.sum(np.abs(z-z[9,9]*cauchy(19,v)),1)
         vi=[a,b]    
         v, success = leastsq(e, vi, args=(z), maxfev=1000)
-        if np.abs(float(v[0]-a))>0.5 or v[0]<0.08 or v[0]>8:
+        #print vi
+        if np.abs(float(v[0]-float(1/float(a))))>0.5 or v[0]<0.08 or v[0]>4:
             v[0]=a+np.random.normal(0, 0.05, 1)
-        if  np.abs(float(v[1]-b))>0.5 or v[1]<0.08:
+            #print float(1/float(a))
+            v[0]=1/v[0]
+        if  np.abs(float(v[1]-float(1/float(b))))>0.5 or v[1]<0.08 or v[1]>4:
             v[1]=b+np.random.normal(0, 0.05, 1)
-    #print c                                        
+            v[1]=1/v[1]
+        v[0]=1/v[0]
+        v[1]=1/v[1]
+    #print c 
+    #print v                                       
+    return v,c
+
+def dephcaprio(z,a,b,c):
+    if c[0]=='g' and c[1]=='g':
+            e = lambda v,z,: np.sum(np.abs(z-z[9,9]*expon(19,v)),1)
+            vi=[a,b]
+            #z[z<0]=0
+            v, success = leastsq(e, vi, args=(z), maxfev=1000)
+            if np.abs(float(v[0]-a))>1 or v[0]<0.5 or v[0]>6: 
+                v[0]=a+np.random.normal(0, 0.05, 1)
+            if np.abs(float(v[1]-b))>1 or v[0]<0.5 or v[0]>6:     
+                v[1]=b+np.random.normal(0, 0.05, 1)
+                
+    if c[0]=='l' and c[1]=='l':
+            e = lambda v,z,: np.sum(np.abs(z-z[9,9]*cauchy(19,v)),1)
+            a=float(1/float(a))
+            b=float(1/float(b))
+            vi=[a,b]    
+            v, success = leastsq(e, vi, args=(z), maxfev=1000)
+            #print vi
+            if np.abs(float(v[0]-float(1/float(a))))>0.5 or v[0]<0.08 or v[0]>4:
+                v[0]=a+np.random.normal(0, 0.05, 1)
+                #print float(1/float(a))
+            v[0]=1/v[0]
+
+            if  np.abs(float(v[1]-float(1/float(b))))>0.5 or v[1]<0.08 or v[1]>4:
+                v[1]=b+np.random.normal(0, 0.05, 1)
+            v[1]=1/v[1]
+    if c[0]=='g' and c[1]=='l':
+            e = lambda v,z,: np.sum(np.abs(z-z[9,9]*exponcauchy(19,v)),1)
+            b=float(1/float(b)) 
+            vi=[a,b]   
+ 
+            v, success = leastsq(e, vi, args=(z), maxfev=1000)
+            #print 'ham',v
+            #print vi
+            if np.abs(float(v[0]-a))>1 or v[0]<0.5 or v[0]>6:  
+                v[0]=a+np.random.normal(0, 0.05, 1)
+                #print float(1/float(a))
+            if  np.abs(float(v[1]-float(b)))>0.5 or v[1]<0.08 or v[1]>4:
+                v[1]=b+np.random.normal(0, 0.05, 1)
+            v[1]=1/v[1]
+    if c[0]=='l' and c[1]=='g':
+            e = lambda v,z,: np.sum(np.abs(z-z[9,9]*cauchyexpon(19,v)),1)
+            a=float(1/float(a)) 
+            vi=[a,b]    
+            v, success = leastsq(e, vi, args=(z), maxfev=1000)
+            #print vi
+            if np.abs(float(v[1]-b))>1 or v[0]<0.5 or v[0]>6:  
+                v[1]=b+np.random.normal(0, 0.05, 1)
+                #print float(1/float(a))
+            if  np.abs(float(v[0]-float(1/float(a))))>0.5 or v[1]<0.08 or v[1]>4:
+                v[0]=a+np.random.normal(0, 0.05, 1)
+            v[0]=1/v[0]
+    #print c 
+    #print vi
+    #print v                                       
     return v,c
 
 def dephcaprio1(z,a,b,c):
@@ -370,4 +450,10 @@ def tab2tab(X):
         Z.append([X[i]])
     Z=np.array(Z)
     return Z
+
+def norm(a,b,c):
+    A=(float(a)/float(a+b))*float(c)
+    B=(float(b)/float(a+b))*float(c)
+    return A,B
+    
     

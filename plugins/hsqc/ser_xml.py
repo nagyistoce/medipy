@@ -114,7 +114,14 @@ def read_etal(nom):
             for h1 in range(touli,touli+50):
                 if (l[h][h1]=='"'):
                     break
-            z[dem,6]= l[h][toul+4:h1]
+            p=l[h][toul+4:h1]
+            if len(p)==1:
+                
+                z[dem,6]= p+p
+            else:
+                z[dem,6]= l[h][toul+4:h1]
+                
+            
             H="important="
             toul= C.find(H)
             touli=toul+11

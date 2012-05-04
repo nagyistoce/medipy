@@ -121,7 +121,7 @@ def ann(root,wa7da):
                 ampref.append(float(nt[jj][3])*1.)
                 amp.append( H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])]*1.)
                 #print str(H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])])
-                newrt.append((nr[0],nr[1],nt[jj][2],str(H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])]),chg[0],chg[1],chl[0],chl[1],ch[0],ch[1],congl,r[0],r[1]))
+                newrt.append((nr[0],nr[1],nt[jj][2],str(H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])]),float(nt[jj][3]),chg[1],chl[0],chl[1],ch[0],ch[1],congl,r[0],r[1]))
                 #print newrt
             else:
                 if r[0]<100 :
@@ -146,7 +146,7 @@ def ann(root,wa7da):
                     ch,congl=f.dephcaprio(zayneb,float(nt[jj][4]),float(nt[jj][5]),nt[jj][6])
                     ampref.append(float(nt[jj][3])*1.)
                     amp.append(H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])]*1.)
-                    newrt.append((nr[0],nr[1],nt[jj][2],H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])]*1.,chg[0],chg[1],chl[0],chl[1],ch[0],ch[1],congl,r[0],r[1]))
+                    newrt.append((nr[0],nr[1],nt[jj][2],H[(nt[jj][0]-r[0]),(nt[jj][1]-r[1])]*1.,float(nt[jj][3]),chg[1],chl[0],chl[1],ch[0],ch[1],congl,r[0],r[1]))
                 else:
                     test.append((2))
                     testc3.append((2))
@@ -351,6 +351,7 @@ def ann_old(root,wa7da):
             #print jj
             #print nt[jj][0],nt[jj][1]
             #print nt[jj][0],nt[jj][1]
+            #print wa7da
             r,indi=lawij.alig(nt[jj][0],nt[jj][1],H,nt[jj][3],wa7da)
             
             print r,indi,nt[jj][2],nt[jj][0]-r[0],nt[jj][1]-r[1]
