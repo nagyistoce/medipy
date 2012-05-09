@@ -53,6 +53,14 @@ RAS = numpy.asarray([[1,  0,  0],
 
 # Transformation matrices from LPS to OpenGL coordinates, ZYX order
 # The ASCII representations are what would be displayed on a screen.
+# The OpenGL coordinate system is:
+#   Y
+#   ^
+#   |
+#   o--> X
+#  /
+# Z
+# (Z is pointing out of the screen towards the user)
 slices = {
     "radiological" : {
         #      A
@@ -62,9 +70,9 @@ slices = {
         #      |
         #      v
         #      P
-        "axial"    : [[-1,  0, 0],
-                      [ 0, -1, 0],
-                      [ 0,  0, 1]],
+        "axial"    : numpy.asarray([[-1,  0, 0],
+                                    [ 0, -1, 0],
+                                    [ 0,  0, 1]], dtype=numpy.float),
         #      S
         #      ^
         #      |
@@ -72,9 +80,9 @@ slices = {
         #      |
         #      v
         #      I
-        "coronal"  : [[0, -1, 0],
-                      [1,  0, 0],
-                      [0,  0, 1]],
+        "coronal"  : numpy.asarray([[0, -1, 0],
+                                    [1,  0, 0],
+                                    [0,  0, 1]], dtype=numpy.float),
         #      S
         #      ^
         #      |
@@ -82,9 +90,9 @@ slices = {
         #      |
         #      v
         #      I
-        "sagittal" : [[0, 0, -1],
-                      [1, 0,  0],
-                      [0, 1,  0]],
+        "sagittal" : numpy.asarray([[0, 0, -1],
+                                    [1, 0,  0],
+                                    [0, 1,  0]], dtype=numpy.float),
     },
     "neurological" : {
         #      A
@@ -94,9 +102,9 @@ slices = {
         #      |
         #      v
         #      P
-        "axial"    : [[1,  0,  0],
-                      [0, -1,  0],
-                      [0,  0, -1]],
+        "axial"    : numpy.asarray([[1,  0,  0],
+                                    [0, -1,  0],
+                                    [0,  0, -1]], dtype=numpy.float),
         #      S
         #      ^
         #      |
@@ -104,9 +112,9 @@ slices = {
         #      |
         #      v
         #      I
-        "coronal"  : [[0, 1,  0],
-                      [1, 0,  0],
-                      [0, 0, -1]],
+        "coronal"  : numpy.asarray([[0, 1,  0],
+                                    [1, 0,  0],
+                                    [0, 0, -1]], dtype=numpy.float),
         #      S
         #      ^
         #      |
@@ -114,9 +122,9 @@ slices = {
         #      |
         #      v
         #      I
-        "sagittal" : [[0,  0, 1],
-                      [1,  0, 0],
-                      [0, -1, 0]],
+        "sagittal" : numpy.asarray([[0,  0, 1],
+                                    [1,  0, 0],
+                                    [0, -1, 0]], dtype=numpy.float),
     },
 }
 
