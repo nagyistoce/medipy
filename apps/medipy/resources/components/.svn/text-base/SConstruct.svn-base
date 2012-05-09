@@ -1,0 +1,9 @@
+import os.path
+
+modules = [ "belghith"]
+scons_scripts = [os.path.join(module, "SConstruct") for module in modules]
+SConscript(scons_scripts)
+
+Import('env')
+env = env.Clone()
+env.File(Glob("*.*"))
