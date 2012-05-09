@@ -1,0 +1,15 @@
+import os
+
+Import('env')
+
+components = [
+    "ICA_atlas",
+    "atlas_tracto",
+]
+
+files = [ os.path.join(component, "SConstruct") for component in components]
+SConscript(files)
+
+env = env.Clone()
+
+env.Python(Glob("*.py"))
