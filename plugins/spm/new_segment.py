@@ -13,6 +13,8 @@ import numpy
 from base import Tool
 
 class NewSegment(Tool):
+    """ Extension of the default Unified segmentation
+    """
     
     name = "tools.preproc8"
     
