@@ -95,15 +95,29 @@ class Tool(object):
         
         return script
 
-def script(tools):
-    """ Return a Matlab script running the provided tools.
+def script(tools, standalone=True, exit=True, modality="fmri"):
+    """ Return a Matlab script running the provided tools. If standalone is 
+        True, then the script will include SPM initialization commands and the
+        resulting script can be directly fed to Matlab. If standalone is False,
+        the resulting script can be loaded in SPM Batch Editor.
     """
     
     script = []
     
+    if standalone :
+        script.extend([
+            "spm('defaults','{0}');".format(modality),
+            "spm_jobman('initcfg');"
+        ])
+    
     for index, tool in enumerate(tools) :
         prefix = "matlabbatch{{{0}}}.spm".format(index+1)
-        script.extend(["{0}.{1}".format(prefix, statement) 
+        script.extend(["{0}.{1};".format(prefix, statement) 
                        for statement in tool.script])
+    
+    if standalone :
+        script.append("spm_jobman('run',matlabbatch);")
+    if exit :
+        script.append("exit();")
     
     return "\n".join(script)
