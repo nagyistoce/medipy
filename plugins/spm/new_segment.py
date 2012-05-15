@@ -18,6 +18,16 @@ class NewSegment(Tool):
     
     name = "tools.preproc8"
     
+    # Default order of tissues in SPM Tissue probability map
+    tissue_index = {
+        "gray_matter" : 1,
+        "white_matter" : 2,
+        "csf" : 3,
+        "bone" : 4,
+        "soft_tissue" : 5,
+        "air_background" : 6,
+    }
+    
     class Channel(Tool.Config):
         """ Processing channel (e.g. T1 or PD), containing
               * Volumes
