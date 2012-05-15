@@ -6,8 +6,6 @@
 # for details.
 ##########################################################################
 
-import numpy
-
 from base import Tool
 
 class FactorialDesign(Tool):
