@@ -6,6 +6,8 @@
 # for details.
 ##########################################################################
 
+import numpy
+
 from base import Tool
 
 class FactorialDesign(Tool):
@@ -40,8 +42,8 @@ class FactorialDesign(Tool):
         
         def _get_parameters(self):
             result = {
-                "scans1" : self.scans1,
-                "scans2" : self.scans2,
+                "scans1" : numpy.asarray([[x] for x in self.scans1], dtype=numpy.object),
+                "scans2" : numpy.asarray([[x] for x in self.scans2], dtype=numpy.object),
                 "dept" : int(not self.independance),
                 "variance" : int(not self.variance_equality),
                 "gmsca" : int(self.grand_mean_scaling),
@@ -192,9 +194,14 @@ class FactorialDesign(Tool):
             self.name, {"dir" : [self.output_directory]}))
         script.extend(Tool._generate_script(
             "{0}.des.{1}".format(self.name, self.design.name), self.design.parameters))
-        for index, covariate in enumerate(self.covariates) :
-            script.extend(Tool._generate_script(
-                "{0}.cov({1})".format(self.name, 1+index), covariate.parameters))
+        
+        if self.covariates :
+            for index, covariate in enumerate(self.covariates) :
+                script.extend(Tool._generate_script(
+                    "{0}.cov({1})".format(self.name, 1+index), covariate.parameters))
+        else :
+            script.append("{0}.cov = {1}".format(self.name, "struct('c', {}, 'cname', {}, 'iCFI', {}, 'iCC', {})"))
+        
         script.extend(Tool._generate_script(
             "{0}.masking".format(self.name), self.masking.parameters))
         script.extend(Tool._generate_script(
