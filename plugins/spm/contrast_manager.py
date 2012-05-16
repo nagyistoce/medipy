@@ -17,7 +17,7 @@ class ContrastManager(Tool):
     name = "stats.con"
     
     class TContrast(Tool.Config):
-        name = "tcon"
+        config_name = "tcon"
         def __init__(self, name, vector, replicate=None):
             self.name = name
             self.vector = vector
@@ -54,7 +54,7 @@ class ContrastManager(Tool):
             self.name, {"spmmat" : [self.design_matrix]}))
         for index, contrast in enumerate(self.contrasts) :
             script.extend(Tool._generate_script(
-                "{0}.{1}({2})".format(self.name, contrast.name, 1+index), 
+                "{0}.consess{{{1}}}.{2}".format(self.name, 1+index, contrast.config_name), 
                 contrast.parameters))
         script.extend(Tool._generate_script(
             self.name, {"delete" : int(self.delete_existing_contrasts)}))
