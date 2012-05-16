@@ -18,7 +18,7 @@ class ContrastManager(Tool):
     
     class TContrast(Tool.Config):
         name = "tcon"
-        def __init__(self, name, vector, replicate="TODO"):
+        def __init__(self, name, vector, replicate=None):
             self.name = name
             self.vector = vector
             self.replicate = replicate
@@ -27,8 +27,11 @@ class ContrastManager(Tool):
             result = {
                 "name" : self.name,
                 "convec" : numpy.asarray(self.vector),
-                "sessrep" : "TODO",
             }
+            
+            if self.replicate is None :
+                result["sessrep"] = "none"
+            
             return result
     
     class FContrast(Tool.Config):
