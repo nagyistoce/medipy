@@ -117,7 +117,7 @@ def script(tools, standalone=True, exit=True, modality="fmri"):
     
     if standalone :
         script.append("spm_jobman('run',matlabbatch);")
-    if exit :
-        script.append("exit();")
+        if exit :
+            script.append("exit();")
     
     return "\n".join(script)
