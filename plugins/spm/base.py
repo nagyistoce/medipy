@@ -58,13 +58,28 @@ class Tool(object):
         
         result = ""
         if isinstance(obj, numpy.ndarray) :
-            if obj.ndim == 1 :
-                result = "[ {0} ]".format(" ".join(Tool._to_matlab(x) for x in obj))
-            elif obj.ndim == 2 :
-                result = "[ {0} ]".format(" ; ".join(Tool._to_matlab(x) for x in obj))
+            
+            normalized = obj
+            if normalized.ndim == 1 :
+                normalized = normalized.reshape((1, normalized.shape[0]))
+            
+            if normalized.dtype == numpy.object :
+                result += "{ "
             else :
-                raise medipy.base.Exception(
-                    "Cannot convert a NumPy array of dimension {0}".format(obj.ndim))
+                result += "[ "
+            
+            if normalized.shape[0] > 1 :
+                result += "\n"
+            
+            for row in normalized :
+                result += " ".join(Tool._to_matlab(x) for x in row)
+                if normalized.shape[0] > 1 :
+                    result += "\n";
+            
+            if normalized.dtype == numpy.object :
+                result += " }"
+            else :
+                result += " ]"
         elif isinstance(obj, list) :
             result = "{{ {0} }}".format(" ".join(Tool._to_matlab(x) for x in obj))
         elif isinstance(obj, basestring) :
