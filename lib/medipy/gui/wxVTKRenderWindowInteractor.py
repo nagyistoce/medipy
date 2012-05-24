@@ -808,7 +808,9 @@ class wxVTKRenderWindowInteractor(baseClass):
         self._Iren.SetEventInformation(x, y,
                                        ctrl, shift, key, 0,
                                        keysym)
-        self._Iren.SetAltKey(alt)
+        if hasattr(self._Iren, "SetAltKey") :
+            # SetAltKey does not exist in VTK 5.0
+            self._Iren.SetAltKey(alt)
 
 #--------------------------------------------------------------------  
 def wxVTKRenderWindowInteractorConeExample():
