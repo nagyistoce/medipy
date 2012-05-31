@@ -10,6 +10,7 @@ import numpy
 from vtk import vtkImageChangeInformation, vtkImageReslice
 
 import medipy.base
+import medipy.base.array
 from medipy.base import LateBindingProperty
 import medipy.vtk
 
@@ -111,14 +112,13 @@ class Layer(object) :
         self._world_to_slice = world_to_slice
         self._slice_to_world = numpy.linalg.inv(world_to_slice)
         
-        # Normalize to 3D if needed
-        world_to_slice_3d = None
-        if world_to_slice.shape == (2,2) :
-            temp = numpy.vstack(([0,0], world_to_slice))
-            column = numpy.asarray([1,0,0]).reshape(3,1)
-            world_to_slice_3d = numpy.hstack((column, temp))
-        else :
-            world_to_slice_3d = world_to_slice.copy()
+        # Reshape to 3x3 matrix
+        world_to_slice_3d = medipy.base.array.reshape(world_to_slice, (3,3),
+            "constant", False, value=0)
+        # Add ones on the diagonal when necessary
+        for rank in range(3) :
+            if numpy.less_equal(world_to_slice.shape, rank).all() : 
+                world_to_slice_3d[3-rank-1, 3-rank-1] = 1.
         
         # Update reslicer, numpy axes -> VTK axes
         vtk_matrix = numpy.fliplr(numpy.flipud(world_to_slice_3d))
@@ -156,26 +156,19 @@ class Layer(object) :
     def _set_physical_position(self, physical_position) :
         
         # Normalize dimension of physical_position w.r.t. to the image
-        if len(physical_position) > self._image.ndim :
-            physical_position = physical_position[-self._image.ndim:]
-        elif len(physical_position) < self._image.ndim :
-            prefix = (self._image.ndim-len(physical_position))*(0,)
-            physical_position = prefix+tuple(physical_position)
-        # else : nothing to do, dimension matches
-        
-        if len(physical_position) < 3 :
-            prefix = (3-len(physical_position))*(0,)
-            physical_position_3d = prefix+tuple(physical_position)
-        else :
-            physical_position_3d = physical_position
-        index_position_3d = numpy.subtract(physical_position, self._image.origin)/self._image.spacing
+        physical_position_image = medipy.base.array.reshape(
+            physical_position, (self._image.ndim,), "constant", False, value=0)
         
         self._physical_position = physical_position
         self._index_position = numpy.subtract(physical_position, self._image.origin)/self._image.spacing
         
         if self._display_coordinates == "physical" :
+            physical_position_3d = medipy.base.array.reshape(
+                physical_position, (3,), "constant", False, value=0)
             self._reslicer.SetResliceAxesOrigin(*reversed(physical_position_3d))
         else :
+            index_position_3d = medipy.base.array.reshape(
+                self._index_position, (3,), "constant", False, value=0)
             self._reslicer.SetResliceAxesOrigin(*reversed(index_position_3d))
     
     def _get_index_position(self) :
@@ -251,14 +244,12 @@ class Layer(object) :
             return
             
         if self._display_coordinates == "physical" :
-            origin = list(reversed(self.image.origin))
-            if len(origin) == 2 :
-                origin.append(0)
-            self._vtk_image.SetOrigin(origin)
+            origin_3d = medipy.base.array.reshape(
+                self.image.origin, (3,), "constant", False, value=0)
+            self._vtk_image.SetOrigin(origin_3d)
             
-            spacing = list(reversed(self.image.spacing))
-            if len(spacing) == 2 :
-                spacing.append(1)
+            spacing_3d = medipy.base.array.reshape(
+                self.image.spacing, (3,), "constant", False, value=1.)
             self._vtk_image.SetSpacing(spacing)
         else :
             self._vtk_image.SetOrigin(0,0,0)
