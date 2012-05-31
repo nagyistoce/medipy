@@ -32,9 +32,9 @@ def crop(array, shape, keep_axis_begin=True) :
     
     return cropped_array
 
-def pad(array, shape, mode, at_axis_end=True, **kwargs) :
+def pad(array, shape, mode, keep_axis_begin=True, **kwargs) :
     """ Pad the array to the maximum of the given shape and the input array 
-        shape. If at_axis_end is True, then padding will be inserted at the end
+        shape. If keep_axis_begin is True, then padding will be inserted at the end
         of each axis, otherwise padding will be inserted at the beginning of
         each axis. The mode argument and the extra keywords arguments determine
         how the padding is done :
@@ -47,14 +47,14 @@ def pad(array, shape, mode, at_axis_end=True, **kwargs) :
     # where :
     #   * a : 1D array to be padded
     #   * size : size of the new (padded) array. Must be greater than len(a)
-    #   * at_axis_end : cf. documentation of pad 
+    #   * keep_axis_begin : cf. documentation of pad 
     
-    def constant(a, size, at_axis_end, value) :
+    def constant(a, size, keep_axis_begin, value) :
         """ Pad the array with a constant value
         """
         
         padded = value*numpy.ones((size,))
-        if at_axis_end :
+        if keep_axis_begin :
             padded[:len(a)] = a
         else :
             padded[-len(a):] = a
@@ -66,6 +66,17 @@ def pad(array, shape, mode, at_axis_end=True, **kwargs) :
     padded = array
     for axis in range(len(shape)) :
         size = max(shape[axis], array.shape[axis])
-        padded = numpy.apply_along_axis(function, axis, padded, size, at_axis_end)
+        padded = numpy.apply_along_axis(function, axis, padded, size, keep_axis_begin)
+    
+    return padded
+
+def reshape(array, shape, mode, keep_axis_begin=True, **kwargs) :
+    """ Crop and then pad the array so that the returned array has the given 
+        shape. Cf. the documentation of crop and pad for the description of the
+        parameters.
+    """ 
+    
+    cropped = crop(array, shape, keep_axis_begin)
+    padded = pad(cropped, shape, mode, keep_axis_begin, **kwargs)
     
     return padded
