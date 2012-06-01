@@ -107,6 +107,7 @@ class Layer(object) :
         self._slice_to_world = numpy.linalg.inv(world_to_slice)
         
         self._update_reslicer_matrix()
+        self._update_change_information()
         
     def _get_slice_to_world(self) :
         "Inverse of projection matrix from world frame to 2D slice frame."
@@ -269,14 +270,30 @@ class Layer(object) :
             transformed origin of the image.
         """
         
-        if None in [self._world_to_slice, self._image] :
+        if None in [self._world_to_slice, self._image, self._display_coordinates] :
             return
         
-        # Projected origin, altitude 0
-        matrix = numpy.reshape(self._reslicer.GetResliceAxesDirectionCosines(),
-                               (3,3))
-        origin_3d = medipy.base.array.reshape(self.image.origin, (3,),
-            "constant", False, value=0)
-        origin_3d = numpy.dot(matrix, list(reversed(origin_3d)))
-        origin_3d[2] = 0
-        self._change_information.SetOutputOrigin(origin_3d)
+        if self._display_coordinates in ["nearest_axis_aligned", "physical"] :
+            # Reshape to 3x3 matrix
+            world_to_slice_3d = medipy.base.array.reshape(self.world_to_slice, (3,3),
+                "constant", False, value=0)
+            # Add ones on the diagonal when necessary
+            for rank in range(3) :
+                if numpy.less_equal(self.world_to_slice.shape, rank).all() : 
+                    world_to_slice_3d[3-rank-1, 3-rank-1] = 1.
+            
+            origin = medipy.base.array.reshape(self.image.origin, (3,),
+                "constant", False, value=0)
+            
+            origin = numpy.dot(world_to_slice_3d, origin)
+            origin[0] = 0
+            
+            spacing = medipy.base.array.reshape(self.image.spacing, (3,),
+                "constant", False, value=1)
+            spacing = numpy.abs(numpy.dot(world_to_slice_3d, spacing))
+        else :
+            origin = (0,0,0)
+            spacing = (1,1,1)
+        
+        self._change_information.SetOutputOrigin(list(reversed(origin)))
+        self._change_information.SetOutputSpacing(list(reversed(spacing)))
