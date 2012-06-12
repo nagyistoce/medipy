@@ -155,11 +155,15 @@ class Layer(object) :
         self._physical_position = physical_position_image
         self._index_position = self._image.physical_to_index(physical_position_image)
         
-        # Use the index position since the reslice matrix is from voxel space to
-        # slice space
-        index_position_3d = medipy.base.array.reshape(
-            self._index_position, (3,), "constant", False, value=0)
-        self._reslicer.SetResliceAxesOrigin(*reversed(index_position_3d))
+        # Set ResliceAxesOrigin to the projection of the image origin
+        matrix = numpy.reshape(
+            self._reslicer.GetResliceAxesDirectionCosines(), (3,3))[::-1,::-1]
+        
+        slice_position = numpy.dot(matrix, self._index_position)
+        slice_position[1] = slice_position[2] = 0
+        origin = numpy.dot(numpy.linalg.inv(matrix), slice_position)
+        
+        self._reslicer.SetResliceAxesOrigin(origin[::-1])
     
     def _get_index_position(self) :
         "Index position through which the slicing plane passes."
@@ -263,40 +267,38 @@ class Layer(object) :
             matrix = numpy.dot(world_to_slice_3d, direction_3d)
         
         # Update reslicer, numpy axes -> VTK axes
-        vtk_matrix = numpy.fliplr(numpy.flipud(matrix))
-        self._reslicer.SetResliceAxesDirectionCosines(vtk_matrix.ravel())
-        
-        self._update_change_information()
+        self._reslicer.SetResliceAxesDirectionCosines(matrix[::-1,::-1].ravel())
     
     def _update_change_information(self) :
         """ Update the origin of the ImageChangeInformation filter to the
-            transformed origin of the image.
+            transformed origin of the image. The origin of the image is set to
+            the coordinate-wise minimum of the transformed bounding box, 
+            the spacing is set to the absolute value of the transformed spacing.
         """
         
         if None in [self._world_to_slice, self._image, self._display_coordinates] :
             return
         
-        if self._display_coordinates in ["nearest_axis_aligned", "physical"] :
-            # Reshape to 3x3 matrix
-            world_to_slice_3d = medipy.base.array.reshape(self.world_to_slice, (3,3),
-                "constant", False, value=0)
-            # Add ones on the diagonal when necessary
-            for rank in range(3) :
-                if numpy.less_equal(self.world_to_slice.shape, rank).all() : 
-                    world_to_slice_3d[3-rank-1, 3-rank-1] = 1.
+        if self.display_coordinates in ["physical", "nearest_axis_aligned"] :
+            # Transform the bounding box of the image to find the coordinates
+            # of the first voxel
+            # TODO : is this correct for nearest_axis_aligned or should we 
+            # compute nearest*spacing*index+origin ?
             
-            origin = medipy.base.array.reshape(self.image.origin, (3,),
-                "constant", False, value=0)
+            begin = numpy.dot(self._world_to_slice, 
+                              self._image.index_to_physical((0,0,0)))
+            end = numpy.dot(self._world_to_slice, 
+                            self._image.index_to_physical(self._image.shape))
             
-            origin = numpy.dot(world_to_slice_3d, origin)
-            origin[0] = 0
-            
-            spacing = medipy.base.array.reshape(self.image.spacing, (3,),
-                "constant", False, value=1)
-            spacing = numpy.abs(numpy.dot(world_to_slice_3d, spacing))
+            changed_origin = numpy.minimum(begin, end)
+            # Set altitude to 0
+            changed_origin[0] = 0
+
+            changed_spacing = numpy.abs(numpy.dot(self._world_to_slice, 
+                                                  self._image.spacing))
         else :
-            origin = (0,0,0)
-            spacing = (1,1,1)
+            changed_origin = (0,0,0)
+            changed_spacing = (1,1,1)
         
-        self._change_information.SetOutputOrigin(list(reversed(origin)))
-        self._change_information.SetOutputSpacing(list(reversed(spacing)))
+        self._change_information.SetOutputOrigin(changed_origin[::-1])
+        self._change_information.SetOutputSpacing(changed_spacing[::-1])
