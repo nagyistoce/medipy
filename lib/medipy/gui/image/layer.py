@@ -11,6 +11,7 @@ from vtk import vtkImageChangeInformation, vtkImageReslice
 
 import medipy.base
 from medipy.base import LateBindingProperty
+import medipy.gui
 import medipy.vtk
 
 class Layer(object) :
@@ -84,6 +85,8 @@ class Layer(object) :
         self._set_world_to_slice(world_to_slice)
         self._set_image(image)
         self._set_display_coordinates(display_coordinates)
+        if colormap is None :
+            colormap = medipy.gui.Colormap(medipy.gui.colormaps["gray"], None)
         self._set_colormap(colormap)
         self._set_opacity(opacity)
         
