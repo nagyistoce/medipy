@@ -155,15 +155,7 @@ class Layer(object) :
         self._physical_position = physical_position_image
         self._index_position = self._image.physical_to_index(physical_position_image)
         
-        # Set ResliceAxesOrigin to the projection of the image origin
-        matrix = numpy.reshape(
-            self._reslicer.GetResliceAxesDirectionCosines(), (3,3))[::-1,::-1]
-        
-        slice_position = numpy.dot(matrix, self._index_position)
-        slice_position[1] = slice_position[2] = 0
-        origin = numpy.dot(numpy.linalg.inv(matrix), slice_position)
-        
-        self._reslicer.SetResliceAxesOrigin(origin[::-1])
+        self._reslicer.SetResliceAxesOrigin(self._index_position[::-1])
     
     def _get_index_position(self) :
         "Index position through which the slicing plane passes."
@@ -257,7 +249,8 @@ class Layer(object) :
             if numpy.less_equal(self.image.direction.shape, rank).all() : 
                 direction_3d[3-rank-1, 3-rank-1] = 1.
         
-        # The reslice matrix from voxel space to slice space
+        # The reslice matrix from orignal voxel space to slice space
+        # (i.e. input->output) 
         if self._display_coordinates == "index" :
             matrix = world_to_slice_3d
         elif self._display_coordinates == "nearest_axis_aligned" :
@@ -265,6 +258,16 @@ class Layer(object) :
             matrix = numpy.dot(world_to_slice_3d, nearest)
         else :
             matrix = numpy.dot(world_to_slice_3d, direction_3d)
+        
+        self._input_index_to_output_index = matrix.copy()
+        self._output_index_to_input_index = numpy.linalg.inv(matrix)
+        
+        # vtkImageReslice.SetResliceAxesDirectionCosines fills the rotation
+        # part of the 3x3 matrix column wise, and this rotation part must be
+        # the transform from output to input. We then must pass the transpose
+        # of the inverse of matrix, i.e. (M^{-1})^T. For orthogonal matrices, 
+        # this is equal to M itself, but we're never too careful.
+        matrix = numpy.linalg.inv(matrix).T
         
         # Update reslicer, numpy axes -> VTK axes
         self._reslicer.SetResliceAxesDirectionCosines(matrix[::-1,::-1].ravel())
