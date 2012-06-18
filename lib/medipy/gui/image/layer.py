@@ -97,6 +97,20 @@ class Layer(object) :
                 display_range = (image.data.min(), image.data.max())
             self._colormap.display_range = display_range
     
+    def world_to_index(self, p_world) :
+        """ Convert a world coordinate (VTK world frame, VTK order) to an
+            image index (NumPy order)
+        """
+        
+        raise NotImplementedError()
+
+    def world_to_physical(self, p_world) :
+        """ Convert a world coordinate (VTK world frame, VTK order) to an
+            image physical coordinate (NumPy order)
+        """
+        
+        raise NotImplementedError()
+    
     ##############
     # Properties #
     ##############
