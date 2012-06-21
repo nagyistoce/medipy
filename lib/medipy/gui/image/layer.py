@@ -10,6 +10,7 @@ import numpy
 from vtk import vtkImageChangeInformation, vtkImageReslice
 
 import medipy.base
+import medipy.base.array
 from medipy.base import LateBindingProperty
 import medipy.gui
 import medipy.vtk
@@ -33,10 +34,6 @@ class Layer(object) :
         
         Note that no change of position is performed when changing the display
         coordinates : it is up to the client to do this if needed.
-        
-        FIXME : image direction is not (yet) used. Since VTK images are not
-        oriented, as opposed to MediPy's or ITK's, the world_to_slice should
-        include direction information.
     """
     
     def __init__(self, world_to_slice, image, display_coordinates="physical",
@@ -67,11 +64,9 @@ class Layer(object) :
         # VTK image with the same content as self._image
         self._vtk_image = None
         self._reslicer = vtkImageReslice()
-        # The reslicer works with physical coordinates, and thus its output
-        # origin /must/ be calculated automatically. However, since we want to
-        # position the sliced image at its transformed origin, the origin of the
-        # sliced image fed to the actor /must/ be the transformed layer's image
-        # origin (here with an altitude of 0).
+        # The reslice matrix will be from voxel space to slice space. Since we
+        # want to position the sliced image at its transformed origin, we must 
+        # set the origin of the sliced image after the slicing.
         self._change_information = vtkImageChangeInformation()
         
         ##################
@@ -102,6 +97,20 @@ class Layer(object) :
                 display_range = (image.data.min(), image.data.max())
             self._colormap.display_range = display_range
     
+    def world_to_index(self, p_world) :
+        """ Convert a world coordinate (VTK world frame, VTK order) to an
+            image index (NumPy order)
+        """
+        
+        raise NotImplementedError()
+
+    def world_to_physical(self, p_world) :
+        """ Convert a world coordinate (VTK world frame, VTK order) to an
+            image physical coordinate (NumPy order)
+        """
+        
+        raise NotImplementedError()
+    
     ##############
     # Properties #
     ##############
@@ -114,19 +123,7 @@ class Layer(object) :
         self._world_to_slice = world_to_slice
         self._slice_to_world = numpy.linalg.inv(world_to_slice)
         
-        # Normalize to 3D if needed
-        world_to_slice_3d = None
-        if world_to_slice.shape == (2,2) :
-            temp = numpy.vstack(([0,0], world_to_slice))
-            column = numpy.asarray([1,0,0]).reshape(3,1)
-            world_to_slice_3d = numpy.hstack((column, temp))
-        else :
-            world_to_slice_3d = world_to_slice.copy()
-        
-        # Update reslicer, numpy axes -> VTK axes
-        vtk_matrix = numpy.fliplr(numpy.flipud(world_to_slice_3d))
-        self._reslicer.SetResliceAxesDirectionCosines(vtk_matrix.ravel())
-        
+        self._update_reslicer_matrix()
         self._update_change_information()
         
     def _get_slice_to_world(self) :
@@ -147,7 +144,12 @@ class Layer(object) :
         
         self._image.add_observer("modified", self._on_image_modified)
         
-        self._update_vtk_image_position()
+        # Reset the origin and spacing of the VTK image since the reslice matrix
+        # will be from voxel space to slice space
+        self._vtk_image.SetOrigin(0,0,0)
+        self._vtk_image.SetSpacing(1,1,1)
+        # Update the pipeline
+        self._update_reslicer_matrix()
         self._update_change_information()
         
         self._reslicer.SetInput(self._vtk_image)
@@ -158,48 +160,40 @@ class Layer(object) :
     
     def _set_physical_position(self, physical_position) :
         
+        physical_position = numpy.asarray(physical_position)
+        
         # Normalize dimension of physical_position w.r.t. to the image
-        if len(physical_position) > self._image.ndim :
-            physical_position = physical_position[-self._image.ndim:]
-        elif len(physical_position) < self._image.ndim :
-            prefix = (self._image.ndim-len(physical_position))*(0,)
-            physical_position = prefix+tuple(physical_position)
-        # else : nothing to do, dimension matches
+        physical_position_image = medipy.base.array.reshape(
+            physical_position, (self._image.ndim,), "constant", False, value=0)
         
-        if len(physical_position) < 3 :
-            prefix = (3-len(physical_position))*(0,)
-            physical_position_3d = prefix+tuple(physical_position)
-        else :
-            physical_position_3d = physical_position
-        index_position_3d = numpy.subtract(physical_position, self._image.origin)/self._image.spacing
+        self._physical_position = physical_position_image
+        self._index_position = self._image.physical_to_index(physical_position_image)
         
-        self._physical_position = physical_position
-        self._index_position = numpy.subtract(physical_position, self._image.origin)/self._image.spacing
-        
-        if self._display_coordinates == "physical" :
-            self._reslicer.SetResliceAxesOrigin(*reversed(physical_position_3d))
-        else :
-            self._reslicer.SetResliceAxesOrigin(*reversed(index_position_3d))
+        self._reslicer.SetResliceAxesOrigin(self._index_position[::-1])
     
     def _get_index_position(self) :
         "Index position through which the slicing plane passes."
         return self._index_position
     
     def _set_index_position(self, index_position) :
-        physical_position = self._image.origin + self._image.spacing*index_position
-        self._set_physical_position(physical_position)
+        index_position = numpy.asarray(index_position)
+        index_position_image = medipy.base.array.reshape(
+            index_position, (self._image.ndim,), "constant", False, value=0)
+        
+        physical_position_image = self._image.index_to_physical(index_position_image)
+        self._set_physical_position(physical_position_image)
     
     def _get_display_coordinates(self) :
         "Display image using physical or index coordinates."
         return self._display_coordinates
     
     def _set_display_coordinates(self, display_coordinates) :
-        if display_coordinates not in ["physical", "index"] :
+        if display_coordinates not in ["physical", "nearest_axis_aligned", "index"] :
             raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._display_coordinates = display_coordinates
         
-        self._update_vtk_image_position()
+        self._update_reslicer_matrix()
         self._update_change_information()
         
         if self._physical_position is not None :
@@ -245,37 +239,83 @@ class Layer(object) :
     def _on_image_modified(self, event):
         self._vtk_image.Modified()
     
-    def _update_vtk_image_position(self) :
-        """ Update the origin and spacing of the vtk image with respect to image
-            and display coordinates.
+    def _update_reslicer_matrix(self):
+        """ Update the reslicer matrix with respect to the world_to_slice matrix
+            and the display coordinates
         """
         
-        if None in [self._vtk_image, self._display_coordinates] :
+        if None in [self._world_to_slice, self._image, self._display_coordinates] :
             return
-            
-        if self._display_coordinates == "physical" :
-            origin = list(reversed(self.image.origin))
-            if len(origin) == 2 :
-                origin.append(0)
-            self._vtk_image.SetOrigin(origin)
-            
-            spacing = list(reversed(self.image.spacing))
-            if len(spacing) == 2 :
-                spacing.append(1)
-            self._vtk_image.SetSpacing(spacing)
+        
+        # Reshape to 3x3 matrix
+        world_to_slice_3d = medipy.base.array.reshape(self.world_to_slice, (3,3),
+            "constant", False, value=0)
+        # Add ones on the diagonal when necessary
+        for rank in range(3) :
+            if numpy.less_equal(self.world_to_slice.shape, rank).all() : 
+                world_to_slice_3d[3-rank-1, 3-rank-1] = 1.
+        
+        # Same for direction
+        direction_3d = medipy.base.array.reshape(self.image.direction, (3,3),
+            "constant", False, value=0)
+        # Add ones on the diagonal when necessary
+        for rank in range(3) :
+            if numpy.less_equal(self.image.direction.shape, rank).all() : 
+                direction_3d[3-rank-1, 3-rank-1] = 1.
+        
+        # The reslice matrix from orignal voxel space to slice space
+        # (i.e. input->output) 
+        if self._display_coordinates == "index" :
+            matrix = world_to_slice_3d
+        elif self._display_coordinates == "nearest_axis_aligned" :
+            nearest = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(direction_3d)
+            matrix = numpy.dot(world_to_slice_3d, nearest)
         else :
-            self._vtk_image.SetOrigin(0,0,0)
-            self._vtk_image.SetSpacing(1,1,1)
+            matrix = numpy.dot(world_to_slice_3d, direction_3d)
+        
+        self._input_index_to_output_index = matrix.copy()
+        self._output_index_to_input_index = numpy.linalg.inv(matrix)
+        
+        # vtkImageReslice.SetResliceAxesDirectionCosines fills the rotation
+        # part of the 3x3 matrix column wise, and this rotation part must be
+        # the transform from output to input. We then must pass the transpose
+        # of the inverse of matrix, i.e. (M^{-1})^T. For orthogonal matrices, 
+        # this is equal to M itself, but we're never too careful.
+        matrix = numpy.linalg.inv(matrix).T
+        
+        # Update reslicer, numpy axes -> VTK axes
+        self._reslicer.SetResliceAxesDirectionCosines(matrix[::-1,::-1].ravel())
     
     def _update_change_information(self) :
-        "Set the origin of the actor input for correct placement."
+        """ Update the origin of the ImageChangeInformation filter to the
+            transformed origin of the image. The origin of the image is set to
+            the coordinate-wise minimum of the transformed bounding box, 
+            the spacing is set to the absolute value of the transformed spacing.
+        """
         
-        if None in [self._world_to_slice, self._image] :
+        if None in [self._world_to_slice, self._image, self._display_coordinates] :
             return
         
-        # Projected origin, altitude 0
-        matrix = numpy.reshape(self._reslicer.GetResliceAxesDirectionCosines(),
-                               (3,3))
-        origin = numpy.dot(matrix, self._vtk_image.GetOrigin())
-        origin[2] = 0
-        self._change_information.SetOutputOrigin(origin)
+        if self.display_coordinates in ["physical", "nearest_axis_aligned"] :
+            # Transform the bounding box of the image to find the coordinates
+            # of the first voxel
+            # TODO : is this correct for nearest_axis_aligned or should we 
+            # compute nearest*spacing*index+origin ?
+            
+            begin = numpy.dot(self._world_to_slice, 
+                              self._image.index_to_physical((0,0,0)))
+            end = numpy.dot(self._world_to_slice, 
+                            self._image.index_to_physical(self._image.shape))
+            
+            changed_origin = numpy.minimum(begin, end)
+            # Set altitude to 0
+            changed_origin[0] = 0
+
+            changed_spacing = numpy.abs(numpy.dot(self._world_to_slice, 
+                                                  self._image.spacing))
+        else :
+            changed_origin = (0,0,0)
+            changed_spacing = (1,1,1)
+        
+        self._change_information.SetOutputOrigin(changed_origin[::-1])
+        self._change_information.SetOutputSpacing(changed_spacing[::-1])
