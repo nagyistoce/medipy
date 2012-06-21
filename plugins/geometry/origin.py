@@ -6,6 +6,8 @@
 # for details.
 ##########################################################################
 
+import numpy
+
 def set_origin_as_index(image, index):
     """ Set the origin of the image to the specified index.
         
@@ -17,4 +19,18 @@ def set_origin_as_index(image, index):
         </gui>
     """
     
-    image.origin = -(index*image.spacing)
+    image.origin = -numpy.dot(image.direction, index*image.spacing)
+
+def set_origin_as_point(image, point):
+    """ Set the origin of the image to the specified point.
+        
+        <gui>
+            <item name="image" type="Image" label="Image" />
+            <item name="point" type="Coordinates" 
+                  initializer="image=${image}, display_coordinates='physical'" 
+                  label="Point" />
+        </gui>
+    """
+    
+    pass
+    # TODO : transform point to index, call set_origin_as_index(image, index)
