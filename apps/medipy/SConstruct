@@ -1,0 +1,10 @@
+import os
+
+modules = [ "menu_builder", "resources" ]
+for module in modules :
+    SConcript(os.path.join(module, "SConstruct"))
+
+Import("env")
+env = env.Clone()
+
+env.Glob("*.py")
