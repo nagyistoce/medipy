@@ -41,13 +41,26 @@ class Tool(object) :
         return slice.layers[0].world_to_physical(world_position)
     
     def _display_to_image_index(self, p, slice) :
-        """ Return the index position (numpy order) in the image space
-            related to the display position given as (x,y).
+        """ Return the index position (numpy order, floating point coordinates) 
+            in the image space related to the display position given as (x,y).
         """
         
         self._coordinate.SetValue(*p)
         world_position = self._coordinate.GetComputedWorldValue(slice.renderer)
         return slice.layers[0].world_to_index(world_position)
+    
+    def _display_to_image_int_index(self, p, slice) :
+        """ Return the integer index position (numpy order) in the image space
+            related to the display position given as (x,y).
+        """
+        
+        index_position = self._display_to_image_index(p, slice)
+        # Coordinates are rounded since the pixels are "considered to be the
+        # rectangular region surrounding the pixel center holding the data 
+        # value" (ITK Software Guide, 4.1.4, p. 40)
+        index_position = numpy.round(index_position).astype(int)
+        
+        return index_position
 
 class MouseTool(Tool):
     """ Base class for all mouse tools.
