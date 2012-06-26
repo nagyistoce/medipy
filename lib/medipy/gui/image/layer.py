@@ -101,6 +101,10 @@ class Layer(object) :
         """ Convert a VTK world coordinate (VTK order) to the corresponding 
             image index (numpy order).
         """
+        
+        # Make sure the pipeline is up-to-date
+        self._change_information.Update()
+        
         # Convert to index coordinate in resliced image (VTK order)
         index = numpy.divide(
             numpy.subtract(world, self._change_information.GetOutputOrigin()),
@@ -108,11 +112,6 @@ class Layer(object) :
         # Set height to 0, since the picked value will depend on the position
         # of the actor
         index[2] = 0
-        
-        # We're off by 1/2 pixel ! TODO : adjust actor position
-        # cf. http://www.vtk.org/pipermail/vtkusers/2005-May/079848.html
-        index[0] += 0.5
-        index[1] += 0.5
         
         # Apply the reslicer transform (homogeneous coordinates, VTK order),
         # converting to the non-sliced image
