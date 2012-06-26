@@ -23,7 +23,8 @@ class Select(MouseTool) :
         self._set_cursor_position(rwi, slice)
     
     def _set_cursor_position(self, rwi, slice) :
-        index_position = self._display_to_image_index(rwi.GetEventPosition(), slice)
+        index_position = self._display_to_image_int_index(
+            rwi.GetEventPosition(), slice)
         if not slice.layers or slice.layers[0].image.is_inside(index_position) :
             # Using cursor_physical_position would also work, but we have
             # already computed index_position, so we use it
@@ -54,8 +55,8 @@ class Paint(MouseTool) :
             if (self.brush.normal != normal).any() :
                 self.brush.normal = normal
         
-        position = self._display_to_image_index(rwi.GetEventPosition(), slice)
-        self.brush.paint(self.image, position.astype(int))
+        position = self._display_to_image_int_index(rwi.GetEventPosition(), slice)
+        self.brush.paint(self.image, position)
         
         if not slice.layers or slice.layers[0].image.is_inside(position) :
             slice.cursor_index_position = position
