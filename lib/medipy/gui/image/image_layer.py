@@ -44,43 +44,6 @@ class ImageLayer(Layer) :
         self._actor.SetInput(self._image_map_to_colors.GetOutput())
         self._actor.InterpolateOff()
     
-    def world_to_index(self, world) :
-        # Convert to index coordinate in resliced image (VTK order)
-        index = numpy.divide(
-            numpy.subtract(world, self._change_information.GetOutputOrigin()),
-            self._change_information.GetOutputSpacing())
-        # Set height to 0, since the picked value will depend on the position
-        # of the actor
-        index[2] = 0
-        
-        # We're off by 1/2 pixel ! TODO : adjust actor position
-        # cf. http://www.vtk.org/pipermail/vtkusers/2005-May/079848.html
-        index[0] += 0.5
-        index[1] += 0.5
-        
-        # Apply the reslicer transform (homogeneous coordinates, VTK order),
-        # converting to the non-sliced image
-        physical = numpy.add(
-            numpy.multiply(index, self._reslicer.GetOutput().GetSpacing()),
-            self._reslicer.GetOutput().GetOrigin())
-        physical = numpy.hstack((physical, 1.))
-        physical = self._reslicer.GetResliceAxes().MultiplyPoint(physical)
-        physical = [physical[i]/physical[3] for i in range(3)]
-        
-        # Convert to index coordinate in the non-sliced image (VTK order)
-        index = numpy.divide(
-            numpy.subtract(physical, self._vtk_image.GetOrigin()),
-            self._vtk_image.GetSpacing())
-        
-        # VTK order -> NumPy order
-        index = index[::-1]
-        
-        return index
-
-    def world_to_physical(self, world) :
-        index = self.world_to_index(world)
-        return self._image.index_to_physical(index)    
-    
     ##############
     # Properties #
     ##############
