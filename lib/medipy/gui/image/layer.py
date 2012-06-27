@@ -7,7 +7,7 @@
 ##########################################################################
 
 import numpy
-from vtk import vtkImageChangeInformation, vtkImageReslice
+from vtk import vtkImageChangeInformation, vtkImageReslice, vtkMatrix4x4
 
 import medipy.base
 import medipy.base.array
@@ -64,6 +64,7 @@ class Layer(object) :
         # VTK image with the same content as self._image
         self._vtk_image = None
         self._reslicer = vtkImageReslice()
+        self._reslicer_axes_inverse = vtkMatrix4x4()
         # The reslice matrix will be from voxel space to slice space. Since we
         # want to position the sliced image at its transformed origin, we must 
         # set the origin of the sliced image after the slicing.
@@ -140,6 +141,51 @@ class Layer(object) :
         index = self.world_to_index(world)
         return self._image.index_to_physical(index) 
     
+    def index_to_world(self, index) :
+        """ Convert an image index (numpy order) to the corresponding VTK world
+            coordinate (VTK order).
+        """
+        
+        index = medipy.base.array.reshape(numpy.asarray(index), (3,), 
+            "constant", False, value=0)
+        
+        # Make sure the pipeline is up-to-date
+        self._change_information.Update()
+        
+        # NumPy Order -> VTK order
+        index = index[::-1]
+        
+        # Convert from the non-sliced image point coordinates (VKT order)
+        physical = numpy.add(
+            numpy.multiply(index, self._vtk_image.GetSpacing()),
+            self._vtk_image.GetOrigin())
+        
+        # Apply the inverse reslicer transform (homogeneous coordinates, VTK 
+        # order), converting to the sliced image
+        physical = numpy.hstack((physical, 1.))
+        physical = self._reslicer_axes_inverse.MultiplyPoint(physical)
+        physical = [physical[i]/physical[3] for i in range(3)]
+        
+        # Convert to index coordinate in resliced image (VTK order)
+        index = numpy.divide(
+            numpy.subtract(physical, self._reslicer.GetOutput().GetOrigin()),
+            self._reslicer.GetOutput().GetSpacing())
+        
+        # Convert to world coordinates
+        world = numpy.add(
+            numpy.multiply(index, self._change_information.GetOutputSpacing()),
+            self._change_information.GetOutputOrigin())
+        
+        return world
+    
+    def physical_to_world(self, physical) :
+        """ Convert an image physical coordinate (numpy order) to the 
+            corresponding VTK world coordinate (VTK order).
+        """
+        
+        index = self._image.physical_to_index(physical)
+        return self.index_to_world(index)
+    
     ##############
     # Properties #
     ##############
@@ -199,6 +245,8 @@ class Layer(object) :
         self._index_position = self._image.physical_to_index(physical_position_image)
         
         self._reslicer.SetResliceAxesOrigin(self._index_position[::-1])
+        vtkMatrix4x4.Invert(
+            self._reslicer.GetResliceAxes(), self._reslicer_axes_inverse)
     
     def _get_index_position(self) :
         "Index position through which the slicing plane passes."
@@ -314,6 +362,8 @@ class Layer(object) :
         
         # Update reslicer, numpy axes -> VTK axes
         self._reslicer.SetResliceAxesDirectionCosines(matrix[::-1,::-1].ravel())
+        vtkMatrix4x4.Invert(
+            self._reslicer.GetResliceAxes(), self._reslicer_axes_inverse)
     
     def _update_change_information(self) :
         """ Update the origin of the ImageChangeInformation filter to the
