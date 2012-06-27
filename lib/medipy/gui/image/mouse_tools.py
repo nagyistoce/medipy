@@ -23,12 +23,36 @@ class Select(MouseTool) :
         self._set_cursor_position(rwi, slice)
     
     def _set_cursor_position(self, rwi, slice) :
-        index_position = self._display_to_image_int_index(
+        if slice.display_coordinates == "physical" :
+            physical_position = self._display_to_image_physical(
+                rwi.GetEventPosition(), slice)
+            
+            if slice.layers :
+                index_position = slice.layers[0].image.physical_to_index(physical_position)
+                if slice.layers[0].image.is_inside(index_position) :
+                    set_position = True
+                else :
+                    set_position = False
+            else :
+                set_position = True
+            
+            if set_position :
+                slice.cursor_physical_position = physical_position
+        else :
+            index_position = self._display_to_image_int_index(
             rwi.GetEventPosition(), slice)
-        if not slice.layers or slice.layers[0].image.is_inside(index_position) :
-            # Using cursor_physical_position would also work, but we have
-            # already computed index_position, so we use it
-            slice.cursor_index_position = index_position
+            if slice.layers :
+                if slice.layers[0].image.is_inside(index_position) :
+                    set_position = True
+                else :
+                    set_position = False
+            else :
+                set_position = True
+            
+            if set_position :
+                slice.cursor_index_position = index_position
+        
+        if set_position :
             rwi.Render()
     
     def stop_interaction(self, rwi, slice) :
