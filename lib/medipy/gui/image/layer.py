@@ -74,7 +74,6 @@ class Layer(object) :
         # Initialization #
         ##################
         
-        self._reslicer.SetInterpolationModeToNearestNeighbor()
         self._reslicer.SetOutputDimensionality(2)
         self._change_information.SetInputConnection(self._reslicer.GetOutputPort())
         
@@ -269,6 +268,15 @@ class Layer(object) :
             raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._display_coordinates = display_coordinates
+        
+        if display_coordinates == "physical" :
+            # Use linear since the transformation matrix might not be orthogonal,
+            # which would cause banding artifacts
+            self._reslicer.SetInterpolationModeToLinear()
+        else :
+            # We have an orthogonal matrix : the nearest neighbor interpolation
+            # is exact. Since it is faster, use it
+            self._reslicer.SetInterpolationModeToNearestNeighbor() 
         
         self._update_reslicer_matrix()
         self._update_change_information()
