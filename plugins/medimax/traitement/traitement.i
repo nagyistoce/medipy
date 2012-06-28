@@ -45,6 +45,6 @@ Normalize intensity between two registered images
     mask_imref : mask of Reference image
     method : 0->oneParameterLinearRegression, 1->twoParameterLinearRegression, 2->totalLeastSquare
     
-""",, imsrc, imref, imres, mask_imsrc, mask_imref, method )
+""",imres.copy_information(imsrc), imsrc, imref, imres, mask_imsrc, mask_imref, method )
 
 
