@@ -78,8 +78,8 @@ def IntensityNormalisationForRegisteredImages_gui(imsrc, imref, mask_imsrc=None,
  
  
     imres=medipy.base.Image(shape=imsrc.shape, dtype=imsrc.dtype)
-    imres.copy_information(imsrc)
     
     medipy.medimax.traitement.IntensityNormalisationForRegisteredImages(imsrc, imref, imres, mask_imsrc,mask_imref, dicoMethodNormalisation[method])
+    
     
     return imres
