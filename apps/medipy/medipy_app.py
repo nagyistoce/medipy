@@ -339,6 +339,11 @@ class MediPyApp(Application) :
         except ValueError :
             # Image is not in list, do nothing
             pass
+
+        # Display active image path in title
+        url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
+        self._frame.SetTitle("MediPy ({0})".format(url))
+
         for other_image in self.gui_images :
             if other_image == gui_image :
                 other_image.SetBackgroundColour(wx.GREEN)
