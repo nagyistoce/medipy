@@ -51,6 +51,14 @@ class FSLTool(object):
         else :
             env["FSLDIR"] = self.fsl_dir
             
+        path = env.get("PATH", "").split(os.pathsep)
+        path.append(os.path.join(env["FSLDIR"], "bin"))
+        env["PATH"] = os.pathsep.join(path)
+        
+        ld_library_path = env.get("LD_LIBRARY_PATH", "").split(os.pathsep)
+        ld_library_path.insert(0, os.path.join(env["FSLDIR"], "bin"))
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(ld_library_path)
+
         env.setdefault("FSLOUTPUTTYPE", self.fsl_output_type)
         command = copy.deepcopy(self.command)
         command[0] = os.path.join(env["FSLDIR"], "bin", command[0])
