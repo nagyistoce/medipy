@@ -6,6 +6,8 @@
 # for details.
 ##########################################################################
 
+import itertools
+
 import numpy
 from vtk import vtkImageChangeInformation, vtkImageReslice, vtkMatrix4x4
 
@@ -370,6 +372,7 @@ class Layer(object) :
         
         # Update reslicer, numpy axes -> VTK axes
         self._reslicer.SetResliceAxesDirectionCosines(matrix[::-1,::-1].ravel())
+        self._reslicer.Modified()
         vtkMatrix4x4.Invert(
             self._reslicer.GetResliceAxes(), self._reslicer_axes_inverse)
     
@@ -389,12 +392,15 @@ class Layer(object) :
             # TODO : is this correct for nearest_axis_aligned or should we 
             # compute nearest*spacing*index+origin ?
             
-            begin = numpy.dot(self._world_to_slice, 
-                              self._image.index_to_physical((0,0,0)))
-            end = numpy.dot(self._world_to_slice, 
-                            self._image.index_to_physical(self._image.shape))
+            corners = itertools.product(
+                *[(0, x-1) for x in self._image.shape])
+            corners = [
+                numpy.dot(self._world_to_slice, self._image.index_to_physical(x)) 
+                for x in corners
+            ]
             
-            changed_origin = numpy.minimum(begin, end)
+            changed_origin = numpy.min(corners, 0)
+            
             # Set altitude to 0
             changed_origin[0] = 0
 
