@@ -539,6 +539,7 @@ class Slice(PropertySynchronized) :
         
         for layer in self._layers :
             layer.display_coordinates = display_coordinates
+        self._compute_extent()
         for annotation in self._gui_annotations.values() :
             annotation.display_coordinates = display_coordinates
         
@@ -645,7 +646,7 @@ class Slice(PropertySynchronized) :
         else :
             self._image_index_position = numpy.asarray(position)
             
-            position = medipy.base.array.reshape(position, 
+            position = medipy.base.array.reshape(numpy.asarray(position), 
                 (3,), "constant", False, value=0)
             world_vtk = numpy.dot(self._3d_world_to_slice, position)
         
@@ -697,7 +698,7 @@ class Slice(PropertySynchronized) :
         else :
             self._cursor_index_position = numpy.asarray(position)
             
-            position = medipy.base.array.reshape(position, 
+            position = medipy.base.array.reshape(numpy.asarray(position), 
                 (3,), "constant", False, value=0)
             world_vtk = numpy.dot(self._3d_world_to_slice, position)
         
