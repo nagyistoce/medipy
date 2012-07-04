@@ -285,6 +285,10 @@ class Layer(object) :
             # is exact. Since it is faster, use it
             self._reslicer.SetInterpolationModeToNearestNeighbor() 
         
+        # Reset UpdateExtent so that it will be recomputed. Otherwise, the 
+        # pipeline will complain if the previous extent is not inside the new one
+        self._change_information.GetOutput().SetUpdateExtent(0, -1, 0, -1, 0, -1)
+        
         self._update_reslicer_matrix()
         self._update_change_information()
         
