@@ -136,8 +136,9 @@ class Slice(PropertySynchronized) :
         ##################
         
         super(Slice, self).__init__([
-            "world_to_slice", "interpolation", "scalar_bar_visibility", 
-            "orientation_visibility", "corner_annotations_visibility", "zoom", 
+            "world_to_slice", "interpolation", "display_coordinates", 
+            "scalar_bar_visibility", "orientation_visibility", 
+            "corner_annotations_visibility", "zoom", 
         ])
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
