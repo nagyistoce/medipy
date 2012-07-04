@@ -67,24 +67,6 @@ def get_informations(image):
 
 class Image(wx.Panel, PropertySynchronized):
     
-    _world_to_slice = {
-        "axial" : numpy.asarray([ 
-            [1, 0, 0], # Patient I-S mapped to -z -> +z
-            [0, 1, 0], # Patient P-A mapped to -y -> +y
-            [0, 0, 1]  # Patient L-R mapped to -x -> +x
-        ], dtype=float),
-        "coronal" : numpy.asarray([ 
-            [0, 1, 0], # Patient P-A mapped to -z -> +z
-            [1, 0, 0], # Patient I-S mapped to -y -> +y
-            [0, 0, 1]  # Patient L-R mapped to -x -> +x
-        ], dtype=float),
-        "sagittal" : numpy.asarray([ 
-            [0, 0, 1], # Patient L-R mapped to -z -> +z
-            [1, 0, 0], # Patient I-S mapped to -y -> +y
-            [0, 1, 0]  # Patient P-A mapped to -x -> +x
-        ], dtype=float)
-    }
-    
     _viewport = {
         "axial" : (0.0, 0.0, 0.5, 0.5),
         "coronal" : (0.0, 0.5, 0.5, 1.0),
@@ -101,7 +83,7 @@ class Image(wx.Panel, PropertySynchronized):
                  annotations=None, interpolation=False,
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
-                 *args, **kwargs):
+                 convention="radiological", *args, **kwargs):
         
         if annotations is None :
             annotations = ObservableList()
@@ -116,6 +98,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._display_coordinates = None
         self._scalar_bar_visibility = None
         self._orientation_visibility = None
+        self._convention = None
         
         self._annotations = None
         
@@ -173,6 +156,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._set_display_coordinates(display_coordinates)
         self._set_scalar_bar_visibility(scalar_bar_visibility)
         self._set_orientation_visibility(orientation_visibility)
+        self._set_convention(convention)
         for layer in layers or [] :
             self.append_layer(**layer)
         self._set_slice_mode(slice_mode)
@@ -360,7 +344,8 @@ class Image(wx.Panel, PropertySynchronized):
         
         # Build and configure the Slice objects
         for name in names :
-            slice = Slice(self._world_to_slice[name], self._layers, 
+            world_to_slice = medipy.base.coordinate_system.slices[self._convention][name]
+            slice = Slice(world_to_slice, self._layers, 
                 self._annotations, self._interpolation, 
                 self._display_coordinates,self._scalar_bar_visibility, 
                 self._orientation_visibility, slice_mode != "multiplanar"
@@ -423,7 +408,7 @@ class Image(wx.Panel, PropertySynchronized):
         return self._display_coordinates
     
     def _set_display_coordinates(self, display_coordinates):
-        if display_coordinates not in ["physical", "index"] :
+        if display_coordinates not in ["physical", "nearest_axis_aligned", "index"] :
             raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._set_slice_property("display_coordinates", display_coordinates)
@@ -439,6 +424,23 @@ class Image(wx.Panel, PropertySynchronized):
     
     def _set_orientation_visibility(self, orientation_visibility):
         self._set_slice_property("orientation_visibility", orientation_visibility)
+    
+    def _get_convention(self):
+        """ Image viewing convention, can be either :
+              * radiological (left-is-right)
+              * neurological (left-is-left)
+        """
+        
+        return self._convention
+    
+    def _set_convention(self, convention):
+        if convention not in ["radiological", "neurological"] :
+            raise medipy.base.Exception("Unknown viewing convention : {0}".format(
+                convention))
+        self._convention = convention
+        
+        if self._slice_mode :
+            self._set_slice_mode(self._slice_mode)
     
     def _get_annotations(self):
         return self._annotations
@@ -553,6 +555,7 @@ class Image(wx.Panel, PropertySynchronized):
     display_coordinates = property(_get_display_coordinates, _set_display_coordinates)
     scalar_bar_visibility = property(_get_scalar_bar_visibility, _set_scalar_bar_visibility)
     orientation_visibility = property(_get_orientation_visibility, _set_orientation_visibility)
+    convention = property(_get_convention, _set_convention)
     annotations = property(_get_annotations, _set_annotations)
     cursor_physical_position = property(_get_cursor_physical_position, _set_cursor_physical_position)
     cursor_index_position = property(_get_cursor_index_position, _set_cursor_index_position)
