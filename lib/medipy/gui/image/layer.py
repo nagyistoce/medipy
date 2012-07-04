@@ -140,6 +140,8 @@ class Layer(object) :
         """
         
         index = self.world_to_index(world)
+        index = medipy.base.array.reshape(index, (self._image.ndim,), 
+            "constant", False, value=0)
         return self._image.index_to_physical(index) 
     
     def index_to_world(self, index) :
@@ -245,7 +247,10 @@ class Layer(object) :
         self._physical_position = physical_position_image
         self._index_position = self._image.physical_to_index(physical_position_image)
         
-        self._reslicer.SetResliceAxesOrigin(self._index_position[::-1])
+        
+        index_position = medipy.base.array.reshape(self._index_position, (3,),
+            "constant", False, value=0)
+        self._reslicer.SetResliceAxesOrigin(index_position[::-1])
         vtkMatrix4x4.Invert(
             self._reslicer.GetResliceAxes(), self._reslicer_axes_inverse)
     
@@ -392,10 +397,18 @@ class Layer(object) :
             # TODO : is this correct for nearest_axis_aligned or should we 
             # compute nearest*spacing*index+origin ?
             
+            # Reshape to image dimension
+            world_to_slice = medipy.base.array.reshape(self.world_to_slice, 
+                (self._image.ndim, self._image.ndim), "constant", False, value=0)
+            # Add ones on the diagonal when necessary
+            for rank in range(self._image.ndim) :
+                if numpy.less_equal(self.world_to_slice.shape, rank).all() : 
+                    world_to_slice_3d[self._image.ndim-rank-1, self._image.ndim-rank-1] = 1.
+            
             corners = itertools.product(
                 *[(0, x-1) for x in self._image.shape])
             corners = [
-                numpy.dot(self._world_to_slice, self._image.index_to_physical(x)) 
+                numpy.dot(world_to_slice, self._image.index_to_physical(x)) 
                 for x in corners
             ]
             
@@ -403,9 +416,13 @@ class Layer(object) :
             
             # Set altitude to 0
             changed_origin[0] = 0
+            changed_origin = medipy.base.array.reshape(changed_origin, (3,),
+                "constant", False, value=0)
 
-            changed_spacing = numpy.abs(numpy.dot(self._world_to_slice, 
+            changed_spacing = numpy.abs(numpy.dot(world_to_slice, 
                                                   self._image.spacing))
+            changed_spacing = medipy.base.array.reshape(changed_spacing, (3,),
+                "constant", False, value=0)
         else :
             changed_origin = (0,0,0)
             changed_spacing = (1,1,1)

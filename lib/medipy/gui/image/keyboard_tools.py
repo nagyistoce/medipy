@@ -42,9 +42,9 @@ class MoveCursor(KeyboardTool):
             motion = matrix[-2]
         elif rwi.GetKeySym() == "Down" :
             motion = -matrix[-2]
-        elif rwi.GetKeySym() in ["Prior", "PageUp"] :
+        elif matrix.shape[0] >= 3 and rwi.GetKeySym() in ["Prior", "PageUp"] :
             motion = matrix[-3]
-        elif rwi.GetKeySym() in ["Next", "PageDown"] :
+        elif matrix.shape[0] >= 3 and rwi.GetKeySym() in ["Next", "PageDown"] :
             motion = -matrix[-3]
         else :
             motion = [0]*image.ndim
