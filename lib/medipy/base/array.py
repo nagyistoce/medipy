@@ -20,15 +20,15 @@ def crop(array, shape, keep_axis_begin=True) :
     for axis in range(len(shape)) :
         if keep_axis_begin :
             begin = 0
-            end = min(shape[axis], array.shape[axis])
+            end = min(shape[axis], numpy.shape(array)[axis])
         else :
-            end = array.shape[axis]
+            end = numpy.shape(array)[axis]
             begin = max(0, end-shape[axis])
         
         s = slice(begin, end)
         slices += (s,)
     
-    cropped_array = array[slices]
+    cropped_array = numpy.asarray(array)[slices]
     
     return cropped_array
 
@@ -65,7 +65,7 @@ def pad(array, shape, mode, keep_axis_begin=True, **kwargs) :
     
     padded = array
     for axis in range(len(shape)) :
-        size = max(shape[axis], array.shape[axis])
+        size = max(shape[axis], numpy.shape(array)[axis])
         padded = numpy.apply_along_axis(function, axis, padded, size, keep_axis_begin)
     
     return padded
