@@ -346,7 +346,13 @@ class Image(wx.Panel, PropertySynchronized):
         
         # Build and configure the Slice objects
         for name in names :
-            world_to_slice = medipy.base.coordinate_system.slices[self._convention][name]
+            if self._display_coordinates == "index" :
+                # Do not use radiological or neurological slices
+                convention = "index"
+            else :
+                convention = self._convention
+            
+            world_to_slice = medipy.base.coordinate_system.slices[convention][name]
             slice = Slice(world_to_slice, self._layers, 
                 self._annotations, self._interpolation, 
                 self._display_coordinates,self._scalar_bar_visibility, 
@@ -415,6 +421,19 @@ class Image(wx.Panel, PropertySynchronized):
             raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._set_slice_property("display_coordinates", display_coordinates)
+
+        # Update world_to_slice, necessary when moving to/from index        
+        if self._display_coordinates == "index" :
+            # Do not use radiological or neurological slices
+            convention = "index"
+        else :
+            convention = self._convention
+        
+        for index, slice in enumerate(self._slices) :
+            name = self._slices_names[index]
+            world_to_slice = medipy.base.coordinate_system.slices[convention][name]
+            slice.world_to_slice = world_to_slice
+        
     
     def _get_scalar_bar_visibility(self) :
         return self._scalar_bar_visibility
@@ -442,9 +461,13 @@ class Image(wx.Panel, PropertySynchronized):
                 convention))
         self._convention = convention
         
+        if self._display_coordinates == "index" :
+            # Do not use radiological or neurological slices
+            convention = "index"
+        
         for index, slice in enumerate(self._slices) :
             name = self._slices_names[index]
-            world_to_slice = medipy.base.coordinate_system.slices[self._convention][name]
+            world_to_slice = medipy.base.coordinate_system.slices[convention][name]
             slice.world_to_slice = world_to_slice
     
     def _get_annotations(self):
