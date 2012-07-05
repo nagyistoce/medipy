@@ -97,6 +97,12 @@ class MainFrame(xrc_wrapper.Frame):
                 menu_item.Enable(False)
         
         # Update UI from preferences
+        coordinates = "display_coordinates_{0}_menu_item".format(
+            wx.GetApp().display_coordinates)
+        self.GetMenuBar().FindItemById(wx.xrc.XRCID(coordinates)).Check()
+        convention = "display_convention_{0}_menu_item".format(
+            wx.GetApp().display_convention)
+        self.GetMenuBar().FindItemById(wx.xrc.XRCID(convention)).Check()
         for attribute in ["cursor_position", "center", "zoom", "display_range"] :
             name = "sync_%s_menu_item"%attribute
             item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(name))
@@ -256,6 +262,21 @@ class MainFrame(xrc_wrapper.Frame):
     
     def OnSyncDisplayRange(self, dummy):
         wx.GetApp().toggle_synchronize_images("display_range")
+    
+    def OnDisplayCoordinatesPhysical(self, dummy) :
+        wx.GetApp().display_coordinates = "physical"
+    
+    def OnDisplayCoordinatesNearestAxisAligned(self, dummy) :
+        wx.GetApp().display_coordinates = "nearest_axis_aligned"
+    
+    def OnDisplayCoordinatesIndex(self, dummy) :
+        wx.GetApp().display_coordinates = "index"
+    
+    def OnDisplayConventionRadiological(self, dummy) :
+        wx.GetApp().display_convention = "radiological"
+    
+    def OnDisplayConventionNeurological(self, dummy) :
+        wx.GetApp().display_convention = "neurological"
     
     def OnMenuTreeCtrlSelChanged(self, evt):
        
