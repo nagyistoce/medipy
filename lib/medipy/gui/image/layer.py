@@ -17,7 +17,7 @@ from medipy.base import LateBindingProperty
 import medipy.gui
 import medipy.vtk
 
-class Layer(object) :
+class Layer(medipy.base.Observable) :
     """ Representation of a plane slice through a 2D or 3D image.
     
         This abstract class encapsulates an image and a colormap, and leaves the
@@ -62,6 +62,9 @@ class Layer(object) :
         ###################
         # Private members #
         ###################
+        
+        medipy.base.Observable.__init__(self, ["world_to_slice", "image", 
+            "display_coordinates", "colormap", "opacity"])
         
         # VTK image with the same content as self._image
         self._vtk_image = None
@@ -204,6 +207,8 @@ class Layer(object) :
         self._update_reslicer_matrix()
         self._update_change_information()
         
+        self.notify_observers("world_to_slice")
+        
     def _get_slice_to_world(self) :
         "Inverse of projection matrix from world frame to 2D slice frame."
         return self._slice_to_world
@@ -231,6 +236,8 @@ class Layer(object) :
         self._update_change_information()
         
         self._reslicer.SetInput(self._vtk_image)
+        
+        self.notify_observers("image")
 
     def _get_physical_position(self) :
         "Physical position through which the slicing plane passes."
@@ -294,6 +301,8 @@ class Layer(object) :
         
         if self._physical_position is not None :
             self._set_physical_position(self._get_physical_position())
+        
+        self.notify_observers("display_coordinates")
     
     def _get_colormap(self) :
         "Colormap to be applied to the image."
@@ -301,6 +310,7 @@ class Layer(object) :
     
     def _set_colormap(self, colormap) :
         self._colormap = colormap
+        self.notify_observers("colormap")
     
     def _get_opacity(self) :
         "Global opacity of the layer."
@@ -308,6 +318,7 @@ class Layer(object) :
     
     def _set_opacity(self, opacity) :
         self._opacity = opacity
+        self.notify_observers("opacity")
         
     def _get_actor(self) :
         "VTK actor of the layer. Must be defined in concrete derived classes."
