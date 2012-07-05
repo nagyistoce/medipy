@@ -31,65 +31,36 @@ class Tool(object) :
         world = self._coordinate.GetComputedWorldValue(slice.renderer)
         return list(reversed(world))
     
-    def _display_to_world(self, p, slice) :
-        """ Return the world position (numpy order) in the renderer space related
-            to the display position given as (x,y).
-        """
-        
-        slice_position = self._display_to_slice(p, slice)
-        
-        # _display_to_slice always returns the same z coordinate, adjust it.
-        if slice.display_coordinates == "physical":
-            position = slice.cursor_physical_position
-        else :
-            position = slice.cursor_index_position
-        if len(position) == 2 :
-            position = numpy.hstack([0, position])
-        slice_position[0] = numpy.dot(slice.world_to_slice, position)[0]
-        
-        # Convert to renderer's world coordinates
-        world_position = numpy.dot(slice.slice_to_world, slice_position)
-        
-        return world_position
-    
     def _display_to_image_physical(self, p, slice) :
         """ Return the physical position (numpy order) in the image space
             related to the display position given as (x,y).
         """
         
-        world_position = self._display_to_world(p, slice)
-        
-        if slice.display_coordinates == "physical" :
-            # renderer's world coordinates match image physical coordinates
-            return world_position
-        else :
-            # renderer's world coordinates match image index coordinates
-            image = slice.layers[0].image
-            return image.origin+world_position*image.spacing
+        self._coordinate.SetValue(*p)
+        world_position = self._coordinate.GetComputedWorldValue(slice.renderer)
+        return slice.layers[0].world_to_physical(world_position)
     
     def _display_to_image_index(self, p, slice) :
-        """ Return the index position (numpy order) in the image space
+        """ Return the index position (numpy order, floating point coordinates) 
+            in the image space related to the display position given as (x,y).
+        """
+        
+        self._coordinate.SetValue(*p)
+        world_position = self._coordinate.GetComputedWorldValue(slice.renderer)
+        return slice.layers[0].world_to_index(world_position)
+    
+    def _display_to_image_int_index(self, p, slice) :
+        """ Return the integer index position (numpy order) in the image space
             related to the display position given as (x,y).
         """
         
-        world_position = self._display_to_world(p, slice)
+        index_position = self._display_to_image_index(p, slice)
+        # Coordinates are rounded since the pixels are "considered to be the
+        # rectangular region surrounding the pixel center holding the data 
+        # value" (ITK Software Guide, 4.1.4, p. 40)
+        index_position = numpy.round(index_position).astype(int)
         
-        if slice.display_coordinates == "physical" :
-            # renderer's world coordinates match image physical coordinates
-            if slice.layers :
-                origin = slice.layers[0].image.origin
-                if len(origin) == 2 :
-                    origin = numpy.hstack([0, origin])
-                spacing = slice.layers[0].image.spacing
-                if len(spacing) == 2 :
-                    spacing = numpy.hstack([1, spacing])
-                return (world_position-origin)/spacing
-            else :
-                return world_position
-            
-        else :
-            # renderer's world coordinates match image index coordinates
-            return world_position
+        return index_position
 
 class MouseTool(Tool):
     """ Base class for all mouse tools.

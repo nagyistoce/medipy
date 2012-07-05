@@ -215,7 +215,7 @@ def metadata(datasets, skipped_tags="default"):
     return result 
 
 def image(datasets, skipped_tags="default", do_sort=True, sort_function=None, 
-          align_to_ras=True):
+          align_to_ras=False):
     """ Create an Image from the datasets. All datasets must belong to the same
         stack.
     """

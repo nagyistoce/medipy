@@ -23,17 +23,14 @@ class ImageAnnotation(object) :
         ]
     )
     
-    def __init__(self, annotation, world_to_slice, display_coordinates, origin, spacing) :
+    def __init__(self, annotation, layer) :
         
         ############################
         # Property-related members #
         ############################
         
         self._annotation = None
-        self._world_to_slice = None
-        self._display_coordinates = None
-        self._origin = None
-        self._spacing = None
+        self._layer = None
         self._slice_position = None
         self._text_actor = vtkTextActor()
         
@@ -55,10 +52,7 @@ class ImageAnnotation(object) :
         text_property.SetFontSize(12)
         
         self._set_annotation(annotation)
-        self._set_world_to_slice(world_to_slice)
-        self._set_display_coordinates(display_coordinates)
-        self._set_origin(origin)
-        self._set_spacing(spacing)
+        self._set_layer(layer)
     
     def _get_annotation(self) :
         """ Instance of base.Image
@@ -80,52 +74,18 @@ class ImageAnnotation(object) :
             self._annotation.add_observer(event, self._on_annotation_modified)
         self._annotation.add_observer("shape", self._on_annotation_shape_modified)
     
-    def _get_world_to_slice(self) :
-        """ Transformation matrix from world space to slice space.
-        """
+    def _get_layer(self) :
         
-        return self._world_to_slice
+        return self._layer
     
-    def _set_world_to_slice(self, world_to_slice) :
+    def _set_layer(self, layer) :
         
-        self._world_to_slice = world_to_slice
+        if self._layer :
+            self._layer.remove_observer("any", self._on_layer_modified)
         
-        self._update_shape()
-        self._update_label()
-    
-    def _get_display_coordinates(self) :
-        """ Display annotation using physical or index coordinates.
-        """
+        self._layer = layer
+        self._layer.add_observer("any", self._on_layer_modified)
         
-        return self._display_coordinates
-    
-    def _set_display_coordinates(self, display_coordinates) :
-        
-        self._display_coordinates = display_coordinates
-        self._update_shape()
-        self._update_label()
-    
-    def _get_origin(self) :
-        """ Origin of the image, used when displaying in index coordinates.
-        """
-        
-        return self._origin
-    
-    def _set_origin(self, origin) :
-        
-        self._origin = origin
-        self._update_shape()
-        self._update_label()
-    
-    def _get_spacing(self) :
-        """ Spacing of the image, used when displaying in index coordinates.
-        """
-        
-        return self._spacing
-    
-    def _set_spacing(self, spacing) :
-        
-        self._spacing = spacing
         self._update_shape()
         self._update_label()
     
@@ -160,10 +120,7 @@ class ImageAnnotation(object) :
         self._renderer = renderer
     
     annotation = property(_get_annotation, _set_annotation)
-    world_to_slice = property(_get_world_to_slice, _set_world_to_slice)
-    display_coordinates = property(_get_display_coordinates, _set_display_coordinates)
-    origin = property(_get_origin, _set_origin)
-    spacing = property(_get_spacing, _set_spacing)
+    layer = property(_get_layer, _set_layer)
     slice_position = property(_get_slice_position, _set_slice_position)
     shape_actor = property(_get_shape_actor)
     text_actor = property(_get_text_actor)
@@ -189,18 +146,11 @@ class ImageAnnotation(object) :
             world-to-slice, display coordinates, origin, and spacing).
         """
     
-        # TODO : display_coordinates
-    
-        if None in [self._annotation, self._world_to_slice, self._slice_position] :
+        if None in [self._annotation, self._layer] :
             return
     
         altitude = self._shape.actor.GetPosition()[2]
-        if self._display_coordinates == "physical" :
-            position = numpy.dot(self._world_to_slice, self._annotation.position)
-        else :
-            index_position = numpy.subtract(self._annotation.position, self._origin)
-            index_position /= self._spacing
-            position = numpy.dot(self._world_to_slice, index_position)
+        position = self._layer.physical_to_world(self._annotation.position)[::-1]
         position[0] = altitude
         
         self._shape.position = position
@@ -209,10 +159,11 @@ class ImageAnnotation(object) :
         # Apparent size of the shape is how high the annotation is above the 
         # slice plane.
         # TODO : should depend on the annotation shape
-        p1 = numpy.dot(self._world_to_slice, self._annotation.position)
-        p2 = numpy.dot(self._world_to_slice, self._slice_position)
-        distance = abs(p1[0]-p2[0])
-        self._shape.size = max(0, self._annotation.size-distance)
+        if self._slice_position is not None :
+            p1 = self._layer.physical_to_world(self._annotation.position)[::-1]
+            p2 = self._layer.physical_to_world(self._slice_position)[::-1]
+            distance = abs(p1[0]-p2[0])
+            self._shape.size = max(0, self._annotation.size-distance)
         
         self._shape.filled = self.annotation.filled
     
@@ -239,6 +190,13 @@ class ImageAnnotation(object) :
             self._text_actor.SetInput(self._annotation.label)
         else :
             self._text_actor.VisibilityOff()
+    
+    def _on_layer_modified(self, event) :
+        """ Event handler called when the layer has changed.
+        """
+        
+        self._update_shape()
+        self._update_label()
     
     def _on_annotation_modified(self, event) :
         """ Event handler called when annotation has changed.
