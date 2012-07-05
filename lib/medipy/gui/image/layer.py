@@ -292,10 +292,6 @@ class Layer(medipy.base.Observable) :
             # is exact. Since it is faster, use it
             self._reslicer.SetInterpolationModeToNearestNeighbor() 
         
-        # Reset UpdateExtent so that it will be recomputed. Otherwise, the 
-        # pipeline will complain if the previous extent is not inside the new one
-        self._change_information.GetOutput().SetUpdateExtent(0, -1, 0, -1, 0, -1)
-        
         self._update_reslicer_matrix()
         self._update_change_information()
         
@@ -389,6 +385,10 @@ class Layer(medipy.base.Observable) :
         # of the inverse of matrix, i.e. (M^{-1})^T. For orthogonal matrices, 
         # this is equal to M itself, but we're never too careful.
         matrix = numpy.linalg.inv(matrix).T
+        
+        # Reset UpdateExtent so that it will be recomputed. Otherwise, the 
+        # pipeline will complain if the previous extent is not inside the new one
+        self._change_information.GetOutput().SetUpdateExtent(0, -1, 0, -1, 0, -1)
         
         # Update reslicer, numpy axes -> VTK axes
         self._reslicer.SetResliceAxesDirectionCosines(matrix[::-1,::-1].ravel())
