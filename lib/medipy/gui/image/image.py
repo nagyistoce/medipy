@@ -118,6 +118,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._rwi = None
         self._layers = ObservableList()
         self._slices = []
+        self._slices_names = []
         self._informations_renderer = vtkRenderer()
         self._informations_renderer.SetViewport(*self._viewport["informations"])
         
@@ -338,6 +339,7 @@ class Image(wx.Panel, PropertySynchronized):
             self._rwi.GetRenderWindow().RemoveRenderer(self._informations_renderer) 
         
         self._slices = []
+        self._slices_names = []
         
         names = (["axial", "coronal", "sagittal"] if slice_mode == "multiplanar"
                  else [slice_mode])
@@ -358,11 +360,12 @@ class Image(wx.Panel, PropertySynchronized):
             self._rwi.GetRenderWindow().AddRenderer(slice.renderer)
             slice.setup_rwi(self._rwi)
             self._slices.append(slice)
+            self._slices_names.append(name)
         
         for index, slice in enumerate(self._slices) :
             for event in slice.allowed_events :
                 if event in ["any", "cursor_position", "image_position", "center",
-                             "corner_annotations_visibility"] :
+                             "corner_annotations_visibility", "world_to_slice"] :
                     continue
                 slice.add_observer(event, self._on_slice_event)
             
@@ -439,8 +442,10 @@ class Image(wx.Panel, PropertySynchronized):
                 convention))
         self._convention = convention
         
-        if self._slice_mode :
-            self._set_slice_mode(self._slice_mode)
+        for index, slice in enumerate(self._slices) :
+            name = self._slices_names[index]
+            world_to_slice = medipy.base.coordinate_system.slices[self._convention][name]
+            slice.world_to_slice = world_to_slice
     
     def _get_annotations(self):
         return self._annotations
