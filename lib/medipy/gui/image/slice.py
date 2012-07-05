@@ -496,9 +496,7 @@ class Slice(PropertySynchronized) :
         self._annotations.add_observer("any", self._on_annotations_changed)
         
         for annotation in annotations :
-            gui_annotation = GUIImageAnnotation(annotation, 
-                self._3d_world_to_slice, self._display_coordinates, 
-                self._layers[0].image.origin, self._layers[0].image.spacing)
+            gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
             gui_annotation.slice_position = self._cursor_physical_position
             gui_annotation.renderer = self._renderer
             
