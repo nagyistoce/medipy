@@ -608,6 +608,14 @@ class Slice(PropertySynchronized) :
         self.setup_orientation_annotation()        
         self._compute_extent()
         
+        # Keep the same pixel under the cursor and centered in the view
+        self._locked = True
+        if self._cursor_index_position is not None :
+            self._set_cursor_index_position(self._get_cursor_index_position())
+        if self._image_index_position is not None :
+            self._set_image_index_position(self._get_image_index_position())
+        self._locked = False
+        
         self.notify_observers("world_to_slice")
     
     def _get_slice_to_world(self) :
