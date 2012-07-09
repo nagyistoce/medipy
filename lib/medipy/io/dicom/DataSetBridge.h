@@ -12,6 +12,7 @@
 class DataSetBridge
 {
 public :
+    DataSetBridge();
     DataSetBridge(gdcm::DataSet const & dataset);
     DataSetBridge(PyObject* dataset);
 

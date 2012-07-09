@@ -34,6 +34,14 @@ static const bool initialized=initialize();
 
 }
 
+
+DataSetBridge
+::DataSetBridge()
+: _python_dataset(NULL)
+{
+    // Nothing else.
+}
+
 DataSetBridge
 ::DataSetBridge(gdcm::DataSet const & dataset)
 : _python_dataset(NULL)
@@ -98,13 +106,11 @@ PyObject*
 DataSetBridge
 ::to_python()
 {
-    // TODO : translate
     // Do not pre-initialize list since we will skip Group length elements
     PyObject* result = PyList_New(0);
 
-    unsigned int index=0;
     for(gdcm::DataSet::ConstIterator dataset_it=this->_gdcm_dataset.Begin();
-        dataset_it!=this->_gdcm_dataset.End(); ++dataset_it, ++index)
+        dataset_it!=this->_gdcm_dataset.End(); ++dataset_it)
     {
         uint16_t const tag_group = dataset_it->GetTag().GetGroup();
         uint16_t const tag_element = dataset_it->GetTag().GetElement();
@@ -127,6 +133,7 @@ DataSetBridge
                 std::string const specific_character_set=attribute.GetValue();
                 std::string dataset_encoding;
                 if(specific_character_set == "") dataset_encoding = "ascii";
+                // Single-byte character sets with code extensions (PS 3.3, Table C.12-2)
                 else if(specific_character_set == "ISO_IR 100") dataset_encoding = "latin_1";
                 else if(specific_character_set == "ISO_IR 101") dataset_encoding = "iso8859_2";
                 else if(specific_character_set == "ISO_IR 109") dataset_encoding = "iso8859_3";
@@ -137,8 +144,11 @@ DataSetBridge
                 else if(specific_character_set == "ISO_IR 138") dataset_encoding = "iso8859_8";
                 else if(specific_character_set == "ISO_IR 148") dataset_encoding = "iso8859_9";
                 else if(specific_character_set == "ISO_IR 13") dataset_encoding = "iso2022_jp";
-                // ISO_IR 166
-                // Single-byte character sets with code extensions (Table C.12-3)
+                // CP874 seems to be a superset of TIS-620/ISO-IR-166 (e.g.
+                // presence of the euro sign in the CP874 at an unassigned place
+                // of TIS-620), but we should get away with it.
+                else if(specific_character_set == "ISO_IR 166") dataset_encoding = "cp874";
+                // Single-byte character sets with code extensions (PS 3.3, Table C.12-3)
 //                ISO 2022 IR 6
 //                ISO 2022 IR 100
 //                ISO 2022 IR 101
@@ -151,11 +161,11 @@ DataSetBridge
 //                ISO 2022 IR 148
 //                ISO 2022 IR 113
 //                ISO 2022 IR 166
-                // Multi-byte character sets without code extensions (Table C.12-4)
+                // Multi-byte character sets without code extensions (PS 3.3, Table C.12-4)
 //                ISO 2022 IR 87
 //                ISO 2022 IR 159
 //                ISO 2022 IR 149
-                // Multi-byte character sets without code extensions (Table C.12-5)
+                // Multi-byte character sets without code extensions (PS 3.3, Table C.12-5)
                 else if(specific_character_set == "ISO_IR 192") dataset_encoding = "utf_8";
                 else if(specific_character_set == "GB18030") dataset_encoding = "gb18030";
 
@@ -246,7 +256,6 @@ DataSetBridge
         for(gdcm::SequenceOfItems::ConstIterator sequence_it=sequence->Begin();
             sequence_it!=sequence->End(); ++sequence_it, ++index)
         {
-            // TODO : encoding and errors
             DataSetBridge bridge(sequence_it->GetNestedDataSet());
             bridge.set_encoding(this->get_encoding());
             PyObject* python_item = bridge.to_python();
