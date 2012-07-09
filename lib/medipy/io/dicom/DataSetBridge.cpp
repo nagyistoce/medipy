@@ -1,6 +1,6 @@
 #include "DataSetBridge.h"
 
-#include "Python.h"
+#include <Python.h>
 
 #include <algorithm>
 #include <sstream>
@@ -12,6 +12,27 @@
 #include <gdcmDataSet.h>
 #include <gdcmSequenceOfItems.h>
 #include <gdcmVR.h>
+
+#include <numpy/arrayobject.h>
+
+// Initialize PyArray_API : since the symbol is declared as static unless
+// PY_ARRAY_UNIQUE_SYMBOL is defined to a unique value and NO_IMPORT is defined
+// (cf. __multiarray_api.h), it is easier to call import_array in each
+// translation unit using the C API of NumPy.
+namespace
+{
+
+bool initialize()
+{
+    // Use import_array1 instead of import_array so that we have a return value
+    // even if the import fails (cf. __multiarray_api.h).
+    import_array1(false);
+    return true;
+}
+
+static const bool initialized=initialize();
+
+}
 
 DataSetBridge
 ::DataSetBridge(gdcm::DataSet const & dataset)
@@ -172,10 +193,48 @@ DataSetBridge
 
     gdcm::VR const & vr = data_element.GetVR();
 
-    if(vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::UN))
+    if(vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW))
+    {
+        gdcm::ByteValue const * byte_value = data_element.GetByteValue();
+
+        // Make a copy, since data_element keeps ownership of its data
+        char* data = new char[byte_value->GetLength()];
+        char const * begin = byte_value->GetPointer();
+        char const * end = byte_value->GetPointer()+byte_value->GetLength();
+        std::copy(begin, end, data);
+
+        // Determine type and dimension
+        int item_type;
+        npy_intp* dimensions = new npy_intp[1];
+        if(vr == gdcm::VR::OB)
+        {
+            item_type = NPY_UBYTE;
+            dimensions[0] = data_element.GetVL();
+        }
+        else if(vr == gdcm::VR::OF)
+        {
+            item_type = NPY_FLOAT32;
+            dimensions[0] = data_element.GetVL()/4;
+        }
+        else // vr == gdcm::VR::OW
+        {
+            item_type = NPY_UINT16;
+            dimensions[0] = data_element.GetVL()/2;
+        }
+
+        // Create array, set data ownership (since we made a copy earlier)
+        PyObject* array = PyArray_SimpleNewFromData(1, dimensions, item_type, data);
+        reinterpret_cast<PyArrayObject*>(array)->flags |= NPY_OWNDATA;
+
+        delete[] dimensions;
+
+        return array;
+    }
+    else if (vr == gdcm::VR::UN)
     {
         // Return str, to be used as sequence of bytes
-        value = Py_None;
+        value = PyString_FromStringAndSize(
+            data_element.GetByteValue()->GetPointer(), data_element.GetVL());
     }
     else if(vr == gdcm::VR::SQ)
     {
@@ -189,6 +248,7 @@ DataSetBridge
         {
             // TODO : encoding and errors
             DataSetBridge bridge(sequence_it->GetNestedDataSet());
+            bridge.set_encoding(this->get_encoding());
             PyObject* python_item = bridge.to_python();
             if(python_item == NULL)
             {
@@ -242,7 +302,6 @@ DataSetBridge
         }
         else // count > 1
         {
-            value = Py_None;
             value = PyList_New(count);
             char const * begin = byte_value->GetPointer();
             char const * end = begin+byte_value->GetLength();

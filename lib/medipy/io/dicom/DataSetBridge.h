@@ -1,7 +1,7 @@
 #ifndef _eab6ea72_375e_4eb8_afbc_ef22e0eddbfa
 #define _eab6ea72_375e_4eb8_afbc_ef22e0eddbfa
 
-#include "Python.h"
+#include <Python.h>
 
 #include <string>
 
@@ -27,7 +27,7 @@ public :
     PyObject* to_python();
     PyObject* to_python(gdcm::DataElement const & data_element) const;
 
-    gdcm::DataSet const & to_gdcm();
+    // gdcm::DataSet const & to_gdcm();
 private :
     gdcm::DataSet _gdcm_dataset;
     PyObject* _python_dataset;
