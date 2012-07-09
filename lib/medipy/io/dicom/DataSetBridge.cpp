@@ -69,20 +69,6 @@ DataSetBridge
     this->_gdcm_dataset = dataset;
 }
 
-std::string const & 
-DataSetBridge
-::get_encoding() const
-{
-    return this->_encoding;
-}
-
-void 
-DataSetBridge
-::set_encoding(std::string const & encoding) 
-{
-    this->_encoding = encoding;
-}
-
 PyObject*
 DataSetBridge
 ::get_python() const
@@ -102,12 +88,26 @@ DataSetBridge
     Py_INCREF(this->_python_dataset);
 }
 
+std::string const &
+DataSetBridge
+::get_encoding() const
+{
+    return this->_encoding;
+}
+
+void
+DataSetBridge
+::set_encoding(std::string const & encoding)
+{
+    this->_encoding = encoding;
+}
+
 PyObject*
 DataSetBridge
 ::to_python()
 {
     // Do not pre-initialize list since we will skip Group length elements
-    PyObject* result = PyList_New(0);
+    PyObject* result = PyDict_New();
 
     for(gdcm::DataSet::ConstIterator dataset_it=this->_gdcm_dataset.Begin();
         dataset_it!=this->_gdcm_dataset.End(); ++dataset_it)
@@ -177,16 +177,14 @@ DataSetBridge
             if(value == NULL)
             {
                 // An error occurred
-                this->_python_dataset = NULL;
+                Py_DECREF(result);
+                result = NULL;
                 break;
             }
 
-            PyObject* item = Py_BuildValue("(OO)", key, value);
+            PyDict_SetItem(result, key, value);
             Py_DECREF(key);
             Py_DECREF(value);
-
-            PyList_Append(result, item);
-            Py_DECREF(item);
         }
     }
 
@@ -205,6 +203,8 @@ DataSetBridge
 
     if(vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW))
     {
+        // Return a NumPy array
+
         gdcm::ByteValue const * byte_value = data_element.GetByteValue();
 
         // Make a copy, since data_element keeps ownership of its data
@@ -261,6 +261,7 @@ DataSetBridge
             PyObject* python_item = bridge.to_python();
             if(python_item == NULL)
             {
+                Py_DECREF(value);
                 value = NULL;
                 break;
             }
@@ -328,7 +329,9 @@ DataSetBridge
     }
     else
     {
-        // TODO : throw
+        // We don't know how to handle this VR.
+        value = NULL;
+        PyErr_SetString(PyExc_Exception, "Unknown VR");
     }
 
     return value;
@@ -382,7 +385,7 @@ DataSetBridge
     if(vr & (gdcm::VR::AE | gdcm::VR::AS | gdcm::VR::CS | gdcm::VR::DA |
              gdcm::VR::DT | gdcm::VR::TM | gdcm::VR::UI))
     {
-        // ASCII text content, whitespaces are not significant
+        // ASCII text content, leading and trailing whitespaces are not significant
         char const * first = find_first_not_of(
             begin, end,
             whitespace_and_backslash.begin(), whitespace_and_backslash.end());
@@ -525,9 +528,6 @@ unsigned long
 DataSetBridge
 ::_get_length(char const * begin, char const * end, gdcm::VR const & vr) const
 {
-    static std::string const whitespace(" \0", 2);
-    static std::string const whitespace_and_backslash(" \0\\", 3);
-
     if(vr & (gdcm::VR::AE | gdcm::VR::AS | gdcm::VR::CS | gdcm::VR::DA |
              gdcm::VR::DS | gdcm::VR::DT | gdcm::VR::IS | gdcm::VR::LO | 
              gdcm::VR::PN | gdcm::VR::SH | gdcm::VR::TM | gdcm::VR::UI))
@@ -573,7 +573,7 @@ DataSetBridge
         std::ostringstream message;
         message << "Cannot get length for VR " << vr;
         PyErr_SetString(PyExc_Exception, message.str().c_str());
-        return NULL;
+        return 0;
     }
 
 }
