@@ -499,8 +499,11 @@ DataSetBridge
     }
     else if(vr == gdcm::VR::DS)
     {
+        char * old_numeric = setlocale(LC_NUMERIC, NULL);
+        setlocale(LC_NUMERIC, "C");
         char* endptr;
         double const d = std::strtod(begin, &endptr);
+        setlocale(LC_NUMERIC, old_numeric);
         if(endptr == begin)
         {
             PyErr_SetString(PyExc_Exception, "Cannot parse DS");
@@ -521,8 +524,11 @@ DataSetBridge
     }
     else if(vr == gdcm::VR::IS)
     {
+        char * old_numeric = setlocale(LC_NUMERIC, NULL);
+        setlocale(LC_NUMERIC, "C");
         char* endptr;
         long const d = std::strtol(begin, &endptr, 10);
+        setlocale(LC_NUMERIC, old_numeric);
         if(endptr == begin)
         {
             PyErr_SetString(PyExc_Exception, "Cannot parse IS");
