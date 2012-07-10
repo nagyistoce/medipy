@@ -36,102 +36,43 @@
 
 import os.path
 import re
+import subprocess
 import sys
+import tempfile
 
 from SCons.Builder import Builder
 
 from utils import split_environment_variable
 
 def configuration_variables() :
-    possible_vtk_dirs = _possible_vtk_dirs()
     
-    # Find VTKConfig.cmake
-    vtk_dir = None
-
-    for dir in possible_vtk_dirs :
-        if os.path.isfile(os.path.join(dir, "VTKConfig.cmake")) :
-            vtk_dir = dir
-            break
-    
-    result = None
-    
-    if vtk_dir is None : 
+    command = ["cmake", "-P", os.path.join(os.path.dirname(__file__), "vtk.cmake")]
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    if process.returncode != 0 :
         print "Could not find VTK, some modules will not be compiled."
-        print "Please add the directory containing VTKConfig.cmake to a standard path "
-        print "or to the VTK_DIR environment variable"
-    else :     
-        result = { 
-                "CPPPATH" : [],
-                "LIBPATH" : [],
-                "LIBS" : [],
-                "PYTHON_LIBS" : []
-        }
-
-        vtk_install_prefix = os.path.dirname(os.path.dirname(vtk_dir))
-        
-        headers_found = False
-        for dir in ["vtk-5.0", "vtk-5.2", "vtk-5.4", "vtk"] :
-            path = os.path.join(vtk_install_prefix, "include", dir)
-            if os.path.isdir(path) :
-                result["CPPPATH"].append(path)
-                headers_found = True
-                break 
-        
-        if not headers_found : 
-            raise Exception("VTK was found, but headers could not be found")
-        
-        if os.path.isdir(os.path.join(vtk_install_prefix, "lib")) :
-            result["LIBPATH"].append(os.path.join(vtk_install_prefix, "lib"))
-        for extension in ["", "-5.0", "-5.1", "-5.2", "-5.3", "-5.4"] :
-            if os.path.isdir(os.path.join(vtk_install_prefix, "lib", "vtk%s"%extension)) :
-                result["LIBPATH"].append(os.path.join(vtk_install_prefix, "lib", "vtk%s"%extension))
-        
-        for lib in ["Common", "Filtering", "Graphics", "Hybrid", "Imaging", "IO", 
-                    "Parallel", "Rendering", "sys", "VolumeRendering", "Widgets"] :
-            result["LIBS"].append("vtk"+lib)
-            if lib != "sys" :
-                result["PYTHON_LIBS"].append("vtk"+lib+"PythonD")
-
-        vtk_wrap_python = os.path.join(vtk_install_prefix, "bin", "vtkWrapPython")
-        vtk_wrap_python_init = os.path.join(vtk_install_prefix, "bin", "vtkWrapPythonInit")
-        
-        result["vtk_wrap_python"] = vtk_wrap_python
-        result["vtk_wrap_python_init"] = vtk_wrap_python_init
-        
-        for command in ["vtk_wrap_python", "vtk_wrap_python_init"] :
-            if sys.platform == "win32" and " " in result[command] :
-                result[command] = "\"%s\""%result[command]
-    
-    return result
-
-def _possible_vtk_dirs() :
-    possible_vtk_dirs = []
-    # Look in some environment variables
-    for element in split_environment_variable("PATH") : 
-        for extension in ["", "-5.0", "-5.1", "-5.2", "-5.3", "-5.4"] :
-            posssible_dir = os.path.join(os.path.dirname(element), "lib", "vtk"+extension)
-            if posssible_dir not in possible_vtk_dirs :
-                possible_vtk_dirs.append(posssible_dir)
-    for element in split_environment_variable("VTK_DIR") : 
-        if element not in possible_vtk_dirs :
-                possible_vtk_dirs.append(element)
-    # Look in predefined paths
-    possible_vtk_dirs.append(os.path.join("/usr/local/lib/vtk"))
-    possible_vtk_dirs.append(os.path.join("/usr/lib/vtk"))
-    # Look in Windows' registry
-    if False and sys.platform == "win32" :
-        import _winreg
-        key = "Software\\Kitware\\CMakeSetup\\Settings\\StartPath"
-        for build_id in range(1, 11) :
-            handle = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, key)
-            try :
-                value, key_type = _winreg.QueryValueEx(handle, "WhereBuild" + str(build_id))
-            except WindowsError, e :
-                pass
-            else :
-                if value not in possible_vtk_dirs :
-                    possible_vtk_dirs.append(value)
-    return possible_vtk_dirs
+        print stderr
+        return None
+    else :
+        result = {}
+        # Result of cmake -P is on stderr
+        for line in stderr.split("\n") :
+            if not line :
+                continue
+            key, value = line.split("=", 1)
+            if key in ["CPPPATH", "LIBPATH", "LIBS", "PYTHON_LIBS"] :
+                value = list(set(value.split(";")))
+            if key in ["LIBS", "PYTHON_LIBS"] :
+                value = [x for x in value if x != "general"]
+            if key in ["vtk_wrap_python", "vtk_wrap_python_init"] :
+                if sys.platform == "win32" and " " in value :
+                    value = "\"{0}\"".format(value)
+            result[key] = value
+        # Remove duplicate entries between LIBS and PYTHON_LIBS
+        result["PYTHON_LIBS"] = [x for x in result["PYTHON_LIBS"] if x not in result["LIBS"]]
+        # Remove absolute file paths from LIBS
+        result["LIBS"] = [x for x in result["LIBS"] if os.path.sep not in x]
+        return result
 
 def datafile_command(target, source, env):
     module_name = env["MODULE_NAME"].split(".")[-1]
