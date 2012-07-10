@@ -3,6 +3,7 @@
 #include <Python.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <sstream>
 #include <stdint.h>
 
@@ -106,7 +107,6 @@ PyObject*
 DataSetBridge
 ::to_python()
 {
-    // Do not pre-initialize list since we will skip Group length elements
     PyObject* result = PyDict_New();
 
     for(gdcm::DataSet::ConstIterator dataset_it=this->_gdcm_dataset.Begin();
@@ -361,15 +361,35 @@ template<typename TIterator1, typename TIterator2>
 TIterator1 find_last_not_of(TIterator1 first1, TIterator1 last1,
                             TIterator2 first2, TIterator2 last2)
 {
+    if(first1 == last1)
+    {
+        // Empty sequence
+        return first1;
+    }
+
+    // If nothing is found,
     TIterator1 result=last1;
-    TIterator1 it=first1;
-    while(it != last1)
+    // Start at the last element
+    TIterator1 it=last1;
+    --it;
+
+    while(it != first1)
+    {
+        if(std::find(first2, last2, *it) == last2)
+        {
+            result = it;
+            break;
+        }
+        --it;
+    }
+
+    // First element of the sequence
+    if(it == first1)
     {
         if(std::find(first2, last2, *it) == last2)
         {
             result = it;
         }
-        ++it;
     }
 
     return result;
@@ -442,9 +462,7 @@ DataSetBridge
     { \
         /* Avoid propagating the error. */ \
         PyErr_Clear(); \
-        /*std::cout << "Trying " << e << " for " << value.c_str()+first << " ";*/ \
         object = PyUnicode_Decode(first, size, e, "strict"); \
-        /*std::cout << object << std::endl;*/ \
     }
         PyObject* object = NULL;
         TRY_DECODE(object, this->_encoding.c_str());
@@ -473,11 +491,14 @@ DataSetBridge
     }
     else if(vr == gdcm::VR::DS)
     {
-        char const * value_end = std::find(begin, end, '\\');
-        std::istringstream in(std::string(begin, value_end));
-        in.imbue(std::locale("C"));
-        double d;
-        in >> d;
+        char* endptr;
+        double const d = std::strtod(begin, &endptr);
+        if(endptr == begin)
+        {
+            PyErr_SetString(PyExc_Exception, "Cannot parse DS");
+            return NULL;
+        }
+
         return PyFloat_FromDouble(d);
     }
     else if(vr == gdcm::VR::FD)
@@ -492,12 +513,14 @@ DataSetBridge
     }
     else if(vr == gdcm::VR::IS)
     {
-        char const * value_end = std::find(begin, end, '\\');
-        std::istringstream in(std::string(begin, value_end));
-        in.imbue(std::locale("C"));
-        long l;
-        in >> l;
-        return PyInt_FromLong(l);
+        char* endptr;
+        long const d = std::strtol(begin, &endptr, 10);
+        if(endptr == begin)
+        {
+            PyErr_SetString(PyExc_Exception, "Cannot parse IS");
+            return NULL;
+        }
+        return PyInt_FromLong(d);
     }
     else if(vr == gdcm::VR::SL)
     {
