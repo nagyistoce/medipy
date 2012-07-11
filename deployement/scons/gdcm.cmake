@@ -1,0 +1,18 @@
+macro(follow_dependency lib_name)
+    list(APPEND all_libraries ${lib_name})
+    set(dependencies_name ${lib_name}_LIB_DEPENDS)
+    if(DEFINED ${dependencies_name})
+        set(dependencies ${${dependencies_name}})
+        foreach(item ${dependencies})
+            follow_dependency(${item})
+        endforeach(item ${dependencies})
+    endif(DEFINED ${dependencies_name})
+endmacro(follow_dependency)
+
+find_package(GDCM REQUIRED)
+message("CPPPATH=${GDCM_INCLUDE_DIRS}")
+message("LIBPATH=${GDCM_LIBRARY_DIRS}")
+# gdcmMSFF is the catch-all GDCM library
+SET(all_libraries )
+follow_dependency("gdcmMSFF")
+message("LIBS=${all_libraries}")
