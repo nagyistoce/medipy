@@ -100,7 +100,7 @@ class Environment(SConsEnvironment) :
         sys.path.append(os.path.dirname(__file__))
         
         self._addon_modules = {}
-        for name in ["cython", "itk", "python", "swig", "vtk"] :
+        for name in ["cython", "gdcm", "itk", "python", "swig", "vtk"] :
             try :
                 f = None
                 f, pathname, description = imp.find_module(
@@ -119,6 +119,7 @@ class Environment(SConsEnvironment) :
                 print "".join(traceback.format_exception(*exc_info))
         
         self._find_itk()
+        self._find_gdcm()
         self._find_openmp()
         self._find_python()
         self._find_vtk()
@@ -175,6 +176,12 @@ class Environment(SConsEnvironment) :
             variables = {}
         self._configuration_variables["itk"] = variables
     
+    def _find_gdcm(self):
+        variables = self._addon_modules["gdcm"].configuration_variables()
+        if variables is None : 
+            variables = {}
+        self._configuration_variables["gdcm"] = variables
+
     def _find_openmp(self):
         self._configuration_variables["openmp"] = openmp.configuration_variables()
     
