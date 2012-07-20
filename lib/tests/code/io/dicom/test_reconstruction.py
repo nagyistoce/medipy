@@ -60,9 +60,9 @@ class TestReconstruction(unittest.TestCase):
         
         for stack in stacks :
             image = medipy.io.dicom.image(stack)
-            self.assertEqual(image.shape, (512, 28, 512))
+            self.assertEqual(image.shape, (28, 512, 512))
             numpy.testing.assert_almost_equal(image.spacing,
-                                              (0.703125, 2.5, 0.703125))
+                                              (2.5, 0.703125, 0.703125))
     
     def test_nm(self):
         tempdir = self.extract("nm.tar.gz")
