@@ -250,8 +250,31 @@ class IPB(IOBase) :
         return (self._header_filename is not None)
     
     def save(self, image) :
-        self._write_header(image)
-        self._write_data(image)
+        
+        # Transform the image to the closest axis-aligned approximation of RAS space
+        MatrixType = itk.Matrix[itk.D, 3, 3]
+        MatrixBridge = itk.MatrixBridge[MatrixType]
+        direction = coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
+        direction = numpy.dot(coordinate_system.RAS, direction)
+        itk_direction = numpy.fliplr(numpy.flipud(direction))
+        itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
+        
+        itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
+        itk_image.SetDirection(itk_direction)
+        
+        itk_RAS = numpy.fliplr(numpy.flipud(coordinate_system.RAS))
+        itk_RAS = MatrixBridge.GetMatrixFromArray(itk_RAS)
+        
+        orienter = itk.OrientImageFilter[itk_image, itk_image].New()
+        orienter.UseImageDirectionOn()
+        orienter.SetInput(itk_image)
+        orienter.SetDesiredCoordinateDirection(itk_RAS)
+        orienter.Update()
+        
+        ras_image = medipy.itk.itk_image_to_medipy_image(orienter.GetOutput(), None, True)
+        
+        self._write_header(ras_image)
+        self._write_data(ras_image)
     
     def _get_annotation(self, image_index, element_index):
         element = "annotation_%04d_%04d"%(image_index+1, element_index)
@@ -697,35 +720,12 @@ y_LM=0.000000""")
         file.close()
     
     def _write_data(self, image):
-        
-        # Transform the image to the closest axis-aligned approximation of RAS space
-        MatrixType = itk.Matrix[itk.D, 3, 3]
-        MatrixBridge = itk.MatrixBridge[MatrixType]
-        direction = coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
-        direction = numpy.dot(coordinate_system.RAS, direction)
-        itk_direction = numpy.fliplr(numpy.flipud(direction))
-        itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
-        
-        itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
-        itk_image.SetDirection(itk_direction)
-        
-        itk_RAS = numpy.fliplr(numpy.flipud(coordinate_system.RAS))
-        itk_RAS = MatrixBridge.GetMatrixFromArray(itk_RAS)
-        
-        orienter = itk.OrientImageFilter[itk_image, itk_image].New()
-        orienter.UseImageDirectionOn()
-        orienter.SetInput(itk_image)
-        orienter.SetDesiredCoordinateDirection(itk_RAS)
-        orienter.Update()
-        
-        ras_image = medipy.itk.itk_image_to_medipy_image(orienter.GetOutput(), None, True)
-        
         # Find the icomp
-        data_min = ras_image.data.min()
-        data_max = ras_image.data.max()
+        data_min = image.data.min()
+        data_max = image.data.max()
         icomp, rcoeff = self._get_icomp_and_rcoeff(data_min, data_max)
         
-        data = ras_image.data/rcoeff
+        data = image.data/rcoeff
         data = data.astype(numpy.int16)
         
         # Apply the inverse transformations done in load
