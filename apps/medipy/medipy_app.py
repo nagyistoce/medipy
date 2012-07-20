@@ -41,6 +41,8 @@ class MediPyApp(Application) :
         self.viewer_3ds = ObservableList()
         
         # Properties
+        self._display_coordinates = None
+        self._display_convention = None
         self._synchronize_images = {}
         
         # Private interface
@@ -74,8 +76,9 @@ class MediPyApp(Application) :
         
         gui_image = medipy.gui.image.Image(
             self._frame.images_panel, mode, 
-            layers = [{"image" : image}] + [{"image" : l} for l in layers],
-            annotations = image.annotations,
+            [{"image" : image}] + [{"image" : l} for l in layers],
+            image.annotations, display_coordinates=self._display_coordinates,
+            convention=self._display_convention
         )
         gui_image.reset_view()
         gui_image.Bind(wx.EVT_LEFT_DOWN, self.OnImageClicked)
@@ -325,13 +328,42 @@ class MediPyApp(Application) :
     # PROPERTIES #
     ##############
 
+    def _get_display_coordinates(self) :
+        return self._display_coordinates
+    
+    def _set_display_coordinates(self, value) :
+        self._display_coordinates = value
+        for image in self.gui_images :
+            image.display_coordinates = value
+            image.render()
+        wx.ConfigBase_Get().Write("DisplayCoordinates", self._display_coordinates)
+        wx.ConfigBase_Get().Flush()
+    
+    def _get_display_convention(self) :
+        return self._display_convention
+    
+    def _set_display_convention(self, value) :
+        self._display_convention = value
+        for image in self.gui_images :
+            image.convention = value
+            image.render()
+        wx.ConfigBase_Get().Write("DisplayConvention", self._display_convention)
+        wx.ConfigBase_Get().Flush()
+
     def _set_slices(self, slices):
         if slices != self.active_image.slice_mode :
             self.active_image.slice_mode = slices
             self.active_image.render()
         self._frame.slices = slices
     
-    slices = property(lambda self:self.active_image.slices, _set_slices)
+    def _get_active_image(self):
+        """ Active GUI image
+        """
+        
+        if self._active_image_index != -1 :
+            return self.gui_images[self._active_image_index]
+        else :
+            return None
     
     def _set_active_image(self, gui_image):
         try :
@@ -339,6 +371,11 @@ class MediPyApp(Application) :
         except ValueError :
             # Image is not in list, do nothing
             pass
+
+        # Display active image path in title
+        url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
+        self._frame.SetTitle("MediPy ({0})".format(url))
+
         for other_image in self.gui_images :
             if other_image == gui_image :
                 other_image.SetBackgroundColour(wx.GREEN)
@@ -361,12 +398,11 @@ class MediPyApp(Application) :
         elif hasattr(self._frame.current_ui, "image") :
             self._frame.current_ui.image = gui_image
     
-    def _get_active_image(self):
-        if self._active_image_index != -1 :
-            return self.gui_images[self._active_image_index]
-        else :
-            return None
-    
+    display_coordinates = property(_get_display_coordinates, 
+                                   _set_display_coordinates)
+    display_convention = property(_get_display_convention,
+                                  _set_display_convention)
+    slices = property(lambda self:self.active_image.slices, _set_slices)
     active_image = property(_get_active_image, _set_active_image)
     
     ##################
@@ -379,6 +415,11 @@ class MediPyApp(Application) :
             config_entry = "SynchronizeImages_%s"%attribute
             value = wx.ConfigBase_Get().ReadBool(config_entry) or False
             self.set_synchronize_images(attribute, value)
+        
+        self.display_coordinates = (
+            wx.ConfigBase_Get().Read("DisplayCoordinates") or "physical")
+        self.display_convention = (
+            wx.ConfigBase_Get().Read("DisplayConvention") or "radiological")
         
         if self.options.menu_file is not None :
             menu = menu_builder.from_file.build_menu(self.options.menu_file)

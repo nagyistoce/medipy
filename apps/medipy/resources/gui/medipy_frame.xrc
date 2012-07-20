@@ -158,6 +158,32 @@
         </object>
       </object>
       <object class="wxMenu" name="view_menu">
+        <object class="wxMenu" name="display_coordinates_menu">
+          <object class="wxMenuItem" name="display_coordinates_physical_menu_item">
+            <label>Physical</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="display_coordinates_nearest_axis_aligned_menu_item">
+            <label>Nearest axis-aligned</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="display_coordinates_index_menu_item">
+            <label>Index</label>
+            <radio>1</radio>
+          </object>
+          <label>Display coordinates</label>
+        </object>
+        <object class="wxMenu" name="display_convention_menu">
+          <object class="wxMenuItem" name="display_convention_radiological_menu_item">
+            <label>Radiological</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="display_convention_neurological_menu_item">
+            <label>Neurological</label>
+            <radio>1</radio>
+          </object>
+          <label>Display convention</label>
+        </object>
         <object class="wxMenu" name="synchronize_menu">
           <object class="wxMenuItem" name="sync_cursor_position_menu_item">
             <label>Cursor position</label>

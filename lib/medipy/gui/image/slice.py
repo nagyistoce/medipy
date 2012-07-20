@@ -14,6 +14,7 @@ from vtk import (vtkActor, vtkCornerAnnotation, vtkLineSource,
     vtkPolyDataMapper, vtkRenderer, vtkScalarBarActor)
 
 import medipy.base
+import medipy.base.array
 from medipy.base import ObservableList, PropertySynchronized
 from medipy.gui import colormaps
 from medipy.gui.colormap import Colormap
@@ -111,6 +112,7 @@ class Slice(PropertySynchronized) :
         # World-to-slice matrix, with rows and columns added or removed so that
         # it is 3x3.
         self._3d_world_to_slice = None
+        self._3d_slice_to_world = None
         
         # Slice extent is the physical extent of all layers, 
         # given as (x_min, x_max, y_min, y_max)
@@ -134,8 +136,9 @@ class Slice(PropertySynchronized) :
         ##################
         
         super(Slice, self).__init__([
-            "world_to_slice", "interpolation", "scalar_bar_visibility", 
-            "orientation_visibility", "corner_annotations_visibility", "zoom", 
+            "world_to_slice", "interpolation", "display_coordinates", 
+            "scalar_bar_visibility", "orientation_visibility", 
+            "corner_annotations_visibility", "zoom", 
         ])
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
@@ -311,11 +314,8 @@ class Slice(PropertySynchronized) :
         if self._layers :
             image = self._layers[0].image
             center = numpy.divide(image.shape, 2.).round()
-            
             self._set_cursor_index_position(center)
-            
-            center = image.origin+center*image.spacing
-            self._set_image_physical_position(center)
+            self._set_image_index_position(center)
         else :
             self._set_cursor_physical_position((0,0,0))
             self._set_image_physical_position((0,0,0))
@@ -327,41 +327,54 @@ class Slice(PropertySynchronized) :
             projection
         """
         
-        # Anatomical directions
-        directions = {
-            "L" : (0,0,-1),
-            "R" : (0,0,+1),
-            "P" : (0,-1,0),
-            "A" : (0,+1,0),
+        # Anatomical directions in LPS convention, numpy order
+        directions_anatomical = {
+            "L" : (0,0,+1),
+            "R" : (0,0,-1),
+            "P" : (0,+1,0),
+            "A" : (0,-1,0),
             "I" : (-1,0,0),
             "S" : (+1,0,0),
         }
+        
+        # Index directions, numpy order
+        directions_index = {
+            "+x" : (0,0,+1),
+            "-x" : (0,0,-1),
+            "+y" : (0,+1,0),
+            "-y" : (0,-1,0),
+            "+z" : (-1,0,0),
+            "-z" : (+1,0,0),
+        }
+        
+        directions = (directions_anatomical 
+                      if self.display_coordinates in ["physical", "nearest_axis_aligned"]
+                      else directions_index)
+        
         # Window locations
         locations = {
-            "center" : (0,0),
             "up" : (1,0),
             "down" : (-1,0),
             "left" : (0,-1),
             "right" : (0,1)
         }
         
-        for name, direction in directions.items() :
-            # Anatomical direction in slice
-            direction_in_slice = numpy.dot(self._3d_world_to_slice, direction)[-2:]
+        for location, p in locations.items() :
+            matrix = self._3d_world_to_slice
+            direction = numpy.dot(self._3d_slice_to_world, numpy.hstack((0, p)))
             
-            # Find closest window location
+            # Find closest in-slice direction based on dot product
             closest = None
-            min_distance = sys.maxint
-            for location, p in locations.items() :
-                distance = scipy.spatial.distance.euclidean(direction_in_slice, p)
-                if distance < min_distance :
-                    min_distance = distance
-                    closest = location
+            max_distance = -1
+            for name, d in directions.items() :
+                distance = numpy.dot(d, direction)
+                if distance > max_distance :
+                    max_distance = distance
+                    closest = name
             
             # Set text
-            if closest != "center" :
-                index = self._orientation_annotation_index[closest]
-                self._orientation_annotation.SetText(index, name)
+            index = self._orientation_annotation_index[location]
+            self._orientation_annotation.SetText(index, closest)
     
     def get_label(self, where) :
         if where in self._orientation_annotation_index.keys() :
@@ -483,9 +496,7 @@ class Slice(PropertySynchronized) :
         self._annotations.add_observer("any", self._on_annotations_changed)
         
         for annotation in annotations :
-            gui_annotation = GUIImageAnnotation(annotation, 
-                self._3d_world_to_slice, self._display_coordinates, 
-                self._layers[0].image.origin, self._layers[0].image.spacing)
+            gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
             gui_annotation.slice_position = self._cursor_physical_position
             gui_annotation.renderer = self._renderer
             
@@ -520,13 +531,14 @@ class Slice(PropertySynchronized) :
         return self._display_coordinates
     
     def _set_display_coordinates(self, display_coordinates) :
-        if display_coordinates not in ["physical", "index"] :
+        if display_coordinates not in ["physical", "nearest_axis_aligned", "index"] :
             raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
         
         self._display_coordinates = display_coordinates
         
         for layer in self._layers :
             layer.display_coordinates = display_coordinates
+        self._compute_extent()
         for annotation in self._gui_annotations.values() :
             annotation.display_coordinates = display_coordinates
         
@@ -582,18 +594,27 @@ class Slice(PropertySynchronized) :
         self._slice_to_world = numpy.linalg.inv(world_to_slice)
         
         # Get a 3D matrix
-        if world_to_slice.shape == (2,2) :
-            temp = numpy.vstack(([0,0], world_to_slice))
-            column = numpy.asarray([1,0,0]).reshape(3,1)
-            self._3d_world_to_slice = numpy.hstack((column, temp))
-        else :
-            self._3d_world_to_slice = world_to_slice
+        self._3d_world_to_slice = medipy.base.array.reshape(world_to_slice,
+            (3,3), "constant", False, value=0)
+        # Add ones on the diagonal when necessary
+        for rank in range(3) :
+            if numpy.less_equal(max(world_to_slice.shape), rank).all() : 
+                self._3d_world_to_slice[3-rank-1, 3-rank-1] = 1.
+        self._3d_slice_to_world = numpy.linalg.inv(self._3d_world_to_slice)
         
         for layer in self._layers :
             layer.world_to_slice = world_to_slice
 
         self.setup_orientation_annotation()        
         self._compute_extent()
+        
+        # Keep the same pixel under the cursor and centered in the view
+        self._locked = True
+        if self._cursor_index_position is not None :
+            self._set_cursor_index_position(self._get_cursor_index_position())
+        if self._image_index_position is not None :
+            self._set_image_index_position(self._get_image_index_position())
+        self._locked = False
         
         self.notify_observers("world_to_slice")
     
@@ -618,44 +639,28 @@ class Slice(PropertySynchronized) :
     
     def _set_image_physical_position(self, position) :
         
-        # Normalize the dimension of position w.r.t. layers[0]'s image
+        self._image_physical_position = numpy.asarray(position)
+        
         if self._layers :
             image = self._layers[0].image
-            if len(position) > image.ndim :
-                position = position[-image.ndim:]
-            elif len(position) < image.ndim :
-                prefix = (image.ndim-len(position))*(0,)
-                position = prefix+tuple(position)
-        self._image_physical_position = position
-        
-        # Compute image_index_position if at least one layer is present
-        if self._layers :
-            image = self._layers[0].image
-            self._image_index_position = (self._image_physical_position-image.origin)/image.spacing
+            
+            self._image_index_position = image.physical_to_index(position)
+            
+            position = medipy.base.array.reshape(position, (image.ndim,), 
+                "constant", False, value=0)
+            world_vtk = self._layers[0].physical_to_world(position)
+            
         else :
-            self._image_index_position = self._image_physical_position
-        
-        # Compute position in a 3D space, and position camera
-        if len(position) < 3 :
-            prefix = (3-len(position))*(0,)
-            image_physical_position_3d = (0,)+tuple(self._image_physical_position)
-            image_index_position_3d = (0,)+tuple(self._image_index_position)
-        else : 
-            image_physical_position_3d = self._image_physical_position[-3:]
-            image_index_position_3d = self._image_index_position[-3:]
-        
-        if self._display_coordinates == "physical" :
-            slice_position = numpy.dot(self._3d_world_to_slice, 
-                                       image_physical_position_3d)
-        else :
-            slice_position = numpy.dot(self._3d_world_to_slice, 
-                                       image_index_position_3d)
+            self._image_index_position = numpy.asarray(position)
+            
+            position = medipy.base.array.reshape(numpy.asarray(position), 
+                (3,), "constant", False, value=0)
+            world_vtk = numpy.dot(self._3d_world_to_slice, position)
         
         self._renderer.GetActiveCamera().SetPosition(
-            slice_position[-1], slice_position[-2], 
-            self._actors_altitudes["camera"])
+            world_vtk[0], world_vtk[1], self._actors_altitudes["camera"])
         self._renderer.GetActiveCamera().SetFocalPoint(
-            slice_position[-1], slice_position[-2], 0)
+            world_vtk[0], world_vtk[1], 0)
         
         self.notify_observers("image_position")
     
@@ -670,15 +675,11 @@ class Slice(PropertySynchronized) :
         
         image = self._layers[0].image
         
-        if len(position) == image.ndim :
-            index_position = position
-        elif len(position) > image.ndim :
-            index_position = position[-image.ndim:]
-        else :
-            prefix = (image.ndim-len(position))*(0,)
-            index_position = prefix+tuple(position)
+        # Normalize the dimension of position w.r.t. layers[0]'s image
+        position = medipy.base.array.reshape(
+            position, (image.ndim,), "constant", False, value=0)
         
-        physical_position = image.origin+index_position*image.spacing
+        physical_position = image.index_to_physical(position)
         self._set_image_physical_position(physical_position)
     
     def _get_cursor_physical_position(self) :
@@ -689,57 +690,40 @@ class Slice(PropertySynchronized) :
         return self._cursor_physical_position
     
     def _set_cursor_physical_position(self, position) :
-        physical_position = position
-        # Adjust with respect to layer[0]'s dimension
-        if self._layers :
-            if len(position) == self._layers[0].image.ndim :
-                physical_position = position
-            elif len(position) > self._layers[0].image.ndim :
-                physical_position = position[-self._layers[0].image.ndim:]
-            else :
-                prefix = (self._layers[0].image.ndim-len(position))*(0,)
-                physical_position = prefix+tuple(position)
         
-        # Round to the nearest pixel
+        self._cursor_physical_position = numpy.asarray(position)
+        
         if self._layers :
             image = self._layers[0].image
-            index_position = (physical_position-image.origin)/image.spacing
-            index_position = index_position.round()
-            physical_position = image.origin+index_position*image.spacing
+            
+            self._cursor_index_position = image.physical_to_index(position)
+            
+            position = medipy.base.array.reshape(position, (image.ndim,), 
+                "constant", False, value=0)
+            world_vtk = self._layers[0].physical_to_world(position)
+            
         else :
-            index_position = physical_position
+            self._cursor_index_position = numpy.asarray(position)
+            
+            position = medipy.base.array.reshape(numpy.asarray(position), 
+                (3,), "constant", False, value=0)
+            world_vtk = numpy.dot(self._3d_world_to_slice, position)
         
-        # Update members
-        self._cursor_physical_position = physical_position
-        self._cursor_index_position = index_position
-        
-        # Update cursor using slice position
-        if self._display_coordinates == "physical" :
-            if len(physical_position) == 2 :
-                physical_position = numpy.hstack([0, physical_position])
-            slice_position = numpy.dot(self._world_to_slice, physical_position)
-            extent = self._slice_extent
-        else :
-            if len(physical_position) == 2 :
-                index_position = numpy.hstack([0, index_position])
-            slice_position = numpy.dot(self._world_to_slice, index_position)
-            shape = self._layers[0].image.shape if self._layers else (100,100,100)
-            slice_shape = numpy.dot(self._world_to_slice, shape)
-            extent = (0, slice_shape[-1]-1, 0, slice_shape[-2]-1)
+        extent = self._slice_extent
         
         z = self._actors_altitudes["cursor"]
-        self._horizontal_line_source.SetPoint1(extent[0], slice_position[-2], z)
-        self._horizontal_line_source.SetPoint2(extent[1], slice_position[-2], z)
-        self._vertical_line_source.SetPoint1(slice_position[-1], extent[2], z)
-        self._vertical_line_source.SetPoint2(slice_position[-1], extent[3], z)
+        self._horizontal_line_source.SetPoint1(extent[0], world_vtk[1], z)
+        self._horizontal_line_source.SetPoint2(extent[1], world_vtk[1], z)
+        self._vertical_line_source.SetPoint1(world_vtk[0], extent[2], z)
+        self._vertical_line_source.SetPoint2(world_vtk[0], extent[3], z)
         
         # Update layers
         for layer in self._layers :
-            layer.physical_position = physical_position
+            layer.physical_position = self._cursor_physical_position
         
         # Update annotations
         for gui_annotation in self._gui_annotations.values() :
-            gui_annotation.slice_position = physical_position
+            gui_annotation.slice_position = self._cursor_physical_position
         
         self.notify_observers("cursor_position")
         
@@ -750,27 +734,14 @@ class Slice(PropertySynchronized) :
         return self._cursor_index_position
     
     def _set_cursor_index_position(self, position) :
-        # Adjust with respect to layer[0]'s dimension
-        index_position = None
         if self._layers :
-            if len(position) == self._layers[0].image.ndim :
-                index_position = position
-            elif len(position) > self._layers[0].image.ndim :
-                index_position = position[-self._layers[0].image.ndim:]
-            else :
-                prefix = (self._layers[0].image.ndim-len(position))*(0,)
-                index_position = prefix+tuple(position)
+            image = self._layers[0].image
+            index_position = medipy.base.array.reshape(numpy.asarray(position),
+                (image.ndim,), "constant", False, value=0)
+            physical_position = image.index_to_physical(index_position)
         else :
             index_position = position
         
-        self._cursor_index_position = index_position
-        
-        # Update physical position
-        if self._layers :
-            image = self._layers[0].image
-            physical_position = image.origin+index_position*image.spacing
-        else :
-            physical_position = index_position
         self._set_cursor_physical_position(physical_position)
     
     def _get_zoom(self) :

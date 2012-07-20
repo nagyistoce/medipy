@@ -126,6 +126,38 @@ slices = {
                                     [1,  0, 0],
                                     [0, -1, 0]], dtype=numpy.float),
     },
+    "index" : {
+        #      +y
+        #       ^
+        #       |
+        # -x <--o--> +x
+        #       |
+        #       v
+        #      -y
+        "axial"    : numpy.asarray([[1, 0, 0],
+                                    [0, 1, 0],
+                                    [0, 0, 1]], dtype=numpy.float),
+        #      +z
+        #       ^
+        #       |
+        # -x <--o--> +x
+        #       |
+        #       v
+        #      -z
+        "coronal"  : numpy.asarray([[0, -1, 0],
+                                    [1,  0, 0],
+                                    [0,  0, 1]], dtype=numpy.float),
+        #      +z
+        #       ^
+        #       |
+        # -y <--o--> +y
+        #       |
+        #       v
+        #      -z
+        "sagittal" : numpy.asarray([[0, 0, 1],
+                                    [1, 0, 0],
+                                    [0, 1, 0]], dtype=numpy.float),
+    },
 }
 
 def best_fitting_axes_aligned_matrix(direction):
