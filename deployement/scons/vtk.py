@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 """ Builders for VTK and VTK/Python.
@@ -36,6 +36,7 @@
 
 import os.path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -46,33 +47,41 @@ from utils import split_environment_variable
 
 def configuration_variables() :
     
-    command = ["cmake", "-P", os.path.join(os.path.dirname(__file__), "vtk.cmake")]
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # Run CMake in "regular" mode instead of script mode since some VTK versions
+    # have non-scriptable commands
+    temporary_directory = tempfile.mkdtemp()
+    shutil.copy(os.path.join(os.path.dirname(__file__), "vtk.cmake"),
+        os.path.join(temporary_directory, "CMakeLists.txt"))
+    process = subprocess.Popen(["cmake", temporary_directory], 
+        cwd=temporary_directory, 
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
+    shutil.rmtree(temporary_directory)
+    
     if process.returncode != 0 :
         print "Could not find VTK, some modules will not be compiled."
         print stderr
         return None
-    else :
-        result = {}
-        # Result of cmake -P is on stderr
-        for line in stderr.split("\n") :
-            if not line :
-                continue
-            key, value = line.split("=", 1)
-            if key in ["CPPPATH", "LIBPATH", "LIBS", "PYTHON_LIBS"] :
-                value = list(set(value.split(";")))
-            if key in ["LIBS", "PYTHON_LIBS"] :
-                value = [x for x in value if x != "general"]
-            if key in ["vtk_wrap_python", "vtk_wrap_python_init"] :
-                if sys.platform == "win32" and " " in value :
-                    value = "\"{0}\"".format(value)
-            result[key] = value
-        # Remove duplicate entries between LIBS and PYTHON_LIBS
-        result["PYTHON_LIBS"] = [x for x in result["PYTHON_LIBS"] if x not in result["LIBS"]]
-        # Remove absolute file paths from LIBS
-        result["LIBS"] = [x for x in result["LIBS"] if os.path.sep not in x]
-        return result
+    
+    result = {}
+    # Result of cmake -P is on stderr
+    for line in stderr.split("\n") :
+        if not line or "=" not in line :
+            continue
+        key, value = line.split("=", 1)
+        if key in ["CPPPATH", "LIBPATH", "LIBS", "PYTHON_LIBS"] :
+            value = list(set(value.split(";")))
+        if key in ["LIBS", "PYTHON_LIBS"] :
+            value = [x for x in value if x != "general"]
+        if key in ["vtk_wrap_python", "vtk_wrap_python_init"] :
+            if sys.platform == "win32" and " " in value :
+                value = "\"{0}\"".format(value)
+        result[key] = value
+    # Remove duplicate entries between LIBS and PYTHON_LIBS
+    result["PYTHON_LIBS"] = [x for x in result["PYTHON_LIBS"] if x not in result["LIBS"]]
+    # Remove absolute file paths from LIBS
+    result["LIBS"] = [x for x in result["LIBS"] if os.path.sep not in x]
+    return result
 
 def datafile_command(target, source, env):
     module_name = env["MODULE_NAME"].split(".")[-1]
