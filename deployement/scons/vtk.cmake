@@ -21,4 +21,5 @@ follow_dependency("vtkHybridPythonD")
 message("PYTHON_LIBS=${all_libraries}")
 message("vtk_wrap_python=${VTK_WRAP_PYTHON_EXE}")
 message("vtk_wrap_python_init=${VTK_WRAP_PYTHON_INIT_EXE}")
-
+message("VTK_MAJOR_VERSION=${VTK_MAJOR_VERSION}")
+message("VTK_MINOR_VERSION=${VTK_MINOR_VERSION}")

@@ -73,6 +73,8 @@ def configuration_variables() :
             value = list(set(value.split(";")))
         if key in ["LIBS", "PYTHON_LIBS"] :
             value = [x for x in value if x != "general"]
+        if key in ["VTK_MAJOR_VERSION", "VTK_MINOR_VERSION"] :
+            value = int(value)
         if key in ["vtk_wrap_python", "vtk_wrap_python_init"] :
             if sys.platform == "win32" and " " in value :
                 value = "\"{0}\"".format(value)
@@ -104,8 +106,15 @@ def module_init_command(target, source, env):
     subprocess.call([env["VTK"]["vtk_wrap_python_init"],
                     source[0].abspath, target[0].abspath])
     
+    print " ".join([env["VTK"]["vtk_wrap_python_init"], source[0].abspath, target[0].abspath])
+    
     module_name = env["MODULE_NAME"].split(".")[-1]
-    if sys.platform != "win32" :
+    # Fix function names if VTK <= 5.2 and not on Windows
+    vtk_version_needs_fix = (
+        env["VTK"]["VTK_MAJOR_VERSION"] < 5 or
+        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] <= 2)
+    )
+    if sys.platform != "win32" and vtk_version_needs_fix :
         path = target[0].abspath
         
         file = open(path, "r")
