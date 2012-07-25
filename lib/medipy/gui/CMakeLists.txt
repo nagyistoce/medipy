@@ -1,0 +1,12 @@
+add_subdirectory("annotations")
+add_subdirectory("base")
+add_subdirectory("control")
+add_subdirectory("dicom")
+add_subdirectory("function_gui_builder")
+add_subdirectory("image")
+add_subdirectory("io")
+add_subdirectory("shapes")
+add_subdirectory("xrc_wrapper")
+
+file(GLOB files "*.py")
+install_py_files(${files})
