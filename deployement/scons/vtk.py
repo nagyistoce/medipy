@@ -101,8 +101,23 @@ def datafile_emitter(target, source, env):
                            env["MODULE_NAME"].split(".")[-1]+".data")]
     return target, source    
 
+def class_wrapper_command(target, source, env) :
+    command = [env["VTK"]["vtk_wrap_python"]]
+    
+    vtk_later_5_2 = (
+        env["VTK"]["VTK_MAJOR_VERSION"] > 5 or
+        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] > 2)
+    )
+    if vtk_later_5_2 :
+        command.extend(["--concrete", "--vtkobject"])
+        if "HINT_FILE" in env :
+            command.extend(["--hints", env["HINT_FILE"]])
+        command.extend([source[0].abspath, target[0].abspath])
+    else :
+        command.extend([source[0].abspath, env["HINT_FILE"], "true", target[0].abspath])
+    subprocess.call(command)
+
 def module_init_command(target, source, env):
-    import subprocess
     subprocess.call([env["VTK"]["vtk_wrap_python_init"],
                     source[0].abspath, target[0].abspath])
     
@@ -195,14 +210,9 @@ def generate(env):
         (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] > 2)
     )
     if vtk_later_5_2 :
-        class_wrapper_command = "{0} --concrete --vtkobject --hints $HINT_FILE $SOURCE $TARGET".format(
-            env["VTK"]["vtk_wrap_python"])
         # TODO : vtkImagingPythonD appears in the link command, but is not
         # reported by ldd. Seems to be an order dependency
         env["VTK"]["PYTHON_LIBS"].append("vtkImagingPythonD")
-    else :
-        class_wrapper_command = "{0} $SOURCE $HINT_FILE true $TARGET".format(
-            env["VTK"]["vtk_wrap_python"])
     
     env["BUILDERS"]["VTKClassWrapper"] = Builder(action=class_wrapper_command,
                                                  suffix="_wrap$CXXFILESUFFIX")
