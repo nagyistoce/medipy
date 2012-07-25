@@ -106,8 +106,6 @@ def module_init_command(target, source, env):
     subprocess.call([env["VTK"]["vtk_wrap_python_init"],
                     source[0].abspath, target[0].abspath])
     
-    print " ".join([env["VTK"]["vtk_wrap_python_init"], source[0].abspath, target[0].abspath])
-    
     module_name = env["MODULE_NAME"].split(".")[-1]
     # Fix function names if VTK <= 5.2 and not on Windows
     vtk_version_needs_fix = (
@@ -192,7 +190,20 @@ def exists(env):
 def generate(env):
     env["VTK"] = configuration_variables()
     
-    class_wrapper_command = "%s $SOURCE $HINT_FILE true $TARGET"%env["VTK"]["vtk_wrap_python"]
+    vtk_later_5_2 = (
+        env["VTK"]["VTK_MAJOR_VERSION"] > 5 or
+        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] > 2)
+    )
+    if vtk_later_5_2 :
+        class_wrapper_command = "{0} --concrete --vtkobject --hints $HINT_FILE $SOURCE $TARGET".format(
+            env["VTK"]["vtk_wrap_python"])
+        # TODO : vtkImagingPythonD appears in the link command, but is not
+        # reported by ldd. Seems to be an order dependency
+        env["VTK"]["PYTHON_LIBS"].append("vtkImagingPythonD")
+    else :
+        class_wrapper_command = "{0} $SOURCE $HINT_FILE true $TARGET".format(
+            env["VTK"]["vtk_wrap_python"])
+    
     env["BUILDERS"]["VTKClassWrapper"] = Builder(action=class_wrapper_command,
                                                  suffix="_wrap$CXXFILESUFFIX")
     
