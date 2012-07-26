@@ -99,7 +99,7 @@ sed -e "s/^#FILE/FILE/" -i install_wrapitk_compatibility.cmake
 
 # Install additional files
 PYTHON_VERSION=`python -c "import sys; print '{0}.{1}'.format(*sys.version_info[:2])"`
-CMAKE_ROOT=`echo 'message(${CMAKE_ROOT})' | cmake -P /dev/stdin`
+CMAKE_ROOT=`echo 'message(${CMAKE_ROOT})' | cmake -P /dev/stdin 2>&1`
 mkdir -p local_install/usr/lib/python${PYTHON_VERSION}/dist-packages
 mkdir -p local_install/${CMAKE_ROOT}/Modules
 cp Languages/Python/InstallOnly/WrapITK.pth local_install/usr/lib/python${PYTHON_VERSION}/dist-packages
