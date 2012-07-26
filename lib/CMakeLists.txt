@@ -1,6 +1,1 @@
-add_subdirectory("medipy/base")
-add_subdirectory("medipy/gui")
-add_subdirectory("medipy/io")
-#add_subdirectory("medipy/itk")
-#add_subdirectory("medipy/resources")
-#add_subdirectory("medipy/vtk")
+add_subdirectory("medipy")
