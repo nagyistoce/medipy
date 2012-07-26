@@ -110,11 +110,14 @@ def class_wrapper_command(target, source, env) :
     )
     if vtk_later_5_2 :
         command.extend(["--concrete", "--vtkobject"])
-        if "HINT_FILE" in env :
+        if env.get("HINT_FILE", None) :
             command.extend(["--hints", env["HINT_FILE"]])
         command.extend([source[0].abspath, target[0].abspath])
     else :
-        command.extend([source[0].abspath, env["HINT_FILE"], "true", target[0].abspath])
+        command.append(source[0].abspath)
+        if env.get("HINT_FILE", None) :
+            command.append(env["HINT_FILE"])
+        command.extend(["true", target[0].abspath])
     subprocess.call(command)
 
 def module_init_command(target, source, env):
