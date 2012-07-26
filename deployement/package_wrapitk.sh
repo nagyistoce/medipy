@@ -71,6 +71,16 @@ WRAP_vector_double:BOOL=OFF
 WRAP_vector_float:BOOL=ON
 EOF
 
+# Problem with libuuid detection on Ubuntu 12.04
+if test -e /lib/x86_64-linux-gnu/libuuid.so.1 -a ! -e /usr/lib/x86_64-linux-gnu/libuuid.so
+then
+    ln -s /lib/x86_64-linux-gnu/libuuid.so.1 /usr/lib/x86_64-linux-gnu/libuuid.so
+fi
+if test -e /lib/i386-linux-gnu/libuuid.so.1 -a ! -e /usr/lib/i386-linux-gnu/libuuid.so
+then
+    ln -s /lib/i386-linux-gnu/libuuid.so.1 /usr/lib/i386-linux-gnu/libuuid.so
+fi
+
 # Run cmake
 cmake ../wrapitk-0.3.0
 
