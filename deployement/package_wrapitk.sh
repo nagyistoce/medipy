@@ -41,7 +41,7 @@ CMAKE_INSTALL_PREFIX:PATH=/usr
 INSTALL_WRAP_ITK_COMPATIBILITY:BOOL=ON
 
 WRAP_ITK_DIMS:STRING=2;3
-WRAP_ITK_DOC:BOOL=ON
+WRAP_ITK_DOC:BOOL=OFF
 WRAP_ITK_GCCXML:BOOL=ON
 WRAP_ITK_PYTHON:BOOL=ON
 WRAP_ITK_SWIGINTERFACE:BOOL=ON
@@ -70,6 +70,12 @@ WRAP_unsigned_short:BOOL=ON
 WRAP_vector_double:BOOL=OFF
 WRAP_vector_float:BOOL=ON
 EOF
+
+# Problem with libuuid detection on Ubuntu 12.04
+if test -e /lib/`uname -m`-linux-gnu/libuuid.so.1 -a ! -e /usr/lib/`uname -m`-linux-gnu/libuuid.so
+then
+    ln -s /lib/`uname -m`-linux-gnu/libuuid.so.1 /usr/lib/`uname -m`-linux-gnu/libuuid.so
+fi
 
 # Run cmake
 cmake ../wrapitk-0.3.0
