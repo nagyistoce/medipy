@@ -54,9 +54,19 @@ macro(vtk_python_module name sources)
 
     set(wrappers )
     VTK_WRAP_PYTHON3(${name} wrappers "${sources}")
-    # TODO : fix the name in the init file
+    
+    # Fix the module name in the Init file
+    add_custom_command(
+        OUTPUT ${name}InitModified.cxx
+        DEPENDS ${name}Init.cxx
+        COMMAND python -c 
+            "import sys; open(sys.argv[2], 'w').write(open(sys.argv[1]).read().replace('lib${name}', '${name}'))" 
+            ${name}Init.cxx ${name}InitModified.cxx
+        VERBATIM
+    )
 
-    python_add_module(${name} ${sources} ${wrappers} ${name}Init.cxx)
+    # Build the module using the modified Init file
+    python_add_module(${name} ${sources} ${wrappers} ${name}InitModified.cxx)
     target_link_libraries(${name} vtkHybrid vtkHybridPythonD)
     set_target_properties(${name} PROPERTIES PREFIX "")
 endmacro(vtk_python_module name sources)
