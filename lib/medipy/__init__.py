@@ -21,7 +21,7 @@ class Importer(object):
         # When a plugin is requested, the different elements of the path are
         # searched in order. The first element where the plugin is found is
         # used.
-        self._plugins_path = ""
+        self._plugins_path = []
         if "MEDIPY_PLUGINS_PATH" in os.environ :
             self._plugins_path = [
                 x for x in os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep)
