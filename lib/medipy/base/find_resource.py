@@ -18,7 +18,7 @@ def find_resource(where) :
     
     # Try first as a local application using MediPy
     command_name = sys.argv[0]
-    abs_path = os.path.abspath(command_name)
+    abs_path = os.path.realpath(command_name)
     dirname = os.path.dirname(abs_path)
     elements = dirname.split(os.path.sep)
     
