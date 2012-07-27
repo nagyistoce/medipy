@@ -21,29 +21,29 @@ class Importer(object):
         # When a plugin is requested, the different elements of the path are
         # searched in order. The first element where the plugin is found is
         # used.
-        self._plugins_path = []
+        self.plugins_path = []
         if "MEDIPY_PLUGINS_PATH" in os.environ :
-            self._plugins_path = [
+            self.plugins_path = [
                 x for x in os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep)
                 if os.path.isdir(x)
             ]
         global_path_getter = getattr(
             self, "_get_global_path_{0}".format(sys.platform), None)
         if global_path_getter :
-            self._plugins_path.extend(global_path_getter())
+            self.plugins_path.extend(global_path_getter())
     
     def find_module(self, fullname, path=None):
         if not fullname.startswith("medipy.") :
             # Not a medipy module, use default load
             return
         plugin = fullname.split(".")[1]
-        for directory in self._plugins_path :
+        for directory in self.plugins_path :
             if plugin in os.listdir(directory) :
                 return self
     
     def load_module(self, fullname):
         try :
-            path = self._plugins_path
+            path = self.plugins_path
             for level, package in enumerate(fullname.split(".")[1:]) :
                 file, pathname, description = imp.find_module(package, path)
                 path = [pathname]
