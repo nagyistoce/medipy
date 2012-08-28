@@ -378,8 +378,8 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
         process = subprocess.Popen(command, stdout=subprocess.PIPE)
         stdout, _ = process.communicate()
         elements = stdout.split(".")
-        major = elements[0]
-        minor = elements[1]
+        major = int(elements[0])
+        minor = int(elements[1])
         if major > 4 or (major == 4 and minor > 4) :
             env.Replace(CC="gcc-4.4", CXX="g++-4.4")
     
