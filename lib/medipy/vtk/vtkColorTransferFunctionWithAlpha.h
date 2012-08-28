@@ -117,6 +117,8 @@ public:
     virtual void MapScalarsThroughTable2(void *input, unsigned char *output,
                                          int inputDataType, int numberOfValues,
                                          int inputIncrement, int outputIncrement);
+    
+    virtual vtkIdType GetNumberOfAvailableColors();
 
 protected:
     vtkColorTransferFunctionWithAlpha();

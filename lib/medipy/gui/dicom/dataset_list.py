@@ -54,7 +54,8 @@ class DataSetList(wx.ListCtrl) :
         if frame_number is not None :
             item = self.InsertStringItem(sys.maxint, "Per-frame elements")
             self.SetItemBackgroundColour(item, (201,237,255))
-            self._add_dataset(dataset.perframe_functional_groups_sequence[frame_number])
+            if "perframe_functional_groups_sequence" in dataset :
+                self._add_dataset(dataset.perframe_functional_groups_sequence[frame_number])
         
         for i in range(self.GetColumnCount()):
             self.SetColumnWidth(i, wx.LIST_AUTOSIZE)
