@@ -13,6 +13,7 @@ from vtk import (vtkDataReader, vtkPolyDataReader, vtkPolyDataWriter,
     vtkUnstructuredGridReader, vtkVRMLImporter,)
 import wx
 
+import medipy
 import medipy.base
 import medipy.gui.image
 import medipy.gui.dicom
@@ -425,7 +426,7 @@ class MediPyApp(Application) :
             menu = menu_builder.from_file.build_menu(self.options.menu_file)
         else :
             menu = []
-            for directory in os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep) :
+            for directory in medipy.Importer().plugins_path :
                 menu.extend(menu_builder.from_api.build_menu(directory))
         
         self._frame = MainFrame(None, wx.ID_ANY, menu, 

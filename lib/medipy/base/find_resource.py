@@ -18,7 +18,7 @@ def find_resource(where) :
     
     # Try first as a local application using MediPy
     command_name = sys.argv[0]
-    abs_path = os.path.abspath(command_name)
+    abs_path = os.path.realpath(command_name)
     dirname = os.path.dirname(abs_path)
     elements = dirname.split(os.path.sep)
     
@@ -40,7 +40,7 @@ def find_resource(where) :
         return resource_path
         
     # Try in MediPy plugins
-    for path in os.environ.get("MEDIPY_PLUGINS_PATH", "").split(os.pathsep) :
+    for path in medipy.Importer().plugins_path :
         resource_path = os.path.join(path, where)
         if os.path.exists(resource_path) :
             return resource_path

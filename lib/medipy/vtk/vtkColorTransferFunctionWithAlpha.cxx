@@ -1195,3 +1195,17 @@ vtkColorTransferFunctionWithAlpha
     return 1;
 }
 
+vtkIdType
+vtkColorTransferFunctionWithAlpha
+::GetNumberOfAvailableColors()
+{
+    // From vtkColorTransferFunction::GetNumberOfAvailableColors() in VTK 5.8
+    if(this->Table)
+    {
+        // Not sure if this is correct since it is only set if
+        // "const unsigned char *::GetTable( double xStart, double xEnd,int size)"
+        // has been called.
+        return static_cast<vtkIdType>(this->TableSize);
+    }
+    return 16777216;  //2^24
+}
