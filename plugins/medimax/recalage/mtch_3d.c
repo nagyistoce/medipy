@@ -6,24 +6,24 @@
  * for details.
  ************************************************************************/
 
-/*******************************************************************************/	
-/*!	   \file:		mtch_3d.c
+/*******************************************************************************/   
+/*!    \file:       mtch_3d.c
 ***
-***		project:	Imagix 1.01
-***			
+***     project:    Imagix 1.01
+***         
 ***
-***		\brief description:    Fichier pourle matching des images 3D
-***	
-***	
-***	Copyright (c) 1993, ULP-IPB Strasbourg.
-***	All rights are reserved.
+***     \brief description:    Fichier pourle matching des images 3D
+*** 
+*** 
+*** Copyright (c) 1993, ULP-IPB Strasbourg.
+*** All rights are reserved.
 ***
 ***
 ********************************************************************************/
 #include <config.h>
 #include <stdio.h> 
-#include <stdlib.h> 	/* Needed when you use GET_FLOAT	*/
-#include <math.h> 	/* Needed when you use math function	*/
+#include <stdlib.h>     /* Needed when you use GET_FLOAT    */
+#include <math.h>   /* Needed when you use math function    */
 #include <limits.h>
 #include <float.h>
 #include <time.h>
@@ -46,7 +46,7 @@
 #include "recalage/minimisation_3d.h"
 #include "segmentation/otsu_3d.h"
 
-#include "math/imx_bspline.h"	/* pour les fonctions d'interpolation */
+#include "math/imx_bspline.h"   /* pour les fonctions d'interpolation */
 
 #include "noyau/io/imx_log.h"
 #include "math/oper_3d.h"    
@@ -55,7 +55,7 @@
 #include "recalage/multiresolution_3d.h"
 
 /*static int  NBIM=0;*/
-base3d	BASE3D;
+base3d  BASE3D;
 
 /* variable pour restreindre l'optimisation suivant un certain nombre de parametre*/
 double *_mtch_3d_hybride_param = NULL;
@@ -71,38 +71,38 @@ meilleurs resultats pour un seuil de 3, mais le recalage est nettement plus lent
 
 /* DOXYGEN SECTION */
 /*! \defgroup Recalage
-	\brief module de recalage d'images
+    \brief module de recalage d'images
 */
 
 /*! \defgroup InterpolationFonction
-	\ingroup Recalage
-	\brief fonction d'interpolation
+    \ingroup Recalage
+    \brief fonction d'interpolation
 */
 
 /*! \defgroup DistanceFonction
-	\ingroup Recalage
-	\brief fonction de calcul de distance
+    \ingroup Recalage
+    \brief fonction de calcul de distance
 */
 
 /*! \defgroup MinimisationFonction
-	\ingroup Recalage
-	\brief fonction de minimisation
+    \ingroup Recalage
+    \brief fonction de minimisation
 */
 
 
 /*! \defgroup GradientFonction
-	\ingroup Recalage
-	\brief Calcul de gradient
+    \ingroup Recalage
+    \brief Calcul de gradient
 */
 
 /*! \defgroup TransfoFonction
-	\ingroup Recalage
-	\brief Fonction de transformation (params - champ)
+    \ingroup Recalage
+    \brief Fonction de transformation (params - champ)
 */
 /* END DOXYGEN SECTION */
 
 /*********************************************************************/
-/*     cr_transf_anisotrope_3d(m)                        		     */
+/*     cr_transf_anisotrope_3d(m)                                    */
 /*                                                                   */
 /*!     Creation d'une transformation anisotrope a partir
 **      d'une transfo isotrope (utilise dx,dy,dz des images pour obtenir la transfo
@@ -168,11 +168,11 @@ transf3d *cr_transf_anisotrope_3d(transf3d *transfOriginal,grphic3d *imref, grph
 **     rigid_to_field_3d(nb_param,param,champ)                          
 */                                                                   
 /*!     remplit un champ dense 3D pour une transformation rigide                           
-**	applique autour du centre (xc,yc) et avec une translation (tx,ty)
+**  applique autour du centre (xc,yc) et avec une translation (tx,ty)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz tx ty tz xc yc zc	   
-**	\param nb_param : inutilise                            
-**	\param param  : tableau de param
+**  tetax tetay tetaz tx ty tz xc yc zc    
+**  \param nb_param : inutilise                            
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
@@ -257,11 +257,11 @@ int rigid_to_field_3d(int nb_param, const double *param, field3d *champ, grphic3
 **     rigidz_to_field_3d(nb_param,param,champ)                          
 */                                                                   
 /*!     rempli un champ dense 3D pour une transformation rigide avec zoom                        
-**	applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
+**  applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz sx sy sz tx ty tz xc yc zc	                               
-**	\param nb_param : inutilise                            
-**	\param param  : tableau de param
+**  tetax tetay tetaz sx sy sz tx ty tz xc yc zc                                   
+**  \param nb_param : inutilise                            
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
@@ -337,9 +337,9 @@ int rigidz_to_field_3d(int nb_param, const double *param, field3d *champ, grphic
     }
    }
   if (transfAnisotrope)
-	  free_transf3d(transfAnisotrope);
+      free_transf3d(transfAnisotrope);
   if (transfOriginal)
-	  free_transf3d(transfOriginal);
+      free_transf3d(transfOriginal);
 
   return(1);
  }
@@ -350,11 +350,11 @@ int rigidz_to_field_3d(int nb_param, const double *param, field3d *champ, grphic
 **     affine_to_field_3d(nb_param,param,champ)                          
 */                                                                   
 /*!     rempli un champ dense 3D pour une transformation affine                           
-**	applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
+**  applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	a11 a12 a13 a21 a22 a23 a31 a32 a33 tx ty tz xc yc zc                              
-**	\param nb_param : inutilise                            
-**	\param param  : tableau de param
+**  a11 a12 a13 a21 a22 a23 a31 a32 a33 tx ty tz xc yc zc                              
+**  \param nb_param : inutilise                            
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \retval : 1                            
 *******************************************************************************/
@@ -427,18 +427,18 @@ int affine_to_field_3d(int nb_param, const double *param, field3d *champ, grphic
 **     rigid_global_zoom_to_field_3d(nb_param,param,champ)
 */
 /*!     rempli un champ dense 3D pour une transformation rigide avec zoom global isotrope
-**	applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
+**  applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz sx sy sz tx ty tz xc yc zc
-**	\param nb_param : inutilise
-**	\param param  : tableau de param
+**  tetax tetay tetaz sx sy sz tx ty tz xc yc zc
+**  \param nb_param : inutilise
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \note : si imref et imreca == NULL : la champ est genere tel quel a partir de param.
 **  \retval : 1
 *******************************************************************************/
-int	rigid_global_zoom_to_field_3d(int nb_param, const double *param, field3d *champ,grphic3d *imref, grphic3d *imreca)
+int rigid_global_zoom_to_field_3d(int nb_param, const double *param, field3d *champ,grphic3d *imref, grphic3d *imreca)
 {
  double *param_zoom;
  int nb_param_zoom=12;
@@ -466,11 +466,11 @@ int	rigid_global_zoom_to_field_3d(int nb_param, const double *param, field3d *ch
 **     affine_decouple_to_field_3d(nb_param,param,champ)
 */
 /*!     rempli un champ dense 3D pour une transformation affine ou les parametres sont decouples
-**	applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
+**  applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz sx sy sz tx ty tz xc yc zc
-**	\param nb_param : inutilise
-**	\param param  : tableau de param
+**  tetax tetay tetaz sx sy sz tx ty tz xc yc zc
+**  \param nb_param : inutilise
+**  \param param  : tableau de param
 
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
@@ -478,7 +478,7 @@ int	rigid_global_zoom_to_field_3d(int nb_param, const double *param, field3d *ch
 **  \note : si imref et imreca == NULL : la champ est genere tel quel a partir de param.
 **  \retval : 1
 *******************************************************************************/
-int	affine_decouple_to_field_3d(int nb_param, const double *param, field3d *champ,grphic3d *imref, grphic3d *imreca)
+int affine_decouple_to_field_3d(int nb_param, const double *param, field3d *champ,grphic3d *imref, grphic3d *imreca)
 {
  double matrice_affine[15];
  int i, res=0;
@@ -497,11 +497,11 @@ int	affine_decouple_to_field_3d(int nb_param, const double *param, field3d *cham
 **     affine_to_field_3d(nb_param,param,champ)                          
 */                                                                   
 /*!     rempli un champ dense 3D pour une transformation affine                           
-**	applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
+**  applique autour du centre (xc,yc,zc) et avec une translation (tx,ty,tz)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	a11 a12 a13 a21 a22 a23 a31 a32 a33 tx ty tz xc yc zc                              
-**	\param nb_param : inutilise                            
-**	\param param  : tableau de param
+**  a11 a12 a13 a21 a22 a23 a31 a32 a33 tx ty tz xc yc zc                              
+**  \param nb_param : inutilise                            
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \retval : 1                            
 *******************************************************************************/
@@ -564,7 +564,7 @@ int base_to_field_3d(int nb_param, const double *param, field3d *champ, grphic3d
   double *fx,*fy,*fz,px,py,pz,f;
   double dxreca,dyreca,dzreca;
   double dxref,dyref,dzref;
-	
+    
   vector3d ***data;
  
   wdth=champ->width;hght=champ->height;dpth=champ->depth;
@@ -590,45 +590,45 @@ int base_to_field_3d(int nb_param, const double *param, field3d *champ, grphic3d
     dyreca = 1.0;
     dzreca = 1.0;
   }
-	if (imref)
-	{
+    if (imref)
+    {
     if (wdth != (int)imref->width || hght != (int)imref->height || dpth != (int)imref->depth)
       return 0;
-		dxref = imref->dx;	  
-		dyref = imref->dy;	  
-		dzref = imref->dz;	  
-	}
-	else
-	{
-		   dxref = 1.0;
-		   dyref = 1.0;
-		   dzref = 1.0;
-	}
+        dxref = imref->dx;    
+        dyref = imref->dy;    
+        dzref = imref->dz;    
+    }
+    else
+    {
+           dxref = 1.0;
+           dyref = 1.0;
+           dzref = 1.0;
+    }
 
 if ((dxref!=dxreca)||(dyref!=dyreca)||(dzref!=dzreca))
-		{   
-		PUT_ERROR("ERREUR dans base_to_field_3d : le champ est l'image n'ont pas les meme dx,dy,dz\n");
- 	   printf("ERREUR dans base_to_field_3d : le champ est l'image n'ont pas les meme dx,dy,dz\n");
-		 return(-1);
-  	}
+        {   
+        PUT_ERROR("ERREUR dans base_to_field_3d : le champ est l'image n'ont pas les meme dx,dy,dz\n");
+       printf("ERREUR dans base_to_field_3d : le champ est l'image n'ont pas les meme dx,dy,dz\n");
+         return(-1);
+    }
  
  for (l=0;l<nb_param/3;l++)
-  		{
-   		x00=x0[l];x11=x1[l];y00=y0[l];y11=y1[l];z00=z0[l];z11=z1[l];
-   		px=param[3*l]/dxreca;py=param[3*l+1]/dyreca;pz=param[3*l+2]/dzreca;
-   		for (i=x00;i<x11;i++)
-    		for (j=y00;j<y11;j++)
-     			for (k=z00;k<z11;k++) 
-      		{
-      		f=fx[i-x00]*fy[j-y00]*fz[k-z00];
+        {
+        x00=x0[l];x11=x1[l];y00=y0[l];y11=y1[l];z00=z0[l];z11=z1[l];
+        px=param[3*l]/dxreca;py=param[3*l+1]/dyreca;pz=param[3*l+2]/dzreca;
+        for (i=x00;i<x11;i++)
+            for (j=y00;j<y11;j++)
+                for (k=z00;k<z11;k++) 
+            {
+            f=fx[i-x00]*fy[j-y00]*fz[k-z00];
 
-      		data[i][j][k].x=(float)(data[i][j][k].x+px*f);
-      		data[i][j][k].y=(float)(data[i][j][k].y+py*f);
-      		data[i][j][k].z=(float)(data[i][j][k].z+pz*f);       
-     			}
-  		}
-	
-	
+            data[i][j][k].x=(float)(data[i][j][k].x+px*f);
+            data[i][j][k].y=(float)(data[i][j][k].y+py*f);
+            data[i][j][k].z=(float)(data[i][j][k].z+pz*f);       
+                }
+        }
+    
+    
   
  
   return(1);
@@ -659,27 +659,27 @@ int champ_to_field_3d(transf3d *transfo, field3d *champ, grphic3d *imref, grphic
     dxreca = imreca->dx; dyreca = imreca->dy; dzreca = imreca->dz;
   }
   else
-		{
+        {
     dxreca = 1.0; dyreca = 1.0; dzreca = 1.0;
-	}
+    }
 
-	if (imref)
-	{
+    if (imref)
+    {
     if (wdth != (int)imref->width || hght != (int)imref->height || dpth != (int)imref->depth)
       return 0;
-		dxref = imref->dx; dyref = imref->dy; dzref = imref->dz;
-	}
-	else
-	{
-		if (transfo->dx && transfo->dy && transfo->dz && imreca != NULL)
-		{
-		   dxref = transfo->dx; dyref = transfo->dy; dzref = transfo->dz;
-		}
-		else
-		{
-		   dxref = 1.0; dyref = 1.0; dzref = 1.0;
-		}
-	}
+        dxref = imref->dx; dyref = imref->dy; dzref = imref->dz;
+    }
+    else
+    {
+        if (transfo->dx && transfo->dy && transfo->dz && imreca != NULL)
+        {
+           dxref = transfo->dx; dyref = transfo->dy; dzref = transfo->dz;
+        }
+        else
+        {
+           dxref = 1.0; dyref = 1.0; dzref = 1.0;
+        }
+    }
 
 
   ch = transfo->ch;
@@ -708,15 +708,15 @@ int champ_to_field_3d(transf3d *transfo, field3d *champ, grphic3d *imref, grphic
 **     gravite_to_rigid_3d(param)                  
 */
 /*!                                                                   
-**     	met a jour les valeurs du tableau param pour le passage de la mise en
-** 	commun des centre de gravite vers une transfo rigide\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param 
+**      met a jour les valeurs du tableau param pour le passage de la mise en
+**  commun des centre de gravite vers une transfo rigide\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param 
 **  \retval : 9 (nbre de param)
 *******************************************************************************/
-int	gravite_to_rigid_3d(double *param)
+int gravite_to_rigid_3d(double *param)
 {
- double	tx,ty,tz,xg,yg,zg;
+ double tx,ty,tz,xg,yg,zg;
  
  tx=param[0];ty=param[1];tz=param[2];
  xg=param[3];yg=param[4];zg=param[5];
@@ -732,15 +732,15 @@ int	gravite_to_rigid_3d(double *param)
 **     rigid_to_rigidz_3d(param)                  
 */
 /*!                                                                   
-**     	met a jour les valeurs du tableau param pour le passage d'une transfo
-**	rigide vers une transfo rigide+zoom\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param 
+**      met a jour les valeurs du tableau param pour le passage d'une transfo
+**  rigide vers une transfo rigide+zoom\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param 
 **  \retval 12 (nbre de param)
 *******************************************************************************/
-int	rigid_to_rigidz_3d(double *param)
+int rigid_to_rigidz_3d(double *param)
 {
- double	tetax,tetay,tetaz,tx,ty,tz,xg,yg,zg;
+ double tetax,tetay,tetaz,tx,ty,tz,xg,yg,zg;
  
  tetax=param[0];tetay=param[1];tetaz=param[2];
  tx=param[3];ty=param[4];tz=param[5];
@@ -758,15 +758,15 @@ int	rigid_to_rigidz_3d(double *param)
 **     rigid_to_rigid_global_zoom_3d(param)
 */
 /*!
-**     	met a jour les valeurs du tableau param pour le passage d'une transfo
-**	rigide vers une transfo rigide+zoom global isotrope\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param
+**      met a jour les valeurs du tableau param pour le passage d'une transfo
+**  rigide vers une transfo rigide+zoom global isotrope\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param
 **  \retval 12 (nbre de param)
 *******************************************************************************/
-int	rigid_to_rigid_global_zoom_3d(double *param)
+int rigid_to_rigid_global_zoom_3d(double *param)
 {
- double	tetax,tetay,tetaz,tx,ty,tz,xg,yg,zg;
+ double tetax,tetay,tetaz,tx,ty,tz,xg,yg,zg;
 
  tetax=param[0];tetay=param[1];tetaz=param[2];
  tx=param[3];ty=param[4];tz=param[5];
@@ -784,15 +784,15 @@ int	rigid_to_rigid_global_zoom_3d(double *param)
 **     rigid_global_zoom_to_rigidz_3d(param)
 */
 /*!
-**     	met a jour les valeurs du tableau param pour le passage d'une transfo
-**	rigide+zoom global isotrope vers une transfo rigide + zoom anisotrope \n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param
+**      met a jour les valeurs du tableau param pour le passage d'une transfo
+**  rigide+zoom global isotrope vers une transfo rigide + zoom anisotrope \n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param
 **  \retval 12 (nbre de param)
 *******************************************************************************/
-int	rigid_global_zoom_to_rigidz_3d(double *param)
+int rigid_global_zoom_to_rigidz_3d(double *param)
 {
- double	tetax,tetay,tetaz,tx,ty,tz,xg,yg,zg,scale;
+ double tetax,tetay,tetaz,tx,ty,tz,xg,yg,zg,scale;
 
  tetax=param[0];tetay=param[1];tetaz=param[2];
  scale=param[3];
@@ -811,15 +811,15 @@ int	rigid_global_zoom_to_rigidz_3d(double *param)
 **     rigidz_to_affine_decouple_3d(param)
 */
 /*!
-**     	met a jour les valeurs du tableau param pour le passage d'une transfo
-**	rigide+zoom anisotrope vers une transfo affinne avec parametres decouples\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param
+**      met a jour les valeurs du tableau param pour le passage d'une transfo
+**  rigide+zoom anisotrope vers une transfo affinne avec parametres decouples\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param
 **  \retval 12 (nbre de param)
 *******************************************************************************/
-int	rigidz_to_affine_decouple_3d(double *param)
+int rigidz_to_affine_decouple_3d(double *param)
 {
- double	tetax,tetay,tetaz,sx,sy,sz,tx,ty,tz,xg,yg,zg;
+ double tetax,tetay,tetaz,sx,sy,sz,tx,ty,tz,xg,yg,zg;
 
  tetax=param[0];tetay=param[1];tetaz=param[2];
  sx=param[3];sy=param[4];sz=param[5];
@@ -845,14 +845,14 @@ int	rigidz_to_affine_decouple_3d(double *param)
 */
 /*!                                                                   
 **     met a jour les valeurs du tableau param pour le passage d'une transfo
-**	rigide+zoom vers une transfo affine\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param 
+**  rigide+zoom vers une transfo affine\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param 
 **  \retval 15 (nbre de param)
 *******************************************************************************/
-int	rigidz_to_affine_3d(double *param)
+int rigidz_to_affine_3d(double *param)
 {
- double	tetax,tetay,tetaz,sx,sy,sz,tx,ty,tz,xg,yg,zg;
+ double tetax,tetay,tetaz,sx,sy,sz,tx,ty,tz,xg,yg,zg;
  double cxx,sxx,cyy,syy,czz,szz;
  double a11,a12,a13,a21,a22,a23,a31,a32,a33;
  
@@ -883,9 +883,9 @@ int	rigidz_to_affine_3d(double *param)
 */
 /*!
 **     met a jour les valeurs du tableau param pour le passage d'une transfo
-**	affine avec parametres decouples vers une transfo affine\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param
+**  affine avec parametres decouples vers une transfo affine\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param
 **  \retval 15 (nbre de param)
 *******************************************************************************/
 int affine_decouple_to_affine_3d(double *param)
@@ -948,14 +948,14 @@ int affine_decouple_to_affine_3d(double *param)
 */
 /*!                                                                   
 **     met a jour les valeurs du tableau param pour le passage d'une transfo
-**	affine vers une transfo affine sans le centre de gravite\n
-**	retourne le nouveau nombre de parametres
-**	\param param : le tableau de param 
+**  affine vers une transfo affine sans le centre de gravite\n
+**  retourne le nouveau nombre de parametres
+**  \param param : le tableau de param 
 **  \retval 12 (nbre de param)
 *******************************************************************************/
-int	affine_to_affinesscg_3d(double *param)
+int affine_to_affinesscg_3d(double *param)
 {
- double	tx,ty,tz,xg,yg,zg;
+ double tx,ty,tz,xg,yg,zg;
  double tx_aff,ty_aff,tz_aff;
  double a11,a12,a13,a21,a22,a23,a31,a32,a33;
  
@@ -986,25 +986,25 @@ int	affine_to_affinesscg_3d(double *param)
 /**************************************************************************
 **      init_base_3d(wdth,hght,dpth,scal_func)
 */
-/*!	
+/*! 
 **      Initialisation du tableau base en fonction de la taille de
-**	l'image, de la resolution et de la fonction d'echelle utilisee
-**	la fonction retourne un entier correspondant au nombre de parametres
-**	La base est allouee pendant cette initialisation et la resolution de
-**	depart est calculee automatiquement en fonction du support de la fonction
+**  l'image, de la resolution et de la fonction d'echelle utilisee
+**  la fonction retourne un entier correspondant au nombre de parametres
+**  La base est allouee pendant cette initialisation et la resolution de
+**  depart est calculee automatiquement en fonction du support de la fonction
 
-**	d'echelle
+**  d'echelle
 **  \param wdth, hght,dpth : la taille
 **  \param scal_func : fonction d'echelle
 **  \retval nbre de parametres
 **  \remark la variable global BASE3D est modifiee
 **************************************************************************/
-int	init_base_3d(int wdth, int hght, int dpth, scal_func_t scal_func)
+int init_base_3d(int wdth, int hght, int dpth, scal_func_t scal_func)
 {
- int	*x0,*x1,*y0,*y1,*z0,*z1,*idx,*idy,*idz,tfilt;
- int	nbint,pasx,pasy,pasz,nbfx,nbfy,nbfz,supx,supy,supz;
- int	i,j,k,l;
- int	resol,nb_func;
+ int    *x0,*x1,*y0,*y1,*z0,*z1,*idx,*idy,*idz,tfilt;
+ int    nbint,pasx,pasy,pasz,nbfx,nbfy,nbfz,supx,supy,supz;
+ int    i,j,k,l;
+ int    resol,nb_func;
  double *fx,*fy,*fz,*dfx,*dfy,*dfz,*px,*py,*pz,*filt;
  
  fx=fy=fz=dfx=dfy=dfz=NULL;
@@ -1072,19 +1072,19 @@ int	init_base_3d(int wdth, int hght, int dpth, scal_func_t scal_func)
 
 /**************************************************************************
 **      init_base_resol_3d(wdth,hght,dpth,scal_func,resolution)
-**	
+**  
 **      Initialisation du tableau base en fonction de la taille de
-**	l'image, de la resolution et de la fonction d'echelle utilisee
-**	la fonction retourne un entier correspondant au nombre de parametres
-**	La base est allouee pendant cette initialisation et la resolution est
-**	passee l'utilisateur
+**  l'image, de la resolution et de la fonction d'echelle utilisee
+**  la fonction retourne un entier correspondant au nombre de parametres
+**  La base est allouee pendant cette initialisation et la resolution est
+**  passee l'utilisateur
 **************************************************************************/
-int	init_base_resol_3d(int wdth, int hght, int dpth, scal_func_t scal_func, int resolution)
+int init_base_resol_3d(int wdth, int hght, int dpth, scal_func_t scal_func, int resolution)
 {
- int	*x0,*x1,*y0,*y1,*z0,*z1,*idx,*idy,*idz,tfilt;
- int	nbint,pasx,pasy,pasz,nbfx,nbfy,nbfz,supx,supy,supz;
- int	i,j,k,l;
- int	resol,nb_func;
+ int    *x0,*x1,*y0,*y1,*z0,*z1,*idx,*idy,*idz,tfilt;
+ int    nbint,pasx,pasy,pasz,nbfx,nbfy,nbfz,supx,supy,supz;
+ int    i,j,k,l;
+ int    resol,nb_func;
  double *fx,*fy,*fz,*dfx,*dfy,*dfz,*px,*py,*pz,*filt;
  
  fx=fy=fz=dfx=dfy=dfz=NULL;
@@ -1221,25 +1221,25 @@ int resize_base_3d(int wdth, int hght, int dpth)
 
 /**************************************************************************
 **      base_resol_up_3d(param,nb_param)
-*/	
+*/  
 /*!      Passage de la base de fonction a la resolution superieure
-**	Modifie les parametres en consequence :
-**		nouvelle taille en resultat de la fonction
-**		nouvelles valeurs dans le tableau param
-**	\retval le nombre de parametres
+**  Modifie les parametres en consequence :
+**      nouvelle taille en resultat de la fonction
+**      nouvelles valeurs dans le tableau param
+**  \retval le nombre de parametres
 **  \remark modifie la variable globale BASE
 **************************************************************************/
 
-int	base_resol_up_3d(double *param, int nb_param)
+int base_resol_up_3d(double *param, int nb_param)
 {
- int	i,j,k,l;
- int	pasx,pasy,pasz,wdth,hght,dpth;
- int	resol,nbint,tfilt,nb_func,nbfx,nbfy,nbfz,supx,supy,supz;
+ int    i,j,k,l;
+ int    pasx,pasy,pasz,wdth,hght,dpth;
+ int    resol,nbint,tfilt,nb_func,nbfx,nbfy,nbfz,supx,supy,supz;
  double *fx,*fy,*fz,*dfx,*dfy,*dfz,*px,*py,*pz,*filt;
- int	*x0,*x1,*y0,*y1,*z0,*z1,*idx,*idy,*idz;
+ int    *x0,*x1,*y0,*y1,*z0,*z1,*idx,*idy,*idz;
  double ***Mx,***My,***Mz,***F3D;
- int	i0,j0,k0;
- int	(*scal_func)();
+ int    i0,j0,k0;
+ int    (*scal_func)();
  
   wdth=BASE3D.width;hght=BASE3D.height;dpth=BASE3D.depth;
   
@@ -1277,10 +1277,10 @@ int	base_resol_up_3d(double *param, int nb_param)
        for (j=j0;j<j0+tfilt;j++)
         for (k=k0;k<k0+tfilt;k++)
          {
-	  Mx[i][j][k]+=px[l]*F3D[i-i0][j-j0][k-k0];
-	  My[i][j][k]+=py[l]*F3D[i-i0][j-j0][k-k0];
-	  Mz[i][j][k]+=pz[l]*F3D[i-i0][j-j0][k-k0];
-	 }
+      Mx[i][j][k]+=px[l]*F3D[i-i0][j-j0][k-k0];
+      My[i][j][k]+=py[l]*F3D[i-i0][j-j0][k-k0];
+      Mz[i][j][k]+=pz[l]*F3D[i-i0][j-j0][k-k0];
+     }
      }   
  
  /*mise a jour des differents parametres de la base*/
@@ -1313,7 +1313,7 @@ int	base_resol_up_3d(double *param, int nb_param)
        {
         x0[l]=i*pasx;x1[l]=i*pasx+supx*pasx;idx[l]=i;px[l]=Mx[i][j][k];
         y0[l]=j*pasy;y1[l]=j*pasy+supy*pasy;idy[l]=j;py[l]=My[i][j][k];
-	z0[l]=k*pasz;z1[l]=k*pasz+supz*pasz;idz[l]=k;pz[l]=Mz[i][j][k];
+    z0[l]=k*pasz;z1[l]=k*pasz+supz*pasz;idz[l]=k;pz[l]=Mz[i][j][k];
         l++;
        }
    BASE3D.x0=x0;BASE3D.x1=x1;BASE3D.y0=y0;BASE3D.y1=y1;BASE3D.z0=z0;BASE3D.z1=z1;BASE3D.idx=idx;BASE3D.idy=idy;BASE3D.idz=idz;
@@ -1325,22 +1325,22 @@ int	base_resol_up_3d(double *param, int nb_param)
    for (l=0;l<nb_func;l++)
     {param[3*l]=px[l];param[3*l+1]=py[l];param[3*l+2]=pz[l];}
   
- free_dmatrix_3d(Mx);free_dmatrix_3d(My);free_dmatrix_3d(Mz);free_dmatrix_3d(F3D);	
+ free_dmatrix_3d(Mx);free_dmatrix_3d(My);free_dmatrix_3d(Mz);free_dmatrix_3d(F3D);  
  return(3*nb_func);
 }
 
 /**************************************************************************
 **      reduc_base_3d(param,nb_param,imref,imreca,imres)
-*/	
+*/  
 /*!      Reduit la base de fonction en tenant compte des info contenu dans
-**	imref, imreca et imres
-**	\retval retourne le nouveau nombre de parametre et met a jour la valeur
-**	du tableau param, 1 si echec (pas de modif)
+**  imref, imreca et imres
+**  \retval retourne le nouveau nombre de parametre et met a jour la valeur
+**  du tableau param, 1 si echec (pas de modif)
 **************************************************************************/
-int	reduc_base_3d(double *param, int nb_param, grphic3d *imref, grphic3d *imreca, grphic3d *imres)
+int reduc_base_3d(double *param, int nb_param, grphic3d *imref, grphic3d *imreca, grphic3d *imres)
 {
- int	wdth,hght,dpth,i,j,k,l,m,nb_func,i0,i1,j0,j1,k0,k1,flag;
- double	*px,*py,*pz;  
+ int    wdth,hght,dpth,i,j,k,l,m,nb_func,i0,i1,j0,j1,k0,k1,flag;
+ double *px,*py,*pz;  
  int    *idx,*idy,*idz,*x0,*y0,*z0,*x1,*y1,*z1;   
 
  wdth=BASE3D.width;hght=BASE3D.height;dpth=BASE3D.depth;
@@ -1402,12 +1402,12 @@ int	reduc_base_3d(double *param, int nb_param, grphic3d *imref, grphic3d *imreca
 /**************************************************************************
 **      end_base_3d
 */
-/*!	
+/*! 
 **      Terminaison de la base
-**	Liberation memoire des different elements
-**	\remark la variable globale BASE3D est modifie
+**  Liberation memoire des different elements
+**  \remark la variable globale BASE3D est modifie
 **************************************************************************/
-int	end_base_3d(void)
+int end_base_3d(void)
 {
  if (BASE3D.x0)free(BASE3D.x0);
  if (BASE3D.x1) free(BASE3D.x1);
@@ -1556,9 +1556,9 @@ int imx_find_cg_geometric_3d_p(grphic3d *img,double *cgX,double *cgY,double *cgZ
 /*!                                                                   
 **     Champ permettant de superposer les centre de gravite de imref et imreca 
 **     ATTENTION : les images sont supposees deja seuillees
-**	  \param imref, imreca : image reference et recale
+**    \param imref, imreca : image reference et recale
 **    \retval En resultat, la fonction retourne un tableau (alloue ici) contenant
-**	tx, ty, tz,  xg, yg, zg 
+**  tx, ty, tz,  xg, yg, zg 
 *******************************************************************************/
 double *gravite_to_field_3d(grphic3d *imref, grphic3d *imreca, field3d *champ)
 {
@@ -1753,7 +1753,7 @@ void query_multires_precision_matching_parameters_3d( int (*matching_3d_func)(in
 **                             
 *******************************************************************************/
 /*! 
-	 recalage rigide de deux images 3D (sans zoom)        
+     recalage rigide de deux images 3D (sans zoom)        
   
 */
 void matching_rigide_3d()
@@ -1762,7 +1762,7 @@ void matching_rigide_3d()
 }
 
 /*!
-	 recalage rigide de deux images 3D (sans zoom)
+     recalage rigide de deux images 3D (sans zoom)
 
 */
 void matching_rigide_precision_3d()
@@ -1775,12 +1775,12 @@ void matching_rigide_precision_3d()
 */                                                                       
 /*!       recalage rigide sans zoom de 2 images 3D                                   
 ** 
-**	\param im_ref : numero de l'image de reference, 
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p	
-**	\retval 1
-**	
+**  \param im_ref : numero de l'image de reference, 
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p    
+**  \retval 1
+**  
 *******************************************************************************/
 int imx_matching_rigide_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
@@ -1793,7 +1793,7 @@ int imx_matching_rigide_3d(int im_ref, int im_reca, int im_res, int dist_type, i
   imres=ptr_img_3d(im_res);
    
   if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);
+     inittrf=load_transf_3d(nomfichtrf);
   transfres = cr_transf3d_p(imref,NULL); 
 
   init_log(NULL);
@@ -1817,7 +1817,7 @@ int imx_matching_rigide_3d(int im_ref, int im_reca, int im_res, int dist_type, i
   end_log();
 
   if (inittrf)
-  	free_transf3d(inittrf);
+    free_transf3d(inittrf);
 
   free_transf3d(transfres);
  
@@ -1831,48 +1831,48 @@ int imx_matching_rigide_3d(int im_ref, int im_reca, int im_res, int dist_type, i
 /*!                                                                        
 **       \brief recalage rigide entre 2 images 3D                                    
 **
-**	\param imref : images de reference, 
-**	\param imreca  : image a recaler,
-**	\param imres : images resultat (E/S)
+**  \param imref : images de reference, 
+**  \param imreca  : image a recaler,
+**  \param imres : images resultat (E/S)
 **  \param dist_type : numero de la fonction de distance 
-**							\li 0 : Quadratic
-**							\li 1 : Quadratic Robust
-**							\li 2 : woods
-**							\li 3 : woods robust
-**							\li 4 : IM Old
-**							\li 5 : IM
-**							\li 6 : IM NORM STUDHOLME
-**							\li 7 : IM NORM MAES1
-**							\li 8 : IM NORM MAES2
-**							\li 9 : Entropie conjointe
-**							\li 10 : Correlation ratio
-**	\param inter_type : numero de la fonction d'interpolation des images
-**							\li 0 : nearest
-**							\li 1 : linear
-**							\li 2 : sin card
-**							\li 3 : quick sin card2
-**							\li 4 : quick sin card3 
-**							\li 5 : bspline 2
-**							\li 6 : bspline 3
-**							\li 7 : bspline 4
-**							\li 8 : bspline 5
-**	\param min_type : numero de la fonction de minimisation utilisee aux plus faibles
+**                          \li 0 : Quadratic
+**                          \li 1 : Quadratic Robust
+**                          \li 2 : woods
+**                          \li 3 : woods robust
+**                          \li 4 : IM Old
+**                          \li 5 : IM
+**                          \li 6 : IM NORM STUDHOLME
+**                          \li 7 : IM NORM MAES1
+**                          \li 8 : IM NORM MAES2
+**                          \li 9 : Entropie conjointe
+**                          \li 10 : Correlation ratio
+**  \param inter_type : numero de la fonction d'interpolation des images
+**                          \li 0 : nearest
+**                          \li 1 : linear
+**                          \li 2 : sin card
+**                          \li 3 : quick sin card2
+**                          \li 4 : quick sin card3 
+**                          \li 5 : bspline 2
+**                          \li 6 : bspline 3
+**                          \li 7 : bspline 4
+**                          \li 8 : bspline 5
+**  \param min_type : numero de la fonction de minimisation utilisee aux plus faibles
     echelles de la transformation 
-**							\li 0 : ICM
-**							\li 1 : simplex
-**							\li 2 : Descente gradient
-**							\li 3 : Gradient conjugue
-**							\li 4 : Descente gradient modifiee
-**							\li 5 : Quasi Newton modifiee
-**	\param save_type : Type de sauvegarde
-**							\li 0 : champ
-**							\li 1 : parametres
-**	\param nomfichres :  nom du fichier de sauvegarde des transformations (*.trf)
-**	\param nomfichtrf : initialisation du champ de depart a la valeur d'un fichier (*.trf)\n
-**					    si NULL -> alignement centre de gravite
-**	\param FieldOfResearch :  voir init_bornes_matching
-**	\param matchPrecision  :  voir init_bornes_matching
-**	\retval 1
+**                          \li 0 : ICM
+**                          \li 1 : simplex
+**                          \li 2 : Descente gradient
+**                          \li 3 : Gradient conjugue
+**                          \li 4 : Descente gradient modifiee
+**                          \li 5 : Quasi Newton modifiee
+**  \param save_type : Type de sauvegarde
+**                          \li 0 : champ
+**                          \li 1 : parametres
+**  \param nomfichres :  nom du fichier de sauvegarde des transformations (*.trf)
+**  \param nomfichtrf : initialisation du champ de depart a la valeur d'un fichier (*.trf)\n
+**                      si NULL -> alignement centre de gravite
+**  \param FieldOfResearch :  voir init_bornes_matching
+**  \param matchPrecision  :  voir init_bornes_matching
+**  \retval 1
 **
 *******************************************************************************/
 int imx_matching_rigide_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, int min_type, int save_type, transf3d *transfres, transf3d *inittrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
@@ -1953,7 +1953,7 @@ int imx_matching_rigide_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres,
 /*! @} */
 
 /*! 
-	 recalage rigide de deux images 3D (sans zoom)  multiresolution      
+     recalage rigide de deux images 3D (sans zoom)  multiresolution      
 */
 void matching_rigide_multi_3d()
 {
@@ -1961,7 +1961,7 @@ void matching_rigide_multi_3d()
 }
 
 /*!
-	 recalage rigide de deux images 3D (sans zoom)  multiresolution
+     recalage rigide de deux images 3D (sans zoom)  multiresolution
 */
 void matching_rigide_multi_precision_3d()
 {
@@ -1973,12 +1973,12 @@ void matching_rigide_multi_precision_3d()
 */                                                                       
 /*!       recalage rigide multiresolution sans zoom de 2 images 3D                                  
 ** 
-**	\param im_ref : numero de l'image de reference, 
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p	
-**	\retval 1
-**	
+**  \param im_ref : numero de l'image de reference, 
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p    
+**  \retval 1
+**  
 *******************************************************************************/
 int imx_matching_rigide_multi_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf, eMatchPrecision matchPrecision, int start_resol, int end_resol)
 {
@@ -2027,25 +2027,25 @@ int imx_matching_rigide_multi_3d(int im_ref, int im_reca, int im_res, int dist_t
 */                                                                       
 /*!       recalage rigide multiresolution sans zoom de 2 images 3D                                  
 ** 
-**	\param im_ref : numero de l'image de reference, 
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p	
-**	\retval 1
-**	
+**  \param im_ref : numero de l'image de reference, 
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p    
+**  \retval 1
+**  
 *******************************************************************************/
 int imx_matching_rigide_multi_3d_p( grphic3d *imref, 
-									grphic3d *imreca, 
-									grphic3d *imres, 
-									int dist_type, 
-									int inter_type, 
-									int min_type, 
-									int save_type, 
-									transf3d *transfres, 
-									transf3d *inittrf,
-									eMatchPrecision matchPrecision,
-									int start_resol,
-									int end_resol)
+                                    grphic3d *imreca, 
+                                    grphic3d *imres, 
+                                    int dist_type, 
+                                    int inter_type, 
+                                    int min_type, 
+                                    int save_type, 
+                                    transf3d *transfres, 
+                                    transf3d *inittrf,
+                                    eMatchPrecision matchPrecision,
+                                    int start_resol,
+                                    int end_resol)
 {
   grphic3d *imref_preprocessed=NULL, *imreca_preprocessed=NULL;
   transf3d *preProcessingRefTrf=NULL, *preProcessingRecaTrf=NULL, *transfoini=NULL;
@@ -2149,7 +2149,7 @@ int imx_matching_rigide_zoom_3d(int im_ref, int im_reca, int im_res, int dist_ty
  imres=ptr_img_3d(im_res);
 
  if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);
+     inittrf=load_transf_3d(nomfichtrf);
  transfres = cr_transf3d_p(imref, NULL);
 
  imx_inimaxminpixel_3d_p(imref);
@@ -2282,7 +2282,7 @@ int imx_matching_rigide_zoom_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *i
 /*! @} */
 
 /*! 
-	 recalage rigide de deux images 3D (sans zoom)  multiresolution      
+     recalage rigide de deux images 3D (sans zoom)  multiresolution      
 */
 void matching_rigide_zoom_multi_3d()
 {
@@ -2290,7 +2290,7 @@ void matching_rigide_zoom_multi_3d()
 }
 
 /*!
-	 recalage rigide de deux images 3D (sans zoom)  multiresolution
+     recalage rigide de deux images 3D (sans zoom)  multiresolution
 */
 void matching_rigide_zoom_multi_precision_3d()
 {
@@ -2302,12 +2302,12 @@ void matching_rigide_zoom_multi_precision_3d()
 */                                                                       
 /*!       recalage rigide multiresolution avec zoom de 2 images 3D                                  
 ** 
-**	\param im_ref : numero de l'image de reference, 
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p	
-**	\retval 1
-**	
+**  \param im_ref : numero de l'image de reference, 
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p    
+**  \retval 1
+**  
 *******************************************************************************/
 int imx_matching_rigide_zoom_multi_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres,char *nomfichtrf, eMatchPrecision matchPrecision, int start_resol,int end_resol)
 {
@@ -2356,25 +2356,25 @@ int imx_matching_rigide_zoom_multi_3d(int im_ref, int im_reca, int im_res, int d
 */                                                                       
 /*!       recalage rigide multiresolution avec zoom de 2 images 3D                                  
 ** 
-**	\param im_ref : numero de l'image de reference, 
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p	
-**	\retval 1
-**	
+**  \param im_ref : numero de l'image de reference, 
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p    
+**  \retval 1
+**  
 *******************************************************************************/
 int imx_matching_rigide_zoom_multi_3d_p( grphic3d *imref, 
-									grphic3d *imreca, 
-									grphic3d *imres, 
-									int dist_type, 
-									int inter_type, 
-									int min_type, 
-									int save_type, 
-									transf3d *transfres, 
-									transf3d *inittrf,
-									eMatchPrecision matchPrecision, 
-									int start_resol,
-									int end_resol)
+                                    grphic3d *imreca, 
+                                    grphic3d *imres, 
+                                    int dist_type, 
+                                    int inter_type, 
+                                    int min_type, 
+                                    int save_type, 
+                                    transf3d *transfres, 
+                                    transf3d *inittrf,
+                                    eMatchPrecision matchPrecision, 
+                                    int start_resol,
+                                    int end_resol)
 {
  int j;
  grphic3d *imref_preprocessed=NULL, *imreca_preprocessed=NULL;
@@ -2495,44 +2495,44 @@ void matching_affine_precision_3d()
 */
 /*!     \brief  recalage affine de 2 images 3D                                    
 **
-**		\param  imref : numero de l'image de ref
-**		\param  imreca : numero de l'image a recaler
-**		\param  imres : numero de l'image ou l'on stocke le resultat du recalage de imreca
+**      \param  imref : numero de l'image de ref
+**      \param  imreca : numero de l'image a recaler
+**      \param  imres : numero de l'image ou l'on stocke le resultat du recalage de imreca
     (peut etre NULL)
-**		\param  dist_type : numero de la fonction de distance (0 pour distance quadratique)
-							\li 0 : QUAD
-							\li 1 : QUAD ROBUST
-							\li 2 : WOODS
-							\li 3 : WOODS ROBUST
-							\li 4 : IM
-							\li 
-							
-**		\param  inter_type : numero de la fonction d'interpolation des images (1 pour lineaire)
-							\li 0 : NEAREST
-							\li 1 : LINEAR
-							\li 2 : SINC
-							\li 3 : QSINC2
-							\li 4 : QSINC3
-							\li 5 : BSPLINE2
-							\li 6 : BSPLINE3 
-							\li 7 : BSPLINE4
-							\li 8 : BSPLINE5
+**      \param  dist_type : numero de la fonction de distance (0 pour distance quadratique)
+                            \li 0 : QUAD
+                            \li 1 : QUAD ROBUST
+                            \li 2 : WOODS
+                            \li 3 : WOODS ROBUST
+                            \li 4 : IM
+                            \li 
+                            
+**      \param  inter_type : numero de la fonction d'interpolation des images (1 pour lineaire)
+                            \li 0 : NEAREST
+                            \li 1 : LINEAR
+                            \li 2 : SINC
+                            \li 3 : QSINC2
+                            \li 4 : QSINC3
+                            \li 5 : BSPLINE2
+                            \li 6 : BSPLINE3 
+                            \li 7 : BSPLINE4
+                            \li 8 : BSPLINE5
 
 
-**		\param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
+**      \param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
     echelles de la transformation (5 pour quasi-newton)
-							\li 0 : ICM
-							\li 1 : SIMPLEX 
-							\li 2 : DESCGRAD 
-							\li 3 : GRADCONJ
-							\li 4 : DESCGRADMOD
-							\li 5 : QUASINEWTONMOD
+                            \li 0 : ICM
+                            \li 1 : SIMPLEX 
+                            \li 2 : DESCGRAD 
+                            \li 3 : GRADCONJ
+                            \li 4 : DESCGRADMOD
+                            \li 5 : QUASINEWTONMOD
 
-**		\param save_type : 
-**							\li 0 : champ
-**							\li 1 : parametres
-**		\param  nomfichres :  nom du fichier de sauvegarde de la transformation
-**		\retval 1
+**      \param save_type : 
+**                          \li 0 : champ
+**                          \li 1 : parametres
+**      \param  nomfichres :  nom du fichier de sauvegarde de la transformation
+**      \retval 1
 *******************************************************************************/
 int imx_matching_affine_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
@@ -2544,7 +2544,7 @@ int imx_matching_affine_3d(int im_ref, int im_reca, int im_res, int dist_type, i
  imres=ptr_img_3d(im_res);
 
  if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);  
+     inittrf=load_transf_3d(nomfichtrf);  
  transfres=cr_transf3d_p(imref,NULL);
 
  imx_inimaxminpixel_3d_p(imref);
@@ -2580,48 +2580,48 @@ int imx_matching_affine_3d(int im_ref, int im_reca, int im_res, int dist_type, i
 */
 /*!     \brief  recalage affine de 2 images 3D                                    
 **
-**		\param  imref : image de reference
-**		\param  imreca : image a recaler
-**		\param  imres : image resultat (E/S)
-**		\param  dist_type : numero de la fonction de distance 
-							\li 0 : QUAD
-							\li 1 : QUAD ROBUST
-							\li 2 : WOODS
-							\li 3 : WOODS ROBUST
-							\li 4 : IM
-							\li 
-							
-**		\param inter_type : numero de la fonction d'interpolation des images 
-							\li 0 : NEAREST
-							\li 1 : LINEAR
-							\li 2 : SINC
-							\li 3 : QSINC2
-							\li 4 : QSINC3
-							\li 5 : BSPLINE2
-							\li 6 : BSPLINE3 
-							\li 7 : BSPLINE4
-							\li 8 : BSPLINE5
+**      \param  imref : image de reference
+**      \param  imreca : image a recaler
+**      \param  imres : image resultat (E/S)
+**      \param  dist_type : numero de la fonction de distance 
+                            \li 0 : QUAD
+                            \li 1 : QUAD ROBUST
+                            \li 2 : WOODS
+                            \li 3 : WOODS ROBUST
+                            \li 4 : IM
+                            \li 
+                            
+**      \param inter_type : numero de la fonction d'interpolation des images 
+                            \li 0 : NEAREST
+                            \li 1 : LINEAR
+                            \li 2 : SINC
+                            \li 3 : QSINC2
+                            \li 4 : QSINC3
+                            \li 5 : BSPLINE2
+                            \li 6 : BSPLINE3 
+                            \li 7 : BSPLINE4
+                            \li 8 : BSPLINE5
 
-**		\param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
+**      \param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
     echelles de la transformation 
-							\li 0 : ICM
-							\li 1 : SIMPLEX 
-							\li 2 : DESCGRAD 
-							\li 3 : GRADCONJ
-							\li 4 : DESCGRADMOD
-							\li 5 : QUASINEWTONMOD
+                            \li 0 : ICM
+                            \li 1 : SIMPLEX 
+                            \li 2 : DESCGRAD 
+                            \li 3 : GRADCONJ
+                            \li 4 : DESCGRADMOD
+                            \li 5 : QUASINEWTONMOD
 
-**		\param save_type : 
-**							\li 0 : champ
-**							\li 1 : parametres
-**		\param  nomfichres :   nom du fichier de sauvegarde de la transfo (*.trf)
-**	\param FieldOfResearch :  voir init_bornes_matching
-**	\param matchPrecision  :  voir init_bornes_matching
-**		\retval 1
+**      \param save_type : 
+**                          \li 0 : champ
+**                          \li 1 : parametres
+**      \param  nomfichres :   nom du fichier de sauvegarde de la transfo (*.trf)
+**  \param FieldOfResearch :  voir init_bornes_matching
+**  \param matchPrecision  :  voir init_bornes_matching
+**      \retval 1
 *******************************************************************************/
 int imx_matching_affine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, int min_type, int save_type, transf3d *transfres,transf3d *inittrf, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
- int	wdth,hght,dpth;
+ int    wdth,hght,dpth;
  grphic3d *imtref,*imtreca,*imtres;
  field3d *champ1;
  InterpolationFct interpol;
@@ -2733,7 +2733,7 @@ int imx_matching_affine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres,
 }
 /*! @} */
  /*!
-	 recalage affine de deux images 3D  multiresolution
+     recalage affine de deux images 3D  multiresolution
 */
 void matching_affine_multi_3d()
 {
@@ -2741,7 +2741,7 @@ void matching_affine_multi_3d()
 }
 
  /*!
-	 recalage affine de deux images 3D  multiresolution
+     recalage affine de deux images 3D  multiresolution
 */
 void matching_affine_multi_precision_3d()
 {
@@ -2754,11 +2754,11 @@ void matching_affine_multi_precision_3d()
 /*!       recalage affine multiresolution  de 2 images 3D
 **
 
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_affine_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_affine_3d_p
+**  \retval 1
 **
 *******************************************************************************/
 int imx_matching_affine_multi_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres,char *nomfichtrf, eMatchPrecision matchPrecision, int start_resol, int end_resol)
@@ -2807,26 +2807,26 @@ int imx_matching_affine_multi_3d(int im_ref, int im_reca, int im_res, int dist_t
 */
 /*!       recalage affine multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
+**  \retval 1
 **
 *******************************************************************************/
 int imx_matching_affine_multi_3d_p( grphic3d *imref,
-									grphic3d *imreca,
-									grphic3d *imres,
-									int dist_type,
-									int inter_type,
-									int min_type,
-									int save_type,
-									transf3d *transfres,
-									transf3d *inittrf,
-									eMatchPrecision matchPrecision,
-									int start_resol, 
-									int end_resol
-									)
+                                    grphic3d *imreca,
+                                    grphic3d *imres,
+                                    int dist_type,
+                                    int inter_type,
+                                    int min_type,
+                                    int save_type,
+                                    transf3d *transfres,
+                                    transf3d *inittrf,
+                                    eMatchPrecision matchPrecision,
+                                    int start_resol, 
+                                    int end_resol
+                                    )
 {
  int j;
  grphic3d *imref_preprocessed=NULL, *imreca_preprocessed=NULL;
@@ -2940,7 +2940,7 @@ int imx_matching_affine_multi_3d_p( grphic3d *imref,
 /*!
 **      \brief recalage rigide multistart et multiresolution de deux images 3D
 *******************************************************************************/
-extern void 	matching_rigide_multistart_multires_3d()
+extern void     matching_rigide_multistart_multires_3d()
 {
   query_simple_matching_parameters_3d(imx_matching_rigide_multistart_multires_3d);
 }
@@ -2951,7 +2951,7 @@ extern void 	matching_rigide_multistart_multires_3d()
 /*!
 **      \brief recalage rigide multistart et multiresolution de deux images 3D
 *******************************************************************************/
-extern void 	matching_rigide_multistart_multires_precision_3d()
+extern void     matching_rigide_multistart_multires_precision_3d()
 {
  query_simple_precision_matching_parameters_3d(imx_matching_rigide_multistart_multires_3d);
 }
@@ -2961,14 +2961,14 @@ extern void 	matching_rigide_multistart_multires_precision_3d()
 */
 /*!       recalage rigide multistart et multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_affine_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_affine_3d_p
+**  \retval 1
 **
 *******************************************************************************/
-extern int 	imx_matching_rigide_multistart_multires_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
+extern int  imx_matching_rigide_multistart_multires_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
   grphic3d *imref,*imreca,*imres;
   transf3d *inittrf=NULL;
@@ -2979,7 +2979,7 @@ extern int 	imx_matching_rigide_multistart_multires_3d(int im_ref, int im_reca, 
   imres=ptr_img_3d(im_res);
 
   if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);
+     inittrf=load_transf_3d(nomfichtrf);
   transfres = cr_transf3d_p(imref,NULL);
 
   imx_inimaxminpixel_3d_p(imref);
@@ -3004,7 +3004,7 @@ extern int 	imx_matching_rigide_multistart_multires_3d(int im_ref, int im_reca, 
   end_log();
 
   if (inittrf)
-  	free_transf3d(inittrf);
+    free_transf3d(inittrf);
 
   free_transf3d(transfres);
 
@@ -3016,11 +3016,11 @@ extern int 	imx_matching_rigide_multistart_multires_3d(int im_ref, int im_reca, 
 */
 /*!       recalage rigide multistart et multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
+**  \retval 1
 **
 *******************************************************************************/
 extern int imx_matching_rigide_multistart_multires_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, int min_type, int save_type, transf3d *transfres, transf3d *inittrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
@@ -3189,7 +3189,7 @@ extern int imx_matching_rigide_multistart_multires_3d_p(grphic3d *imref, grphic3
 /*!
 **      \brief recalage rigide + zoom multistart et multiresolution de deux images 3D
 *******************************************************************************/
-extern void 	matching_rigide_zoom_multistart_multires_3d()
+extern void     matching_rigide_zoom_multistart_multires_3d()
 {
   query_simple_matching_parameters_3d(imx_matching_rigide_zoom_multistart_multires_3d);
 }
@@ -3200,7 +3200,7 @@ extern void 	matching_rigide_zoom_multistart_multires_3d()
 /*!
 **      \brief recalage rigide + zoom multistart et multiresolution de deux images 3D
 *******************************************************************************/
-extern void 	matching_rigide_zoom_multistart_multires_precision_3d()
+extern void     matching_rigide_zoom_multistart_multires_precision_3d()
 {
  query_simple_precision_matching_parameters_3d(imx_matching_rigide_zoom_multistart_multires_3d);
 }
@@ -3210,14 +3210,14 @@ extern void 	matching_rigide_zoom_multistart_multires_precision_3d()
 */
 /*!       recalage rigide +zoom multistart et multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_affine_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_affine_3d_p
+**  \retval 1
 **
 *******************************************************************************/
-extern int 	imx_matching_rigide_zoom_multistart_multires_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
+extern int  imx_matching_rigide_zoom_multistart_multires_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
   grphic3d *imref,*imreca,*imres;
   transf3d *inittrf=NULL;
@@ -3252,7 +3252,7 @@ extern int 	imx_matching_rigide_zoom_multistart_multires_3d(int im_ref, int im_r
   end_log();
 
   if (inittrf)
-  	free_transf3d(inittrf);
+    free_transf3d(inittrf);
 
   free_transf3d(transfres);
 
@@ -3264,11 +3264,11 @@ extern int 	imx_matching_rigide_zoom_multistart_multires_3d(int im_ref, int im_r
 */
 /*!       recalage rigide + zoom multistart et multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
+**  \retval 1
 **
 
 *******************************************************************************/
@@ -3452,7 +3452,7 @@ extern int imx_matching_rigide_zoom_multistart_multires_3d_p(grphic3d *imref, gr
 /*!
 **      \brief recalage affine multistart et multiresolution de deux images 3D
 *******************************************************************************/
-extern void 	matching_affine_multistart_multires_3d()
+extern void     matching_affine_multistart_multires_3d()
 {
   query_simple_matching_parameters_3d(imx_matching_affine_multistart_multires_3d);
 }
@@ -3473,14 +3473,14 @@ void matching_affine_multistart_multires_precision_3d()
 */
 /*!       recalage affine multistart et multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_affine_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_affine_3d_p
+**  \retval 1
 **
 *******************************************************************************/
-extern int 	imx_matching_affine_multistart_multires_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
+extern int  imx_matching_affine_multistart_multires_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
   grphic3d *imref,*imreca,*imres;
   transf3d *inittrf=NULL;
@@ -3516,7 +3516,7 @@ extern int 	imx_matching_affine_multistart_multires_3d(int im_ref, int im_reca, 
   end_log();
 
   if (inittrf)
-  	free_transf3d(inittrf);
+    free_transf3d(inittrf);
 
   free_transf3d(transfres);
 
@@ -3528,11 +3528,11 @@ extern int 	imx_matching_affine_multistart_multires_3d(int im_ref, int im_reca, 
 */
 /*!       recalage affine multistart et multiresolution  de 2 images 3D
 **
-**	\param im_ref : numero de l'image de reference,
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
-**	\retval 1
+**  \param im_ref : numero de l'image de reference,
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p
+**  \retval 1
 **
 *******************************************************************************/
 extern int imx_matching_affine_multistart_multires_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, int min_type, int save_type, transf3d *transfres, transf3d *inittrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
@@ -3767,8 +3767,8 @@ void matching_Bspline_3d()
  nomfichres=quest_save_result_3d(&save_type);
 
  {
-  char 	s[256];
-  int	ans,err=0;
+  char  s[256];
+  int   ans,err=0;
   
 
   sprintf(s,"Use a transformation as initialisation?\n");
@@ -3884,7 +3884,7 @@ int imx_matching_Bspline_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres
                                 int min_type, int save_type, char *nomfichres,
                                 int resolf, char *nomfichiertrf, int renormalisation)
 {
- TDimension	wdth,hght,dpth;
+ TDimension wdth,hght,dpth;
  int nb_param;
  double *param,*min_param,*max_param,*prec_param;
  grphic3d *imtref,*imtreca,*imtres;
@@ -4068,7 +4068,7 @@ int imx_matching_Bspline_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres
     else
     {  
      double   ***Mx,***My,***Mz;
-     int	i,j,k;	
+     int    i,j,k;  
        
      /*on met dans param tous les parametres, y compris ceux qui sont nul=> il faut annuler
      la troncature du a reduc_base_3d*/
@@ -4076,7 +4076,7 @@ int imx_matching_Bspline_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres
      My=alloc_dmatrix_3d(BASE3D.nbfx,BASE3D.nbfy,BASE3D.nbfz);
      Mz=alloc_dmatrix_3d(BASE3D.nbfx,BASE3D.nbfy,BASE3D.nbfz);
      for (i=0;i<BASE3D.nbfx;i++) for (j=0;j<BASE3D.nbfy;j++) for (k=0;k<BASE3D.nbfz;k++)
-     	Mx[i][j][k]=My[i][j][k]=Mz[i][j][k]=0.0; 
+        Mx[i][j][k]=My[i][j][k]=Mz[i][j][k]=0.0; 
      for (l=0;l<BASE3D.nb_func;l++) 
      {i=BASE3D.idx[l];j=BASE3D.idy[l];k=BASE3D.idz[l];
      Mx[i][j][k]=param[3*l];My[i][j][k]=param[3*l+1];Mz[i][j][k]=param[3*l+2];}
@@ -4091,14 +4091,14 @@ int imx_matching_Bspline_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres
      transfo->nb_param=nb_param;transfo->param=CALLOC(nb_param,double);
      transfo->typetrans=BSPLINE3D;
      transfo->resol=resolf;transfo->degre=func_type;
-		 transfo->dx=imres->dx;
-		 transfo->dy=imres->dy;
-		 transfo->dz=imres->dz;
-		 
+         transfo->dx=imres->dx;
+         transfo->dy=imres->dy;
+         transfo->dz=imres->dz;
+         
      for (l=0;l<nb_param;l++) 
-		 	{
-			transfo->param[l]=param[l];
-			} 
+            {
+            transfo->param[l]=param[l];
+            } 
     }
     save_transf_3d(transfo,nomfichres);
     free_transf3d(transfo);
@@ -4230,7 +4230,7 @@ int imx_matching_Bspline_pyramide_3d_p(grphic3d **pyr_imref, grphic3d **pyr_imre
                                         char *nomfichres, int resolf,
                                         char *nomfichiertrf, int renormalisation)
 {
- int	/*k,*/wdth,hght,dpth,nb_param;
+ int    /*k,*/wdth,hght,dpth,nb_param;
  double param[50000],min_param[50000],max_param[50000],prec_param[50000];
  grphic3d *imtref,*imtreca,*imtres;
  field3d *champ,*champ_ini;
@@ -4520,7 +4520,7 @@ int imx_matching_Bspline_pyramide_3d_p(grphic3d **pyr_imref, grphic3d **pyr_imre
     else
     {  
      double   ***Mx,***My,***Mz;
-     int	i,j,k;	
+     int    i,j,k;  
        
      /*on met dans param tous les parametres, y compris ceux qui sont nul=> il faut annuler
      la troncature du a reduc_base_3d*/
@@ -4528,7 +4528,7 @@ int imx_matching_Bspline_pyramide_3d_p(grphic3d **pyr_imref, grphic3d **pyr_imre
      My=alloc_dmatrix_3d(BASE3D.nbfx,BASE3D.nbfy,BASE3D.nbfz);
      Mz=alloc_dmatrix_3d(BASE3D.nbfx,BASE3D.nbfy,BASE3D.nbfz);
      for (i=0;i<BASE3D.nbfx;i++) for (j=0;j<BASE3D.nbfy;j++) for (k=0;k<BASE3D.nbfz;k++)
-     	Mx[i][j][k]=My[i][j][k]=Mz[i][j][k]=0.0; 
+        Mx[i][j][k]=My[i][j][k]=Mz[i][j][k]=0.0; 
      for (l=0;l<BASE3D.nb_func;l++) 
      {i=BASE3D.idx[l];j=BASE3D.idy[l];k=BASE3D.idz[l];
      Mx[i][j][k]=param[3*l];My[i][j][k]=param[3*l+1];Mz[i][j][k]=param[3*l+2];}
@@ -4667,13 +4667,13 @@ int imx_matching_fine_3d(int im_ref, int im_reca, int im_res, int dist_type, int
 *******************************************************************************/
 int imx_matching_fine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, char *nomfichres, int renormalisation)
 {
- int	i,j,k,wdth,hght,dpth;
+ int    i,j,k,wdth,hght,dpth;
  grphic3d *imtref,*imtreca,*imtres;
  field3d *champ,*champt,*cht/*,*champr*/;
  vector3d ***data,***datat;
  InterpolationFct interpol;
  dist_func_t distance;
- char 	*nomfichiertrf;
+ char   *nomfichiertrf;
  int    tdebut,tfin;
  VP_histos * donnees_VP = NULL;
  ptr_distance_param dist_param=CALLOC(1, distance_param);
@@ -4715,8 +4715,8 @@ int imx_matching_fine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, i
 
  /*initialisation du champ de depart a la valeur d'un fichier*/
  {
-  char 	s[256];
-  int	ans,err=0;
+  char  s[256];
+  int   ans,err=0;
   
   nomfichiertrf=NULL;
   sprintf(s,"Use a transformation as initialisation?\n");
@@ -4753,8 +4753,8 @@ int imx_matching_fine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, i
   vector3d ***datag,***datac;
   double   gx,gy,gz,ng,dgx,dgy,dgz,ndg,diff;
   double   filt[10],sigma,norm,tfil;
-  int	   i1,i2,j1,j2,k1,k2,ic,jc,kc;
-  int	  nbiter,tfilt;
+  int      i1,i2,j1,j2,k1,k2,ic,jc,kc;
+  int     nbiter,tfilt;
   
   nbiter=0;
   grad=cr_field3d(wdth,hght,dpth);
@@ -4818,15 +4818,15 @@ int imx_matching_fine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, i
       for (ic=i1;ic<=i2;ic++)
        for (jc=j1;jc<=j2;jc++)
         for (kc=k1;kc<=k2;kc++)
-	{
-	 tfil=filt[ic-i1]*filt[jc-j1]*filt[kc-k1];
-	 gx+=tfil*data[ic][jc][kc].x;
-	 gy+=tfil*data[ic][jc][kc].y;
-	 gz+=tfil*data[ic][jc][kc].z;
-	}
+    {
+     tfil=filt[ic-i1]*filt[jc-j1]*filt[kc-k1];
+     gx+=tfil*data[ic][jc][kc].x;
+     gy+=tfil*data[ic][jc][kc].y;
+     gz+=tfil*data[ic][jc][kc].z;
+    }
       datat[i][j][k].x=(float)gx;
       datat[i][j][k].y=(float)gy;
-      datat[i][j][k].z=(float)gz;	
+      datat[i][j][k].z=(float)gz;   
      }
      
    printf("fin filtrage du champ \n");   
@@ -4846,9 +4846,9 @@ int imx_matching_fine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, i
    char nomimagecoro[255],nomimagesagi[255],nomimageaxia[255],*txt;
    grphic3d  *imt2,*imt4;
    if (NBIM<10) {sprintf(nomimagecoro,"imcoro0%d.gif",NBIM);sprintf(nomimagesagi,"imsagi0%d.gif",NBIM);
-   		sprintf(nomimageaxia,"imaxia0%d.gif",NBIM);}
+        sprintf(nomimageaxia,"imaxia0%d.gif",NBIM);}
      else       {sprintf(nomimagecoro,"imcoro%d.gif",NBIM);sprintf(nomimagesagi,"imsagi%d.gif",NBIM);
-   		sprintf(nomimageaxia,"imaxia%d.gif",NBIM);}
+        sprintf(nomimageaxia,"imaxia%d.gif",NBIM);}
    NBIM++;
    imx_copie_3d_p(imtres,ptr_img_3d(4));
    imt2=ptr_img_3d(2);
@@ -4922,10 +4922,10 @@ int imx_matching_fine_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, i
 /*!       calcule l'image isotrope en resolution 1.0 mm et de dimension max 256x256x256
 **        qui contient l'image de depart
 **
-**	\param im : image de depart
-**	\param interpol  : interpolation utilisee
-**	\param imres : image resultat
-**	\retval 0
+**  \param im : image de depart
+**  \param interpol  : interpolation utilisee
+**  \param imres : image resultat
+**  \retval 0
 **
 *******************************************************************************/
 int imx_creer_image_isotrope_3d_p(grphic3d *im, InterpolationFct interpol, grphic3d *imres)
@@ -5010,11 +5010,11 @@ void creer_image_isotrope_3d()
 
 /*------------------------------------------------*/
 /*!
-**	\brief affiche les parametres en fonction
+**  \brief affiche les parametres en fonction
 **   du type de transformation
 **
-**	\param  transfo : type de transformation
-**	\param  param : parametres
+**  \param  transfo : type de transformation
+**  \param  param : parametres
 */
 /*------------------------------------------------*/
 void imx_aff_param(TRANSFO3D transfo, double *param)
@@ -5032,9 +5032,9 @@ void imx_aff_param(TRANSFO3D transfo, double *param)
 
 /*------------------------------------------------*/
 /*!
-**	\brief affiche les parametres rigides
+**  \brief affiche les parametres rigides
 **
-**	\param  param : parametres
+**  \param  param : parametres
 */
 /*------------------------------------------------*/
 void imx_aff_param_rigid(double *param)
@@ -5046,9 +5046,9 @@ void imx_aff_param_rigid(double *param)
 
 /*------------------------------------------------*/
 /*!
-**	\brief affiche les parametres rigides et de zoom
+**  \brief affiche les parametres rigides et de zoom
 **
-**	\param  param : parametres
+**  \param  param : parametres
 */
 /*------------------------------------------------*/
 
@@ -5061,9 +5061,9 @@ void imx_aff_param_rigid_zoom(double *param)
 
 /*------------------------------------------------*/
 /*!
-**	\brief affiche les parametres affine
+**  \brief affiche les parametres affine
 **
-**	\param  param : parametres
+**  \param  param : parametres
 */
 /*------------------------------------------------*/
 void imx_aff_param_affine(double *param)
@@ -5075,9 +5075,9 @@ void imx_aff_param_affine(double *param)
 
 /*------------------------------------------------*/
 /*!
-**	\brief affiche les parametres rigide + zoom global isotrope
+**  \brief affiche les parametres rigide + zoom global isotrope
 **
-**	\param  param : parametres
+**  \param  param : parametres
 */
 /*------------------------------------------------*/
 void imx_aff_param_rigid_global_zoom(double *param)
@@ -5090,9 +5090,9 @@ void imx_aff_param_rigid_global_zoom(double *param)
 
 /*------------------------------------------------*/
 /*!
-**	\brief affiche les parametres affines decouples
+**  \brief affiche les parametres affines decouples
 **
-**	\param  param : parametres
+**  \param  param : parametres
 */
 /*------------------------------------------------*/
 void imx_aff_param_affine_decouple(double *param)
@@ -5104,10 +5104,10 @@ void imx_aff_param_affine_decouple(double *param)
 
 /*------------------------------------------------*/
 /*!
-**	\brief definit le facteur a applique a la precision standard
+**  \brief definit le facteur a applique a la precision standard
 **
-**	\param  matchPrecision : enum definissant la precision voulue
-**	\retval : la facteur determine
+**  \param  matchPrecision : enum definissant la precision voulue
+**  \retval : la facteur determine
 */
 /*------------------------------------------------*/
 double get_facteur_precision(eMatchPrecision matchPrecision)
@@ -5128,10 +5128,10 @@ double get_facteur_precision(eMatchPrecision matchPrecision)
 
 /*------------------------------------------------*/
 /*!
-**	\brief definit le facteur a applique a la precision standard
+**  \brief definit le facteur a applique a la precision standard
 **
-**	\param  FieldOfResearch : enum definissant l'intervalle de recherche voulu
-**	\retval : la facteur determine
+**  \param  FieldOfResearch : enum definissant l'intervalle de recherche voulu
+**  \retval : la facteur determine
 */
 /*------------------------------------------------*/
 double get_facteur_intervalle_recherche(eResearchInterv FieldOfResearch)
@@ -5152,12 +5152,12 @@ double get_facteur_intervalle_recherche(eResearchInterv FieldOfResearch)
 
 /*------------------------------------------------*/
 /*!
-**	\brief fixe les bornes de centre
+**  \brief fixe les bornes de centre
 **
-**	\param  min_param : bornes min de centre
-**	\param  max_param : bornes max de centre
-**	\param  prec_param : precision de centre
-**	\param  param : parametres de centre de depart
+**  \param  min_param : bornes min de centre
+**  \param  max_param : bornes max de centre
+**  \param  prec_param : precision de centre
+**  \param  param : parametres de centre de depart
 */
 /*------------------------------------------------*/
 void init_bornes_matching_centre(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
@@ -5173,12 +5173,12 @@ void init_bornes_matching_centre(double *min_param, double *max_param, double *p
 
 /*------------------------------------------------*/
 /*!
-**	\brief fixe les bornes de rotation
+**  \brief fixe les bornes de rotation
 **
-**	\param  min_param : bornes min de rotation
-**	\param  max_param : bornes max de rotation
-**	\param  prec_param : precision de rotation
-**	\param  param : parametres de rotation de depart
+**  \param  min_param : bornes min de rotation
+**  \param  max_param : bornes max de rotation
+**  \param  prec_param : precision de rotation
+**  \param  param : parametres de rotation de depart
 */
 /*------------------------------------------------*/
 void init_bornes_matching_rot(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, double dx, double dy, double dz)
@@ -5202,12 +5202,12 @@ void init_bornes_matching_rot(double *min_param, double *max_param, double *prec
 
 /*------------------------------------------------*/
 /*!
-**	\brief fixe les bornes de translation
+**  \brief fixe les bornes de translation
 **
-**	\param  min_param : bornes min de translation
-**	\param  max_param : bornes max de translation
-**	\param  prec_param : precision de translation
-**	\param  param : parametres de translation de depart
+**  \param  min_param : bornes min de translation
+**  \param  max_param : bornes max de translation
+**  \param  prec_param : precision de translation
+**  \param  param : parametres de translation de depart
 */
 /*------------------------------------------------*/
 void init_bornes_matching_trans(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, double dx, double dy, double dz)
@@ -5232,12 +5232,12 @@ void init_bornes_matching_trans(double *min_param, double *max_param, double *pr
 
 /*------------------------------------------------*/
 /*!
-**	\brief fixe les bornes de zoom
+**  \brief fixe les bornes de zoom
 **
-**	\param  min_param : bornes min de zoom
-**	\param  max_param : bornes max de zoom
-**	\param  prec_param : precision de zoom
-**	\param  param : parametres de zoom de depart 
+**  \param  min_param : bornes min de zoom
+**  \param  max_param : bornes max de zoom
+**  \param  prec_param : precision de zoom
+**  \param  param : parametres de zoom de depart 
 */
 /*------------------------------------------------*/
 void init_bornes_matching_zoom(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, double dx, double dy, double dz)
@@ -5263,14 +5263,14 @@ void init_bornes_matching_zoom(double *min_param, double *max_param, double *pre
 
 /*------------------------------------------------*/
 /*!
-**	\brief determine les bornes du recalage
+**  \brief determine les bornes du recalage
 **   en fonction du recalage choisi
 **
-**	\param  transfo : le type transformation choisi
-**	\param  min_param : bornes min des parametres
-**	\param  max_param : bornes max des parametres
-**	\param  prec_param : precision des parametres
-**	\param  param : parametres de depart du recalage
+**  \param  transfo : le type transformation choisi
+**  \param  min_param : bornes min des parametres
+**  \param  max_param : bornes max des parametres
+**  \param  prec_param : precision des parametres
+**  \param  param : parametres de depart du recalage
 */
 /*------------------------------------------------*/
 void init_bornes_matching_affine(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, double dx, double dy, double dz)
@@ -5295,14 +5295,14 @@ void init_bornes_matching_affine(double *min_param, double *max_param, double *p
 
 /*------------------------------------------------*/
 /*!
-**	\brief determine les bornes du recalage
+**  \brief determine les bornes du recalage
 **   en fonction du recalage choisi
 **
-**	\param  transfo : le type transformation choisi
-**	\param  min_param : bornes min des parametres
-**	\param  max_param : bornes max des parametres
-**	\param  prec_param : precision des parametres
-**	\param  param : parametres de depart du recalage
+**  \param  transfo : le type transformation choisi
+**  \param  min_param : bornes min des parametres
+**  \param  max_param : bornes max des parametres
+**  \param  prec_param : precision des parametres
+**  \param  param : parametres de depart du recalage
 */
 /*------------------------------------------------*/
 void init_bornes_matching_global_zoom(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, double dx, double dy, double dz)
@@ -5323,14 +5323,14 @@ void init_bornes_matching_global_zoom(double *min_param, double *max_param, doub
 
 /*------------------------------------------------*/
 /*!
-**	\brief determine les bornes du recalage
+**  \brief determine les bornes du recalage
 **   en fonction du recalage choisi
 **
-**	\param  transfo : le type transformation choisi
-**	\param  min_param : bornes min des parametres
-**	\param  max_param : bornes max des parametres
-**	\param  prec_param : precision des parametres
-**	\param  param : parametres de depart du recalage
+**  \param  transfo : le type transformation choisi
+**  \param  min_param : bornes min des parametres
+**  \param  max_param : bornes max des parametres
+**  \param  prec_param : precision des parametres
+**  \param  param : parametres de depart du recalage
 */
 /*------------------------------------------------*/
 void init_bornes_matching_skew(double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, double dx, double dy, double dz)
@@ -5355,25 +5355,25 @@ void init_bornes_matching_skew(double *min_param, double *max_param, double *pre
 
 /*------------------------------------------------*/
 /*!
-**	\brief determine les bornes du recalage
+**  \brief determine les bornes du recalage
 **   en fonction du recalage choisi
 **
-**	\param  transfo : le type transformation choisi
-**	\param  min_param : bornes min des parametres
-**	\param  max_param : bornes max des parametres
-**	\param  prec_param : precision des parametres
-**	\param  FieldOfResearch : Sert �initialiser max_param et min_param
+**  \param  transfo : le type transformation choisi
+**  \param  min_param : bornes min des parametres
+**  \param  max_param : bornes max des parametres
+**  \param  prec_param : precision des parametres
+**  \param  FieldOfResearch : Sert �initialiser max_param et min_param
 **                            Il sert donc a definir l'intervalle de recherche de la transformation de recalage
 **                            Il peut etre mis �3 valeurs SMALL, MEDIUM et LARGE
 **                            On s'arrange pour que LARGE corresponde aux variations de transformation maximum
 **                            dans les cas connus (typiquement +/- 30 degres en rotation et +/- 5cm en translation
 **                            MEDIUM et SMALL correspondent alors respectivement a ces intervalles divises par 2 et par 4
-**	\param  matchPrecision : Sert �inititaliser prec_param
+**  \param  matchPrecision : Sert �inititaliser prec_param
 **                           Il sert donc a definir a partir quelle variation minimale des parametres
 **                           on considere que le recalage ne varira plus de fa�n significative
 **                           Il peut etre mis �NORMAL (precision d'1/2 voxel), PRECIS (1/20 voxel)
 **                           TRES_PRECIS (1/200 voxel), PRECISION_MAX (1/20000 voxel)
-**	\param  param : parametres de depart du recalage
+**  \param  param : parametres de depart du recalage
 */
 /*------------------------------------------------*/
 void init_bornes_matching(TRANSFO3D transfo, double *min_param, double *max_param, double *prec_param, double *param, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, grphic3d *imref, grphic3d *imreca)
@@ -5421,13 +5421,13 @@ void init_bornes_matching(TRANSFO3D transfo, double *min_param, double *max_para
 
 /*------------------------------------------------*/
 /*!
-**	\brief Determine les parametres suivant lesquels on optimise pas
+**  \brief Determine les parametres suivant lesquels on optimise pas
 **
-**	\param  transfo : le type transformation choisi
-**	\param  min_param : bornes min des parametres
-**	\param  max_param : bornes max des parametres
-**	\param  prec_param : precision des parametres
-**	\param  param : parametres de depart du recalage
+**  \param  transfo : le type transformation choisi
+**  \param  min_param : bornes min des parametres
+**  \param  max_param : bornes max des parametres
+**  \param  prec_param : precision des parametres
+**  \param  param : parametres de depart du recalage
 */
 /*------------------------------------------------*/
 void init_bornes_matching_hybride(TRANSFO3D transfo, double *min_param, double *max_param, double *prec_param, double *param)
@@ -5435,36 +5435,36 @@ void init_bornes_matching_hybride(TRANSFO3D transfo, double *min_param, double *
  int i;
  switch (transfo)
  {
-  case RIGID3D :  	for (i=0;i<3;i++)
-										if (_mtch_3d_hybride_param[i]==0)
-												{min_param[i]=max_param[i]=param[i];}
-												
-										for (i=3;i<9;i++)
-										if (_mtch_3d_hybride_param[i+3]==0)
-												{min_param[i]=max_param[i]=param[i];}
-									  break;
-	
-	case RIGIDGLOBALZOOM3D :
-	 									for (i=0;i<3;i++)
-										if (_mtch_3d_hybride_param[i]==0)
-												{min_param[i]=max_param[i]=param[i];}
-												
-										if (_mtch_3d_hybride_param[15]==0)
-												{min_param[3]=max_param[3]=param[3];}
-										
-										for (i=4;i<10;i++)
-										if (_mtch_3d_hybride_param[i+2]==0)
-												{min_param[i]=max_param[i]=param[i];}
-										
-										break;		
-												
+  case RIGID3D :    for (i=0;i<3;i++)
+                                        if (_mtch_3d_hybride_param[i]==0)
+                                                {min_param[i]=max_param[i]=param[i];}
+                                                
+                                        for (i=3;i<9;i++)
+                                        if (_mtch_3d_hybride_param[i+3]==0)
+                                                {min_param[i]=max_param[i]=param[i];}
+                                      break;
+    
+    case RIGIDGLOBALZOOM3D :
+                                        for (i=0;i<3;i++)
+                                        if (_mtch_3d_hybride_param[i]==0)
+                                                {min_param[i]=max_param[i]=param[i];}
+                                                
+                                        if (_mtch_3d_hybride_param[15]==0)
+                                                {min_param[3]=max_param[3]=param[3];}
+                                        
+                                        for (i=4;i<10;i++)
+                                        if (_mtch_3d_hybride_param[i+2]==0)
+                                                {min_param[i]=max_param[i]=param[i];}
+                                        
+                                        break;      
+                                                
   case RIGIDZOOM3D : for (i=0;i<12;i++)
-										if (_mtch_3d_hybride_param[i]==0)
-												{min_param[i]=max_param[i]=param[i];}
+                                        if (_mtch_3d_hybride_param[i]==0)
+                                                {min_param[i]=max_param[i]=param[i];}
                     break;
   default :         for (i=0;i<12;i++)
-										if (_mtch_3d_hybride_param[i]==0)
-												{min_param[i]=max_param[i]=param[i];}
+                                        if (_mtch_3d_hybride_param[i]==0)
+                                                {min_param[i]=max_param[i]=param[i];}
                     break;
  }
 
@@ -5662,12 +5662,12 @@ transf3d *imx_trouver_transf_initiale_matching_3d_p(grphic3d *imref, grphic3d *i
 **     rigid_to_field_champ_3d(nb_param,param,points_choisis,champ,champ,imref,imreca)
 */
 /*!     remplit un champ dense 3D pour une transformation rigide
-**	applique autour du centre (xc,yc) et avec une translation (tx,ty)
+**  applique autour du centre (xc,yc) et avec une translation (tx,ty)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz tx ty tz xc yc zc
-**	\param nb_param : inutilise
-**	\param points_choisis  : points transformes
-**	\param param  : tableau de param
+**  tetax tetay tetaz tx ty tz xc yc zc
+**  \param nb_param : inutilise
+**  \param points_choisis  : points transformes
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
@@ -5758,12 +5758,12 @@ int rigid_to_field_champ_3d(int nb_param,  const double *param, field3d* points_
 **     rigidz_to_field_champ_3d(nb_param,param,points_choisis,champ,champ,imref,imreca)
 */
 /*!     remplit un champ dense 3D pour une transformation rigide + zoom
-**	applique autour du centre (xc,yc) et avec une translation (tx,ty)
+**  applique autour du centre (xc,yc) et avec une translation (tx,ty)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz tx ty tz xc yc zc
-**	\param nb_param : inutilise
-**	\param points_choisis  : points transformes
-**	\param param  : tableau de param
+**  tetax tetay tetaz tx ty tz xc yc zc
+**  \param nb_param : inutilise
+**  \param points_choisis  : points transformes
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
@@ -5854,12 +5854,12 @@ int rigidz_to_field_champ_3d(int nb_param,  const double *param, field3d* points
 **     affine_to_field_champ_3d(nb_param,param,points_choisis,champ,champ,imref,imreca)
 */
 /*!     remplit un champ dense 3D pour une transformation affine
-**	applique autour du centre (xc,yc) et avec une translation (tx,ty)
+**  applique autour du centre (xc,yc) et avec une translation (tx,ty)
 **      Les parametres dans le tableau param, sont ordonnes ainsi
-**	tetax tetay tetaz tx ty tz xc yc zc
-**	\param nb_param : inutilise
-**	\param points_choisis  : points transformes
-**	\param param  : tableau de param
+**  tetax tetay tetaz tx ty tz xc yc zc
+**  \param nb_param : inutilise
+**  \param points_choisis  : points transformes
+**  \param param  : tableau de param
 **  \param champ : le champ (E/S)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
 **  \param imref : utile pour creer un champ d'une transfo anisotrope (espace imreca -> espace imref)
@@ -5980,8 +5980,8 @@ int affine_decouple_to_field_champ_3d(int nb_param,  const double *param, field3
 **  \param imref: l'image de reference
 **  \param imreca: l'image recalee
 **  \param imres: l'image resultat
-**	\param nb_param : nombre de parametre de la transformation
-**	\param param  : tableau de parametres de la transformation a appliquer
+**  \param nb_param : nombre de parametre de la transformation
+**  \param param  : tableau de parametres de la transformation a appliquer
 **  \retval : 0 en cas de succes, 1 en cas d'echec
 *******************************************************************************/
 int imx_calc_image_resultat_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, field3d *champ, transf3d *transfres)
@@ -6132,7 +6132,7 @@ int imx_copie_dim_param_to_transf3d_p(grphic3d *imsrc, transf3d *transfo)
 **  \param imref: l'image de reference
 **  \param imreca: l'image recalee
 **  \param imres: l'image resultat
-**	\param reste : voir les parametres passes aux differentes methodes de matching
+**  \param reste : voir les parametres passes aux differentes methodes de matching
 **  \retval : l'energie minimale trouvee
 *******************************************************************************/
 double imx_matching_simple_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, dist_func_t dist, InterpolationFct inter, min_func_t minimisation, transf3d *transfres, transf3d *inittrf, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision, contrainte_func_t contrainte, field3d *champ_ini, field3d *champ_fin)
@@ -6178,7 +6178,7 @@ double imx_matching_simple_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imr
  init_bornes_matching(transfoType, min_param, max_param, prec_param, param, FieldOfResearch, matchPrecision, imref, imreca);
 
 if (_mtch_3d_hybride_param)
-	 init_bornes_matching_hybride(transfoType, min_param, max_param, prec_param, param);
+     init_bornes_matching_hybride(transfoType, min_param, max_param, prec_param, param);
 
 
  //minimisation
@@ -6218,7 +6218,7 @@ if (_mtch_3d_hybride_param)
 **  \param imref: l'image de reference
 **  \param imreca: l'image recalee
 **  \param start_resol, end_resol: resolutions max et min du recalage
-**	\param reste : voir les parametres passes aux differentes methodes de matching
+**  \param reste : voir les parametres passes aux differentes methodes de matching
 **  \retval : l'energie minimale trouvee
 *******************************************************************************/
 double imx_matching_multires_simple_3d_p(grphic3d *imref, grphic3d *imreca, dist_func_t dist, InterpolationFct inter, min_func_t minimisation, transf3d *transfres, transf3d *inittrf, eMatchPrecision matchPrecision, contrainte_func_t contrainte, field3d *champ_ini, int start_resol,int end_resol)
@@ -6911,11 +6911,11 @@ eMatchPrecision imx_query_matching_precision()
  int matchPrecInt=0;
  char *query[5];
 
-	query[0]="Normal";
-	query[1]="Precis (1e-1)";
-	query[2]="Tres precis (1e-2)";
-	query[3]="Precision max (1e-4)";
-	query[4]=NULL;
+    query[0]="Normal";
+    query[1]="Precis (1e-1)";
+    query[2]="Tres precis (1e-2)";
+    query[3]="Precision max (1e-4)";
+    query[4]=NULL;
 
  matchPrecInt=GETV_QCM("Precision requise pour le matching",(char **)query);
 
@@ -7088,7 +7088,7 @@ int free_dist_param(ptr_distance_param dist_param)
 **                             
 *******************************************************************************/
 /*! 
-	 recalage rigide de deux images 3D binaire (sans zoom)        
+     recalage rigide de deux images 3D binaire (sans zoom)        
   
 */
 void matching_rigide_ICP_3d()
@@ -7145,12 +7145,12 @@ void matching_rigide_ICP_3d()
 */                                                                       
 /*!       recalage rigide sans zoom de 2 images 3D                                   
 ** 
-**	\param im_ref : numero de l'image de reference, 
-**	\param im_reca  : numero de l'image a recaler,
-**	\param im_res : numero de l'image resultat
-**	les autres parametres sont expliques dans ::imx_matching_rigide_3d_p	
-**	\retval 1
-**	
+**  \param im_ref : numero de l'image de reference, 
+**  \param im_reca  : numero de l'image a recaler,
+**  \param im_res : numero de l'image resultat
+**  les autres parametres sont expliques dans ::imx_matching_rigide_3d_p    
+**  \retval 1
+**  
 *******************************************************************************/
 int imx_matching_rigide_ICP_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
@@ -7163,7 +7163,7 @@ int imx_matching_rigide_ICP_3d(int im_ref, int im_reca, int im_res, int dist_typ
   imres=ptr_img_3d(im_res);
    
   if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);
+     inittrf=load_transf_3d(nomfichtrf);
   transfres = cr_transf3d_p(imref,NULL); 
 
   init_log(NULL);
@@ -7185,7 +7185,7 @@ int imx_matching_rigide_ICP_3d(int im_ref, int im_reca, int im_res, int dist_typ
   end_log();
 
   if (inittrf)
-  	free_transf3d(inittrf);
+    free_transf3d(inittrf);
 
   free_transf3d(transfres);
  
@@ -7199,48 +7199,48 @@ int imx_matching_rigide_ICP_3d(int im_ref, int im_reca, int im_res, int dist_typ
 /*!                                                                        
 **       \brief recalage rigide entre 2 images 3D                                    
 **
-**	\param imref : images de reference, 
-**	\param imreca  : image a recaler,
-**	\param imres : images resultat (E/S)
+**  \param imref : images de reference, 
+**  \param imreca  : image a recaler,
+**  \param imres : images resultat (E/S)
 **  \param dist_type : numero de la fonction de distance 
-**							\li 0 : Quadratic
-**							\li 1 : Quadratic Robust
-**							\li 2 : woods
-**							\li 3 : woods robust
-**							\li 4 : IM Old
-**							\li 5 : IM
-**							\li 6 : IM NORM STUDHOLME
-**							\li 7 : IM NORM MAES1
-**							\li 8 : IM NORM MAES2
-**							\li 9 : Entropie conjointe
-**							\li 10 : Correlation ratio
-**	\param inter_type : numero de la fonction d'interpolation des images
-**							\li 0 : nearest
-**							\li 1 : linear
-**							\li 2 : sin card
-**							\li 3 : quick sin card2
-**							\li 4 : quick sin card3 
-**							\li 5 : bspline 2
-**							\li 6 : bspline 3
-**							\li 7 : bspline 4
-**							\li 8 : bspline 5
-**	\param min_type : numero de la fonction de minimisation utilisee aux plus faibles
+**                          \li 0 : Quadratic
+**                          \li 1 : Quadratic Robust
+**                          \li 2 : woods
+**                          \li 3 : woods robust
+**                          \li 4 : IM Old
+**                          \li 5 : IM
+**                          \li 6 : IM NORM STUDHOLME
+**                          \li 7 : IM NORM MAES1
+**                          \li 8 : IM NORM MAES2
+**                          \li 9 : Entropie conjointe
+**                          \li 10 : Correlation ratio
+**  \param inter_type : numero de la fonction d'interpolation des images
+**                          \li 0 : nearest
+**                          \li 1 : linear
+**                          \li 2 : sin card
+**                          \li 3 : quick sin card2
+**                          \li 4 : quick sin card3 
+**                          \li 5 : bspline 2
+**                          \li 6 : bspline 3
+**                          \li 7 : bspline 4
+**                          \li 8 : bspline 5
+**  \param min_type : numero de la fonction de minimisation utilisee aux plus faibles
     echelles de la transformation 
-**							\li 0 : ICM
-**							\li 1 : simplex
-**							\li 2 : Descente gradient
-**							\li 3 : Gradient conjugue
-**							\li 4 : Descente gradient modifiee
-**							\li 5 : Quasi Newton modifiee
-**	\param save_type : Type de sauvegarde
-**							\li 0 : champ
-**							\li 1 : parametres
-**	\param nomfichres :  nom du fichier de sauvegarde des transformations (*.trf)
-**	\param nomfichtrf : initialisation du champ de depart a la valeur d'un fichier (*.trf)\n
-**					    si NULL -> alignement centre de gravite
-**	\param FieldOfResearch :  voir init_bornes_matching
-**	\param matchPrecision  :  voir init_bornes_matching
-**	\retval 1
+**                          \li 0 : ICM
+**                          \li 1 : simplex
+**                          \li 2 : Descente gradient
+**                          \li 3 : Gradient conjugue
+**                          \li 4 : Descente gradient modifiee
+**                          \li 5 : Quasi Newton modifiee
+**  \param save_type : Type de sauvegarde
+**                          \li 0 : champ
+**                          \li 1 : parametres
+**  \param nomfichres :  nom du fichier de sauvegarde des transformations (*.trf)
+**  \param nomfichtrf : initialisation du champ de depart a la valeur d'un fichier (*.trf)\n
+**                      si NULL -> alignement centre de gravite
+**  \param FieldOfResearch :  voir init_bornes_matching
+**  \param matchPrecision  :  voir init_bornes_matching
+**  \retval 1
 **
 *******************************************************************************/
 int imx_matching_rigide_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, int min_type, int save_type, transf3d *transfres, transf3d *inittrf,eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
@@ -7262,11 +7262,11 @@ int imx_matching_rigide_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
  //---------mise en place des parametres du recalage-------/
   
   if (dist_type == 1)
-	distance=erreur_ICP_sym_3d;
-	else
-	distance=erreur_ICP_3d;
+    distance=erreur_ICP_sym_3d;
+    else
+    distance=erreur_ICP_3d;
   
-	interpol=imx_choose_interpolation_fct(inter_type);
+    interpol=imx_choose_interpolation_fct(inter_type);
      
   minimisation=imx_choose_minimisation_fct(min_type,dist_type);  
 
@@ -7278,16 +7278,16 @@ int imx_matching_rigide_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
   imtreca=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca);
   imtref=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref);
   imtres=cr_grphic3d(imref);imx_copie_3d_p(imref,imtres);
-	imtreca->mask=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca->mask);
-	imtref->mask=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref->mask); 
-	imtmp=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtmp);
-	imtres->mask=cr_grphic3d(imtres);imx_copie_3d_p(imtres,imtres->mask); 
-	
+    imtreca->mask=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca->mask);
+    imtref->mask=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref->mask); 
+    imtmp=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtmp);
+    imtres->mask=cr_grphic3d(imtres);imx_copie_3d_p(imtres,imtres->mask); 
+    
 
   /* calcul du mask de imref avec l'image compl�mentaire */
-		imx_inv_3d_p(imtref,imtref->mask);
-		imx_inv_3d_p(imreca,imtmp);
-		
+        imx_inv_3d_p(imtref,imtref->mask);
+        imx_inv_3d_p(imreca,imtmp);
+        
  // ------------------INITIALISATION PAR TRANSFO DE DEPART---------------------- 
  {
   //on veut une transformation de depart compatible avec le recalage courant
@@ -7299,23 +7299,23 @@ int imx_matching_rigide_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
  }
 
 /* calcul des cartes de distance */
-	imx_chamfer_distance_3d_p(imreca,imtreca);
-	imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
+    imx_chamfer_distance_3d_p(imreca,imtreca);
+    imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
 
-	imx_inimaxminpixel_3d_p(imtreca);
-	imx_inimaxminpixel_3d_p(imtreca->mask);
+    imx_inimaxminpixel_3d_p(imtreca);
+    imx_inimaxminpixel_3d_p(imtreca->mask);
 
   imx_mul_coe_3d_p(imtreca,10.0,imtreca);
-	imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
+    imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
 
   imx_add_coe_3d_p(imtreca,1.0,imtreca);
   imx_add_coe_3d_p(imtreca->mask,1.0,imtreca->mask);
 
-	
-	imtres->max_pixel=imtreca->max_pixel;
-	imtres->mask->max_pixel=imtreca->mask->max_pixel;
-	imtres->rcoeff=imtreca->rcoeff;
-	imtres->mask->rcoeff=imtreca->mask->rcoeff;
+    
+    imtres->max_pixel=imtreca->max_pixel;
+    imtres->mask->max_pixel=imtreca->mask->max_pixel;
+    imtres->rcoeff=imtreca->rcoeff;
+    imtres->mask->rcoeff=imtreca->mask->rcoeff;
 
 
 
@@ -7390,8 +7390,8 @@ int im_ref,im_reca,im_res,i;
  
  for(i=0;i<3;i++)
     free(quest[i]);
-		
-	//interpolation lin�aire
+        
+    //interpolation lin�aire
  inter_type=1; //imx_query_interpolation_type_3D(dist_type);
  //minimisation
  min_type=imx_query_minimisation_type_3D(dist_type);
@@ -7428,7 +7428,7 @@ int imx_matching_rigide_zoom_ICP_3d(int im_ref, int im_reca, int im_res, int dis
  imres=ptr_img_3d(im_res);
 
  if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);
+     inittrf=load_transf_3d(nomfichtrf);
  transfres = cr_transf3d_p(imref, NULL);
 
  imx_inimaxminpixel_3d_p(imref);
@@ -7482,10 +7482,10 @@ int imx_matching_rigide_zoom_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3
  //---------mise en place des parametres du recalage-------/
 
   if (dist_type == 1)
-	distance=erreur_ICP_sym_3d;
-	else
-	distance=erreur_ICP_3d;
-	
+    distance=erreur_ICP_sym_3d;
+    else
+    distance=erreur_ICP_3d;
+    
   interpol=imx_choose_interpolation_fct(inter_type);
 
   minimisation=imx_choose_minimisation_fct(min_type,dist_type);
@@ -7498,12 +7498,12 @@ int imx_matching_rigide_zoom_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3
   imtreca=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca);
   imtref=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref);
   imtres=cr_grphic3d(imref);imx_copie_3d_p(imref,imtres);
-	imtreca->mask=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca->mask);
-	imtref->mask=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref->mask); 
-	imtmp=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtmp);
-	imtres->mask=cr_grphic3d(imtres);imx_copie_3d_p(imtres,imtres->mask); 
-	
-	
+    imtreca->mask=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca->mask);
+    imtref->mask=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref->mask); 
+    imtmp=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtmp);
+    imtres->mask=cr_grphic3d(imtres);imx_copie_3d_p(imtres,imtres->mask); 
+    
+    
  // ------------------INITIALISATION PAR TRANSFO DE DEPART----------------------
  {
   //on veut une transformation de depart compatible avec le recalage courant
@@ -7515,48 +7515,48 @@ int imx_matching_rigide_zoom_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3
  }
 
  // ------------------MISE A ZERO DES ELEMENTS SUR LESQUELS ON OPTIMISE PAS----------------------
-	if (_mtch_3d_hybride_param)
-		{int i;
-			for (i=0;i<3;i++)
-				if (_mtch_3d_hybride_param[i]==0)
-				{transfoini->param[i]=0.0;}
-			for (i=3;i<6;i++)
-				if (_mtch_3d_hybride_param[i+3]==0)
-				{transfoini->param[i]=0.0;}
-			
-			for (i=6;i<9;i++)
-				if (_mtch_3d_hybride_param[i+3]==0)
-				{transfoini->param[i]=_mtch_3d_hybride_param[i+6];}
-			
-				
-		}
+    if (_mtch_3d_hybride_param)
+        {int i;
+            for (i=0;i<3;i++)
+                if (_mtch_3d_hybride_param[i]==0)
+                {transfoini->param[i]=0.0;}
+            for (i=3;i<6;i++)
+                if (_mtch_3d_hybride_param[i+3]==0)
+                {transfoini->param[i]=0.0;}
+            
+            for (i=6;i<9;i++)
+                if (_mtch_3d_hybride_param[i+3]==0)
+                {transfoini->param[i]=_mtch_3d_hybride_param[i+6];}
+            
+                
+        }
 
  /* calcul du mask de imref avec l'image compl�mentaire */
-		imx_inv_3d_p(imtref,imtref->mask);
-		imx_inv_3d_p(imreca,imtmp);
-	
-	
+        imx_inv_3d_p(imtref,imtref->mask);
+        imx_inv_3d_p(imreca,imtmp);
+    
+    
 /* calcul des cartes de distance */
-	imx_chamfer_distance_3d_p(imreca,imtreca);
-	imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
+    imx_chamfer_distance_3d_p(imreca,imtreca);
+    imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
 
-	imx_inimaxminpixel_3d_p(imtreca);
-	imx_inimaxminpixel_3d_p(imtreca->mask);
+    imx_inimaxminpixel_3d_p(imtreca);
+    imx_inimaxminpixel_3d_p(imtreca->mask);
 
   imx_mul_coe_3d_p(imtreca,10.0,imtreca);
-	imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
+    imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
 
   imx_add_coe_3d_p(imtreca,1.0,imtreca);
   imx_add_coe_3d_p(imtreca->mask,1.0,imtreca->mask);
 
-	
-	imtres->max_pixel=imtreca->max_pixel;
-	imtres->mask->max_pixel=imtreca->mask->max_pixel;
-	imtres->rcoeff=imtreca->rcoeff;
-	imtres->mask->rcoeff=imtreca->mask->rcoeff;
+    
+    imtres->max_pixel=imtreca->max_pixel;
+    imtres->mask->max_pixel=imtreca->mask->max_pixel;
+    imtres->rcoeff=imtreca->rcoeff;
+    imtres->mask->rcoeff=imtreca->mask->rcoeff;
 
 
-	
+    
 
  //------------------RECALAGE ----------------------------------------/
  {
@@ -7574,27 +7574,27 @@ int imx_matching_rigide_zoom_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3
  copie_transf_3d(transfres, transfoini);
  
 if (_mtch_3d_hybride_param)
-	{if (_mtch_3d_hybride_param[15]!=0)
-		{
- 		transfoini->param=REALLOC(transfoini->param,transfoini->nb_param+1,double);
- 		transfoini->nb_param=rigid_to_rigid_global_zoom_3d(transfoini->param);
- 		transfoini->typetrans=RIGIDGLOBALZOOM3D; 
- 		aff_log("\n TRANSFO RIGIDE+ZOOM GLOBAL \n");
-		}
-	else
- 		{transfoini->param=REALLOC(transfoini->param,transfoini->nb_param+3,double);
- 		transfoini->nb_param=rigid_to_rigidz_3d(transfoini->param);
- 		transfoini->typetrans=RIGIDZOOM3D;
- 		aff_log("\n TRANSFO RIGIDE+ZOOM \n");
- 		}
-	}
-	else
- 		{transfoini->param=REALLOC(transfoini->param,transfoini->nb_param+3,double);
- 		transfoini->nb_param=rigid_to_rigidz_3d(transfoini->param);
- 		transfoini->typetrans=RIGIDZOOM3D;
- 		aff_log("\n TRANSFO RIGIDE+ZOOM \n");
- 		}
-		
+    {if (_mtch_3d_hybride_param[15]!=0)
+        {
+        transfoini->param=REALLOC(transfoini->param,transfoini->nb_param+1,double);
+        transfoini->nb_param=rigid_to_rigid_global_zoom_3d(transfoini->param);
+        transfoini->typetrans=RIGIDGLOBALZOOM3D; 
+        aff_log("\n TRANSFO RIGIDE+ZOOM GLOBAL \n");
+        }
+    else
+        {transfoini->param=REALLOC(transfoini->param,transfoini->nb_param+3,double);
+        transfoini->nb_param=rigid_to_rigidz_3d(transfoini->param);
+        transfoini->typetrans=RIGIDZOOM3D;
+        aff_log("\n TRANSFO RIGIDE+ZOOM \n");
+        }
+    }
+    else
+        {transfoini->param=REALLOC(transfoini->param,transfoini->nb_param+3,double);
+        transfoini->nb_param=rigid_to_rigidz_3d(transfoini->param);
+        transfoini->typetrans=RIGIDZOOM3D;
+        aff_log("\n TRANSFO RIGIDE+ZOOM \n");
+        }
+        
  //recalage rigide+zoom
  {
   mini=imx_matching_simple_3d_p(imtref, imtreca, imtres, distance, interpol, minimisation, transfres, transfoini, FieldOfResearch, matchPrecision, NULL, NULL, champ1);
@@ -7637,7 +7637,7 @@ if (_mtch_3d_hybride_param)
 */
 /*!                                                                        
 **      \brief recalage rigide + zoom suivant un nombre restreint de parametres
-** 					entre de deux images binaires 3D                                
+**                  entre de deux images binaires 3D                                
 *******************************************************************************/
 void matching_hybride_ICP_3d()
 {
@@ -7646,7 +7646,7 @@ int im_ref,im_reca,im_res,e,i;
  char *nomfichtrf=NULL,*quest[3];
  int dist_type,inter_type,min_type,save_type;
  eResearchInterv FieldOfResearch;
-char	s[250];
+char    s[250];
 
 _mtch_3d_hybride_param = (double *) malloc (16*sizeof(double));
 
@@ -7667,7 +7667,7 @@ _mtch_3d_hybride_param = (double *) malloc (16*sizeof(double));
  
  for(i=0;i<3;i++)
     free(quest[i]);
-		
+        
  //interpolation lin�aire
  inter_type=1; //imx_query_interpolation_type_3D(dist_type);
  //minimisation
@@ -7679,37 +7679,37 @@ _mtch_3d_hybride_param = (double *) malloc (16*sizeof(double));
 
 // Questions sur les parametres a optimiser
 sprintf(s,"Optimiser teta_x ?\n");
-	_mtch_3d_hybride_param[0]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[0]=GET_EXIST(s,&e);
 
 sprintf(s,"Optimiser teta_y ?\n");
-	_mtch_3d_hybride_param[1]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[1]=GET_EXIST(s,&e);
 
 sprintf(s,"Optimiser teta_z ?\n");
-	_mtch_3d_hybride_param[2]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[2]=GET_EXIST(s,&e);
 
 sprintf(s,"Optimiser zoom global ?\n");
-	_mtch_3d_hybride_param[15]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[15]=GET_EXIST(s,&e);
 
 if (_mtch_3d_hybride_param[15]==0)
 {sprintf(s,"Optimiser zoom_x ?\n");
-	_mtch_3d_hybride_param[3]=GET_EXIST(s,&e);}
+    _mtch_3d_hybride_param[3]=GET_EXIST(s,&e);}
 
 if (_mtch_3d_hybride_param[15]==0)
 {sprintf(s,"Optimiser zoom_y ?\n");
-	_mtch_3d_hybride_param[4]=GET_EXIST(s,&e);}
+    _mtch_3d_hybride_param[4]=GET_EXIST(s,&e);}
 
 if (_mtch_3d_hybride_param[15]==0)
 {sprintf(s,"Optimiser zoom_z ?\n");
-	_mtch_3d_hybride_param[5]=GET_EXIST(s,&e);}
+    _mtch_3d_hybride_param[5]=GET_EXIST(s,&e);}
 
 sprintf(s,"Optimiser t_x ?\n");
-	_mtch_3d_hybride_param[6]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[6]=GET_EXIST(s,&e);
 
 sprintf(s,"Optimiser t_y ?\n");
-	_mtch_3d_hybride_param[7]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[7]=GET_EXIST(s,&e);
 
 sprintf(s,"Optimiser t_z ?\n");
-	_mtch_3d_hybride_param[8]=GET_EXIST(s,&e);
+    _mtch_3d_hybride_param[8]=GET_EXIST(s,&e);
 
 _mtch_3d_hybride_param[9]=1;
 _mtch_3d_hybride_param[10]=1;
@@ -7826,44 +7826,44 @@ int im_ref,im_reca,im_res,i;
 */
 /*!     \brief  recalage affine de 2 images 3D                                    
 **
-**		\param  imref : numero de l'image de ref
-**		\param  imreca : numero de l'image a recaler
-**		\param  imres : numero de l'image ou l'on stocke le resultat du recalage de imreca
+**      \param  imref : numero de l'image de ref
+**      \param  imreca : numero de l'image a recaler
+**      \param  imres : numero de l'image ou l'on stocke le resultat du recalage de imreca
     (peut etre NULL)
-**		\param  dist_type : numero de la fonction de distance (0 pour distance quadratique)
-							\li 0 : QUAD
-							\li 1 : QUAD ROBUST
-							\li 2 : WOODS
-							\li 3 : WOODS ROBUST
-							\li 4 : IM
-							\li 
-							
-**		\param  inter_type : numero de la fonction d'interpolation des images (1 pour lineaire)
-							\li 0 : NEAREST
-							\li 1 : LINEAR
-							\li 2 : SINC
-							\li 3 : QSINC2
-							\li 4 : QSINC3
-							\li 5 : BSPLINE2
-							\li 6 : BSPLINE3 
-							\li 7 : BSPLINE4
-							\li 8 : BSPLINE5
+**      \param  dist_type : numero de la fonction de distance (0 pour distance quadratique)
+                            \li 0 : QUAD
+                            \li 1 : QUAD ROBUST
+                            \li 2 : WOODS
+                            \li 3 : WOODS ROBUST
+                            \li 4 : IM
+                            \li 
+                            
+**      \param  inter_type : numero de la fonction d'interpolation des images (1 pour lineaire)
+                            \li 0 : NEAREST
+                            \li 1 : LINEAR
+                            \li 2 : SINC
+                            \li 3 : QSINC2
+                            \li 4 : QSINC3
+                            \li 5 : BSPLINE2
+                            \li 6 : BSPLINE3 
+                            \li 7 : BSPLINE4
+                            \li 8 : BSPLINE5
 
 
-**		\param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
+**      \param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
     echelles de la transformation (5 pour quasi-newton)
-							\li 0 : ICM
-							\li 1 : SIMPLEX 
-							\li 2 : DESCGRAD 
-							\li 3 : GRADCONJ
-							\li 4 : DESCGRADMOD
-							\li 5 : QUASINEWTONMOD
+                            \li 0 : ICM
+                            \li 1 : SIMPLEX 
+                            \li 2 : DESCGRAD 
+                            \li 3 : GRADCONJ
+                            \li 4 : DESCGRADMOD
+                            \li 5 : QUASINEWTONMOD
 
-**		\param save_type : 
-**							\li 0 : champ
-**							\li 1 : parametres
-**		\param  nomfichres :  nom du fichier de sauvegarde de la transformation
-**		\retval 1
+**      \param save_type : 
+**                          \li 0 : champ
+**                          \li 1 : parametres
+**      \param  nomfichres :  nom du fichier de sauvegarde de la transformation
+**      \retval 1
 *******************************************************************************/
 int imx_matching_affine_ICP_3d(int im_ref, int im_reca, int im_res, int dist_type, int inter_type, int min_type, int save_type, char *nomfichres, char *nomfichtrf, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
@@ -7875,7 +7875,7 @@ int imx_matching_affine_ICP_3d(int im_ref, int im_reca, int im_res, int dist_typ
  imres=ptr_img_3d(im_res);
 
  if (nomfichtrf !=NULL)
-	 inittrf=load_transf_3d(nomfichtrf);  
+     inittrf=load_transf_3d(nomfichtrf);  
  transfres=cr_transf3d_p(imref,NULL);
 
  imx_inimaxminpixel_3d_p(imref);
@@ -7909,48 +7909,48 @@ int imx_matching_affine_ICP_3d(int im_ref, int im_reca, int im_res, int dist_typ
 */
 /*!     \brief  recalage affine de 2 images 3D                                    
 **
-**		\param  imref : image de reference
-**		\param  imreca : image a recaler
-**		\param  imres : image resultat (E/S)
-**		\param  dist_type : numero de la fonction de distance 
-							\li 0 : QUAD
-							\li 1 : QUAD ROBUST
-							\li 2 : WOODS
-							\li 3 : WOODS ROBUST
-							\li 4 : IM
-							\li 
-							
-**		\param inter_type : numero de la fonction d'interpolation des images 
-							\li 0 : NEAREST
-							\li 1 : LINEAR
-							\li 2 : SINC
-							\li 3 : QSINC2
-							\li 4 : QSINC3
-							\li 5 : BSPLINE2
-							\li 6 : BSPLINE3 
-							\li 7 : BSPLINE4
-							\li 8 : BSPLINE5
+**      \param  imref : image de reference
+**      \param  imreca : image a recaler
+**      \param  imres : image resultat (E/S)
+**      \param  dist_type : numero de la fonction de distance 
+                            \li 0 : QUAD
+                            \li 1 : QUAD ROBUST
+                            \li 2 : WOODS
+                            \li 3 : WOODS ROBUST
+                            \li 4 : IM
+                            \li 
+                            
+**      \param inter_type : numero de la fonction d'interpolation des images 
+                            \li 0 : NEAREST
+                            \li 1 : LINEAR
+                            \li 2 : SINC
+                            \li 3 : QSINC2
+                            \li 4 : QSINC3
+                            \li 5 : BSPLINE2
+                            \li 6 : BSPLINE3 
+                            \li 7 : BSPLINE4
+                            \li 8 : BSPLINE5
 
-**		\param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
+**      \param  min_type : numero de la fonction de minimisation utilisee aux plus faibles
     echelles de la transformation 
-							\li 0 : ICM
-							\li 1 : SIMPLEX 
-							\li 2 : DESCGRAD 
-							\li 3 : GRADCONJ
-							\li 4 : DESCGRADMOD
-							\li 5 : QUASINEWTONMOD
+                            \li 0 : ICM
+                            \li 1 : SIMPLEX 
+                            \li 2 : DESCGRAD 
+                            \li 3 : GRADCONJ
+                            \li 4 : DESCGRADMOD
+                            \li 5 : QUASINEWTONMOD
 
-**		\param save_type : 
-**							\li 0 : champ
-**							\li 1 : parametres
-**		\param  nomfichres :   nom du fichier de sauvegarde de la transfo (*.trf)
-**	\param FieldOfResearch :  voir init_bornes_matching
-**	\param matchPrecision  :  voir init_bornes_matching
-**		\retval 1
+**      \param save_type : 
+**                          \li 0 : champ
+**                          \li 1 : parametres
+**      \param  nomfichres :   nom du fichier de sauvegarde de la transfo (*.trf)
+**  \param FieldOfResearch :  voir init_bornes_matching
+**  \param matchPrecision  :  voir init_bornes_matching
+**      \retval 1
 *******************************************************************************/
 int imx_matching_affine_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *imres, int dist_type, int inter_type, int min_type, int save_type, transf3d *transfres,transf3d *inittrf, eResearchInterv FieldOfResearch, eMatchPrecision matchPrecision)
 {
- int	wdth,hght,dpth;
+ int    wdth,hght,dpth,k;
  grphic3d *imtref,*imtreca,*imtres,*imtmp;
  field3d *champ1;
  InterpolationFct interpol;
@@ -7969,9 +7969,9 @@ int imx_matching_affine_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
  //---------mise en place des parametres du recalage-------/
 
   if (dist_type == 1)
-	distance=erreur_ICP_sym_3d;
-	else
-	distance=erreur_ICP_3d;
+    distance=erreur_ICP_sym_3d;
+    else
+    distance=erreur_ICP_3d;
 
   interpol=imx_choose_interpolation_fct(inter_type);
 
@@ -7982,14 +7982,14 @@ int imx_matching_affine_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
   //imx_matching_preprocessing_3d_p(imref, imreca, &imtref, &imtreca, &imtres, &preProcessingRefTrf, &preProcessingRecaTrf, distance);
  }
 
- 	imtreca=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca);
+    imtreca=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca);
   imtref=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref);
   imtres=cr_grphic3d(imref);imx_copie_3d_p(imref,imtres);
-	imtreca->mask=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca->mask);
-	imtref->mask=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref->mask); 
-	imtmp=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtmp);
-	imtres->mask=cr_grphic3d(imtres);imx_copie_3d_p(imtres,imtres->mask); 
-		
+    imtreca->mask=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtreca->mask);
+    imtref->mask=cr_grphic3d(imref);imx_copie_3d_p(imref,imtref->mask); 
+    imtmp=cr_grphic3d(imreca);imx_copie_3d_p(imreca,imtmp);
+    imtres->mask=cr_grphic3d(imtres);imx_copie_3d_p(imtres,imtres->mask); 
+        
  // ------------------INITIALISATION PAR TRANSFO DE DEPART----------------------
  {
   //on veut une transformation de depart compatible avec le recalage courant
@@ -7999,30 +7999,31 @@ int imx_matching_affine_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
   }
   else transfoini=imx_trouver_transf_initiale_matching_3d_p(imtref, imtreca, NULL);
  }
+for (k=0;k<6;k++) transfoini->param[k]=0.0;
 
-	/* calcul du mask de imref avec l'image compl�mentaire */
-	imx_inv_3d_p(imtref,imtref->mask);
-	imx_inv_3d_p(imreca,imtmp);
-	
-	
-	/* calcul des cartes de distance */
-	imx_chamfer_distance_3d_p(imreca,imtreca);
-	imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
+    /* calcul du mask de imref avec l'image compl�mentaire */
+    imx_inv_3d_p(imtref,imtref->mask);
+    imx_inv_3d_p(imreca,imtmp);
+    
+    
+    /* calcul des cartes de distance */
+    imx_chamfer_distance_3d_p(imreca,imtreca);
+    imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
 
-	imx_inimaxminpixel_3d_p(imtreca);
-	imx_inimaxminpixel_3d_p(imtreca->mask);
+    imx_inimaxminpixel_3d_p(imtreca);
+    imx_inimaxminpixel_3d_p(imtreca->mask);
 
   imx_mul_coe_3d_p(imtreca,10.0,imtreca);
-	imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
+    imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
 
   imx_add_coe_3d_p(imtreca,1.0,imtreca);
   imx_add_coe_3d_p(imtreca->mask,1.0,imtreca->mask);
 
-	
-	imtres->max_pixel=imtreca->max_pixel;
-	imtres->mask->max_pixel=imtreca->mask->max_pixel;
-	imtres->rcoeff=imtreca->rcoeff;
-	imtres->mask->rcoeff=imtreca->mask->rcoeff;
+    
+    imtres->max_pixel=imtreca->max_pixel;
+    imtres->mask->max_pixel=imtreca->mask->max_pixel;
+    imtres->rcoeff=imtreca->rcoeff;
+    imtres->mask->rcoeff=imtreca->mask->rcoeff;
 
 
 
