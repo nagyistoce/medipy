@@ -18,6 +18,10 @@ def find_dicomdir_file(base_directory, referenced_file_id):
         Referenced File ID in a DICOMDIR
     """
     
+    if isinstance(referenced_file_id, basestring) :
+        # Only one path component, normalize to a list with one element
+        referenced_file_id = [referenced_file_id]
+    
     filenames = [
         os.path.join(base_directory, *referenced_file_id),
         os.path.join(base_directory, *[x.lower() for x in referenced_file_id]),
