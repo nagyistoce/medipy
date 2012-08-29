@@ -94,6 +94,9 @@ def load_dicomdir_records(datasets, base_directory=None):
             while queue :
                 d = queue.pop()
                 if "referenced_file_id" in d :
+                    if isinstance(d.referenced_file_id, basestring) :
+                        # Normalize to a list with one element
+                        d.referenced_file_id = [d.referenced_file_id]
                     file_ids.add((d.path, tuple(d.referenced_file_id)))
                 queue.extend(d.children)
         else :
