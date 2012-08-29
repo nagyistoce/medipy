@@ -296,7 +296,6 @@ double energie_transfo_3d(ptr_minimisation_param min_parameters)
 {
  double y,c;
  int wdth,hght,dpth;
-
  ptr_distance_param dist_param=min_parameters->dist_param;
  grphic3d *imref=min_parameters->imref;
  grphic3d *imreca=min_parameters->imreca;
