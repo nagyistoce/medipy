@@ -3842,8 +3842,9 @@ if ((dist_param->transfres->typetrans==AFFINE3D)||(dist_param->transfres->typetr
     
 free(param);    
     
-if ((J>1.25)||(J<0.8))
+if ((J>8)||(J<0.125))
     return(HUGE_VAL);
+
 
  r1=0.0;
  Ntot=0;
