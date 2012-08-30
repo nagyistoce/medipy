@@ -10,6 +10,7 @@
 %{
 #include "correction.h"
 #include "fonctions_wrappees_traitement.h"
+#include "trai_3d.h"
 
 %}
 
@@ -47,4 +48,16 @@ Normalize intensity between two registered images
     
 """,imres.copy_information(imsrc), imsrc, imref, imres, mask_imsrc, mask_imref, method )
 
+
+//-------------------------------------------------------------
+//     Computer chamfer distance transform
+//-------------------------------------------------------------
+void imx_chamfer_distance_3d_p(grphic3d *imdeb, grphic3d *imres);
+MEDIMAX_FUNCTION_MACRO(imx_chamfer_distance_3d_p,
+"""
+Computer chamfer distance transform
+imdeb : Input image
+imres : Output image
+
+""",, imdeb, imres)
 

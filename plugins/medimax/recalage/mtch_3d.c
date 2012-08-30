@@ -7966,6 +7966,8 @@ int imx_matching_affine_ICP_3d_p(grphic3d *imref, grphic3d *imreca, grphic3d *im
 #endif
  tdebut=time(NULL);
 
+
+
  //---------mise en place des parametres du recalage-------/
 
   if (dist_type == 1)
@@ -8006,18 +8008,21 @@ for (k=0;k<6;k++) transfoini->param[k]=0.0;
     imx_inv_3d_p(imreca,imtmp);
     
     
-    /* calcul des cartes de distance */
+    imx_copie_f1_3d_p(imreca,imreca);
+	imx_copie_f1_3d_p(imtmp,imtmp);
+	/* calcul des cartes de distance */
     imx_chamfer_distance_3d_p(imreca,imtreca);
     imx_chamfer_distance_3d_p(imtmp,imtreca->mask);
 
+	
     imx_inimaxminpixel_3d_p(imtreca);
     imx_inimaxminpixel_3d_p(imtreca->mask);
 
-  imx_mul_coe_3d_p(imtreca,10.0,imtreca);
+  	imx_mul_coe_3d_p(imtreca,10.0,imtreca);
     imx_mul_coe_3d_p(imtreca->mask,10.0,imtreca->mask);
 
-  imx_add_coe_3d_p(imtreca,1.0,imtreca);
-  imx_add_coe_3d_p(imtreca->mask,1.0,imtreca->mask);
+  	imx_add_coe_3d_p(imtreca,1.0,imtreca);
+  	imx_add_coe_3d_p(imtreca->mask,1.0,imtreca->mask);
 
     
     imtres->max_pixel=imtreca->max_pixel;
