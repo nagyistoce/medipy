@@ -3819,10 +3819,10 @@ seuil = 150*im1->rcoeff;
  }
 
 
-for (i=0;i<dist_param->transfres->nb_param;i++)
+/*for (i=0;i<dist_param->transfres->nb_param;i++)
     param[i]=dist_param->transfres->param[i];
 
-J=1;
+ 	J=1;
 
 if (dist_param->transfres->typetrans==RIGIDZOOM3D)
     rigidz_to_affine_3d(param);
@@ -3845,7 +3845,7 @@ free(param);
 if ((J>8)||(J<0.125))
     return(HUGE_VAL);
 
-
+*/
  r1=0.0;
  Ntot=0;
  for (i=0;i<wdth;i++)
