@@ -279,8 +279,15 @@ class DataSet(dict):
                         name = tag
                         vr = None
             else :
-                name = data_dictionary.setdefault(tag, ("UN", "1", unicode(tag)))[2]
-                vr = data_dictionary[tag][0]
+                if tag.group/0x100 in [0x50, 0x60] :
+                    # Repeating group element, cf. PS 3.5-2011, 7.6
+                    tag_in_dictionary = "{0:02x}xx{1:04x}".format(
+                        tag.group/0x100, tag.element)
+                else :
+                    tag_in_dictionary = tag
+                name = data_dictionary.setdefault(
+                    tag_in_dictionary, ("UN", "1", unicode(tag_in_dictionary)))[2]
+                vr = data_dictionary[tag_in_dictionary][0]
             
             if vr == "SQ" :
                 elements = [unicode(item) for item in value]
@@ -300,7 +307,7 @@ class DataSet(dict):
                 except UnicodeDecodeError :
                     value = "<array of %i bytes>"%(len(value),)
             
-            result.append("%s : %s"%(name, value))
+            result.append("%s %s: %s"%(name, tag, value))
         return "\n".join(result)
     
     def __str__(self):
