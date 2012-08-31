@@ -6,7 +6,7 @@ Debian 6.0 (Squeeze)
 
 **Outils** ::
 
-    sudo aptitude install scons mercurial python-setuptools swig ipython cmake doxygen gccxml cableswig
+    sudo aptitude install scons mercurial python-setuptools swig ipython cmake doxygen gccxml cableswig make
 
 **Bilbiothèques** ::
 
