@@ -251,3 +251,21 @@ def VisuTrfFile_GUI( nomfichier, output, visu_type) :
     """ 
     medipy.medimax.recalage.VisuTrfFile(str(nomfichier),output,VisuTrfNumberInMedimax(visu_type))
 
+
+#-------------------------------------------------------------
+#  findSymmetryPlane
+#-------------------------------------------------------------
+
+def findSymmetryPlane(im, imres, filename) :
+    """
+    Find the symmetry plane of an image according to the sum of squared intensity differences
+    The symmetry plane is x=width/2 in the resulting image
+        <gui>
+            <item name="im" type="Image" label="Input image" />
+            <item name="imres" type="Image" initializer="output=True"
+                role="output" label="resulting image" />
+            <item name="filename" type="String" label="Name of saved .trf file"/>
+        </gui>
+    """ 
+    medipy.medimax.recalage.LinearRegistration(im,im, imres,0,24,1,1,0,1,str(filename),0,2,0)
+
