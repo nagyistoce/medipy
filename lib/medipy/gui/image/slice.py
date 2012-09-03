@@ -865,6 +865,8 @@ class Slice(PropertySynchronized) :
             key = rwi.GetKeySym()
         else :
             key = rwi.GetKeyCode()	
+        if key is None :
+            return None
         if rwi.GetControlKey() :
             key = "Ctrl"+key
         if getattr(rwi, "GetAltKey") and rwi.GetAltKey() :
