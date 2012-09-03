@@ -1966,18 +1966,30 @@ grphic3d *imx_adapte_taille_3d_p(grphic3d *im1, grphic3d *imres, int wdth, int h
 ** >> Last user action by: B. MARAT on July  2002
 **
 ******************************************************************************/
-int Miroir_ttaxe(int im_deb,int im_res,int axe)
+int Miroir_ttaxe_3d(int im_deb,int im_res,int axe)
 {
-	grphic3d *imdeb=ptr_img_3d(im_deb),*imres,*imtmp;
+  grphic3d *imdeb, *imres;
+
+  imdeb = ptr_img_3d(im_deb);
+  imres = ptr_img_3d(im_res);
+  
+  Miroir_ttaxe_3d_p(imdeb,imres,axe);
+  
+	show_picture_3d(im_res);
+	return(axe);
+}
+/* Fonction effectuant un miroir sur l'axe "axe" (axe valant 1,2 ou 3, pour x,y et z respectivement),
+ * avec des pointeurs en argument, sans affichage.
+ * Hennequin 07/04/2005
+ */
+int Miroir_ttaxe_3d_p(grphic3d *imdeb,grphic3d *imres,int axe)
+{
+	grphic3d *imtmp;
 	int i,j,k;
 	int hght=imdeb->height,wdth=imdeb->width,dpth=imdeb->depth;
 
-	imdeb=ptr_img_3d(im_deb);
-	imtmp=ptr_img_3d((int)NULL);
- 
-/*	imdeb=ptr_img_3d(im_deb);
-	imres=ptr_img_3d(im_res);
-	*/
+ 	imtmp=cr_grphic3d(imdeb);
+
 	for (i=0 ; i<wdth ; i++)
 		for (j=0 ; j<hght ; j++)
 			for (k=0 ; k<dpth ; k++)
@@ -1994,21 +2006,17 @@ int Miroir_ttaxe(int im_deb,int im_res,int axe)
 						break;
 					default	:	return 0;
 				}
-		//imx_copie_param_3d_p(imdeb,imres);
 	
-	imx_copie_param_3d_p(imdeb,imtmp);
-	imres=ptr_img_3d(im_res);
-
 	imx_copie_param_3d_p(imtmp,imres);
 	imx_copie_3d_p(imtmp,imres);
-
-	show_picture_3d(im_res);
+  	free_grphic3d(imtmp);
+	
 	return(axe);
 }
 
-int Miroir_3d_x(int im_deb,int im_res)	{return Miroir_ttaxe(im_deb,im_res,1);}
-int Miroir_3d_y(int im_deb,int im_res)	{return Miroir_ttaxe(im_deb,im_res,2);}
-int Miroir_3d_z(int im_deb,int im_res)	{return Miroir_ttaxe(im_deb,im_res,3);}
+int Miroir_3d_x(int im_deb,int im_res)	{return Miroir_ttaxe_3d(im_deb,im_res,1);}
+int Miroir_3d_y(int im_deb,int im_res)	{return Miroir_ttaxe_3d(im_deb,im_res,2);}
+int Miroir_3d_z(int im_deb,int im_res)	{return Miroir_ttaxe_3d(im_deb,im_res,3);}
 
 void Miroir_3d(void)
 {
