@@ -487,6 +487,11 @@ class MediPyApp(Application) :
     #####################
     
     def _image_from_window(self, window):
+        # Force a render of the images to remove menu on screenshot
+        for image in self.gui_images :
+            image.render()
+        
+        # Take the screenshot by rendering to memory
         self._frame.Refresh()
         self._frame.Update()
         screen = wx.ClientDC(window)
