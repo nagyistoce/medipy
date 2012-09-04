@@ -155,13 +155,25 @@ class MainFrame(xrc_wrapper.Frame):
             # Create a top-level frame to display the image
             self._full_screen_frame = wx.Frame(None)
             
-            command_id = wx.NewId()
-            function = lambda event : wx.GetApp().toggle_full_screen()
-            self._full_screen_frame.Bind(wx.EVT_MENU, function, id=command_id)
-
-            accelerator_table = wx.AcceleratorTable([
-                (0, wx.WXK_ESCAPE, command_id)
-            ])
+            functions = {
+                (0, wx.WXK_ESCAPE) : lambda event : wx.GetApp().toggle_full_screen(),
+                (wx.ACCEL_ALT, ord("a")) : self.OnViewAxial,
+                (wx.ACCEL_ALT, ord("c")) : self.OnViewCoronal,
+                (wx.ACCEL_ALT, ord("s")) : self.OnViewSagittal,
+                (wx.ACCEL_ALT, ord("m")) : self.OnViewMultiplanar,
+                # TODO : not working ?
+                #(wx.ACCEL_CTRL, ord("0")) : self.OnResetView
+            }
+            
+            entries = []
+            for parameters, action in functions.items() :
+                command_id = wx.NewId()
+                self._full_screen_frame.Bind(wx.EVT_MENU, action, id=command_id)
+                entry = list(parameters)
+                entry.append(command_id)
+                entries.append(tuple(entry))
+            
+            accelerator_table = wx.AcceleratorTable(entries)
             self._full_screen_frame.SetAcceleratorTable(accelerator_table)
 
             children = [c.GetWindow() for c in self._images_sizer.GetChildren()]
