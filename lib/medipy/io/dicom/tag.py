@@ -6,7 +6,13 @@
 # for details.
 ##########################################################################
 
-class Tag(int):
+import sys
+
+# Determine int class to use : DICOM tags higher than (7fff,ffff) cannot be
+# represented by a 32-bits int
+IntergerClass = int if sys.maxint >= 0xffffffffL else long 
+
+class Tag(IntergerClass):
     
     def __new__(cls, arg, arg2=None):
         if arg2 is None and isinstance(arg, (int, long)) :
@@ -16,7 +22,7 @@ class Tag(int):
         else :
             value = (arg<<16) + arg2
         
-        return int.__new__(cls, value)
+        return IntergerClass.__new__(cls, value)
     
     def __str__(self):
         return "(%04x,%04x)"%(self.group, self.element)
