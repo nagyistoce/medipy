@@ -19,7 +19,7 @@ def annotation_from_xml(root):
     
     annotation = medipy.base.ImageAnnotation()
     
-    child_tags = dict([(x.tag,x) for x in root.getchildren()])
+    child_tags = dict([(x.tag, x) for x in root.getchildren() if x.text is not None])
     if "position" in child_tags :
         annotation.position = [
             float(x) for x in child_tags["position"].text.split(" ")]
