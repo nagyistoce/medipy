@@ -21,6 +21,7 @@ from medipy.base import find_resource, ObservableList
 import medipy.io 
 import medipy.gui.io
 from medipy.gui import xrc_wrapper
+import medipy.gui.image.mouse_tools
 from medipy.gui.viewer_3d_frame import Viewer3DFrame
 from medipy.gui.utilities import underscore_to_camel_case, remove_access_letter_from_menu
 
@@ -38,6 +39,8 @@ class MainFrame(xrc_wrapper.Frame):
             "save_image_as", "close_image", 
             "view_axial", "view_coronal", "view_sagittal", "view_multiplanar",
         ]
+        
+        self.tool_ids = []
         
         ##################
         # Initialize GUI #
@@ -86,6 +89,30 @@ class MainFrame(xrc_wrapper.Frame):
                     index = self.GetMenuBar().FindMenu(menu.GetTitle())
                     if index != wx.NOT_FOUND : 
                         self.GetMenuBar().EnableTop(index, False)
+        
+        # Bind tools
+        for element in xml_document.getElementsByTagName("object") :
+            if element.getAttribute("class") != "tool" :
+                continue
+            
+            name = element.getAttribute("name")
+                
+            if name == "" :
+                logging.warning("Tool has invalid name \"%s\"", name)
+                continue
+                
+            function_name = medipy.gui.utilities.underscore_to_camel_case(name)
+            function_name = "On" + function_name
+            
+            item_id = wx.xrc.XRCID(name)
+            self.tool_ids.append(item_id)
+            
+            # Bind to handler function
+            if hasattr(self, function_name) :
+                handler = getattr(self, function_name)
+                self.Bind(wx.EVT_TOOL, handler, id=item_id)
+            else :
+                logging.warning("No function called %s", function_name)
         
         # Fill function menu
         menu_builder.fill_treectrl(left_menu, self._menu_treectrl)
@@ -289,6 +316,15 @@ class MainFrame(xrc_wrapper.Frame):
     
     def OnDisplayConventionNeurological(self, dummy) :
         wx.GetApp().display_convention = "neurological"
+    
+    def OnSelect(self, dummy):
+        wx.GetApp().set_image_tool(medipy.gui.image.mouse_tools.Select)
+    
+    def OnPan(self, dummy):
+        wx.GetApp().set_image_tool(medipy.gui.image.mouse_tools.Pan)
+    
+    def OnContrast(self, dummy):
+        wx.GetApp().set_image_tool(medipy.gui.image.mouse_tools.WindowLevel)
     
     def OnMenuTreeCtrlSelChanged(self, evt):
        
