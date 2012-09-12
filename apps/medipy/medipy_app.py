@@ -25,12 +25,28 @@ import medipy.gui.control
 from medipy.gui.image.cine_dialog import CineDialog
 from medipy.gui.function_gui_builder import FunctionGUIBuilder
 from medipy.gui.image.layers_dialog import LayersDialog
-from medipy.gui.image.tools import MouseTool
+import medipy.gui.image.mouse_tools
+from medipy.gui.image.tools import KeyboardTool, MouseTool
 
 from medipy.base import ObservableList, Object3D
 
 from main_frame import MainFrame
 import menu_builder
+
+class SelectMainTool(KeyboardTool) :
+    def __init__(self, app):
+        super(SelectMainTool, self).__init__()
+        self.app = app
+    
+    def press(self, rwi, slice):
+        key = rwi.GetKeyCode() or rwi.GetKeySym()
+        tools = {
+            "s" : medipy.gui.image.mouse_tools.Select,
+            "p" : medipy.gui.image.mouse_tools.Pan,
+            "c" : medipy.gui.image.mouse_tools.WindowLevel,
+        }
+        if key in tools :
+            self.app.set_image_tool(tools[key])
 
 class MediPyApp(Application) :
     
@@ -53,6 +69,7 @@ class MediPyApp(Application) :
         self._cine_dialog = None
         self._layers_dialog = None
         self._annotations_dialog = None
+        self._image_tool = None
         
         super(MediPyApp, self).__init__(*args, **kwargs)
     
@@ -103,7 +120,13 @@ class MediPyApp(Application) :
         gui_image.add_observer("center", self._on_center)
         gui_image.add_observer("colormap_display_range", self._on_colormap_display_range)
         
-#        gui_image.set_mouse_button_tool("Right", ContextMenuImageTool, self._frame, "Right")
+        gui_image.set_mouse_button_tool("Left", 
+            self._image_tool[0], *self._image_tool[1], **self._image_tool[2])
+        gui_image.set_mouse_button_tool("Middle", None)
+        gui_image.set_mouse_button_tool("Right", None)
+        gui_image.set_keyboard_tool("s", SelectMainTool, self)
+        gui_image.set_keyboard_tool("p", SelectMainTool, self)
+        gui_image.set_keyboard_tool("c", SelectMainTool, self)
         
         self.gui_images.insert(index, gui_image)
         
@@ -325,6 +348,25 @@ class MediPyApp(Application) :
                 if hasattr(image, attribute) :
                     image.synchronize_on_event[attribute] = value
     
+    def get_image_tool(self) :
+        return self._image_tool
+    
+    def set_image_tool(self, tool_class, *args, **kwargs):
+        self._image_tool = (tool_class, args, kwargs)
+        for image in self.gui_images :
+            image.set_mouse_button_tool("Left", tool_class, *args, **kwargs)
+        
+        class_to_label = {
+            medipy.gui.image.mouse_tools.Select : "Select",
+            medipy.gui.image.mouse_tools.Pan : "Pan",
+            medipy.gui.image.mouse_tools.WindowLevel : "Contrast"
+        }
+        
+        for tool_id in self._frame.tool_ids :
+            label = self._frame.GetToolBar().FindById(tool_id).GetLabel()
+            if label == class_to_label[tool_class] :
+                self._frame.GetToolBar().ToggleTool(tool_id, True)
+    
     ##############
     # PROPERTIES #
     ##############
@@ -434,6 +476,8 @@ class MediPyApp(Application) :
         self._frame.application = self
         self._frame.Show()
         self.SetTopWindow(self._frame)
+        
+        self.set_image_tool(medipy.gui.image.mouse_tools.Select)
         
         return True
     

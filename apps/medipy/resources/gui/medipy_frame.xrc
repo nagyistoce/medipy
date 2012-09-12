@@ -206,6 +206,26 @@
         <label>View</label>
       </object>
     </object>
+    <object class="wxToolBar" name="tools">
+      <object class="tool" name="select">
+        <bitmap>select.png</bitmap>
+        <radio>1</radio>
+        <tooltip>Select (S)</tooltip>
+        <label>Select</label>
+      </object>
+      <object class="tool" name="pan">
+        <bitmap>pan.png</bitmap>
+        <radio>1</radio>
+        <tooltip>Pan (P)</tooltip>
+        <label>Pan</label>
+      </object>
+      <object class="tool" name="contrast">
+        <bitmap>contrast.png</bitmap>
+        <radio>1</radio>
+        <tooltip>Contrast (C)</tooltip>
+        <label>Contrast</label>
+      </object>
+    </object>
     <object class="wxSplitterWindow" name="main_splitter">
       <object class="wxSplitterWindow" name="left_splitter">
         <object class="wxTreeCtrl" name="menu_treectrl">
