@@ -11,8 +11,7 @@ import xml.etree.ElementTree
 import medipy.base
 
 def annotation_from_xml(root):
-    """ Return an ImageAnnotation from an XML document. The root element is
-        assumed to be an annotation.
+    """ Return an ImageAnnotation from an XML document.
     """
     
     if root.tag != "ImageAnnotation" :
@@ -41,6 +40,20 @@ def annotation_from_xml(root):
     
     return annotation
 
+def annotations_from_xml(root):
+    """ Return a list of ImageAnnotation from an XML document.
+    """
+    
+    if root.tag != "ImageAnnotations" :
+        raise medipy.base.Exception("Cannot build a list of ImageAnnotations from a {0}".format(repr(root.tag)))
+    
+    annotations = []
+    
+    for element in root:
+        annotations.append(annotation_from_xml(element))
+    
+    return annotations
+
 def annotation_to_xml(annotation):
     """ Convert an ImageAnnotation to an XML element.
     """
@@ -67,5 +80,16 @@ def annotation_to_xml(annotation):
     
     comment = xml.etree.ElementTree.SubElement(root, "comment")
     comment.text = annotation.comment.encode("utf-8")
+    
+    return root
+
+def annotations_to_xml(annotations):
+    """ Convert a list of ImageAnnotation to an XML element.
+    """
+    
+    root = xml.etree.ElementTree.Element("ImageAnnotations")
+    for annotation in annotations :
+        element = annotation_to_xml(annotation)
+        root.append(element)
     
     return root
