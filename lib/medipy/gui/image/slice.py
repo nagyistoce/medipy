@@ -909,9 +909,7 @@ class Slice(PropertySynchronized) :
         for annotation in self._annotations :
             if annotation not in self._gui_annotations :
                 
-                gui_annotation = GUIImageAnnotation(annotation, 
-                    self._3d_world_to_slice, self._display_coordinates, 
-                    self._layers[0].image.origin, self._layers[0].image.spacing)
+                gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
                 gui_annotation.renderer = self._renderer
                 
                 gui_annotation.slice_position = self._cursor_physical_position
