@@ -34,9 +34,8 @@ from main_frame import MainFrame
 import menu_builder
 
 class SelectMainTool(KeyboardTool) :
-    def __init__(self, app):
+    def __init__(self):
         super(SelectMainTool, self).__init__()
-        self.app = app
     
     def press(self, rwi, slice):
         key = rwi.GetKeyCode() or rwi.GetKeySym()
@@ -46,7 +45,7 @@ class SelectMainTool(KeyboardTool) :
             "c" : medipy.gui.image.mouse_tools.WindowLevel,
         }
         if key in tools :
-            self.app.set_image_tool(tools[key])
+            wx.GetApp().set_image_tool(tools[key])
 
 class MediPyApp(Application) :
     
@@ -93,7 +92,7 @@ class MediPyApp(Application) :
             mode = "multiplanar"
         
         gui_image = medipy.gui.image.Image(
-            self._frame.images_panel, mode, 
+            self._frame.ui.images_panel, mode, 
             [{"image" : image}] + [{"image" : l} for l in layers],
             image.annotations, display_coordinates=self._display_coordinates,
             convention=self._display_convention
@@ -124,9 +123,9 @@ class MediPyApp(Application) :
             self._image_tool[0], *self._image_tool[1], **self._image_tool[2])
         gui_image.set_mouse_button_tool("Middle", None)
         gui_image.set_mouse_button_tool("Right", None)
-        gui_image.set_keyboard_tool("s", SelectMainTool, self)
-        gui_image.set_keyboard_tool("p", SelectMainTool, self)
-        gui_image.set_keyboard_tool("c", SelectMainTool, self)
+        gui_image.set_keyboard_tool("s", SelectMainTool)
+        gui_image.set_keyboard_tool("p", SelectMainTool)
+        gui_image.set_keyboard_tool("c", SelectMainTool)
         
         self.gui_images.insert(index, gui_image)
         
@@ -272,7 +271,7 @@ class MediPyApp(Application) :
         return image
     
     def all_images_screenshot(self):
-        return self._image_from_window(self._frame.images_panel)
+        return self._image_from_window(self._frame.ui.images_panel)
     
     def whole_window_screenshot(self):
         return self._image_from_window(self._frame)
@@ -471,9 +470,7 @@ class MediPyApp(Application) :
             for directory in medipy.Importer().plugins_path :
                 menu.extend(menu_builder.from_api.build_menu(directory))
         
-        self._frame = MainFrame(None, wx.ID_ANY, menu, 
-                                title="MediPy", size=(1000,800))
-        self._frame.application = self
+        self._frame = MainFrame(menu, None, title="MediPy", size=(1000,800))
         self._frame.Show()
         self.SetTopWindow(self._frame)
         

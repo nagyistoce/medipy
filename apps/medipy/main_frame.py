@@ -7,29 +7,42 @@
 ##########################################################################
 
 import inspect
-import logging
 import math
 import os.path
 import sys
-import xml.dom.minidom
 
 import numpy
 import wx
 import wx.xrc
 
-from medipy.base import find_resource, ObservableList
-import medipy.io 
+import medipy.base
+import medipy.gui.base
+import medipy.gui.function_gui_builder
 import medipy.gui.io
-from medipy.gui import xrc_wrapper
 import medipy.gui.image.mouse_tools
 from medipy.gui.viewer_3d_frame import Viewer3DFrame
-from medipy.gui.utilities import underscore_to_camel_case, remove_access_letter_from_menu
 
-from medipy.gui.function_gui_builder import FunctionGUIBuilder
 import menu_builder
 
-class MainFrame(xrc_wrapper.Frame):
-    def __init__(self, parent, id_, left_menu, *args, **kwargs):
+class MainFrame(medipy.gui.base.Frame):
+    
+    class UI(medipy.gui.base.UI):
+        def __init__(self):
+            self.menu_treectrl = None
+            self.function_ui_panel = None
+            self.images_panel = None
+            
+            self.controls = ["menu_treectrl", "function_ui_panel", "images_panel"]
+                
+            medipy.gui.base.UI.__init__(self)
+    
+    def __init__(self, left_menu, parent=None, *args, **kwargs):
+        self.ui = MainFrame.UI()
+
+        xrc_file = medipy.base.find_resource(
+            os.path.join("resources", "gui", "medipy_frame.xrc"))
+        medipy.gui.base.Frame.__init__(self, xrc_file, "medipy_frame", 
+            [], self.ui, self.ui.controls, parent, *args, **kwargs)
         
         self._current_ui = None
         self._full_screen_frame = None
@@ -46,101 +59,37 @@ class MainFrame(xrc_wrapper.Frame):
         # Initialize GUI #
         ##################
         
-        filename = find_resource("resources/gui/medipy_frame.xrc")
-        
-        xml_document = xml.dom.minidom.parse(filename)
-        
-        resource = wx.xrc.XmlResource(filename)
-        
-        frame = resource.LoadFrame(parent, "medipy_frame")
-        xrc_wrapper.Frame.__init__(self, frame, id_, *args, **kwargs)
-        
-        # Get controls
-        controls = ["menu_treectrl", "function_ui_panel", "images_panel"]
-        for control in controls :
-            setattr(self, "_"+control, wx.xrc.XRCCTRL(self, control))
-        
         # Setup sizers
         self._function_ui_sizer = wx.BoxSizer(wx.VERTICAL)
-        self._function_ui_panel.SetSizer(self._function_ui_sizer)
+        self.ui.function_ui_panel.SetSizer(self._function_ui_sizer)
         self._images_sizer = wx.GridSizer(cols=0, rows=0, vgap=0, hgap=0)
-        self._images_panel.SetSizer(self._images_sizer)
+        self.ui.images_panel.SetSizer(self._images_sizer)
         
         # Bind widgets events
-        self._menu_treectrl.Bind(wx.EVT_TREE_SEL_CHANGED, 
+        self.ui.menu_treectrl.Bind(wx.EVT_TREE_SEL_CHANGED, 
                                  self.OnMenuTreeCtrlSelChanged)
         
-        # Bind menu items
-        for menu_item in self._find_menu_items(xml_document) :
-            item_id = wx.xrc.XRCID(menu_item)
-            
-            function_name = menu_item[:-len("_menu_item")]
-            function_name = "On" + underscore_to_camel_case(function_name)
-            
-            # Bind to handler function
-            if hasattr(self, function_name) :
-                self.Bind(wx.EVT_MENU, getattr(self, function_name), id=item_id)
-            else : 
-                menu_item = self.GetMenuBar().FindItemById(item_id)
-                menu = menu_item.GetMenu()
-                menu.Delete(item_id)
-                logging.warning("No function named %s", function_name)
-                if menu.GetMenuItemCount() == 0 :
-                    index = self.GetMenuBar().FindMenu(menu.GetTitle())
-                    if index != wx.NOT_FOUND : 
-                        self.GetMenuBar().EnableTop(index, False)
-        
-        # Bind tools
-        for element in xml_document.getElementsByTagName("object") :
-            if element.getAttribute("class") != "tool" :
-                continue
-            
-            name = element.getAttribute("name")
-                
-            if name == "" :
-                logging.warning("Tool has invalid name \"%s\"", name)
-                continue
-                
-            function_name = medipy.gui.utilities.underscore_to_camel_case(name)
-            function_name = "On" + function_name
-            
-            item_id = wx.xrc.XRCID(name)
-            self.tool_ids.append(item_id)
-            
-            # Bind to handler function
-            if hasattr(self, function_name) :
-                handler = getattr(self, function_name)
-                self.Bind(wx.EVT_TOOL, handler, id=item_id)
-            else :
-                logging.warning("No function called %s", function_name)
-        
         # Fill function menu
-        menu_builder.fill_treectrl(left_menu, self._menu_treectrl)
+        menu_builder.fill_treectrl(left_menu, self.ui.menu_treectrl)
         
         # Disable item that should not be active when no image is loaded
         for item in self._menus_active_when_image_loaded :
-            menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item + "_menu_item"))
+            menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item))
             if menu_item is not None :
                 menu_item.Enable(False)
         
         # Update UI from preferences
-        coordinates = "display_coordinates_{0}_menu_item".format(
+        coordinates = "display_coordinates_{0}".format(
             wx.GetApp().display_coordinates)
         self.GetMenuBar().FindItemById(wx.xrc.XRCID(coordinates)).Check()
-        convention = "display_convention_{0}_menu_item".format(
+        convention = "display_convention_{0}".format(
             wx.GetApp().display_convention)
         self.GetMenuBar().FindItemById(wx.xrc.XRCID(convention)).Check()
         for attribute in ["cursor_position", "center", "zoom", "display_range"] :
-            name = "sync_%s_menu_item"%attribute
+            name = "sync_%s"%attribute
             item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(name))
             value = wx.GetApp().get_synchronize_images(attribute)
             item.Check(value)
-
-    ##############
-    # Properties #
-    ##############
-    
-    images_panel = property(lambda x:x._images_panel)
 
     ####################
     # Public interface #
@@ -155,13 +104,13 @@ class MainFrame(xrc_wrapper.Frame):
         self._adjust_sizer()
         
         mode = gui_image.slice_mode
-        item = self.GetMenuBar().FindItemById(wx.xrc.XRCID("view_" + mode +"_menu_item"))
+        item = self.GetMenuBar().FindItemById(wx.xrc.XRCID("view_" + mode))
         if item is not None :
             item.Check(True)
         
         if len(wx.GetApp().images) > 0 :
             for view_mode in self._menus_active_when_image_loaded :
-                item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(view_mode+"_menu_item"))
+                item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(view_mode))
                 if item is not None :
                     item.Enable(True)
     
@@ -172,7 +121,7 @@ class MainFrame(xrc_wrapper.Frame):
         # This is called /before/ the image is deleted
         if len(wx.GetApp().images) == 1 :
             for item in self._menus_active_when_image_loaded :
-                menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item + "_menu_item"))
+                menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item))
                 if menu_item is not None :
                     menu_item.Enable(False)
     
@@ -218,7 +167,7 @@ class MainFrame(xrc_wrapper.Frame):
         elif self._full_screen_frame is not None :
             self._full_screen_frame.Hide()
             
-            self._reparent_gui_image(self._full_screen_image, self.images_panel)
+            self._reparent_gui_image(self._full_screen_image, self.ui.images_panel)
             
             self._images_sizer.Insert(self._full_screen_image_index, self._full_screen_image, 1, wx.EXPAND)
             
@@ -336,13 +285,13 @@ class MainFrame(xrc_wrapper.Frame):
             self._function_ui_sizer.Clear(True)
         
         # Create UI for current item data
-        item_data = self._menu_treectrl.GetPyData(evt.GetItem())
+        item_data = self.ui.menu_treectrl.GetPyData(evt.GetItem())
         if item_data is not None : 
             if inspect.isfunction(item_data) :
                 function = item_data
-                function_gui=FunctionGUIBuilder(self._function_ui_panel,function,
-                                                wx.GetApp().images, wx.GetApp().viewer_3ds,
-                                                "function_parameters")
+                function_gui=medipy.gui.function_gui_builder.FunctionGUIBuilder(
+                    self.ui.function_ui_panel, function, wx.GetApp().images, 
+                    wx.GetApp().viewer_3ds, "function_parameters")
                 if wx.GetApp().images :
                     for control in function_gui.controls.values() :
                         if isinstance(control, medipy.gui.control.Coordinates) :
@@ -351,7 +300,7 @@ class MainFrame(xrc_wrapper.Frame):
                 self._function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
                 self._function_ui_sizer.Layout()
             else :
-                ui = item_data(self._function_ui_panel)
+                ui = item_data(self.ui.function_ui_panel)
                 if hasattr(ui, "image") and wx.GetApp().images :
                     ui.image = wx.GetApp().active_image
                 self._current_ui = ui
@@ -422,7 +371,7 @@ class MainFrame(xrc_wrapper.Frame):
             wx.ConfigBase_Get().Flush()
     
     def OnNewViewer3d(self, dummy):
-        viewer_3d = Viewer3DFrame(None, ObservableList())
+        viewer_3d = Viewer3DFrame(None, medipy.base.ObservableList())
         viewer_3d.Show()
         wx.GetApp().append_viewer_3d(viewer_3d)
     
@@ -438,7 +387,7 @@ class MainFrame(xrc_wrapper.Frame):
         self._images_sizer.Layout()
     
     def _set_slices(self, mode):
-        item_id = wx.xrc.XRCID("view_" + mode + "_menu_item")
+        item_id = wx.xrc.XRCID("view_" + mode)
         item = self.GetMenuBar().FindItemById(item_id)
         item.Check()
     
@@ -454,17 +403,6 @@ class MainFrame(xrc_wrapper.Frame):
         # Restore the original render.
         gui_image.render = orig_render
         gui_image.render()
-    
-    def _find_menu_items(self, xml_document):
-        # Find all "object" elements having a "class" property of wxMenuItem
-        menu_items = []
-        for element in xml_document.getElementsByTagName("object") :
-            if element.hasAttribute("class") and \
-                    element.getAttribute("class") == "wxMenuItem" and \
-                    element.hasAttribute("name") :
-                menu_items.append(element.getAttribute("name"))
-        
-        return menu_items
     
     def _save_image(self, image):
         dialog = wx.FileDialog(self, "Save screenshot", 
