@@ -16,8 +16,10 @@ import wx
 import wx.xrc
 
 import medipy.base
+import medipy.gui.annotations
 import medipy.gui.base
 import medipy.gui.function_gui_builder
+import medipy.gui.image
 import medipy.gui.io
 import medipy.gui.image.mouse_tools
 from medipy.gui.viewer_3d_frame import Viewer3DFrame
@@ -30,11 +32,43 @@ class MainFrame(medipy.gui.base.Frame):
         def __init__(self):
             self.menu_treectrl = None
             self.function_ui_panel = None
-            self.images_panel = None
+            self.function_ui_sizer = None
             
-            self.controls = ["menu_treectrl", "function_ui_panel", "images_panel"]
+            self.layers_tab = None
+            self.layers = None
+            
+            self.annotations_tab = None
+            self.annotations = None
+            
+            self.images_panel = None
+            self.images_sizer = None
+            
+            self.controls = [
+                "menu_treectrl", "function_ui_panel",
+                "layers_tab", 
+                "annotations_tab",
+                "images_panel"]
                 
             medipy.gui.base.UI.__init__(self)
+        
+        def from_window(self, window, names):
+            medipy.gui.base.UI.from_window(self, window, names)
+            
+            self.layers = medipy.gui.image.LayersPanel(self.layers_tab)
+            layers_sizer = wx.BoxSizer()
+            layers_sizer.Add(self.layers, 1, wx.EXPAND)
+            self.layers_tab.SetSizer(layers_sizer)
+            
+            self.annotations = medipy.gui.annotations.AnnotationsPanel(self.annotations_tab)
+            annotations_sizer = wx.BoxSizer()
+            annotations_sizer.Add(self.annotations, 1, wx.EXPAND)
+            self.annotations_tab.SetSizer(annotations_sizer)
+            
+            # Setup sizers
+            self.function_ui_sizer = wx.BoxSizer(wx.VERTICAL)
+            self.function_ui_panel.SetSizer(self.function_ui_sizer)
+            self.images_sizer = wx.GridSizer(cols=0, rows=0, vgap=0, hgap=0)
+            self.images_panel.SetSizer(self.images_sizer)
     
     def __init__(self, left_menu, parent=None, *args, **kwargs):
         self.ui = MainFrame.UI()
@@ -52,18 +86,13 @@ class MainFrame(medipy.gui.base.Frame):
             "save_image_as", "close_image", 
             "view_axial", "view_coronal", "view_sagittal", "view_multiplanar",
         ]
+        self._active_image = None
         
         self.tool_ids = []
         
         ##################
         # Initialize GUI #
         ##################
-        
-        # Setup sizers
-        self._function_ui_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.ui.function_ui_panel.SetSizer(self._function_ui_sizer)
-        self._images_sizer = wx.GridSizer(cols=0, rows=0, vgap=0, hgap=0)
-        self.ui.images_panel.SetSizer(self._images_sizer)
         
         # Bind widgets events
         self.ui.menu_treectrl.Bind(wx.EVT_TREE_SEL_CHANGED, 
@@ -96,11 +125,11 @@ class MainFrame(medipy.gui.base.Frame):
     ####################
 
     def append_image(self, gui_image) :
-        nb_elements = len(self._images_sizer.GetChildren())
+        nb_elements = len(self.ui.images_sizer.GetChildren())
         self.insert_image(nb_elements, gui_image)
     
     def insert_image(self, index, gui_image):
-        self._images_sizer.Insert(index, gui_image, 1, wx.EXPAND)
+        self.ui.images_sizer.Insert(index, gui_image, 1, wx.EXPAND)
         self._adjust_sizer()
         
         mode = gui_image.slice_mode
@@ -113,9 +142,16 @@ class MainFrame(medipy.gui.base.Frame):
                 item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(view_mode))
                 if item is not None :
                     item.Enable(True)
+        
+        gui_image.Bind(wx.EVT_LEFT_DOWN, self.OnImageClicked)
+        gui_image.Bind(wx.EVT_MIDDLE_DOWN, self.OnImageClicked)
+        gui_image.Bind(wx.EVT_RIGHT_DOWN, self.OnImageClicked)
+        gui_image.Bind(wx.EVT_MOUSEWHEEL, self.OnImageClicked)
+        
+        self.active_image = gui_image
     
     def delete_image(self, image):
-        self._images_sizer.Detach(image)
+        self.ui.images_sizer.Detach(image)
         self._adjust_sizer()
         
         # This is called /before/ the image is deleted
@@ -152,12 +188,12 @@ class MainFrame(medipy.gui.base.Frame):
             accelerator_table = wx.AcceleratorTable(entries)
             self._full_screen_frame.SetAcceleratorTable(accelerator_table)
 
-            children = [c.GetWindow() for c in self._images_sizer.GetChildren()]
+            children = [c.GetWindow() for c in self.ui.images_sizer.GetChildren()]
             self._full_screen_image_index = children.index(gui_image)
             self._full_screen_image = gui_image
             
             # Remove gui_image from sizer
-            self._images_sizer.Detach(gui_image)
+            self.ui.images_sizer.Detach(gui_image)
             
             # Reparent it to the full screen frame
             self._reparent_gui_image(gui_image, self._full_screen_frame)
@@ -169,7 +205,7 @@ class MainFrame(medipy.gui.base.Frame):
             
             self._reparent_gui_image(self._full_screen_image, self.ui.images_panel)
             
-            self._images_sizer.Insert(self._full_screen_image_index, self._full_screen_image, 1, wx.EXPAND)
+            self.ui.images_sizer.Insert(self._full_screen_image_index, self._full_screen_image, 1, wx.EXPAND)
             
             # This crude hack forces the Sizer to correctly redraw its children
             size = self.GetSize()
@@ -193,7 +229,26 @@ class MainFrame(medipy.gui.base.Frame):
     def _get_current_ui(self):
         return self._current_ui
     
+    def _get_active_image(self):
+        return self._active_image    
+    
+    def _set_active_image(self, image):
+        self._active_image = image
+        
+        for item in self.ui.images_sizer.GetChildren() :
+            other_image = item.GetWindow()
+            if other_image == image :
+                other_image.SetBackgroundColour(wx.GREEN)
+            else :
+                other_image.SetBackgroundColour(wx.BLACK)
+        
+        if self.ui.layers.image != image :
+            self.ui.layers.image = image
+        if self.ui.annotations.image != image :
+            self.ui.annotations.image = image
+    
     current_ui = property(_get_current_ui)
+    active_image = property(_get_active_image, _set_active_image)
     
     ##################
     # Event handlers #
@@ -282,7 +337,7 @@ class MainFrame(medipy.gui.base.Frame):
             if hasattr(self._current_ui, "Close") :
                 self._current_ui.Close() 
             del self._current_ui
-            self._function_ui_sizer.Clear(True)
+            self.ui.function_ui_sizer.Clear(True)
         
         # Create UI for current item data
         item_data = self.ui.menu_treectrl.GetPyData(evt.GetItem())
@@ -297,25 +352,17 @@ class MainFrame(medipy.gui.base.Frame):
                         if isinstance(control, medipy.gui.control.Coordinates) :
                             control.image = wx.GetApp().active_image
                 self._current_ui = function_gui
-                self._function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
-                self._function_ui_sizer.Layout()
+                self.ui.function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
+                self.ui.function_ui_sizer.Layout()
             else :
                 ui = item_data(self.ui.function_ui_panel)
                 if hasattr(ui, "image") and wx.GetApp().images :
                     ui.image = wx.GetApp().active_image
                 self._current_ui = ui
-                self._function_ui_sizer.Add(ui, 1, wx.EXPAND)
-                self._function_ui_sizer.Layout()
+                self.ui.function_ui_sizer.Add(ui, 1, wx.EXPAND)
+                self.ui.function_ui_sizer.Layout()
         else : 
             self._current_ui = None
-    
-    def OnLoadLayer(self, dummy):
-        
-        images = medipy.gui.io.load(self)
-        if images :
-            gui_image = wx.GetApp().active_image 
-            gui_image.insert_layer(gui_image.number_of_layers, images[0], 
-                                   zero_transparency=True)
     
     def OnCloseImage(self, dummy):
         wx.GetApp().close_image(wx.GetApp().active_image)
@@ -326,9 +373,6 @@ class MainFrame(medipy.gui.base.Frame):
     
     def OnLayers(self, dummy):
         wx.GetApp().set_layers_dialog_visibility(True)
-    
-    def OnAnnotations(self, dummy):
-        wx.GetApp().set_annotations_dialog_visibility(True)
     
     def OnViewAxial(self, dummy):
         wx.GetApp().slices = "axial"
@@ -375,16 +419,20 @@ class MainFrame(medipy.gui.base.Frame):
         viewer_3d.Show()
         wx.GetApp().append_viewer_3d(viewer_3d)
     
+    def OnImageClicked(self, event):
+        if event.GetEventObject() != self.active_image :
+            self.active_image = event.GetEventObject()
+    
     #####################
     # Private interface #
     #####################
     
     def _adjust_sizer(self):
-        nb_objects = len(self._images_sizer.GetChildren())
+        nb_objects = len(self.ui.images_sizer.GetChildren())
         rows = max(int(math.ceil(math.sqrt(nb_objects))),1)
-        self._images_sizer.SetRows(rows)
-        self._images_sizer.SetCols(rows)
-        self._images_sizer.Layout()
+        self.ui.images_sizer.SetRows(rows)
+        self.ui.images_sizer.SetCols(rows)
+        self.ui.images_sizer.Layout()
     
     def _set_slices(self, mode):
         item_id = wx.xrc.XRCID("view_" + mode)
