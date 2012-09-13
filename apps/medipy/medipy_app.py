@@ -19,12 +19,10 @@ import medipy.gui.image
 import medipy.gui.dicom
 import medipy.gui.dicom.reconstruction
 
-from medipy.gui.annotations.annotations_dialog import AnnotationsDialog
 from medipy.gui.base import Application
 import medipy.gui.control
 from medipy.gui.image.cine_dialog import CineDialog
 from medipy.gui.function_gui_builder import FunctionGUIBuilder
-from medipy.gui.image.layers_dialog import LayersDialog
 import medipy.gui.image.mouse_tools
 from medipy.gui.image.tools import KeyboardTool, MouseTool
 
@@ -66,8 +64,6 @@ class MediPyApp(Application) :
         self._active_image_index = None
         self._full_screen = False
         self._cine_dialog = None
-        self._layers_dialog = None
-        self._annotations_dialog = None
         self._image_tool = None
         
         super(MediPyApp, self).__init__(*args, **kwargs)
@@ -191,7 +187,7 @@ class MediPyApp(Application) :
     
     def close_image(self, gui_image):
         
-        dialogs = ["cine", "layers", "annotations"]
+        dialogs = ["cine"]
         for name in dialogs :
             dialog = getattr(self, "_%s_dialog"%name)
             if dialog is not None :
@@ -222,34 +218,6 @@ class MediPyApp(Application) :
     def close_all_images(self) :
         while len(self.gui_images)>0 : 
             self.close_image(self.gui_images[0])
-    
-    def set_layers_dialog_visibility(self, visibility):
-        if visibility :
-            if self._active_image_index is not None :
-                image = self.gui_images[self._active_image_index]
-                if self._layers_dialog is None :
-                    self._layers_dialog = LayersDialog(self._frame, wx.ID_ANY)
-                self._layers_dialog.image = image
-                self._layers_dialog.Show()
-            elif self._layers_dialog is not None :
-                self._layers_dialog.Hide()
-        else :
-            self._layers_dialog.Hide()
-    
-    def set_annotations_dialog_visibility(self, visibility):
-        if visibility :
-            if self._active_image_index is not None :
-                image = self.gui_images[self._active_image_index]
-                if self._annotations_dialog is None :
-                    self._annotations_dialog = AnnotationsDialog(
-                        self._frame, title="Annotations", 
-                        style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-                self._annotations_dialog.image = image
-                self._annotations_dialog.Show()
-            elif self._annotations_dialog is not None :
-                self._annotations_dialog.Hide()
-        else :
-            self._annotations_dialog.Hide()
     
     def reset_view(self):
         self.active_image.reset_view()
@@ -418,19 +386,9 @@ class MediPyApp(Application) :
         url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
         self._frame.SetTitle("MediPy ({0})".format(url))
 
-        for other_image in self.gui_images :
-            if other_image == gui_image :
-                other_image.SetBackgroundColour(wx.GREEN)
-            else :
-                other_image.SetBackgroundColour(wx.BLACK)
         self._frame.slices = gui_image.slice_mode
         if self._cine_dialog :
             self._cine_dialog.image = gui_image
-        if self._layers_dialog :
-            self._layers_dialog.image = gui_image
-        if self._annotations_dialog is not None :
-            self._annotations_dialog.image = gui_image
-            self._annotations_dialog.annotations = gui_image.annotations
         
         if (isinstance(self._frame.current_ui, FunctionGUIBuilder) and 
             hasattr(self._frame.current_ui, "controls")) :

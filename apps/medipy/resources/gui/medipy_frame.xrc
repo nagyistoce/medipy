@@ -89,10 +89,6 @@
           <checkable>1</checkable>
         </object>
         <object class="separator"/>
-        <object class="wxMenuItem" name="annotations">
-          <label>&amp;Annotations</label>
-          <accel>Ctrl+Shift+A</accel>
-        </object>
         <object class="wxMenuItem" name="metadata">
           <label>&amp;Metadata</label>
         </object>
@@ -142,19 +138,6 @@
             <accel>Alt+M</accel>
             <radio>1</radio>
           </object>
-        </object>
-      </object>
-      <object class="wxMenu" name="layers_menu">
-        <label>&amp;Layers</label>
-        <object class="wxMenuItem" name="layers">
-          <label>&amp;Show layers</label>
-          <accel>Ctrl+L</accel>
-        </object>
-        <object class="wxMenuItem" name="new_layer">
-          <label>New</label>
-        </object>
-        <object class="wxMenuItem" name="load_layer">
-          <label>Load from file ...</label>
         </object>
       </object>
       <object class="wxMenu" name="view_menu">
@@ -227,12 +210,25 @@
       </object>
     </object>
     <object class="wxSplitterWindow" name="main_splitter">
-      <object class="wxSplitterWindow" name="left_splitter">
-        <object class="wxTreeCtrl" name="menu_treectrl">
-          <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
+      <object class="wxNotebook">
+        <object class="notebookpage">
+          <object class="wxSplitterWindow" name="left_splitter">
+            <object class="wxTreeCtrl" name="menu_treectrl">
+              <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
+            </object>
+            <object class="wxPanel" name="function_ui_panel"/>
+            <orientation>horizontal</orientation>
+          </object>
+          <label>Functions</label>
         </object>
-        <object class="wxPanel" name="function_ui_panel"/>
-        <orientation>horizontal</orientation>
+        <object class="notebookpage">
+          <object class="wxPanel" name="layers_tab"/>
+          <label>Layers</label>
+        </object>
+        <object class="notebookpage">
+          <object class="wxPanel" name="annotations_tab"/>
+          <label>Annotations</label>
+        </object>
       </object>
       <object class="wxPanel" name="images_panel"/>
       <orientation>vertical</orientation>
