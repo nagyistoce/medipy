@@ -93,6 +93,35 @@
         <option>1</option>
         <flag>wxEXPAND</flag>
       </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="add">
+              <bitmap stock_id="wxART_ADD_BOOKMARK"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="delete">
+              <bitmap stock_id="wxART_DEL_BOOKMARK"/>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>25</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="load">
+              <bitmap stock_id="wxART_FILE_OPEN"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="save">
+              <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
     </object>
   </object>
 </resource>
