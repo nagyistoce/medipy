@@ -9,6 +9,7 @@
 import colorsys
 import os
 import random
+import re
 
 import numpy
 import wx
@@ -74,10 +75,22 @@ class AnnotationsPanel(medipy.gui.base.Panel):
             of the image.
         """
         
-        annotation = ImageAnnotation(label = "New annotation")
-        annotation.position = (self._image.cursor_physical_position 
-                               if self._image.display_coordinates == "physical"
-                               else self._image.cursor_index_position)
+        labels = []
+        for annotation in self._image.annotations :
+            match = re.match(r"Annotation (\d+)", annotation.label)
+            if match :
+                try :
+                    value = int(match.group(1))
+                except :
+                    pass
+                else :
+                    labels.append(value)
+        if labels :
+            label = 1+max(labels)
+        else :
+            label = 1
+        annotation = ImageAnnotation(label = "Annotation {0}".format(label))
+        annotation.position = self._image.cursor_physical_position
         annotation.size = 5
         annotation.filled = True
         annotation.color = colorsys.hsv_to_rgb(random.random(), 1, 1)
