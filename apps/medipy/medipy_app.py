@@ -479,7 +479,8 @@ class MediPyApp(Application) :
         return True
     
     def OnImageClicked(self, event):
-        self.active_image = event.GetEventObject()
+        if event.GetEventObject() != self.active_image :
+            self.active_image = event.GetEventObject()
     
     def _on_cursor_position(self, event) :
         
