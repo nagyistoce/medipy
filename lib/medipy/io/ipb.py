@@ -282,10 +282,19 @@ class IPB(IOBase) :
         
         postion_string = decode(self.header[element + "_position"])
         
+        # Position in pixels, IPB order
         ipb_position = [float(x) for x in postion_string.split(" ")]
-        annotation.position = [self.header["height"][image_index]-ipb_position[1], 
+        # Position in pixel space, NumPy order
+        position = [self.header["height"][image_index]-ipb_position[1], 
             self.header["width"][image_index]-ipb_position[2], 
             ipb_position[0]]
+        spacing = numpy.asarray(
+            (self.header["dy"][image_index], 
+             self.header["dz"][image_index], 
+             self.header["dx"][image_index]))
+        # Position in physical space
+        annotation.position = numpy.dot(
+            coordinate_system.RAS, numpy.multiply(position, spacing))
         
         annotation.color[0] = float(self.header[element + "_defaultColor.red"])/65535.
         annotation.color[1] = float(self.header[element + "_defaultColor.green"])/65535.
