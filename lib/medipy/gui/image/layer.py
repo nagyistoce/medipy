@@ -64,7 +64,7 @@ class Layer(medipy.base.Observable) :
         ###################
         
         medipy.base.Observable.__init__(self, ["world_to_slice", "image", 
-            "display_coordinates", "colormap", "opacity"])
+            "display_coordinates", "position", "colormap", "opacity"])
         
         # VTK image with the same content as self._image
         self._vtk_image = None
@@ -260,6 +260,8 @@ class Layer(medipy.base.Observable) :
         self._reslicer.SetResliceAxesOrigin(index_position[::-1])
         vtkMatrix4x4.Invert(
             self._reslicer.GetResliceAxes(), self._reslicer_axes_inverse)
+        
+        self.notify_observers("position")
     
     def _get_index_position(self) :
         "Index position through which the slicing plane passes."
