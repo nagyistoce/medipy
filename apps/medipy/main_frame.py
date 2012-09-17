@@ -371,9 +371,6 @@ class MainFrame(medipy.gui.base.Frame):
         wx.GetApp().quit()
         self.Close()
     
-    def OnLayers(self, dummy):
-        wx.GetApp().set_layers_dialog_visibility(True)
-    
     def OnViewAxial(self, dummy):
         wx.GetApp().slices = "axial"
     
@@ -405,14 +402,13 @@ class MainFrame(medipy.gui.base.Frame):
         self._save_image(image)
     
     def OnExecuteScript(self, dummy):
-        path = wx.ConfigBase_Get().Read("LoadImagePath")
+        path = wx.GetApp().preferences.get("IO/execute_script_path", "")
         
         file_dialog = wx.FileDialog(self, style=wx.FD_OPEN, defaultDir=path, wildcard="*.py")
         if file_dialog.ShowModal() == wx.ID_OK :
             wx.GetApp().execute_script(file_dialog.GetPath())
-        
-            wx.ConfigBase_Get().Write("LoadImagePath", file_dialog.GetDirectory())
-            wx.ConfigBase_Get().Flush()
+            wx.GetApp().preferences.set("IO/execute_script_path", 
+                                        file_dialog.GetDirectory())
     
     def OnNewViewer3d(self, dummy):
         viewer_3d = Viewer3DFrame(None, medipy.base.ObservableList())

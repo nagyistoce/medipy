@@ -1,3 +1,4 @@
+# encoding: utf-8
 ##########################################################################
 # MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
 # Distributed under the terms of the CeCILL-B license, as published by
@@ -19,7 +20,7 @@ import medipy.gui.image
 import medipy.gui.dicom
 import medipy.gui.dicom.reconstruction
 
-from medipy.gui.base import Application
+import medipy.gui.base
 import medipy.gui.control
 from medipy.gui.image.cine_dialog import CineDialog
 from medipy.gui.function_gui_builder import FunctionGUIBuilder
@@ -45,7 +46,7 @@ class SelectMainTool(KeyboardTool) :
         if key in tools :
             wx.GetApp().set_image_tool(tools[key])
 
-class MediPyApp(Application) :
+class MediPyApp(medipy.gui.base.Application) :
     
     def __init__(self, *args, **kwargs):
         
@@ -58,13 +59,15 @@ class MediPyApp(Application) :
         self._display_coordinates = None
         self._display_convention = None
         self._synchronize_images = {}
+        self._image_tool = None
+        self._preferences = medipy.gui.base.Preferences(
+            "MediPy", "Université de Strasbourg")
         
         # Private interface
         self._frame = None
         self._active_image_index = None
         self._full_screen = False
         self._cine_dialog = None
-        self._image_tool = None
         
         super(MediPyApp, self).__init__(*args, **kwargs)
     
@@ -307,8 +310,8 @@ class MediPyApp(Application) :
     
     def set_synchronize_images(self, attribute, value) :
         self._synchronize_images[attribute] = value
-        wx.ConfigBase_Get().WriteBool("SynchronizeImages_%s"%attribute, value)
-        wx.ConfigBase_Get().Flush()
+        entry = "Display/Synchronization/{0}".format(attribute)
+        self._preferences.set(entry, value)
         
         if attribute == "zoom" :
             for image in self.gui_images :
@@ -346,8 +349,7 @@ class MediPyApp(Application) :
         for image in self.gui_images :
             image.display_coordinates = value
             image.render()
-        wx.ConfigBase_Get().Write("DisplayCoordinates", self._display_coordinates)
-        wx.ConfigBase_Get().Flush()
+        self._preferences.set("Display/coordinates", value)
     
     def _get_display_convention(self) :
         return self._display_convention
@@ -357,13 +359,16 @@ class MediPyApp(Application) :
         for image in self.gui_images :
             image.convention = value
             image.render()
-        wx.ConfigBase_Get().Write("DisplayConvention", self._display_convention)
-        wx.ConfigBase_Get().Flush()
+        self._preferences.set("Display/convention", value)
+
+    def _get_slices(self) :
+        return self.active_image.slices
 
     def _set_slices(self, slices):
         if slices != self.active_image.slice_mode :
-            self.active_image.slice_mode = slices
-            self.active_image.render()
+            for image in self.gui_images :
+                image.slice_mode = slices
+                image.render()
         self._frame.slices = slices
     
     def _get_active_image(self):
@@ -398,12 +403,16 @@ class MediPyApp(Application) :
         elif hasattr(self._frame.current_ui, "image") :
             self._frame.current_ui.image = gui_image
     
+    def _get_preferences(self) :
+        return self._preferences
+    
     display_coordinates = property(_get_display_coordinates, 
                                    _set_display_coordinates)
     display_convention = property(_get_display_convention,
                                   _set_display_convention)
-    slices = property(lambda self:self.active_image.slices, _set_slices)
+    slices = property(_get_slices, _set_slices)
     active_image = property(_get_active_image, _set_active_image)
+    preferences = property(_get_preferences)
     
     ##################
     # Event handlers #
@@ -412,14 +421,12 @@ class MediPyApp(Application) :
         self.SetAppName("MediPy")
         
         for attribute in ["cursor_position", "center", "zoom", "display_range"] :
-            config_entry = "SynchronizeImages_%s"%attribute
-            value = wx.ConfigBase_Get().ReadBool(config_entry) or False
+            entry = "Display/Synchronization/{0}".format(attribute)
+            value = self._preferences.get(entry, False)
             self.set_synchronize_images(attribute, value)
         
-        self.display_coordinates = (
-            wx.ConfigBase_Get().Read("DisplayCoordinates") or "physical")
-        self.display_convention = (
-            wx.ConfigBase_Get().Read("DisplayConvention") or "radiological")
+        self.display_coordinates = self._preferences.get("Display/coordinates", "physical")
+        self.display_convention = self._preferences.get("Display/convention", "radiological")
         
         if self.options.menu_file is not None :
             menu = menu_builder.from_file.build_menu(self.options.menu_file)
