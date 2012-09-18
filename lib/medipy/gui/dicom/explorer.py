@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import wx
@@ -162,80 +162,3 @@ class Explorer(wx.Panel):
                 slider_max += 1
         
         self._slider.SetRange(0, slider_max-1)
-
-def main():
-    import os
-    
-    class DicomExplorerFrame(wx.Frame):
-        def __init__(self, *args, **kwargs):
-            self._config = wx.Config("MediPy")
-            
-            wx.Frame.__init__(self, *args, **kwargs)
-        
-            # Widgets and layout
-            self._explorer = Explorer(self)
-            self.SetSizer(wx.BoxSizer())
-            self.GetSizer().Add(self._explorer, 1, wx.EXPAND)
-            
-            # Menu Bar
-            self.SetMenuBar(wx.MenuBar())
-            
-            # File Menu
-            file_menu = wx.Menu()
-            self.GetMenuBar().Append(file_menu, "&File")
-            
-            open_dicomdir_item = file_menu.Append(wx.ID_FILE, "O&pen DICOMDIR ...\tCtrl+O")
-            self.Bind(wx.EVT_MENU, self.OnOpenDicomDir, open_dicomdir_item)
-            
-            import_directory_item = file_menu.Append(wx.ID_OPEN, "Import directory ...\tCtrl+I")
-            self.Bind(wx.EVT_MENU, self.OnImportDirectory, import_directory_item)
-            
-            file_menu.AppendSeparator()
-            
-            quit_item = file_menu.Append(wx.ID_EXIT, "E&xit")
-            self.Bind(wx.EVT_MENU, self.OnQuit, quit_item) 
-        
-        ##################
-        # Event handlers #
-        ##################
-        
-        def OnOpenDicomDir(self, dummy):
-            file_dialog = wx.FileDialog(None, style=wx.FD_OPEN)
-            file_dialog.SetDirectory(
-                self._config.Read("ImageFileDialog/DefaultPath"))
-            
-            if file_dialog.ShowModal() == wx.ID_OK :
-                datasets = [medipy.io.dicom.parse(file_dialog.GetPath())]
-                self._explorer.set_datasets(datasets)
-                
-                self._config.Write("ImageFileDialog/DefaultPath",
-                                   file_dialog.GetDirectory())
-        
-        def OnImportDirectory(self, dummy):
-            directory_dialog = wx.DirDialog(None, style=wx.FD_OPEN)
-            directory_dialog.SetPath(
-                self._config.Read("ImageFileDialog/DefaultPath"))
-            
-            if directory_dialog.ShowModal() == wx.ID_OK :
-                
-                directory = directory_dialog.GetPath()
-                files = [os.path.join(directory, x) for x in os.listdir(directory)]
-                datasets = [medipy.io.dicom.parse(x) for x in files]
-                self._explorer.set_datasets(datasets)
-                
-                self._config.Write("ImageFileDialog/DefaultPath", 
-                                   directory_dialog.GetPath())
-        
-        def OnQuit(self, dummy):
-            self.Close()
-    
-    app = wx.PySimpleApp()
-    app.SetAppName("DICOM Explorer")
-    
-    frame = DicomExplorerFrame(None, size=(1000,900))
-    frame.Show()
-    
-    app.MainLoop()
-
-if __name__ == "__main__" :
-    main()
