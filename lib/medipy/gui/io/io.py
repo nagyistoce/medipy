@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -14,6 +14,7 @@ import traceback
 import numpy
 import wx
 
+import medipy.gui.base
 import medipy.io
 import medipy.io.dicom
 from medipy.gui import PeriodicProgressDialog, WorkerThread
@@ -109,9 +110,10 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
         dtype : type to cast images to, or None to preserve original type
         recursive : set to True to recursively search for DICOM files
     """
-    
-    config = wx.Config("MediPy")
-    path = config.Read("ImageFileDialog/DefaultPath")
+
+    preferences = medipy.gui.base.Preferences(
+        wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+    path = preferences.get("IO/load_path", "")
     
     dialog = wx.DirDialog(parent, style=wx.FD_OPEN)
     dialog.SetPath(path)
@@ -158,8 +160,7 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
     images = reconstruction.images(worker_thread.result, parent, dtype, True)
     
     if images :
-        config.Write("ImageFileDialog/DefaultPath", dialog.GetPath())
-        config.Flush() 
+        preferences.set("IO/load_path", dialog.GetPath())
         return images
 
 def save(image, parent=None):
