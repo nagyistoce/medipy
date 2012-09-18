@@ -1,18 +1,23 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import os.path
 
 import wx
+
 from medipy.base import Observable
+import medipy.gui.base
 
 class Directory(wx.Panel, Observable):
     def __init__(self, parent, value="", output=False, *args, **kwargs):
+        
+        self._preferences = medipy.gui.base.Preferences(
+            wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         
         ##############
         # Properties #
@@ -97,47 +102,22 @@ class Directory(wx.Panel, Observable):
         self.validate()
     
     def OnButton(self, event):
-        path = wx.ConfigBase_Get().Read("LoadImagePath")
+        path = self._preferences.get(self._get_preferences_entry(), "")
         
         dialog = wx.DirDialog(self, "Choose a Directory", defaultPath=path)
         if isinstance(self._value, (str, unicode)) :
             dialog.SetPath(self._value)
         if dialog.ShowModal() == wx.ID_OK:
-            wx.ConfigBase_Get().Write("LoadImagePath", dialog.GetPath())
-            wx.ConfigBase_Get().Flush()
+            self._preferences.set(self._get_preferences_entry(), "")
             self._set_value(dialog.GetPath())
             self.validate()
-
-if __name__ == "__main__" :
-    import sys
     
-    app = wx.App()
-    
-    frame = wx.Frame(None)
-    app.SetTopWindow(frame)
-    
-    ok_button = wx.Button(frame, id=wx.ID_OK, label="OK")
-    reset_button = wx.Button(frame, id=wx.ID_RESET, label="Reset")
-    
-    ok_button.Bind(wx.EVT_BUTTON, lambda event : sys.stdout.write("Value is %s (%s)\n"%(control.value, "valid" if control.validate() else "invalid")))
-    reset_button.Bind(wx.EVT_BUTTON, lambda event : control.reset())
-    
-    control = Directory(frame)
-    #control.output = True
-    control.wildcard = "BMP and GIF files (*.bmp;*.gif)|*.bmp;*.gif|PNG files (*.png)|*.png"
-    
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    
-    sizer.Add(control, flag=wx.EXPAND)
-    
-    button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    button_sizer.Add(ok_button)
-    button_sizer.Add(reset_button)
-    sizer.Add(button_sizer)
-    
-    frame.SetSizer(sizer)
-    sizer.SetSizeHints(frame)
-    sizer.Layout()
-    
-    frame.Show()
-    app.MainLoop()
+    #####################
+    # Private interface #
+    #####################
+    def _get_preferences_entry(self) :
+        if self.output :
+                entry = "IO/save_path"
+        else :
+            entry = "IO/load_path"
+        return entry
