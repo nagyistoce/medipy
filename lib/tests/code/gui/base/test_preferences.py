@@ -67,7 +67,7 @@ class TestPreferences(unittest.TestCase) :
         self._test("numpy/float64", numpy.float64(12.34))
     
     def test_array(self) :
-        self._test("numpy/array", numpy.asarray([[12.34, 34.56], [56.78], [78.91]]))
+        self._test("numpy/array", numpy.asarray([[12.34, 34.56], [56.78, 78.91]]))
 
 if __name__ == "__main__" :
     unittest.main()
