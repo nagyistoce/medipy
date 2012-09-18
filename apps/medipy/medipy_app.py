@@ -49,6 +49,9 @@ class SelectMainTool(KeyboardTool) :
 
 class MediPyApp(medipy.gui.base.Application) :
     
+    _application_name = "MediPy"
+    _vendor_name = "Université de Strasbourg"
+    
     def __init__(self, *args, **kwargs):
         
         # Public interface
@@ -63,7 +66,7 @@ class MediPyApp(medipy.gui.base.Application) :
         self._image_tool = None
         self._slices = None
         self._preferences = medipy.gui.base.Preferences(
-            "MediPy", "Université de Strasbourg")
+            self._application_name, self._vendor_name)
         
         # Private interface
         self._frame = None
@@ -396,7 +399,7 @@ class MediPyApp(medipy.gui.base.Application) :
 
         # Display active image path in title
         url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
-        self._frame.SetTitle("MediPy ({0})".format(url))
+        self._frame.SetTitle("{0} ({1})".format(self._application_name, url))
 
         if self._cine_dialog :
             self._cine_dialog.image = gui_image
@@ -424,7 +427,8 @@ class MediPyApp(medipy.gui.base.Application) :
     # Event handlers #
     ##################
     def OnInit(self) :
-        self.SetAppName("MediPy")
+        self.SetAppName(self._application_name)
+        self.SetVendorName(self._vendor_name)
         
         for attribute in ["cursor_position", "center", "zoom", "display_range"] :
             entry = "Display/Synchronization/{0}".format(attribute)
@@ -441,7 +445,7 @@ class MediPyApp(medipy.gui.base.Application) :
             for directory in medipy.Importer().plugins_path :
                 menu.extend(menu_builder.from_api.build_menu(directory))
         
-        self._frame = MainFrame(menu, None, title="MediPy", size=(1000,800))
+        self._frame = MainFrame(menu, None, title=self._application_name, size=(1000,800))
         self._frame.Show()
         self.SetTopWindow(self._frame)
         
