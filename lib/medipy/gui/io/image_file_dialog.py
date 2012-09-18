@@ -1,14 +1,15 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import wx
 from wx import GetTranslation as _
 
+import medipy.gui.base
 import medipy.io
 import medipy.io.schemes.file
 
@@ -22,7 +23,8 @@ class ImageFileDialog(wx.FileDialog):
     
     def __init__(self, *args, **kwargs):
         wx.FileDialog.__init__(self, *args, **kwargs)
-        self._config = wx.Config("MediPy")
+        self._preferences = medipy.gui.base.Preferences(
+            wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         
         if self._last_path is None :
             self._setup_default_directory()
@@ -43,14 +45,23 @@ class ImageFileDialog(wx.FileDialog):
         
         if return_code == wx.ID_OK :
             self._last_path = self.GetDirectory()
-            self._config.Write("ImageFileDialog/DefaultPath", 
-                               self.GetDirectory())
-            self._config.Flush()
+            self._preferences.set(self._get_preferences_entry(), self.GetDirectory())
         
         return return_code
     
+    #####################
+    # Private interface #
+    #####################
+    
+    def _get_preferences_entry(self) :
+        if self.GetWindowStyle() & wx.FD_OPEN :
+                entry = "IO/load_path"
+        else :
+            entry = "IO/save_path"
+        return entry
+    
     def _setup_default_directory(self):
-        self._last_path = self._config.Read("ImageFileDialog/DefaultPath")
+        self._last_path = self._preferences.get(self._get_preferences_entry(), "")
     
     def _setup_wildcard(self):
         
