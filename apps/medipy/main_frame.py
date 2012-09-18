@@ -83,8 +83,7 @@ class MainFrame(medipy.gui.base.Frame):
         self._full_screen_image_index = None
         self._full_screen_image = None
         self._menus_active_when_image_loaded = [
-            "save_image_as", "close_image", 
-            "view_axial", "view_coronal", "view_sagittal", "view_multiplanar",
+            "save_image_as", "close_image"
         ]
         self._active_image = None
         

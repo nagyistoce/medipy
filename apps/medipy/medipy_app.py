@@ -61,6 +61,7 @@ class MediPyApp(medipy.gui.base.Application) :
         self._display_convention = None
         self._synchronize_images = {}
         self._image_tool = None
+        self._slices = None
         self._preferences = medipy.gui.base.Preferences(
             "MediPy", "Université de Strasbourg")
         
@@ -86,10 +87,9 @@ class MediPyApp(medipy.gui.base.Application) :
         
         self.images.insert(index, image)
         
-        if len(image.shape) == 2 or len(image.shape) == 3 and image.shape[0] == 1 :
-            mode = "axial"
-        else : 
-            mode = "multiplanar"
+        mode = self._preferences.get(
+            "Display/slices", 
+            "axial" if image.computed_ndim==2 else "multiplanar")
         
         gui_image = medipy.gui.image.Image(
             self._frame.ui.images_panel, mode, 
@@ -366,14 +366,17 @@ class MediPyApp(medipy.gui.base.Application) :
         self._preferences.set("Display/convention", value)
 
     def _get_slices(self) :
-        return self.active_image.slices
+        return self._slices
 
     def _set_slices(self, slices):
-        if slices != self.active_image.slice_mode :
+        do_change = (self._slices != slices)
+        self._slices = slices
+        if do_change :
             for image in self.gui_images :
                 image.slice_mode = slices
                 image.render()
         self._frame.slices = slices
+        self._preferences.set("Display/slices", slices)
     
     def _get_active_image(self):
         """ Active GUI image
@@ -395,7 +398,6 @@ class MediPyApp(medipy.gui.base.Application) :
         url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
         self._frame.SetTitle("MediPy ({0})".format(url))
 
-        self._frame.slices = gui_image.slice_mode
         if self._cine_dialog :
             self._cine_dialog.image = gui_image
         
@@ -445,14 +447,15 @@ class MediPyApp(medipy.gui.base.Application) :
         
         tool = self._preferences.get(
             "Display/Tools/left", "medipy.gui.image.mouse_tools.Select")
-        print tool
         if "." in tool :
             module, class_ = tool.rsplit(".", 1)
             module = sys.modules[module]
             tool = getattr(module, class_)
         else :
             tool = locals()[tool]
-        self.set_image_tool(tool)  
+        self.set_image_tool(tool)
+        
+        self.slices = self._preferences.get("Display/slices", "multiplanar")
         
         return True
     
