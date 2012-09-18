@@ -88,8 +88,6 @@ class MainFrame(medipy.gui.base.Frame):
         ]
         self._active_image = None
         
-        self.tool_ids = []
-        
         ##################
         # Initialize GUI #
         ##################
@@ -449,8 +447,9 @@ class MainFrame(medipy.gui.base.Frame):
         gui_image.render()
     
     def _save_image(self, image):
+        path = wx.GetApp().preferences.get("IO/save_image_path", "")
         dialog = wx.FileDialog(self, "Save screenshot", 
-            defaultDir = wx.ConfigBase_Get().Read("LoadImagePath"),
+            defaultDir = path,
             style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
             wildcard = "PNG format|*.png|JPG format|*.jpg")
         if dialog.ShowModal() == wx.ID_OK :
@@ -469,3 +468,6 @@ class MainFrame(medipy.gui.base.Frame):
                 filename = dialog.GetPath()
             
             image.SaveFile(filename, format)
+            
+            wx.GetApp().preferences.set("IO/save_image_path", 
+                                        dialog.GetDirectory())

@@ -8,6 +8,7 @@
 ##########################################################################
 
 import os
+import sys
 
 from vtk import (vtkDataReader, vtkPolyDataReader, vtkPolyDataWriter,
     vtkRectilinearGridReader, vtkStructuredGridReader, 
@@ -336,6 +337,9 @@ class MediPyApp(medipy.gui.base.Application) :
             label = self._frame.GetToolBar().FindById(tool_id).GetLabel()
             if label == class_to_label[tool_class] :
                 self._frame.GetToolBar().ToggleTool(tool_id, True)
+        
+        entry = "{0}.{1}".format(tool_class.__module__, tool_class.__name__)
+        self._preferences.set("Display/Tools/left", entry)
     
     ##############
     # PROPERTIES #
@@ -439,7 +443,16 @@ class MediPyApp(medipy.gui.base.Application) :
         self._frame.Show()
         self.SetTopWindow(self._frame)
         
-        self.set_image_tool(medipy.gui.image.mouse_tools.Select)
+        tool = self._preferences.get(
+            "Display/Tools/left", "medipy.gui.image.mouse_tools.Select")
+        print tool
+        if "." in tool :
+            module, class_ = tool.rsplit(".", 1)
+            module = sys.modules[module]
+            tool = getattr(module, class_)
+        else :
+            tool = locals()[tool]
+        self.set_image_tool(tool)  
         
         return True
     
