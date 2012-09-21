@@ -663,9 +663,8 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     IteratorType output_outliers_it(output_outliers_image, hilbert_path);
     output_outliers_it.GoToBegin();
 
-
     //mask_it->GoToBegin();
-    /*while(!output_seg_it.IsAtEnd()){
+    while(!output_seg_it.IsAtEnd()){
         output_seg_it.Set(1);
         ++output_seg_it;
         //output_outliers_it.Set(mask_it->Get());
@@ -675,8 +674,8 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     while(!output_outliers_it.IsAtEnd()){
         output_outliers_it.Set(1);
         ++output_outliers_it;
-    }*/ 
-
+    }
+/*
     mask_it->GoToBegin();
     for(unsigned int j=0; j!=m_Nb_images; j++)
         inputs_its[j]->GoToBegin();
@@ -701,7 +700,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
             ++(*inputs_its[j]);
         }
         ++output_seg_it;
-    }
+    }*/
 
 }
 
