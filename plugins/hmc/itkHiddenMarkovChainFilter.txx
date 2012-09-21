@@ -147,7 +147,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
         mask_it->GoToBegin();
     }
 
-
+    /*
 
     //Initialisation
     std::vector<float> PIi(m_Number_classes, 1./m_Number_classes);
@@ -460,7 +460,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     }*/
 
 
-
+/*
 //Kmoyennes
     int Ini=0;
     int m, par;
@@ -647,7 +647,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     }
 
 
-
+*/
 
 
     typename OutputImageType::Pointer output_seg_image = this->GetOuputSegImage();
