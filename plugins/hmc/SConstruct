@@ -1,0 +1,20 @@
+import itertools
+import os
+
+from deployement.scons.wrapitk import (get_scalar_types, get_dimensions, 
+                                       get_instantiations)
+from deployement.scons.itk import wrapitk_root
+
+Import("env")
+
+env = env.Clone()
+
+env.Glob("*.py")
+
+#types = get_scalar_types(wrapitk_root())
+types = ["float"]
+dimensions = [3]
+instantiations = get_instantiations("itk::Image", types, dimensions)
+instantiations = [(i,i) for i in instantiations]
+classes_template_info = [ ("itk::HiddenMarkovChainFilter", instantiations, "pointer") ]
+env.WrapITKPythonModule("HiddenMarkovChainFilter", classes_template_info)
