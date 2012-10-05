@@ -65,7 +65,7 @@ def configuration_variables() :
     
     result = {}
     # Result of cmake -P is on stderr
-    for line in stderr.split("\n") :
+    for line in stderr.splitlines() :
         if not line or "=" not in line :
             continue
         key, value = line.split("=", 1)
