@@ -1,0 +1,36 @@
+import itertools
+import os
+
+from deployement.scons.wrapitk import (get_scalar_types, get_dimensions, 
+                                       get_instantiations)
+from deployement.scons.itk import wrapitk_root
+
+Import("env")
+
+env = env.Clone()
+
+env.Glob("*.py")
+
+types = get_scalar_types(wrapitk_root())
+dimensions = [3]
+instantiations = get_instantiations("itk::Image", types, dimensions)
+instantiations = [(i,i) for i in instantiations]
+classes_template_info = [ ("itk::BETImageFilter", instantiations, "pointer") ]
+env.Use("vtk")
+env.WrapITKPythonModule("BETImageFilter", classes_template_info)
+
+types = ["float"]
+dimensions = get_dimensions(wrapitk_root())
+instantiations = get_instantiations("itk::Image", types, dimensions)
+instantiations = [(i,i,i) for i in instantiations]
+classes_template_info = [ 
+    ("itk::MonoModalStatisticalChangeDetectionImageFilter", instantiations, "pointer"),
+    ("itk::ChangeDetectionClusteringImageFilter", instantiations, "pointer"),
+]
+
+instantiations = [(i,) for i in get_instantiations("itk::Image", types, dimensions)]
+classes_template_info.append(
+    ("itk::ClustersToAnnotationsCalculator", instantiations, "pointer")
+)
+
+env.WrapITKPythonModule("StatisticalChangeDetectionImageFilters", classes_template_info)
