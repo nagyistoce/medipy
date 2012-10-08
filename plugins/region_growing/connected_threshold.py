@@ -1,6 +1,5 @@
 import itk
 import medipy.itk
-import region_growing
 
 def connected_threshold(input, lower, upper, value, seeds):
     """ Grow a region from a seed (or set of seeds)
