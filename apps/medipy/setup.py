@@ -13,9 +13,5 @@ if __name__ == "__main__" :
     includes.extend(["medipy.{0}.api".format(entry) for entry in medipy_plugins])
     if "hsqc" in medipy_plugins :
         # TODO : move this to the plugin directory
-        includes.extend([
-            "decimal", "openopt", 
-            "scipy.interpolate", "scipy.signal", 
-            "sklearn", "sklearn.cluster", "sklearn.metrics", "sklearn.svm"
-        ])
+        includes.extend(["openopt", "scipy.interpolate",])
     deployement.setup("MediPy", "medipy", includes, medipy_plugins)
