@@ -2,28 +2,12 @@
 Validate
 """
 import svdd as dd
-import corps
-import logging
-import sys
-import warnings
 import numpy as np
-from medipy.io import load
-import os
-from sklearn import svm
 import fonc_util as f
 #import segmentation as seg
-from medipy.base import Image
-import gen_in
-import lawij
-import ser_xml
-import MCMC as m
-import xml_gen
-import locale
-from sklearn import metrics
-from sklearn.cluster import KMeans
+
 import func
-#if __name__=="__main__":
-    #root='/home/miv/belghith/Bureau/test/PH/5/pdata/1'
+
 def detfark(Xt,Xo,inm,inp):    
 
     

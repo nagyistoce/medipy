@@ -3,13 +3,7 @@ Functions used in ppm2pixel converting
 """
 import numpy as np
 import os
-import wx
-from medipy.gui import colormaps
-from medipy.base import Image
-from numpy import linalg
-from medipy.io import load
-import medipy.io.rbnmr as rbnmr
-from decimal import *
+from decimal import Decimal, ROUND_HALF_UP
 import shutil
 def offset(path,type):
         C=os.path.join(path,type)
