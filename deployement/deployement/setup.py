@@ -89,6 +89,19 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
         # Copy configuration files from WrapITK
         configuration_dir = os.path.join(wrapitk_root, "Python", "Configuration")
         shutil.copytree(configuration_dir, os.path.join(bin_directory, "Configuration"))
+    if "openopt" in includes :
+        includes.append("openopt.kernel")
+        # import directives in the __init__.py file
+        init_includes = ["GUI", "oologfcn", "nonOptMisc", "mfa"]
+        includes.extend(["openopt.kernel.{0}".format(x) for x in init_includes])
+        
+        # import directives in the oo.py file
+        oo_includes = ["LP", "LCP", "EIG", "SDP", "QP", "MILP", "STAB", "MCP", 
+                       "TSP", "NSP", "NLP", "MOP", "MINLP", "NLSP", "NLLSP", 
+                       "GLP", "SLE", "LLSP", "MMP", "LLAVP", "LUNP", "SOCP", 
+                       "DFP", "IP", "ODE"]
+        includes.extend(["openopt.kernel.{0}".format(x) for x in oo_includes])
+        
     includes.extend(["medipy.{0}".format(plugin) for plugin in medipy_plugins])
     
     # Include Visual C runtime DLL
