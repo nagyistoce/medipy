@@ -17,6 +17,25 @@ import medipy.base
 
 import schemes
 
+def load_serie(url, dtype=numpy.single):
+    """ Load an image.
+        
+        url : url to load from.
+        dtype : type to which the data will be cast. Passing None will not cast.
+    """
+    scheme, path, fragment = _split(url)
+   
+    try :
+        loader = getattr(scheme, "load_serie")
+    except AttributeError :
+        raise medipy.base.Exception("Scheme \"{0}\" cannot load files".format(scheme))
+
+    limages = loader(path, fragment)
+
+    return limages
+    
+    
+
 def load(url, dtype=numpy.single) :
     """ Load an image.
         
