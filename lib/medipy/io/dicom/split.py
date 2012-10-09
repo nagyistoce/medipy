@@ -101,16 +101,16 @@ def stacks_dictionary(datasets):
         # Temporal Position Index (0020,9128)
         Tag(0x0020,0x9128) : lambda x:x.get("frame_content_sequence", [{}])[0].get("temporal_position_index", None),
         # Diffusion Gradient Orientation (0018,9089)
-        Tag(0x0018,0x9089) : lambda x:x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_gradient_orientation", None),
+        Tag(0x0018,0x9089) : lambda x:tuple(x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_gradient_direction_sequence", [{}])[0].get("diffusion_gradient_orientation", None)),
         # Diffusion b-value (0018,9087)
-        Tag(0x0018,0x9087) : lambda x:x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_b_value", None)
+        Tag(0x0018,0x9087) : lambda x:x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_bvalue", None)
     }
     
     dictionary = {}
     for dataset in datasets :
         dataset_key = dict([(key, getter(dataset)) 
                             for key, getter in getters.items()])
-        
+       
         # If a close value of Image Orientation Patient exists, use it
         o1 = dataset_key[Tag(0x0020,0x0037)] #values[0]
         for key in dictionary.keys() :
@@ -121,6 +121,7 @@ def stacks_dictionary(datasets):
                 break
         
         dictionary.setdefault(tuple(dataset_key.items()), []).append(dataset)
+
     
     return dictionary
 
