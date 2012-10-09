@@ -30,11 +30,38 @@
 import os
 import re
 import urlparse
+import numpy as np
 
 import medipy.base
 import medipy.io.dicom
 
 import dicomdir
+
+def load_serie(path, fragment=None) :
+    """ Load a serie of images
+    """
+
+    datasets = _get_matching_datasets(path, fragment)
+
+    if not datasets :
+        return None
+    else :
+        datasets = medipy.io.dicom.split.images(datasets)
+        datasets = medipy.io.dicom.normalize.normalize(datasets)
+        stacks = medipy.io.dicom.split.stacks(datasets)
+        limages = []
+        for datasets in stacks :
+            image = medipy.io.dicom.image(datasets)
+            if image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation==[] :
+                image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation = [0.,0.,0.]
+            limages.append(image)
+
+        arg_time = np.argsort([float(image.metadata["acquisition_time"]) for image in limages])
+        limages_sort = [0]*len(arg_time)
+        for cnt,pos in enumerate(arg_time) :
+            limages_sort[cnt] = limages[pos]
+
+        return limages_sort
 
 def load(path, fragment=None) :
     """ Load an image.
