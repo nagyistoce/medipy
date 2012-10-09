@@ -3,7 +3,6 @@ Converting steps
 """
 import ser_xml as ser
 import numpy as np
-import xml_gen as xml
 import conv
 import ordon
 import os

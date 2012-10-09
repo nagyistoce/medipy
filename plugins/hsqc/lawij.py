@@ -2,23 +2,6 @@
 Peak and metabolite finding
 """
 import numpy as np
-import os
-import wx
-from medipy.gui import colormaps
-from medipy.base import Image
-from numpy import linalg
-from medipy.io import load
-import medipy.io.rbnmr as rbnmr
-from scipy.interpolate import interpolate
-from decimal import *
-import fun
-import conv
-import inipeak
-import MCMC
-import DS
-import warnings
-import scipy
-from scipy.signal import sepfir2d
 import fonc_util as f
 def alig(ic,jc,data2,amplitref,wa7da):
         amplitref=float(amplitref)*1.00000000000000000000000001

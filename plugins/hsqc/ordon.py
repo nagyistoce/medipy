@@ -1,8 +1,6 @@
 """
 Metabolites corpus order
 """
-import ser_xml as ser
-import numpy as np
 import xml_gen as xml
 def gen_ord(tab):
     #tab=ser.read_s()
