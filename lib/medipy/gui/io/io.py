@@ -77,11 +77,27 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
         periodic_progress_dialog.Fit()
         
         if load_all_images :
-            indices = range(medipy.io.number_of_images(path))
+            #indices = range(medipy.io.number_of_images(path))
+            worker_thread = WorkerThread(periodic_progress_dialog,
+                                        target=medipy.io.load_serie, 
+                                        args=(path, dtype))
+            worker_thread.start()
+            periodic_progress_dialog.start()
+            
+            worker_thread.join()
+            
+            if worker_thread.exception is not None :
+                wx.MessageBox(
+                    "Could not load file %s : %s"%(
+                        path, worker_thread.exception), 
+                    "Could not load image")
+            else :
+                images = worker_thread.result
         else :
-            indices = [0] 
+            #indices = [0] 
+            index = 0
         
-        for index in indices :
+        #for index in indices :
             url = "file:{0}#index={1}".format(path, index)
             worker_thread = WorkerThread(periodic_progress_dialog,
                                         target=medipy.io.load, 
