@@ -66,9 +66,12 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
                 "Could not load file %s : %s"%(path, worker_thread.exception), 
                 "Could not load DICOMDIR")
         else :
-            images.extend(
-                reconstruction.images([worker_thread.result], parent, dtype, True))
-    
+            if load_all_images :
+                images.extend(reconstruction.images([worker_thread.result], parent, dtype, "all"))
+            elif multiple :
+                images.extend(reconstruction.images([worker_thread.result], parent, dtype, "multiple"))
+            else :
+                images.extend(reconstruction.images([worker_thread.result], parent, dtype, "single"))
     # Load other images
     periodic_progress_dialog = PeriodicProgressDialog(0.2, "Loading image", 
                                                            "Loading ...")
@@ -95,9 +98,9 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
                 images = worker_thread.result
         else :
             #indices = [0] 
+            #for index in indices :
             index = 0
         
-        #for index in indices :
             url = "file:{0}#index={1}".format(path, index)
             worker_thread = WorkerThread(periodic_progress_dialog,
                                         target=medipy.io.load, 
