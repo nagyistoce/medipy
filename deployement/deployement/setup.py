@@ -102,6 +102,11 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
                        "DFP", "IP", "ODE"]
         includes.extend(["openopt.kernel.{0}".format(x) for x in oo_includes])
         
+        import openopt
+        solvers = ["openopt.solvers.{0}".format(solver) 
+                   for solver in openopt.kernel.nonOptMisc.solverPaths.values()]
+        includes.extend(solvers)
+        
     includes.extend(["medipy.{0}".format(plugin) for plugin in medipy_plugins])
     
     # Include Visual C runtime DLL
@@ -127,6 +132,22 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
         },
     )
     sys.path.pop()
+    
+    # Copy solvers *_oo.py, explicitely required by openopt
+    if "openopt" in includes :
+        import openopt.solvers
+        solvers = ["openopt.solvers.{0}".format(solver) 
+                   for solver in openopt.kernel.nonOptMisc.solverPaths.values()]
+        solvers_root = os.path.dirname(openopt.solvers.__file__)
+        for dirpath, dirnames, filenames in os.walk(solvers_root):
+            for filename in filenames:
+                if filename.endswith('_oo.py'):
+                    destination = os.path.join(
+                        bin_directory, "openopt", "solvers", 
+                        dirpath[1+len(solvers_root):], filename)
+                    if not os.path.isdir(os.path.dirname(destination)) :
+                        os.makedirs(os.path.dirname(destination))
+                    shutil.copy(os.path.join(dirpath, filename), destination)
     
     # Copy resources
     roots = [os.path.join(medipy.__path__[0], "resources")]
