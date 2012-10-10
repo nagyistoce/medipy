@@ -9,6 +9,10 @@
           <bitmap stock_id="wxART_FILE_OPEN"/>
           <accel>Ctrl+O</accel>
         </object>
+        <object class="wxMenuItem" name="open_image_serie">
+          <label>&amp;Open image serie ...</label>
+          <bitmap stock_id="wxART_FILE_OPEN"/>
+        </object>
         <object class="wxMenu" name="import_menu">
           <label>&amp;Import</label>
           <object class="wxMenuItem" name="open_raw">
