@@ -18,7 +18,7 @@ import medipy.base
 import schemes
 
 def load_serie(url, dtype=numpy.single):
-    """ Load an image.
+    """ Load a serie of images.
         
         url : url to load from.
         dtype : type to which the data will be cast. Passing None will not cast.
@@ -34,7 +34,21 @@ def load_serie(url, dtype=numpy.single):
 
     return limages
     
+def save_serie(image, url) :
+    """ Save a serie of images.
+        
+        image : image to save.
+        url : url to save to.
+    """
     
+    scheme, path, _ = _split(url)
+    
+    try :
+        saver = getattr(scheme, "save_serie")
+    except AttributeError :
+        raise medipy.base.Exception("Scheme \"{0}\" cannot save files".format(scheme))
+
+    saver(image, path)    
 
 def load(url, dtype=numpy.single) :
     """ Load an image.
