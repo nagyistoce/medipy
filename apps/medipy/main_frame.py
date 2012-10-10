@@ -265,6 +265,22 @@ class MainFrame(medipy.gui.base.Frame):
                     0, [1,0,0],1)
                 image.spacing = numpy.insert(image.spacing, 0, 1)
             wx.GetApp().append_image(image)
+
+    def OnOpenImageSerie(self, dummy):
+        
+        images = medipy.gui.io.load(self, multiple=True, load_all_images=True)
+
+        for image in images :
+            # TODO : use force_3d as parameter ?
+            if image.ndim == 2 :
+                image.data = image.data.reshape(1, *image.shape)
+                image.origin = numpy.insert(image.origin, 0, 0)
+                image.direction = numpy.insert(
+                    numpy.insert(image.direction,0, [0,0], 0), 
+                    0, [1,0,0],1)
+                image.spacing = numpy.insert(image.spacing, 0, 1)
+            wx.GetApp().append_image(image)
+
                 
     def OnOpenRaw(self, dummy):
         from medipy.gui.image.raw_dialog import RawDialog
