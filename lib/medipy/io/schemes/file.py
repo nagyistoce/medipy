@@ -33,6 +33,7 @@ import numpy as np
 import os
 from dataset import DataSet
 from collections import defaultdict
+from medipy.io.dicom import Tag
 
 
 def load_serie(path, fragment=None, loader=None) :
@@ -57,7 +58,6 @@ def load_serie(path, fragment=None, loader=None) :
     name = path.split('/')[-1].split('.')[0]
     base = "/".join(path.split('/')[:-1])+"/"
     ext = "."+".".join(path.split('/')[-1].split('.')[1:])
-    print base,ext,name
     N = len(limages)
     if ext==".nii" or ext==".nii.gz" :
         lfbvec = [base+name+".bvecs",base+name+".bvec",base+"bvecs",base+"bvec"]
@@ -117,14 +117,40 @@ def save_serie(limages, path, saver=None) :
             image = Image(data=ndata,spacing=(1,)+dspacing.keys()[0],origin=(0,)+limages[0].origin,direction=ndirection,metadata=args)
 
             # Save volume nifti
-            print image
             if ext==".nii" or ext==".nii.gz" :
                 save(image,path,saver)
             else :
                 save(image,base+name+".nii.gz",saver)
 
             # Save nifti DWI info 
-
+            bval = []
+            bvec = []
+            tag_bval = Tag(0x0018,0x9087)
+            tag_bvec_seq = Tag(0x0018,0x9076)
+            tag_bvec = Tag(0x0018,0x9089)
+            for cnt in range(N) :
+                if "mr_diffusion_sequence" in limages[cnt].metadata.keys() :
+                    if tag_bval in limages[cnt].metadata["mr_diffusion_sequence"][0].keys() and tag_bvec_seq in limages[cnt].metadata["mr_diffusion_sequence"][0].keys() :
+                        bval.append(limages[cnt].metadata["mr_diffusion_sequence"][0][tag_bval])
+                        if tag_bvec in limages[cnt].metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].keys() :
+                            vec = limages[cnt].metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
+                            if len(vec)==3 :
+                                bvec.append(vec)
+                            else :
+                                break
+                        else :
+                            break
+                    else :
+                        break
+                else :
+                    break
+            if len(bval)==N and len(bvec)==N :
+                fbval = base+name+".bvals"
+                fbvec = base+name+".bvecs"
+                bval = np.asarray(bval)
+                bval.shape += (1,)
+                np.savetxt(fbval,bval.T) 
+                np.savetxt(fbvec,np.asarray(bvec).T)                    
         else :
             raise medipy.base.Exception("All images must have the same shape and spacing.")
     else :
