@@ -32,6 +32,7 @@ from os.path import splitext
 import numpy as np
 import os
 from dataset import DataSet
+from collections import defaultdict
 
 
 def load_serie(path, fragment=None, loader=None) :
@@ -86,6 +87,51 @@ def load_serie(path, fragment=None, loader=None) :
                     limages[cnt].metadata["mr_diffusion_sequence"] = [dwi_dataset]
 
     return limages
+
+def save_serie(limages, path, saver=None) :
+    """ Save a serie of N 3D images as a volume.
+    
+        If specified, the "saver" must be an image saver. If not specified,
+        a suitable saver will be found automatically.
+    """
+    
+    N = len(limages)
+    name = path.split('/')[-1].split('.')[0]
+    base = "/".join(path.split('/')[:-1])+"/"
+    ext = "."+".".join(path.split('/')[-1].split('.')[1:])
+    if N>0 :
+        nshape = [tuple(image.shape) for image in limages]
+        nspacing = [tuple(image.spacing) for image in limages]
+        dshape = {}
+        dspacing = {}
+        for t1,t2 in zip(nshape,nspacing) :
+            dshape.setdefault(t1, [])
+            dspacing.setdefault(t2, [])
+        if len(dshape.keys())==1 and len(dspacing.keys())==1 :
+            ndata = np.zeros((N,)+dshape.keys()[0],dtype=np.single)
+            for cnt in range(N) :
+                ndata[cnt] = limages[cnt].data
+            args = { "loader" : limages[0].metadata["loader"] }
+            ndirection = np.diag([1]*4)
+            ndirection[1:,1:] = limages[0].direction
+            image = Image(data=ndata,spacing=(1,)+dspacing.keys()[0],origin=(0,)+limages[0].origin,direction=ndirection,metadata=args)
+
+            # Save volume nifti
+            print image
+            if ext==".nii" or ext==".nii.gz" :
+                save(image,path,saver)
+            else :
+                save(image,base+name+".nii.gz",saver)
+
+            # Save nifti DWI info 
+
+        else :
+            raise medipy.base.Exception("All images must have the same shape and spacing.")
+    else :
+        raise medipy.base.Exception("A serie of images must contain at least one image.")
+
+
+
 
 def load(path, fragment=None, loader=None) :
     """ Load an image.
