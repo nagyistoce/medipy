@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Lecture DICOM &mdash; MediPy v1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="MediPy v1.0 documentation" href="../index.html" />
+    <link rel="up" title="Guide du programmeur" href="index.html" />
+    <link rel="prev" title="Description de l’interface graphique d’une fonction" href="function_gui.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="function_gui.html" title="Description de l’interface graphique d’une fonction"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../index.html">MediPy v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Guide du programmeur</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table des matières</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Lecture DICOM</a><ul>
+<li><a class="reference external" href="#lecture-de-fichiers-contenant-une-seule-serie">Lecture de fichiers contenant une seule série</a></li>
+<li><a class="reference external" href="#lecture-de-fichiers-contenant-plusieurs-series">Lecture de fichiers contenant plusieurs séries</a></li>
+<li><a class="reference external" href="#lecture-d-un-dicomdir">Lecture d&#8217;un DICOMDIR</a></li>
+<li><a class="reference external" href="#cas-general">Cas général</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Sujet précédent</h4>
+            <p class="topless"><a href="function_gui.html"
+                                  title="Chapitre précédent">Description de l&#8217;interface graphique d&#8217;une fonction</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Recherche rapide</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lecture-dicom">
+<h1>Lecture DICOM<a class="headerlink" href="#lecture-dicom" title="Lien permanent vers ce titre">¶</a></h1>
+<div class="section" id="lecture-de-fichiers-contenant-une-seule-serie">
+<h2>Lecture de fichiers contenant une seule série<a class="headerlink" href="#lecture-de-fichiers-contenant-une-seule-serie" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Dans le cas le plus simple, on souhaite charger un ensemble de fichiers dont on
+sait qu&#8217;ils ne contiennent qu&#8217;une seule série.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
+
+<span class="c"># Chargement des fichiers</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="c"># Création de l&#39;image</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lecture-de-fichiers-contenant-plusieurs-series">
+<h2>Lecture de fichiers contenant plusieurs séries<a class="headerlink" href="#lecture-de-fichiers-contenant-plusieurs-series" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Si on souhaite charger un ensemble de fichiers qui contiennent potentiellement
+plusieurs séries, il faut d&#8217;abord diviser l&#8217;ensemble des Data Sets chargés en
+séries, puis choisir l&#8217;une d&#8217;entre elles.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
+
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="c"># Division des DataSets en séries</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">serie</span> <span class="ow">in</span> <span class="n">series</span> <span class="p">:</span>
+    <span class="c"># Récupération des valeurs des attributs Series Instance UID et</span>
+    <span class="c"># Series Description</span>
+    <span class="n">uid</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">uid_and_description</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">description</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lecture-d-un-dicomdir">
+<h2>Lecture d&#8217;un DICOMDIR<a class="headerlink" href="#lecture-d-un-dicomdir" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Toutes les fonctions décrites précédemment acceptent aussi des Data Sets chargés
+depuis des DICOMDIRs. La fonction <tt class="docutils literal"><span class="pre">load_dicomdir_records</span></tt> se charge ensuite
+de charger les fichiers référencés depuis les informations du DICOMDIR. Cette
+fonction accepte aussi des Data Sets, mais se contente de les retourner.</p>
+<p>Certaines fonctions ont cependant besoin d&#8217;un argument
+supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s&#8217;agit de :</p>
+<blockquote>
+<ul class="simple">
+<li>load_dicomdir_records</li>
+<li>uid_and_description</li>
+</ul>
+</blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
+
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">serie</span> <span class="ow">in</span> <span class="n">series</span> <span class="p">:</span>
+    <span class="c"># Récupération des valeurs des attributs Series Instance UID et</span>
+    <span class="c"># Series Description</span>
+    <span class="n">uid</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">uid_and_description</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">description</span>
+<span class="c"># Chargement des DataSets à partir des Directory Records</span>
+<span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">serie</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cas-general">
+<h2>Cas général<a class="headerlink" href="#cas-general" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Dans le cas le plus général, chaque série peut être composée de plusieurs piles
+(ensemble de coupes ayant la même orientation), par exemple dans le cas du
+localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">stacks</span></tt> permet de diviser une série en piles.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
+
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+<span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="c"># Division de la série en piles</span>
+<span class="n">stack</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">stacks</span><span class="p">(</span><span class="n">serie</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="function_gui.html" title="Description de l’interface graphique d’une fonction"
+             >précédent</a> |</li>
+        <li><a href="../index.html">MediPy v1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Guide du programmeur</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2011, Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
