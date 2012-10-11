@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 
 import medipy.base
+import medipy.io.dicom.dictionary
 
 from SCU import SCU
 
@@ -43,7 +44,6 @@ class Find(SCU) :
         
         # Create a temporary directory for query files and results
         temporary_directory = tempfile.mkdtemp()
-        print "Temporary directory: {0}".format(temporary_directory)
         
         # Build the command
         command = ["findscu"]
@@ -144,7 +144,7 @@ class Find(SCU) :
     def _create_query_file(self, query, temporary_directory) :
         f, query_file_txt = tempfile.mkstemp(dir=temporary_directory)
         for tag in query :
-            vr = "LO"
+            vr = medipy.io.dicom.dictionary.data_dictionary[tag][0]
             os.write(f, "{0} {1} []\n".format(tag, vr))
         os.close(f)
         
@@ -152,7 +152,8 @@ class Find(SCU) :
         os.close(f)
         
         command = ["dump2dcm", query_file_txt, query_file_dcm]
-        subprocess.call(command)
-        # TODO : Popen
+        process = subprocess.Popen(command, 
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
         
         return query_file_dcm
