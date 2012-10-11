@@ -270,16 +270,12 @@ class MainFrame(medipy.gui.base.Frame):
         
         images = medipy.gui.io.load(self, multiple=True, load_all_images=True)
 
-        for image in images :
-            # TODO : use force_3d as parameter ?
-            if image.ndim == 2 :
-                image.data = image.data.reshape(1, *image.shape)
-                image.origin = numpy.insert(image.origin, 0, 0)
-                image.direction = numpy.insert(
-                    numpy.insert(image.direction,0, [0,0], 0), 
-                    0, [1,0,0],1)
-                image.spacing = numpy.insert(image.spacing, 0, 1)
-            wx.GetApp().append_image(image)
+        if isinstance(images, list) :
+            if len(images)>0 :
+                layers = [layer for layer in images[1:]]
+                wx.GetApp().append_image(images[0],layers)
+                for cnt in range(1,len(wx.GetApp().active_image.layers)) :
+                    wx.GetApp().active_image.set_layer_visibility(cnt,False)
 
                 
     def OnOpenRaw(self, dummy):
@@ -301,8 +297,13 @@ class MainFrame(medipy.gui.base.Frame):
     def OnFromDirectorySerie(self, dummy):
         
         images = medipy.gui.io.import_dicom_directory(self)
-        for image in images :
-            wx.GetApp().append_image(image)
+
+        if isinstance(images, list) :
+            if len(images)>0 :
+                layers = [layer for layer in images[1:]]
+                wx.GetApp().append_image(images[0],layers)
+                for cnt in range(1,len(wx.GetApp().active_image.layers)) :
+                    wx.GetApp().active_image.set_layer_visibility(cnt,False)
     
     def OnSaveImageAs(self, dummy):
         medipy.gui.io.save(wx.GetApp().active_image.get_layer_image(0))

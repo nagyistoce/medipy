@@ -19,9 +19,8 @@ import numpy
 import medipy.base
 import csa2
 from dataset import DataSet
-
 from medipy.io.dicom import Tag
-from medipy.io.dicom.private_dictionaries import private_dictionaries
+
 
 def normalize(dataset_or_datasets):
     """ Normalize a dataset or a sequence of datasets.
@@ -81,7 +80,6 @@ def dwi_normalize(dataset_or_datasets):
         if tag_bval in dataset.keys() :
             if len(dataset[tag_bval])!=0 :
                 dwi_dataset.diffusion_bvalue = dataset[tag_bval][0]
-
         if tag_bvec in dataset.keys() :
             gradient_dataset = DataSet()
             gradient_dataset.diffusion_gradient_orientation = dataset[tag_bvec]
