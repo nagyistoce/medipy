@@ -25,12 +25,19 @@
             <label>Import &amp;DICOM directory ...</label>
             <accel>Ctrl+D</accel>
           </object>
+          <object class="wxMenuItem" name="from_directory_serie">
+            <label>Import &amp;DICOM serie directory ...</label>
+          </object>
         </object>
         <object class="separator"/>
         <object class="wxMenuItem" name="save_image_as">
           <label>Save image as ...</label>
           <bitmap stock_id="wxART_FILE_SAVE_AS"/>
           <accel>Ctrl+S</accel>
+        </object>
+        <object class="wxMenuItem" name="save_image_serie_as">
+          <label>Save image serie as ...</label>
+          <bitmap stock_id="wxART_FILE_SAVE_AS"/>
         </object>
         <object class="separator"/>
         <object class="wxMenuItem" name="new_viewer_3d">
