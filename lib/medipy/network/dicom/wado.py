@@ -30,10 +30,15 @@ def get(url, dataset):
     query = "&".join(["{0}={1}".format(*item) for item in query.items()])
     
     dicom_fd = urllib.urlopen("{0}?{1}".format(url, query))
+    if dicom_fd.getcode() != 200 :
+        return None
     
     temp_fd, temp_name = tempfile.mkstemp()
     os.write(temp_fd, dicom_fd.read())
+    
+    dicom_fd.close()
     os.close(temp_fd)
+    
     dataset = medipy.io.dicom.parse(temp_name)
     os.remove(temp_name)
     
