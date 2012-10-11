@@ -34,7 +34,7 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
         
         Return a list of loaded images
     """
-    
+
     style = (wx.FD_OPEN | wx.FD_MULTIPLE) if multiple else wx.FD_OPEN
     dialog = ImageFileDialog(parent, style=style)
     dialog.SetWildcard(wildcard)
@@ -139,44 +139,56 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
     
     if dialog.ShowModal() != wx.ID_OK :
         return []
-        
+       
     directory = dialog.GetPath()
-    if recursive :
-        files = []
-        for dirpath, dirnames, filenames in os.walk(directory) :
-            files.extend([(os.path.join(dirpath, x)) for x in filenames])
-    else :
-        files = os.listdir(directory)
-        files = [str(os.path.join(directory, x)) for x in files]
-    files.sort()
-    
-    def loader(files):
-        datasets = []
-        for file in files :
-            try :
-                dataset = medipy.io.dicom.parse(file)
-            except Exception, e :
-                logging.warning("Could not parse file {0} : {1}".format(file, e))
-            else :
-                datasets.append(dataset)
-        return datasets
-    
+
     periodic_progress_dialog = PeriodicProgressDialog(
         0.2, "Loading files", "Loading ...")
     worker_thread = WorkerThread(periodic_progress_dialog,
-                                 target=loader, args=(files,))
+                                 target=medipy.io.load_serie, args=("dicom:"+directory,))
     worker_thread.start()
     periodic_progress_dialog.start()
     worker_thread.join()
     periodic_progress_dialog.Destroy()
+
+#    if recursive :
+#        files = []
+#        for dirpath, dirnames, filenames in os.walk(directory) :
+#            files.extend([(os.path.join(dirpath, x)) for x in filenames])
+#    else :
+#        files = os.listdir(directory)
+#        files = [str(os.path.join(directory, x)) for x in files]
+#    files.sort()
+    
+#    def loader(files):
+#        datasets = []
+#        for file in files :
+#            try :
+#                dataset = medipy.io.dicom.parse(file)
+#            except Exception, e :
+#                logging.warning("Could not parse file {0} : {1}".format(file, e))
+#            else :
+#                datasets.append(dataset)
+#        return datasets
+    
+#    periodic_progress_dialog = PeriodicProgressDialog(
+#        0.2, "Loading files", "Loading ...")
+#    worker_thread = WorkerThread(periodic_progress_dialog,
+#                                 target=loader, args=(files,))
+#    worker_thread.start()
+#    periodic_progress_dialog.start()
+#    worker_thread.join()
+#    periodic_progress_dialog.Destroy()
         
     if worker_thread.exception is not None :
         wx.MessageBox(
             "Could not load files : %s"%(worker_thread.exception, ), 
             "Could not load files")
         return []
+    else :
+        images = worker_thread.result
     
-    images = reconstruction.images(worker_thread.result, parent, dtype, True)
+#    images = reconstruction.images(worker_thread.result, parent, dtype, True)
     
     if images :
         preferences.set("IO/load_path", dialog.GetPath())
@@ -189,27 +201,36 @@ def save(image, parent=None):
         
         parent : parent wx Window for dialogs
     """
-    
+
     dialog = ImageFileDialog(parent, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
     
     if dialog.ShowModal() != wx.ID_OK :
         return None
     
     path = dialog.GetPath()
-    try :
-        medipy.io.save(image, path)
-        return path
-    except :
-        # Try by adding a ".nii" suffix
+
+    if isinstance(image, list) :
+        periodic_progress_dialog = PeriodicProgressDialog(0.2, "Loading files", "Loading ...")
+        worker_thread = WorkerThread(periodic_progress_dialog,target=medipy.io.save_serie, args=(image,path,))
+        worker_thread.start()
+        periodic_progress_dialog.start()
+        worker_thread.join()
+        periodic_progress_dialog.Destroy()
+    else :
         try :
-            path += ".nii"
             medipy.io.save(image, path)
             return path
         except :
-            exc_info = sys.exc_info()
-            logging.error("".join(traceback.format_exception(*exc_info)))
-            wx.MessageBox("Could not save image to %s: %s"%(path, exc_info[1]),
-                          "Could not save image", wx.OK|wx.ICON_ERROR)
+            # Try by adding a ".nii" suffix
+            try :
+                path += ".nii"
+                medipy.io.save(image, path)
+                return path
+            except :
+                exc_info = sys.exc_info()
+                logging.error("".join(traceback.format_exception(*exc_info)))
+                wx.MessageBox("Could not save image to %s: %s"%(path, exc_info[1]),
+                              "Could not save image", wx.OK|wx.ICON_ERROR)
 
 def _separate_dicomdirs(paths):
     """ Separate dicomdirs from "regular" images
