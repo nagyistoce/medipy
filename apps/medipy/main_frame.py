@@ -297,9 +297,19 @@ class MainFrame(medipy.gui.base.Frame):
         images = medipy.gui.io.import_dicom_directory(self)
         if images :
             wx.GetApp().append_image(images[0])
+
+    def OnFromDirectorySerie(self, dummy):
+        
+        images = medipy.gui.io.import_dicom_directory(self)
+        for image in images :
+            wx.GetApp().append_image(image)
     
     def OnSaveImageAs(self, dummy):
         medipy.gui.io.save(wx.GetApp().active_image.get_layer_image(0))
+
+    def OnSaveImageSerieAs(self, dummy):
+        limages = [wx.GetApp().active_image.get_layer_image(i) for i in range(len(wx.GetApp().active_image.layers))]
+        medipy.gui.io.save(limages)
     
     def OnCloseAllImages(self, dummy):
         wx.GetApp().close_all_images()
