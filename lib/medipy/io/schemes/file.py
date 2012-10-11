@@ -37,7 +37,7 @@ from medipy.io.dicom import Tag
 
 
 def load_serie(path, fragment=None, loader=None) :
-    """ Load a volume as a serie of N images.
+    """ Load a volume as a serie of N 3D images.
     
         If specified, the "loader" must be an image loader. If not specified,
         a suitable loader will be found automatically.
@@ -46,10 +46,19 @@ def load_serie(path, fragment=None, loader=None) :
     image = load(path,fragment,loader)
 
     # Create serie
+    if image.ndim==3 :
+        image.data = image.data.reshape((1,)+image.shape)
+        norigin = image.origin
+        nspacing = image.spacing
+        ndirection = image.direction
+    elif image.ndim==4 :
+        norigin = image.origin[1:]
+        nspacing = image.spacing[1:]
+        ndirection = image.direction[1:,1:]
+    else :
+        raise medipy.base.Exception("Path does not contain a serie of 3D images.")
+
     limages = []
-    norigin = image.origin[1:]
-    nspacing = image.spacing[1:]
-    ndirection = image.direction[1:,1:]
     for ndata in list(image.data) :
         args = { "loader" : image.metadata["loader"] }
         limages.append(Image(data=ndata,origin=norigin,spacing=nspacing,direction=ndirection,metadata=args))
@@ -111,8 +120,10 @@ def save_serie(limages, path, saver=None) :
             ndata = np.zeros((N,)+dshape.keys()[0],dtype=np.single)
             for cnt in range(N) :
                 ndata[cnt] = limages[cnt].data
-            args = { "loader" : limages[0].metadata["loader"] }
-            ndirection = np.diag([1]*4)
+            args = {}
+            if "loader" in limages[0].metadata.keys() :
+                args["loader"] = limages[0].metadata["loader"]
+            ndirection = np.diag([1.0]*4)
             ndirection[1:,1:] = limages[0].direction
             image = Image(data=ndata,spacing=(1,)+dspacing.keys()[0],origin=(0,)+limages[0].origin,direction=ndirection,metadata=args)
 
