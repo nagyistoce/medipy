@@ -13,6 +13,7 @@
 import copy
 import math
 import operator
+import string
 
 import numpy
 
@@ -69,7 +70,8 @@ def dwi_normalize(dataset_or_datasets):
                     dwi_dataset.diffusion_bvalue = image_csa['B_value'][0]
             if 'DiffusionDirectionality' in image_csa.keys() :
                 if len(image_csa['DiffusionDirectionality'])!=0 :
-                    dwi_dataset.diffusion_directionality = image_csa['DiffusionDirectionality'][0]
+                    directionality = image_csa['DiffusionDirectionality'][0].strip(string.whitespace+"\0")
+                    dwi_dataset.diffusion_directionality = directionality
             if 'DiffusionGradientDirection' in image_csa.keys() :
                 gradient_dataset = DataSet()
                 gradient_dataset.diffusion_gradient_orientation = image_csa['DiffusionGradientDirection']
