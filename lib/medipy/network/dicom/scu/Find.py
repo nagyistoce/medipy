@@ -58,7 +58,7 @@ class Find(SCU) :
                                "serie" : "SERIES", "image" : "IMAGE" }
         command.extend([
             "-k", 
-            "(0008,0052)={0}".format(query_level_option[self.query_level])
+            "0008,0052={0}".format(query_level_option[self.query_level])
         ])
         
         keys = [(tag, value) for tag, value in self.query_parameters.items()
@@ -67,7 +67,8 @@ class Find(SCU) :
                  if value is None]
 
         for tag, value in keys :
-            command.extend(["-k", "{0}={1}".format(str(tag), str(value))])
+            command.extend(["-k", "{0:04x},{1:04x}={2}".format(
+                tag.group, tag.element, str(value))])
         
         command.append("-X")
         

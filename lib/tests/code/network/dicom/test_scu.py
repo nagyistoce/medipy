@@ -27,12 +27,12 @@ class TestSCU(unittest.TestCase):
             self.connection, "patient", "patient", query_parameters)
         result = patient_find()
         
-        self.assertGreater(len(result), 0)
-        self.assertIsInstance(result[0], medipy.io.dicom.DataSet)
+        self.assertTrue(len(result)>0)
+        self.assertTrue(isinstance(result[0], medipy.io.dicom.DataSet))
         
         dataset = result[0]
-        self.assertIn("patients_name", dataset)
-        self.assertIn("patient_id", dataset)
+        self.assertTrue("patients_name" in dataset)
+        self.assertTrue("patient_id" in dataset)
 
 if __name__ == "__main__" :
     unittest.main()
