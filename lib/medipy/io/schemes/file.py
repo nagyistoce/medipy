@@ -28,6 +28,65 @@ from medipy.io.nmr2D import Nmr2D
 from medipy.io.wx_image import WXImage
 io_classes = [Dicom, ITK, IPB, WXImage, Nmr2D, Nifti]
 
+from os.path import splitext
+import numpy as np
+import os
+from dataset import DataSet
+
+
+def load_serie(path, fragment=None, loader=None) :
+    """ Load a volume as a serie of N images.
+    
+        If specified, the "loader" must be an image loader. If not specified,
+        a suitable loader will be found automatically.
+    """
+
+    image = load(path,fragment,loader)
+
+    # Create serie
+    limages = []
+    norigin = image.origin[1:]
+    nspacing = image.spacing[1:]
+    ndirection = image.direction[1:,1:]
+    for ndata in list(image.data) :
+        args = { "loader" : image.metadata["loader"] }
+        limages.append(Image(data=ndata,origin=norigin,spacing=nspacing,direction=ndirection,metadata=args))
+
+    # DWI nifti
+    name = path.split('/')[-1].split('.')[0]
+    base = "/".join(path.split('/')[:-1])+"/"
+    ext = "."+".".join(path.split('/')[-1].split('.')[1:])
+    print base,ext,name
+    N = len(limages)
+    if ext==".nii" or ext==".nii.gz" :
+        lfbvec = [base+name+".bvecs",base+name+".bvec",base+"bvecs",base+"bvec"]
+        lfbval = [base+name+".bvals",base+name+".bval",base+"bvals",base+"bval"]
+        kbvec = [os.path.isfile(f) for f in lfbvec]
+        kbval = [os.path.isfile(f) for f in lfbval]
+        k1 = None
+        if True in kbvec :
+            k1 = kbvec.index(True)
+        k2 = None
+        if True in kbval :
+            k2 = kbval.index(True)
+        if k1!=None and k2!=None :
+            fbvec = lfbvec[k1]
+            fbval = lfbval[k2]
+            bval = np.array(np.loadtxt(fbval))
+            grad = np.array(np.loadtxt(fbvec),dtype=np.single)
+            grad = grad.T
+            if N==bval.shape[0] and N==grad.shape[0] :
+                for cnt in range(N) :
+                    dwi_dataset = DataSet()
+                    dwi_dataset.diffusion_directionality = "DIRECTIONAL"
+                    dwi_dataset.diffusion_bvalue = bval[cnt]
+                    gradient_dataset = DataSet()
+                    gradient_dataset.diffusion_gradient_orientation = grad[cnt]
+                    dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+                    limages[cnt].metadata["mr_diffusion_sequence"] = [dwi_dataset]
+
+    return limages
+
 def load(path, fragment=None, loader=None) :
     """ Load an image.
     
