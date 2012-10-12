@@ -125,6 +125,17 @@ def dwi_normalize(dataset_or_datasets):
         if key in locals() :
             dwi_function = locals()[key]
             dwi_dataset = dwi_function(dataset_or_datasets)
+            
+            # Normalize gradient direction
+            if "diffusion_gradient_direction_sequence" in dwi_dataset :
+                gradient_direction = dwi_dataset.\
+                    diffusion_gradient_direction_sequence[0].\
+                        diffusion_gradient_orientation
+                if not gradient_direction :
+                    gradient_direction = [0.,0.,0.]
+                    dwi_dataset.diffusion_gradient_direction_sequence[0].\
+                        diffusion_gradient_orientation = gradient_direction
+            
             dataset_or_datasets.mr_diffusion_sequence = [dwi_dataset]
         # Do nothing if the diffusion informations for the current manufacturer
         # are unknown
