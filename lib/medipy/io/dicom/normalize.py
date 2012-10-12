@@ -54,20 +54,26 @@ def normalize(dataset_or_datasets):
         return reduce(operator.concat, single_frames, [])
 
 def dwi_normalize(dataset_or_datasets):
+    """ Normalize the diffusion information (if present) of the dataset or
+        sequence of datasets.
+    """
 
+    # Functions specific to each manufacturer
+    
     def dwi_siemens(dataset):
-        image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
         dwi_dataset = DataSet()
-        if 'B_value' in image_csa.keys() :
-            if len(image_csa['B_value'])!=0 :
-                dwi_dataset.diffusion_bvalue = image_csa['B_value'][0]
-        if 'DiffusionDirectionality' in image_csa.keys() :
-            if len(image_csa['DiffusionDirectionality'])!=0 :
-                dwi_dataset.diffusion_directionality = image_csa['DiffusionDirectionality'][0]
-        if 'DiffusionGradientDirection' in image_csa.keys() :
-            gradient_dataset = DataSet()
-            gradient_dataset.diffusion_gradient_orientation = image_csa['DiffusionGradientDirection']
-            dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+        if (0x0029,0x1010) in dataset :
+            image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
+            if 'B_value' in image_csa.keys() :
+                if len(image_csa['B_value'])!=0 :
+                    dwi_dataset.diffusion_bvalue = image_csa['B_value'][0]
+            if 'DiffusionDirectionality' in image_csa.keys() :
+                if len(image_csa['DiffusionDirectionality'])!=0 :
+                    dwi_dataset.diffusion_directionality = image_csa['DiffusionDirectionality'][0]
+            if 'DiffusionGradientDirection' in image_csa.keys() :
+                gradient_dataset = DataSet()
+                gradient_dataset.diffusion_gradient_orientation = image_csa['DiffusionGradientDirection']
+                dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
         return dwi_dataset
 
     def dwi_philips(dataset):
@@ -114,9 +120,14 @@ def dwi_normalize(dataset_or_datasets):
         return dwi_dataset
 
     if isinstance(dataset_or_datasets, DataSet) :
-        dwi_function = locals()["dwi_{0}".format(dataset_or_datasets.manufacturer.lower().split(' ')[0])]
-        dwi_dataset = dwi_function(dataset_or_datasets)
-        dataset_or_datasets.mr_diffusion_sequence = [dwi_dataset]
+        key = "dwi_{0}".format(
+            dataset_or_datasets.manufacturer.lower().split(' ')[0])
+        if key in locals() :
+            dwi_function = locals()[key]
+            dwi_dataset = dwi_function(dataset_or_datasets)
+            dataset_or_datasets.mr_diffusion_sequence = [dwi_dataset]
+        # Do nothing if the diffusion informations for the current manufacturer
+        # are unknown
         return dataset_or_datasets      
     else : 
         single_frames = []
