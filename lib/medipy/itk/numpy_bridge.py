@@ -42,6 +42,35 @@ for itk_type, dtype in itk_to_dtype_table :
     itk_to_dtype[itk_type] = dtype
     dtype_to_itk[dtype] = itk_type
 
+def array_to_itk_matrix(array, flip):
+    """ Create an itk.Matrix matching the contents and type of given array. If
+        flip is True, then the rows and columns of the itk.Matrix will be 
+        flipped with respect to the numpy array to reflect the different
+        coordinate order between ITK and numpy.
+    """
+    
+    itk_type = dtype_to_itk[array.dtype.type]
+    
+    matrix_type = itk.Matrix[itk_type, array.shape[-1], array.shape[-2]]
+    matrix_bridge = itk.MatrixBridge[matrix_type]
+    
+    itk_matrix = matrix_bridge.GetMatrixFromArray(
+        numpy.flipud(numpy.fliplr(array)) if flip else array)
+    
+    return itk_matrix
+
+def itk_matrix_to_array(matrix, flip):
+    """ Create an numpy.ndarray matching the contents of given itk.Matrix. If
+        flip is True, then the rows and columns of the array will be 
+        flipped with respect to the ITK matrix to reflect the different
+        coordinate order between ITK and numpy.
+    """
+    
+    array = itk.MatrixBridge[matrix].GetArrayFromMatrix(matrix)
+    if flip :
+        array = numpy.fliplr(numpy.flipud(array))
+    return array
+
 ########################################################
 # Convert itk.Image, itk.VectorImage and numpy.ndarray #
 ########################################################
