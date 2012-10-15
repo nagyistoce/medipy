@@ -80,12 +80,6 @@ def array_to_itk_image(array, transferOwnership):
         transferOwnership is True, then the itk.Image will own the data, and the
         array will not. Otherwise, the itk.Image does not own the image, and the 
         array is unchanged.
-    
-        >>> import medipy.itk
-        >>> array = numpy.ndarray((40, 128, 128), dtype=numpy.float32)
-        >>> image = array_to_itk_image(array, False)
-        >>> print image.GetNameOfClass(), image.GetRequestedRegion().GetSize()
-        Image itkSize3([128, 128, 40])
     """
     
     itk_type = dtype_to_itk[array.dtype.type]
@@ -97,12 +91,6 @@ def array_to_itk_vector_image(array, transferOwnership):
         If transferOwnership is True, then the itk.Image will own the data, and 
         the array will not. Otherwise, the itk.Image does not own the image, and
         the array is unchanged.
-    
-        >>> import medipy.itk
-        >>> array = numpy.ndarray((40, 128, 128, 6), dtype=numpy.float32)
-        >>> image = array_to_itk_vector_image(array, False)
-        >>> print image.GetNameOfClass(), image.GetRequestedRegion().GetSize(), image.GetNumberOfComponentsPerPixel()
-        VectorImage itkSize3([128, 128, 40]) 6
     """
     
     itk_type = dtype_to_itk[array.dtype.type]
@@ -114,17 +102,6 @@ def itk_image_to_array(image, transferOwnership):
         transferOwnership is True, then the array will own the data, and the
         image will not. Otherwise, the array does not own the image, and the 
         image is unchanged.
-    
-        >>> import medipy.itk
-        >>> image = itk.Image[itk.F, 3].New()
-        >>> region = itk.ImageRegion[3]()
-        >>> region.SetIndex((0,0,0))
-        >>> region.SetSize((128,128,40))
-        >>> image.SetRegions(region)
-        >>> image.Allocate()
-        >>> array = itk_image_to_array(image, False)
-        >>> print array.shape, array.dtype
-        (40, 128, 128) float32
     """
     
     return itk.NumpyBridge[image].GetArrayFromImage(image, transferOwnership)
@@ -134,18 +111,6 @@ def itk_vector_image_to_array(image, transferOwnership):
         VectorImage. If transferOwnership is True, then the array will own the 
         data, and the image will not. Otherwise, the array does not own the 
         image, and the image is unchanged.
-    
-        >>> import medipy.itk
-        >>> image = itk.VectorImage[itk.F, 3].New()
-        >>> image.SetNumberOfComponentsPerPixel(6)
-        >>> region = itk.ImageRegion[3]()
-        >>> region.SetIndex((0,0,0))
-        >>> region.SetSize((128,128,40))
-        >>> image.SetRegions(region)
-        >>> image.Allocate()
-        >>> array = itk_vector_image_to_array(image, False)
-        >>> print array.shape, array.dtype
-        (40, 128, 128, 6) float32
     """
     
     return itk.NumpyBridge[image].GetArrayFromImage(image, transferOwnership)
@@ -159,18 +124,6 @@ def medipy_image_to_itk_image(image, transferOwnership):
         of given medipy.base.Image. If transferOwnership is True, then the 
         itk.Image will own the data, and the image will not. Otherwise, the 
         itk.Image does not own the image, and the image is unchanged.
-    
-        >>> import medipy.base
-        >>> import medipy.itk
-        >>> medipy_image = medipy.base.Image((40, 128, 128), dtype=numpy.float32, spacing=[1,2,3])
-        >>> itk_image = medipy_image_to_itk_image(medipy_image, False)
-        >>> print itk_image.GetNameOfClass(), itk_image.GetRequestedRegion().GetSize(), itk_image.GetSpacing()
-        Image itkSize3([128, 128, 40]) itkVectorD3([3, 2, 1])
-        
-        >>> medipy_image = medipy.base.Image((40, 128, 128), dti="tensor_2", dtype=numpy.float32, spacing=[1,2,3])
-        >>> itk_image = medipy_image_to_itk_image(medipy_image, False)
-        >>> print itk_image.GetNameOfClass(), itk_image.GetRequestedRegion().GetSize(), itk_image.GetNumberOfComponentsPerPixel(), itk_image.GetSpacing()
-        VectorImage itkSize3([128, 128, 40]) 6 itkVectorD3([3, 2, 1])
     """
     
     if image.data_type == "scalar" :
@@ -202,28 +155,6 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
         itk.Image will not. Otherwise, the image does not own the data, and the 
         itk.Image is unchanged. If medipy_image is None, then a new image is 
         created. In any case, the medipy Image is returned
-    
-        >>> import medipy.base
-        >>> import medipy.itk
-        >>> itk_image = itk.Image[itk.F, 3].New()
-        >>> region = itk.ImageRegion[3]()
-        >>> region.SetIndex((0,0,0))
-        >>> region.SetSize((128,128,40))
-        >>> itk_image.SetRegions(region)
-        >>> itk_image.Allocate()
-        >>> medipy_image = medipy.base.Image()
-        >>> itk_image_to_medipy_image(itk_image, medipy_image, False)
-        >>> print medipy_image.shape, medipy_image.dtype
-        (40, 128, 128) float32
-        
-        >>> itk_vector_image = itk.VectorImage[itk.F, 3].New()
-        >>> itk_vector_image.SetNumberOfComponentsPerPixel(6)
-        >>> itk_vector_image.SetRegions(region)
-        >>> itk_vector_image.Allocate()
-        >>> medipy_vector_image = medipy.base.Image()
-        >>> itk_image_to_medipy_image(itk_vector_image, medipy_vector_image, False)
-        >>> print medipy_vector_image.shape, medipy_vector_image.dtype, medipy_vector_image.data_type
-        (40, 128, 128, 6) float32 vector
     """
     
     if medipy_image is None :
