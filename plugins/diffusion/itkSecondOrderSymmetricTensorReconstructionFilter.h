@@ -31,6 +31,8 @@ public :
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
 
+    typedef typename Superclass::InputImageRegionType InputImageRegionType;
+
     /** Method for creation through the object factory. */
     itkNewMacro(Self);
 
@@ -51,13 +53,17 @@ public :
     /** Accessors */
     itkGetMacro(BVal, PixelType);
     itkSetMacro(BVal, PixelType);
+    itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+
     void SetGradientDirection(unsigned int i, DirectionType bvec);
     DirectionType GetGradientDirection(unsigned int i);
 
 protected :
     SecondOrderSymmetricTensorReconstructionFilter() {}
     ~SecondOrderSymmetricTensorReconstructionFilter() {}
+    void AllocateOutputs();
     void GenerateData();
+    //virtual void ThreadedGenerateData(const InputImageRegionType &, int);
 
 private :
     std::vector<DirectionType> directions;

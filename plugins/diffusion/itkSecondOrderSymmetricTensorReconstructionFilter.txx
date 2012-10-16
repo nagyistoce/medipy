@@ -20,6 +20,22 @@ namespace itk
 template<typename TInputImage, typename TOutputImage>
 void
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+::AllocateOutputs()
+{
+    typename OutputImageType::Pointer outputPtr;
+
+    outputPtr = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput() );
+
+    if ( outputPtr ) {
+        outputPtr->SetBufferedRegion( outputPtr->GetRequestedRegion() );
+        outputPtr->SetVectorLength(6);
+        outputPtr->Allocate();
+    }
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 ::SetGradientDirection(unsigned int i, DirectionType bvec)
 {
     if (i>=this->directions.size()) {
@@ -71,7 +87,8 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     //for( unsigned int i=0; i<VectorLength; i++ ) { f[i] = 0; }
 
     OutputImageType * output = this->GetOutput();
-    typename OutputImageType::RegionType region;
+    output->Print(std::cout);
+    /*typename OutputImageType::RegionType region;
     region.SetSize( size );
     region.SetIndex( start );
     output->SetVectorLength(VectorLength);
@@ -79,10 +96,11 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     output->SetOrigin(im_ref->GetOrigin());
     output->SetDirection(im_ref->GetDirection());
     output->SetRegions( region );
-    output->Allocate();
+    output->Allocate();*/
     //output->FillBuffer(f);  
 
     ImageRegionConstIteratorWithIndex<InputImageType> it(im_ref, im_ref->GetRequestedRegion());
+    //ImageRegionConstIteratorWithIndex<InputImageType> it(im_ref, regionThread);
     it.GoToBegin();
     while( !it.IsAtEnd() ) {
 
