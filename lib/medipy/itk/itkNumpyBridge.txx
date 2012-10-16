@@ -220,6 +220,7 @@ NumpyBridge<TImage>
     PyArrayObject * array = (PyArrayObject *) PyArray_ContiguousFromAny(obj, element_type, arrayDimension, arrayDimension);
     if(array == NULL)
     {
+    	PyErr_Clear();
         return false;
     }
 

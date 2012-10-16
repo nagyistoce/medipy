@@ -37,7 +37,7 @@ from medipy.io.dicom import Tag
 
 
 def load_serie(path, fragment=None, loader=None) :
-    """ Load a volume as a serie of N 3D images.
+    """ Load a volume as a serie of N images.
     
         If specified, the "loader" must be an image loader. If not specified,
         a suitable loader will be found automatically.
@@ -46,54 +46,20 @@ def load_serie(path, fragment=None, loader=None) :
     image = load(path,fragment,loader)
 
     # Create serie
-    if image.ndim==3 :
-        image.data = image.data.reshape((1,)+image.shape)
-        norigin = image.origin
-        nspacing = image.spacing
-        ndirection = image.direction
-    elif image.ndim==4 :
-        norigin = image.origin[1:]
-        nspacing = image.spacing[1:]
-        ndirection = image.direction[1:,1:]
-    else :
-        raise medipy.base.Exception("Path does not contain a serie of 3D images.")
-
     limages = []
-    for ndata in list(image.data) :
-        args = { "loader" : image.metadata["loader"] }
-        limages.append(Image(data=ndata,origin=norigin,spacing=nspacing,direction=ndirection,metadata=args))
-
-    # DWI nifti
-    name = path.split('/')[-1].split('.')[0]
-    base = "/".join(path.split('/')[:-1])+"/"
-    ext = "."+".".join(path.split('/')[-1].split('.')[1:])
-    N = len(limages)
-    if ext==".nii" or ext==".nii.gz" :
-        lfbvec = [base+name+".bvecs",base+name+".bvec",base+"bvecs",base+"bvec"]
-        lfbval = [base+name+".bvals",base+name+".bval",base+"bvals",base+"bval"]
-        kbvec = [os.path.isfile(f) for f in lfbvec]
-        kbval = [os.path.isfile(f) for f in lfbval]
-        k1 = None
-        if True in kbvec :
-            k1 = kbvec.index(True)
-        k2 = None
-        if True in kbval :
-            k2 = kbval.index(True)
-        if k1!=None and k2!=None :
-            fbvec = lfbvec[k1]
-            fbval = lfbval[k2]
-            bval = np.array(np.loadtxt(fbval))
-            grad = np.array(np.loadtxt(fbvec),dtype=np.single)
-            grad = grad.T
-            if N==bval.shape[0] and N==grad.shape[0] :
-                for cnt in range(N) :
-                    dwi_dataset = DataSet()
-                    dwi_dataset.diffusion_directionality = "DIRECTIONAL"
-                    dwi_dataset.diffusion_bvalue = bval[cnt]
-                    gradient_dataset = DataSet()
-                    gradient_dataset.diffusion_gradient_orientation = grad[cnt]
-                    dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
-                    limages[cnt].metadata["mr_diffusion_sequence"] = [dwi_dataset]
+    norigin = image.origin[1:]
+    nspacing = image.spacing[1:]
+    ndirection = image.direction[1:,1:]
+    for index in range(image.shape[0]) :
+        data = image[index:]
+        
+        metadata = { "loader" : image.metadata["loader"] }
+        if "mr_diffusion_sequence" in image.metadata :
+            diffusion_data = image.metadata["mr_diffusion_sequence"][index]
+            metadata["mr_diffusion_sequence"] = [diffusion_data]
+            
+        limages.append(Image(data=data,origin=norigin,spacing=nspacing,
+                             direction=ndirection,metadata=metadata))
 
     return limages
 
@@ -120,10 +86,8 @@ def save_serie(limages, path, saver=None) :
             ndata = np.zeros((N,)+dshape.keys()[0],dtype=np.single)
             for cnt in range(N) :
                 ndata[cnt] = limages[cnt].data
-            args = {}
-            if "loader" in limages[0].metadata.keys() :
-                args["loader"] = limages[0].metadata["loader"]
-            ndirection = np.diag([1.0]*4)
+            args = { "loader" : limages[0].metadata["loader"] }
+            ndirection = np.diag([1]*4)
             ndirection[1:,1:] = limages[0].direction
             image = Image(data=ndata,spacing=(1,)+dspacing.keys()[0],origin=(0,)+limages[0].origin,direction=ndirection,metadata=args)
 

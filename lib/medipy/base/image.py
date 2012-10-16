@@ -255,8 +255,11 @@ class Image(Observable):
                 self._index_to_physical_matrix = numpy.dot(
                     self._direction, numpy.diag(self._spacing))
             except ValueError,e :
-                logging.warning("Could not compute index to physical matrix : {0}".format(e))
-            self._physical_to_index_matrix = numpy.linalg.inv(self._index_to_physical_matrix)
+                self._index_to_physical_matrix = None
+                self._physical_to_index_matrix = None
+                #logging.warning("Could not compute index to physical matrix : {0}".format(e))
+            else :
+                self._physical_to_index_matrix = numpy.linalg.inv(self._index_to_physical_matrix)
     
     def _default_spacing(self):
         """ Return the default image spacing, according to the data type.
