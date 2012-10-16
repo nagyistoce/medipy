@@ -148,7 +148,7 @@ def recalage_Bspline_topo(imreca, imref, imres, resolf, symetrique, filename) :
         </gui>
     """ 
     dicoConverter = {"Non Symmetric" : 0,"Symmetric" : 1}
-    medipy.medimax.recalage.BsplineRegistration3d(imref, imreca, imres,0,4,1.0,2,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)])
+    medipy.medimax.recalage.BsplineRegistration3d(imref, imreca, imres,0,2,1.0,4,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)])
 
 
 #-------------------------------------------------------------
@@ -251,3 +251,19 @@ def VisuTrfFile_GUI( nomfichier, output, visu_type) :
     """ 
     medipy.medimax.recalage.VisuTrfFile(str(nomfichier),output,VisuTrfNumberInMedimax(visu_type))
 
+#-------------------------------------------------------------
+#  findSymmetryPlane
+#-------------------------------------------------------------
+
+def findSymmetryPlane(im, imres, filename) :
+    """
+    Find the symmetry plane of an image according to the sum of squared intensity differences
+    The symmetry plane is x=width/2 in the resulting image
+        <gui>
+            <item name="im" type="Image" label="Input image" />
+            <item name="imres" type="Image" initializer="output=True"
+                role="output" label="resulting image" />
+            <item name="filename" type="String" label="Name of saved .trf file"/>
+        </gui>
+    """ 
+    medipy.medimax.recalage.LinearRegistration(im,im, imres,0,24,1,1,0,1,str(filename),0,2,0)
