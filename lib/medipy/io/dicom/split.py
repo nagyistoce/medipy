@@ -97,13 +97,21 @@ def stacks_dictionary(datasets):
         # Acquisition Number (0020,0012)
         Tag(0x0020,0x0012) : lambda x:x.get("acquisition_number", None) if x.get("modality", None) != "CT" else None,
         # Frame Type (0008,9007)
-        Tag(0x0008,0x9007) : lambda x:tuple(x.get("mr_image_frame_type_sequence", [{}])[0].get("frame_type", ())),
+        Tag(0x0008,0x9007) : lambda x:tuple(
+            x.get("mr_image_frame_type_sequence", [{}])[0].
+                get("frame_type", ())),
         # Temporal Position Index (0020,9128)
-        Tag(0x0020,0x9128) : lambda x:x.get("frame_content_sequence", [{}])[0].get("temporal_position_index", None),
+        Tag(0x0020,0x9128) : lambda x:x.get("frame_content_sequence", [{}])[0].
+            get("temporal_position_index", None),
         # Diffusion Gradient Orientation (0018,9089)
-        Tag(0x0018,0x9089) : lambda x:tuple(x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_gradient_direction_sequence", [{}])[0].get("diffusion_gradient_orientation", None)),
+        Tag(0x0018,0x9089) : lambda x:tuple(
+            x.get("mr_diffusion_sequence", [{}])[0].
+                get("diffusion_gradient_direction_sequence", [{}])[0].
+                    get("diffusion_gradient_orientation", ())),
         # Diffusion b-value (0018,9087)
-        Tag(0x0018,0x9087) : lambda x:x.get("mr_diffusion_sequence", [{}])[0].get("diffusion_bvalue", None)
+        Tag(0x0018,0x9087) : lambda x:x.
+            get("mr_diffusion_sequence", [{}])[0].
+                get("diffusion_bvalue", None)
     }
     
     dictionary = {}

@@ -29,8 +29,8 @@ def mainanno(path):
             if os.path.isdir(nroot)==False:
                 copytree(root[0:len(root)-11],nroot)
             else:
-                 rmtree(nroot)
-                 copytree(root[0:len(root)-11],nroot)
+                rmtree(nroot)
+                copytree(root[0:len(root)-11],nroot)
         else:
             nroot=nroot+'new'
             ext= root[len(root)-9:len(root)]
@@ -38,8 +38,8 @@ def mainanno(path):
             if os.path.isdir(nroot)==False:
                 copytree(root[0:len(root)-10],nroot)
             else:
-                 rmtree(nroot)
-                 copytree(root[0:len(root)-10],nroot)
+                rmtree(nroot)
+                copytree(root[0:len(root)-10],nroot)
         #print nroot
         nnroot=os.path.join(nroot,ext)
         raxep,ttt=annotate.rec(nnroot)
@@ -57,16 +57,6 @@ def mainanno(path):
         
         fun.update(nnroot,'procs',dh)
         fun.update(nnroot,'proc2s',dc)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         raxep,ttt=annotate.ann(nnroot,float(tabc[0][3]))
         

@@ -74,5 +74,8 @@ class Importer(object):
                 ]
         
         return global_plugins_path
-        
-sys.meta_path.append(Importer())
+
+# Only include importer if we are not in a frozen app (e.g. py2exe), otherwise
+# this messes up the regular modules import
+if not hasattr(sys, "frozen") :
+    sys.meta_path.append(Importer())

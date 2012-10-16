@@ -1,24 +1,9 @@
-import svdd as dd
-import corps
-import logging
-import sys
-import warnings
 import numpy as np
-from medipy.io import load
 import os
-from sklearn import svm
 import fonc_util as f
 #import segmentation as seg
-from medipy.base import Image
 import gen_in
-import lawij
-import ser_xml
-import MCMC as m
 import xml_gen
-import locale
-from sklearn import metrics
-from sklearn.cluster import KMeans
-import func
 import fark
 def runmainc(path1,path2):
 #if __name__=="__main__":

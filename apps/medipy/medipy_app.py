@@ -430,6 +430,11 @@ class MediPyApp(medipy.gui.base.Application) :
         self.SetAppName(self._application_name)
         self.SetVendorName(self._vendor_name)
         
+        if hasattr(sys, "frozen") :
+            directory = os.path.dirname(medipy.__file__)
+            os.environ["MEDIPY_PLUGINS_PATH"] = "{0}{1}{2}".format(
+                directory, os.pathsep, os.environ.get("MEDIPY_PLUGINS_PATH", ""))
+        
         for attribute in ["cursor_position", "center", "zoom", "display_range"] :
             entry = "Display/Synchronization/{0}".format(attribute)
             value = self._preferences.get(entry, False)

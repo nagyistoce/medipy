@@ -8,6 +8,7 @@
 
 import copy
 import logging
+import marshal
 import os
 import sys
 
@@ -34,26 +35,37 @@ def build_menu(path) :
                 label = title_for(name)
                 result.append((label, None, sub_result))
     result.sort(lambda x,y : cmp(x[0], y[0]))
-            
+    
+    api_globals = {}
+    api_locals = {}
+    # Backup sys.path to avoid pollution
+    old_path = copy.copy(sys.path)
+    sys.path.insert(0, path)
+    
     if "api.py" in names :
         api_file = os.path.join(path, "api.py")
-        api_globals = {}
-        api_locals = {}
-        
-        # Backup sys.path to avoid pollution
-        old_path = copy.copy(sys.path)
-        sys.path.insert(0, path)
         try :
             execfile(api_file, api_globals, api_locals)
         except Exception, e :
             logging.warn("Could not load %s/api.py : %s"%(path, e))
-        else :
-            functions = []
-            for function_name in api_locals :
-                label = title_for(function_name)
-                functions.append((label, api_locals[function_name], []))
-            functions.sort(lambda x,y : cmp(x[0], y[0]))
-            result.extend(functions)
-        sys.path = old_path
+        
+    elif "api.pyc" in names :
+        api_file = os.path.join(path, "api.pyc")
+        try :
+            f = open(api_file, "rb")
+            # A .pyc file a an 8 bytes header and a marshaled code object
+            f.read(8)
+            code = marshal.load(f)
+            exec code in api_globals, api_locals
+        except Exception, e :
+            logging.warn("Could not load %s/api.pyc : %s"%(path, e))
+    functions = []
+    for function_name in api_locals :
+        label = title_for(function_name)
+        functions.append((label, api_locals[function_name], []))
+    functions.sort(lambda x,y : cmp(x[0], y[0]))
+    result.extend(functions)
+    # Restore sys.path
+    sys.path = old_path
     
     return result
