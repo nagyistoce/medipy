@@ -31,7 +31,7 @@ def ls_SecondOrderSymmetricTensorEstimation(images):
         estimation_filter.SetInput(cnt,itk_image)
         estimation_filter.SetGradientDirection(cnt,itk_grad)
     itk_output = estimation_filter()[0]
-    tensors = medipy.itk.itk_vector_image_to_array(itk_output,True)
+    tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
 
     return tensors
 
