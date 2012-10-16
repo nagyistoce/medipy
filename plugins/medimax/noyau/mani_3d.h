@@ -47,7 +47,8 @@ extern int imx_repositionner_image_3d(int im_deb, int im_res, int vue_sagittale,
 extern grphic3d *imx_adapte_taille_3d(int im_1, grphic3d *imres, int wdth, int hght, int dpth) ;
 extern grphic3d *imx_adapte_taille_3d_p(grphic3d *im1, grphic3d *imres, int wdth, int hght, int dpth);
 
-extern int Miroir_ttaxe(int im_deb,int im_res,int axe);
+extern int Miroir_ttaxe_3d(int im_deb,int im_res,int axe); // modif hennequin 07/04/2005
+extern int Miroir_ttaxe_3d_p(grphic3d *im_deb,grphic3d *im_res,int axe); // ajout hennequin 07/04/2005
 extern int Miroir_3d_x(int im_deb,int im_res);
 extern int Miroir_3d_y(int im_deb,int im_res);
 extern int Miroir_3d_z(int im_deb,int im_res);
