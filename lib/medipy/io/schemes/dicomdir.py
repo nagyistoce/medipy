@@ -28,6 +28,26 @@ import urlparse
 import medipy.base
 import medipy.io.dicom
 
+def load_serie(path, fragment=None) :
+    """ Load a serie of images
+    """
+
+    datasets = _get_matching_datasets(path, fragment)
+    datasets = medipy.io.dicom.load_dicomdir_records(datasets)
+
+    if not datasets :
+        return None
+    else :
+        image_datasets = medipy.io.dicom.split.images(datasets)
+        normalized_datasets = medipy.io.dicom.normalize.normalize(image_datasets)
+        stacks = medipy.io.dicom.split.stacks(normalized_datasets)
+        images = [medipy.io.dicom.image(stack) for stack in stacks]
+        
+        # Make sure the images are in their acquisition order 
+        images.sort(key = lambda x:x.metadata.get("acquisition_time", ""))
+
+        return images
+
 def load(path, fragment=None) :
     """ Load an image.
     """

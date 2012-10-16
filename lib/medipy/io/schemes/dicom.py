@@ -49,19 +49,12 @@ def load_serie(path, fragment=None) :
         datasets = medipy.io.dicom.split.images(datasets)
         datasets = medipy.io.dicom.normalize.normalize(datasets)
         stacks = medipy.io.dicom.split.stacks(datasets)
-        limages = []
-        for datasets in stacks :
-            image = medipy.io.dicom.image(datasets)
-            if image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation==[] :
-                image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation = [0.,0.,0.]
-            limages.append(image)
+        limages = [medipy.io.dicom.image(stack) for stack in stacks]
+        
+        # Make sure the images are in their acquisition order 
+        limages.sort(key = lambda x:x.metadata.get("acquisition_time", ""))
 
-        arg_time = np.argsort([float(image.metadata["acquisition_time"]) for image in limages])
-        limages_sort = [0]*len(arg_time)
-        for cnt,pos in enumerate(arg_time) :
-            limages_sort[cnt] = limages[pos]
-
-        return limages_sort
+        return limages
 
 def load(path, fragment=None) :
     """ Load an image.

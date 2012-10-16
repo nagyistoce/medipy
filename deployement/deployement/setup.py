@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import distutils.core
@@ -89,6 +89,24 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
         # Copy configuration files from WrapITK
         configuration_dir = os.path.join(wrapitk_root, "Python", "Configuration")
         shutil.copytree(configuration_dir, os.path.join(bin_directory, "Configuration"))
+    if "openopt" in includes :
+        includes.append("openopt.kernel")
+        # import directives in the __init__.py file
+        init_includes = ["GUI", "oologfcn", "nonOptMisc", "mfa"]
+        includes.extend(["openopt.kernel.{0}".format(x) for x in init_includes])
+        
+        # import directives in the oo.py file
+        oo_includes = ["LP", "LCP", "EIG", "SDP", "QP", "MILP", "STAB", "MCP", 
+                       "TSP", "NSP", "NLP", "MOP", "MINLP", "NLSP", "NLLSP", 
+                       "GLP", "SLE", "LLSP", "MMP", "LLAVP", "LUNP", "SOCP", 
+                       "DFP", "IP", "ODE"]
+        includes.extend(["openopt.kernel.{0}".format(x) for x in oo_includes])
+        
+        import openopt
+        solvers = ["openopt.solvers.{0}".format(solver) 
+                   for solver in openopt.kernel.nonOptMisc.solverPaths.values()]
+        includes.extend(solvers)
+        
     includes.extend(["medipy.{0}".format(plugin) for plugin in medipy_plugins])
     
     # Include Visual C runtime DLL
@@ -107,7 +125,6 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
                 "includes" : includes, 
                 "dist_dir" : str(bin_directory), # py2exe does not like unicode strings 
                 "verbose" : False,
-                "skip_archive" : False,
                 "excludes" : ["Tkconstants","Tkinter","tcl"],
                 "packages" : ["gzip"],
                 "skip_archive" : True
@@ -115,6 +132,22 @@ def setup(project_name, main_script, includes=None, medipy_plugins=None):
         },
     )
     sys.path.pop()
+    
+    # Copy solvers *_oo.py, explicitely required by openopt
+    if "openopt" in includes :
+        import openopt.solvers
+        solvers = ["openopt.solvers.{0}".format(solver) 
+                   for solver in openopt.kernel.nonOptMisc.solverPaths.values()]
+        solvers_root = os.path.dirname(openopt.solvers.__file__)
+        for dirpath, dirnames, filenames in os.walk(solvers_root):
+            for filename in filenames:
+                if filename.endswith('_oo.py'):
+                    destination = os.path.join(
+                        bin_directory, "openopt", "solvers", 
+                        dirpath[1+len(solvers_root):], filename)
+                    if not os.path.isdir(os.path.dirname(destination)) :
+                        os.makedirs(os.path.dirname(destination))
+                    shutil.copy(os.path.join(dirpath, filename), destination)
     
     # Copy resources
     roots = [os.path.join(medipy.__path__[0], "resources")]
