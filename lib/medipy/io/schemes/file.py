@@ -86,15 +86,19 @@ def save_serie(limages, path, saver=None) :
             ndata = np.zeros((N,)+dshape.keys()[0],dtype=np.single)
             for cnt in range(N) :
                 ndata[cnt] = limages[cnt].data
-            args = { "loader" : limages[0].metadata["loader"] }
-            ndirection = np.diag([1]*4)
-            ndirection[1:,1:] = limages[0].direction
+            args = {}
+            if "loader" in limages[0].metadata.keys() :
+                args["loader"] = limages[0].metadata["loader"]
+            ndirection = np.diag([1.0]*4) # 1.0 to create a float array
+            if not np.allclose(limages[0].direction,np.zeros((3,3))) :
+                ndirection[1:,1:] = limages[0].direction
             image = Image(data=ndata,spacing=(1,)+dspacing.keys()[0],origin=(0,)+limages[0].origin,direction=ndirection,metadata=args)
 
             # Save volume nifti
             if ext==".nii" or ext==".nii.gz" :
                 save(image,path,saver)
             else :
+                print base+name+".nii.gz"
                 save(image,base+name+".nii.gz",saver)
 
             # Save nifti DWI info 
