@@ -24,13 +24,29 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 {
     typename OutputImageType::Pointer outputPtr;
 
-    outputPtr = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput() );
+    outputPtr = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput(0) );
 
     if ( outputPtr ) {
         outputPtr->SetBufferedRegion( outputPtr->GetRequestedRegion() );
         outputPtr->SetVectorLength(6);
         outputPtr->Allocate();
     }
+}
+
+template<typename TInputImage, typename TOutputImage>
+void
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+::PrintSelf(std::ostream& os, Indent indent) const
+{
+    std::locale C("C");
+    std::locale originalLocale = os.getloc();
+    os.imbue(C);
+
+    Superclass::PrintSelf(os,indent);
+ 
+    os << indent << "NumberOfGradientDirections: " << this->directions.size() << std::endl;
+    os << indent << "BValue: " << m_BVal << std::endl;
+    os.imbue( originalLocale );
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -55,16 +71,14 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TOutputImage>
-void
+void 
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
-::GenerateData()
+::BeforeThreadedGenerateData()
 {
-    const PixelType min_signal = 5;
     const unsigned int VectorLength = 6;
-
     unsigned int nb_dir = this->directions.size();
 
-    this->bmatrix.set_size(nb_dir-1,6);
+    this->bmatrix.set_size(nb_dir-1,VectorLength);
     for (unsigned int i=1; i<nb_dir; i++) {					
         DirectionType bvec = this->directions[i];
         this->bmatrix(i-1,0) = (float) this->m_BVal*bvec[0]*bvec[0];        //Dxx
@@ -78,34 +92,26 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     BMatrixType b1 = this->bmatrix.transpose();
     BMatrixType b2 = vnl_matrix_inverse<float>(b1*this->bmatrix);
     this->invbmatrix = b2*b1;
+}
 
-    InputImageType const * im_ref = this->GetInput(0);
-    typename InputImageType::SizeType size = im_ref->GetLargestPossibleRegion().GetSize();
-    typename InputImageType::IndexType start = im_ref->GetLargestPossibleRegion().GetIndex();
+template<typename TInputImage, typename TOutputImage>
+void 
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
+{
+    const PixelType min_signal = 5;
+    const unsigned int VectorLength = 6;
+    unsigned int nb_dir = this->directions.size();
 
-    //VariableVectorType f(VectorLength);
-    //for( unsigned int i=0; i<VectorLength; i++ ) { f[i] = 0; }
+    typename OutputImageType::Pointer output = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
 
-    OutputImageType * output = this->GetOutput();
-    output->Print(std::cout);
-    /*typename OutputImageType::RegionType region;
-    region.SetSize( size );
-    region.SetIndex( start );
-    output->SetVectorLength(VectorLength);
-    output->SetSpacing(im_ref->GetSpacing());
-    output->SetOrigin(im_ref->GetOrigin());
-    output->SetDirection(im_ref->GetDirection());
-    output->SetRegions( region );
-    output->Allocate();*/
-    //output->FillBuffer(f);  
-
-    ImageRegionConstIteratorWithIndex<InputImageType> it(im_ref, im_ref->GetRequestedRegion());
-    //ImageRegionConstIteratorWithIndex<InputImageType> it(im_ref, regionThread);
+    ImageRegionConstIteratorWithIndex< OutputImageType > it(output, outputRegionForThread);
     it.GoToBegin();
+
     while( !it.IsAtEnd() ) {
 
         vnl_matrix<float> S(nb_dir-1, 1, 0.0); 
-        PixelType S0 = it.Get();
+        PixelType S0 = this->GetInput(0)->GetPixel(it.GetIndex());
         if (S0<min_signal) { S0=min_signal; }
         for (unsigned int i=1; i<nb_dir; ++i) {
             float Si = this->GetInput(i)->GetPixel(it.GetIndex());
@@ -120,8 +126,8 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 
         ++it;
     }
-}
 
+}
 
 }
 
