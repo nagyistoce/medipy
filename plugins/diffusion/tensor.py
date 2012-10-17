@@ -14,6 +14,11 @@ from medipy.base import Image
 def ls_SecondOrderSymmetricTensorEstimation(images):
     """ Least Square Second Order Symmetric Tensor Estimation.
     A diffusion serie is composed of a float reference image (first element in the list) and a set of float diffusion weighted images (on shell, i.e. one bval).
+
+    <gui>
+        <item name="images" type="Image" label="Input"/>
+        <item name="output" type="Image" initializer="output=True" role="return" label="Output"/>
+    </gui>
     """
     
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, so it has already been included in itk by __init__
@@ -32,50 +37,7 @@ def ls_SecondOrderSymmetricTensorEstimation(images):
         estimation_filter.SetGradientDirection(cnt,itk_grad)
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
+    tensors.image_type = "tensor_2"
 
     return tensors
 
-
-def save_SecondOrderSymmetricTensor(tensors,fout):
-    """ Save .vtk tensor image  
-    """
-    import vtk
-
-    data = dti6to33(tensors.data)
-    spacing = tensors.spacing
-
-    # Convert numpy -> VTK table
-    vtk_array = vtk.vtkFloatArray()
-    vtk_array.SetNumberOfComponents(9)
-    vtk_array.SetVoidArray(data, len(data.ravel()), 1)
-
-    # Create VTK dataset
-    structured_points = vtk.vtkStructuredPoints()
-    structured_points.SetDimensions(data.shape[2],data.shape[1],data.shape[0])
-    structured_points.SetSpacing(spacing[2],spacing[1],spacing[0])
-    structured_points.GetPointData().SetTensors(vtk_array)
-
-    # Write VTK file
-    writer = vtk.vtkStructuredPointsWriter()
-    writer.SetFileName(fout)
-    writer.SetFileTypeToBinary()
-    writer.SetInput(structured_points)
-    writer.Update()
-
-    return 0
-
-def dti6to33(dt6):
-    """ Full second order symmetric tensor from the six idependent components
-    """
-    dt33 = np.zeros(dt6.shape[:3]+(3,3),dtype=np.single)
-    dt33[:,:,:,0,0] = dt6[:,:,:,0]
-    dt33[:,:,:,0,1] = dt6[:,:,:,1]
-    dt33[:,:,:,0,2] = dt6[:,:,:,2]
-    dt33[:,:,:,1,0] = dt6[:,:,:,1]
-    dt33[:,:,:,1,1] = dt6[:,:,:,3]
-    dt33[:,:,:,1,2] = dt6[:,:,:,4]
-    dt33[:,:,:,2,0] = dt6[:,:,:,2]
-    dt33[:,:,:,2,1] = dt6[:,:,:,4]
-    dt33[:,:,:,2,2] = dt6[:,:,:,5]
-
-    return dt33
