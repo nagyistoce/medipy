@@ -6,6 +6,15 @@ Import('env')
 env = env.Clone()
 env.Python(Glob("*.py"))
 
+# Spectral Decomposition Filter, instantiated for the following type (TInputImage and TOutputImage) :
+# * itk::VectorImage<float, 3> , itk::VectorImage<float, 3>    
+types = ["float"]
+dimensions = [3]
+instantiations = deployement.scons.wrapitk.get_instantiations("itk::VectorImage", types, dimensions)
+instantiations = [(i,i) for i in instantiations]
+classes_template_info = [ ("itk::SymmetricSpectralAnalysisImageFilter", instantiations, "pointer") ]
+env.WrapITKPythonModule("SymmetricSpectralAnalysisImageFilter", classes_template_info)
+
 # Second Order Reconstruction Filter, instantiated for the following type (TInputImage and TOutputImage) :
 # * itk::Image<float, 3>, itk::VectorImage<float, 3>    
 types = ["float"]
