@@ -24,9 +24,10 @@ from medipy.io.dicom_io import Dicom
 from medipy.io.ipb import IPB
 from medipy.io.itk_io import ITK
 from medipy.io.nifti_io import Nifti
+from medipy.io.vtk_io import Vtk
 from medipy.io.nmr2D import Nmr2D
 from medipy.io.wx_image import WXImage
-io_classes = [Dicom, ITK, IPB, WXImage, Nmr2D, Nifti]
+io_classes = [Dicom, Vtk, ITK, IPB, WXImage, Nmr2D, Nifti]
 
 from os.path import splitext
 import numpy as np
