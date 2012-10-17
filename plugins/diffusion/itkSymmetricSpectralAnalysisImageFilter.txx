@@ -68,10 +68,10 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
 {
     if( m_Order == OrderByMagnitude ) {
-        m_Calculator.SetOrderEigenMagnitudes( true );
+        this->m_Calculator.SetOrderEigenMagnitudes( true );
     }
     else if( m_Order == DoNotOrder ) {
-        m_Calculator.SetOrderEigenValues( false );
+        this->m_Calculator.SetOrderEigenValues( false );
     }
 }
 
