@@ -310,6 +310,23 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
             * a shared library _ModulePython.so (from all .o files)
     """
     
+    # Use Instantiation if user still uses old framework
+    normalized_classes_template_info = []
+    for name, instantiations, pointer in classes_template_info :
+        template_parameters_list = []
+        for instantiation in instantiations :
+            template_parameters = []
+            for parameters in instantiation :
+                if isinstance(parameters, (list, tuple)) and parameters[0] == "itk::Image" :
+                    normalized_parameters = wrapitk.utils.Instantiation(
+                        parameters[0], *parameters[1:])
+                    template_parameters.append(normalized_parameters)
+                else: 
+                    template_parameters.append(parameters)
+            template_parameters_list.append(template_parameters)
+        normalized_classes_template_info.append((name, template_parameters_list, pointer))
+    classes_template_info = normalized_classes_template_info
+    
     suffixes = {
         "header" : [".h", ".H", ".hxx", ".hpp", ".hh"],
         "user_swig" : [".h", ".H", ".hxx", ".hpp", ".hh"],
