@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#ifndef _FractionalAnisotropyImageFilter_txx
-#define _FractionalAnisotropyImageFilter_txx
+#ifndef _MeanDiffusivityImageFilter_txx
+#define _MeanDiffusivityImageFilter_txx
 
 #include "itkFractionalAnisotropyImageFilter.h"
 
@@ -21,15 +21,15 @@ namespace itk
 
 
 template<typename TInputImage, typename TOutputImage>
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
-::FractionalAnisotropyImageFilter()
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
+::MeanDiffusivityImageFilter()
 {
     this->m_EigenSystem = false;
 }
 
 template<typename TInputImage, typename TOutputImage>
 void
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     Superclass::PrintSelf(os,indent);
@@ -37,7 +37,7 @@ FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::SetEigenValue(EigenValueImageType *val)
 {
     m_EigVal = val;
@@ -46,23 +46,23 @@ FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::SetEigenVector(EigenVectorImageType *vec)
 {
     m_EigVec = vec;
 }
 
 template<typename TInputImage, typename TOutputImage>
-typename FractionalAnisotropyImageFilter<TInputImage, TOutputImage>::EigenValueImageType*
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+typename MeanDiffusivityImageFilter<TInputImage, TOutputImage>::EigenValueImageType*
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::GetEigenValue()
 {
     return m_EigVal;
 }
 
 template<typename TInputImage, typename TOutputImage>
-typename FractionalAnisotropyImageFilter<TInputImage, TOutputImage>::EigenVectorImageType*
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+typename MeanDiffusivityImageFilter<TInputImage, TOutputImage>::EigenVectorImageType*
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::GetEigenVector()
 {
     return m_EigVec;
@@ -70,7 +70,7 @@ FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void 
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
 {
     if (!this->m_EigenSystem) {
@@ -86,7 +86,7 @@ FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void 
-FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
+MeanDiffusivityImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
 {
     typename OutputImageType::Pointer output = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
@@ -99,8 +99,8 @@ FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
         double ev1 = (double) eigenvalues[0];
         double ev2 = (double) eigenvalues[1];
         double ev3 = (double) eigenvalues[2];
-        double fa = sqrt(0.5 * ((ev1-ev2)*(ev1-ev2) + (ev2-ev3)*(ev2-ev3) + (ev3-ev1)*(ev3-ev1)) / (ev1*ev1 + ev2*ev2 + ev3*ev3));
-        this->GetOutput(0)->SetPixel(it.GetIndex(),(OutputPixelType)fa);
+        double md = (ev1+ev2+ev3)/3.0;
+        this->GetOutput(0)->SetPixel(it.GetIndex(),(OutputPixelType)md);
 
         ++it;
     }

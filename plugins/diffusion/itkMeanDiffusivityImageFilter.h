@@ -7,12 +7,12 @@
  ************************************************************************/
 
 
-#ifndef _itkSymmetricSpectralAnalysisImageFilter_h
-#define _itkSymmetricSpectralAnalysisImageFilter_h
+#ifndef _itkMeanDiffusivityImageFilter_h
+#define _itkMeanDiffusivityImageFilter_h
 
 
 #include <itkImageToImageFilter.h>
-#include <itkSymmetricEigenAnalysis.h>
+#include "itkSymmetricSpectralAnalysisImageFilter.h"
 #include <itkSmartPointer.h>
 
 
@@ -20,17 +20,17 @@ namespace itk
 {
 
 /**
- * \class SymmetricSpectralAnalysisImageFilter
- * \brief Compute the eigenvalues and correspondind eigenvectors of a symmetric matrix
+ * \class MeanDiffusivityImageFilter
+ * \brief Compute the mean diffusicity of a second order diffusion tensor image
  * 
  */
 
 template<typename TInputImage, typename TOutputImage>
-class SymmetricSpectralAnalysisImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class MeanDiffusivityImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public :
     /** Standard class typedefs. */
-    typedef SymmetricSpectralAnalysisImageFilter Self;
+    typedef MeanDiffusivityImageFilter Self;
     typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
@@ -41,7 +41,7 @@ public :
     itkNewMacro(Self);
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(SymmetricSpectralAnalysisImageFilter, ImageToImageFilter);
+    itkTypeMacro(MeanDiffusivityImageFilter, ImageToImageFilter);
 
     /** Useful typedefs */
     typedef typename Superclass::InputImageType     InputImageType;
@@ -49,44 +49,34 @@ public :
     typedef typename TOutputImage::PixelType        OutputPixelType;
     typedef typename TInputImage::PixelType         InputPixelType;
     typedef typename InputPixelType::ValueType      InputValueType;
-    typedef typename OutputPixelType::ValueType     OutputValueType;
 
-    typedef vnl_matrix<double> InputMatrixType;
-    typedef FixedArray<double, 3> EigenValuesArrayType;
-    typedef Matrix<double, 3, 3> EigenVectorMatrixType;
-    typedef SymmetricEigenAnalysis<InputMatrixType, EigenValuesArrayType, EigenVectorMatrixType> CalculatorType;
-
-    /** Intern types */
-    typedef enum {
-        OrderByValue,
-        OrderByMagnitude,
-        DoNotOrder
-    } EigenValueOrderType;
+    typedef typename Superclass::InputImageType EigenValueImageType;
+    typedef typename Superclass::InputImageType EigenVectorImageType;
 
     /** Accessors */
-    itkGetMacro(SortOrder, EigenValueOrderType);
-    itkSetMacro(SortOrder, EigenValueOrderType);
+    void SetEigenValue(EigenValueImageType *val);
+    void SetEigenVector(EigenVectorImageType *vec);
+    EigenValueImageType* GetEigenValue();
+    EigenVectorImageType* GetEigenVector();
     itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
 protected :
-    SymmetricSpectralAnalysisImageFilter();
-    ~SymmetricSpectralAnalysisImageFilter() {}
+    MeanDiffusivityImageFilter();
+    ~MeanDiffusivityImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
-    void AllocateOutputs();
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
 
 private :
-    EigenValueOrderType m_SortOrder;
-    CalculatorType m_Calculator;
-
-
+    bool m_EigenSystem;
+    typename EigenValueImageType::Pointer m_EigVal;
+    typename EigenVectorImageType::Pointer m_EigVec;
 };
 
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSymmetricSpectralAnalysisImageFilter.txx"
+#include "itkMeanDiffusivityImageFilter.txx"
 #endif
 
 #endif 

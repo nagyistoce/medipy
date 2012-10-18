@@ -54,10 +54,10 @@ public :
     typedef typename Superclass::InputImageType EigenVectorImageType;
 
     /** Accessors */
-    void SetEigenValue(EigenValueImageType val);
-    void SetEigenVector(EigenVectorImageType vec);
-    EigenValueImageType GetEigenValue();
-    EigenVectorImageType GetEigenVector();
+    void SetEigenValue(EigenValueImageType *val);
+    void SetEigenVector(EigenVectorImageType *vec);
+    EigenValueImageType* GetEigenValue();
+    EigenVectorImageType* GetEigenVector();
     itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
 protected :
