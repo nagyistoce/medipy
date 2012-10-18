@@ -270,7 +270,7 @@ def _parse_itk_config(filename):
     
     return result
 
-from wrapitk import get_swig_class_name
+from wrapitk.utils import get_swig_class_name
 
 def module_builder(env, module_name, classes_template_info, **kwargs) :
     """ Build a WrapITK python module which can be loaded using 
@@ -316,13 +316,13 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
         "template" : [".txx"]
     }
 
-    module_nodes = wrapitk.module_files_builder(env, module_name, 
-                                                classes_template_info, ["Base"])
-
+    module_nodes = wrapitk.module_builders.module_files(
+        env, module_name, classes_template_info, ["Base"])
+    
     class_nodes = {}
     for name, instantiations, pointer in classes_template_info :
         class_nodes[name] = {}
-        swig_name = get_swig_class_name(name)
+        swig_name = wrapitk.utils.get_swig_class_name(name)
         
         files = env.File(env.Glob("%s.*"%swig_name))
         
@@ -331,7 +331,7 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
                 if os.path.splitext(file.path)[1] in suffixes[suffix_type] :
                     class_nodes[name][suffix_type] = file
         
-        nodes = wrapitk.class_cable_swig_files_builder(
+        nodes = wrapitk.class_builders.cable_swig_files(
             env, name, class_nodes[name]["header"], instantiations, pointer)
         
         for n,v in nodes.items() :
@@ -339,25 +339,25 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
         
         if "template" in class_nodes[name] :
             env.Depends(class_nodes[name]["class_xml"], class_nodes[name]["template"])
-
-    module_nodes["master_index"] = Builder(action=wrapitk.master_index)(
-        env, "%s.mdx"%module_name, 
+    
+    module_nodes["master_index"] = Builder(action=wrapitk.module_builders.master_index)(
+        env, "{0}.mdx".format(module_name), 
         [nodes["class_index"] for nodes in class_nodes.values()])
-
-    for name, instantiations, pointer in classes_template_info :
-        swig_nodes = wrapitk.class_swig_files_builder(
-            env, name, instantiations, pointer, class_nodes[name], module_name, module_nodes, 
+    
+    for name, template_parameters_list, pointer in classes_template_info :
+        swig_nodes = wrapitk.class_builders.swig_files(
+            env, name, template_parameters_list, pointer, class_nodes[name], module_name, module_nodes, 
             wrapitk_root())
         
-        doc_nodes = wrapitk.class_doc_files_builder(
-            env, name, class_nodes[name]["header"], instantiations, 
-            wrapitk_root())
+#        doc_nodes =wrapitk.class_builders.class_doc_files_builder(
+#            env, name, class_nodes[name]["header"], template_parameters_list, 
+#            wrapitk_root())
         
         for n,v in swig_nodes.items() :
             class_nodes[name][n] = v
-        for n,v in doc_nodes.items() :
-            class_nodes[name][n] = v
-    
+#        for n,v in doc_nodes.items() :
+#            class_nodes[name][n] = v
+
     sources = []
     sources.extend(module_nodes["module_swig"])
     for name, instantiations, pointer in classes_template_info :
