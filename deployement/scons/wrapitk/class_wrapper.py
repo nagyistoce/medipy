@@ -13,8 +13,9 @@ def get_cable_swig(class_name, template_parameters_list, pointer):
     typedefs = []
     for template_parameters in template_parameters_list :
         full_type = utils.Instantiation(class_name, *template_parameters)
-        typedefs.extend(["typedef {0} {1};".format(t1, t2) 
-                         for t1, t2 in utils.get_typedefs(full_type, pointer)])
+        typedefs.extend(
+            ["typedef {0} {1};".format(t1, t2)
+             for t1, t2 in utils.get_typedefs(full_type, pointer, True)])
     
     includes.insert(0, "#include <itkCommand.h>")
     

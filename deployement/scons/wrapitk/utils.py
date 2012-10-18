@@ -67,7 +67,7 @@ def get_includes(instantiation):
     
     return includes
 
-def get_typedefs(instantiation, pointer):
+def get_typedefs(instantiation, pointer, append_unqualified_name=False):
     """ Return a list of pair for typedef declarations.
     
         pointer can be None, "pointer" or "pointer_with_superclass", following
@@ -84,7 +84,12 @@ def get_typedefs(instantiation, pointer):
     
     typedefs = []
     
-    cpp_name, mangled_name = instantiation.cpp_name, instantiation.mangled_name 
+    cpp_name = instantiation.cpp_name
+    if append_unqualified_name :
+        unqualified_class_name = instantiation.class_name.split("::")[-1]
+        cpp_name = "{0}::{1}".format(cpp_name, unqualified_class_name)
+    
+    mangled_name = instantiation.mangled_name 
     
     typedefs.append((cpp_name, mangled_name))
         
