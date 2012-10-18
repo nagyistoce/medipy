@@ -17,7 +17,7 @@ def get_config(requirements, classes_template_info):
         for template_parameters in template_parameters_list :
             full_type = utils.Instantiation(class_name, *template_parameters)
             mangled_name = full_type.mangled_name
-            cpp_parameters = [x.cpp_name if hasattr(x, "cpp_name") else x
+            cpp_parameters = [x.cpp_name if hasattr(x, "cpp_name") else str(x)
                               for x in template_parameters]
             template_info = "    ('{0}', '{1}', '{2}', '{3}'),".format(
                 unqualified_class_name, class_name, 
