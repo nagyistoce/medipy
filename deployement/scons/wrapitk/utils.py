@@ -1,3 +1,4 @@
+import itertools
 import itkTypes
 
 class Instantiation(object) :
@@ -143,3 +144,34 @@ mangled_type_map["itk::FlatStructuringElement"] = "SE"
 mangled_type_map["itk::SpatialObject"] = "SO"
 mangled_type_map["itk::Statistics::Histogram"] = "H"
 mangled_type_map["itk::Matrix"] = "M"
+
+def get_instantiations(class_name, *parameters) :
+    """ Return all instantiations of template class with given set of parameters
+        >>> get_instantiations("Image", ["float", "short"], [2, 3]) #doctest: +NORMALIZE_WHITESPACE
+        [('Image', 'float', 2), ('Image', 'float', 3),
+        ('Image', 'short', 2), ('Image', 'short', 3)]
+        >>> get_instantiations("float")
+        ['float']
+        This function can also be used recursively :
+        >>> get_instantiations("vector", ["float", ["vector", ["int", "char"]]]) #doctest: +NORMALIZE_WHITESPACE
+        [('vector', 'float'),
+        ('vector', ('vector', 'int')),
+        ('vector', ('vector', 'char'))]
+        
+        WARNING : this function is deprecated. Instantiation objects must be
+        used instead.
+    """
+    
+    if parameters :
+        instantiated_parameters = []
+        for parameter in parameters :
+            instantiated_parameter = []
+            for entry in parameter :
+                if isinstance(entry, (list, tuple)) :
+                    instantiated_parameter.extend(get_instantiations(*entry))
+                else :
+                    instantiated_parameter.extend(get_instantiations(entry))
+            instantiated_parameters.append(instantiated_parameter)
+        return [(class_name,)+x for x in itertools.product(*instantiated_parameters)]
+    else :
+        return [class_name] 
