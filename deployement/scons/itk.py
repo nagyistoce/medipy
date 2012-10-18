@@ -317,7 +317,9 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
         for instantiation in instantiations :
             template_parameters = []
             for parameters in instantiation :
-                if isinstance(parameters, (list, tuple)) and parameters[0] == "itk::Image" :
+                old_style = (isinstance(parameters, (list, tuple)) and
+                             parameters[0].startswith("itk::"))
+                if old_style :
                     normalized_parameters = wrapitk.utils.Instantiation(
                         parameters[0], *parameters[1:])
                     template_parameters.append(normalized_parameters)
