@@ -128,13 +128,12 @@ def medipy_image_to_itk_image(image, transferOwnership):
     
     if image.data_type == "scalar" :
         itk_image = array_to_itk_image(image.data, transferOwnership)
-        matrix_type = itk.Matrix[itk.D, len(image.shape), len(image.shape)]
     elif image.data_type == "vector": 
         itk_image = array_to_itk_vector_image(image.data, transferOwnership)
-        matrix_type = itk.Matrix[itk.D, len(image.shape)-1, len(image.shape)-1]
     else :
         raise medipy.base.Exception("Unknown image data_type : %s"%image.data_type)
-    
+
+    matrix_type = itk.Matrix[itk.D, len(image.shape), len(image.shape)]    
     matrix_bridge = itk.MatrixBridge[matrix_type]
     itk_direction = matrix_bridge.GetMatrixFromArray(
         numpy.flipud(numpy.fliplr(image.direction)).astype(float))
