@@ -8,3 +8,7 @@
 
 from medipy.io.io import load, load_serie, save, save_serie, number_of_images
 from medipy.io.io_base import IOBase
+
+import os.path
+import medipy.itk
+medipy.itk.load_wrapitk_module(os.path.dirname(__file__), "PyArrayIO")
