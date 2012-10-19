@@ -11,6 +11,7 @@ import os
 import itk
 import numpy
 
+import medipy.io # add PyArrayIO to itk
 from medipy.io.io_base import IOBase
 from medipy.itk import itk_image_to_array, medipy_image_to_itk_image
 
@@ -52,6 +53,7 @@ class ITK(IOBase) :
     
     def __init__(self, filename=None, report_progress=None):
         
+        self._filter = None
         self._loader = None
         self._image_informations_read = False
         self._saver = None
@@ -80,14 +82,22 @@ class ITK(IOBase) :
         while PixelType not in InstantiatedTypes :
             PixelType = ITK._larger_type[PixelType]
         Dimension = self._loader.GetNumberOfDimensions()
-        ImageType = itk.Image[PixelType, Dimension]
         
-        reader = itk.ImageFileReader[ImageType].New()
+        if self._filter == itk.ImageFileReader :
+            ImageType = itk.Image[PixelType, Dimension]
+            reader = itk.ImageFileReader[ImageType].New()
+        elif self._filter == itk.PyArrayFileReader :
+            reader = itk.PyArrayFileReader[PixelType, Dimension].New()
+        
         reader.SetImageIO(self._loader)
         reader.SetFileName(self._filename)
         reader.Update()
         
-        array = itk_image_to_array(reader.GetOutput(), True)
+        if self._filter == itk.ImageFileReader :
+            array = itk_image_to_array(reader.GetOutput(), True)
+        else :
+            array = reader.GetArray()
+        
         return array
     
     def load_metadata(self, index=0) :
@@ -140,7 +150,7 @@ class ITK(IOBase) :
     def _set_filename(self, filename):
         self._filename = str(filename)
         if os.path.isfile(self._filename) :
-            self._loader = self._find_loader()
+            self._filter, self._loader = self._find_loader()
         self._saver = self._find_saver()
     
     filename = property(_get_filename, _set_filename)
@@ -154,19 +164,32 @@ class ITK(IOBase) :
             the current filename.
         """
         
+        filter = None
         loader = None
         for load_class in self._io_classes :
             l = load_class.New()
             if l.CanReadFile(self._filename) :
                 l.SetFileName(self._filename)
                 l.ReadImageInformation()
-                dimensions_ok = (l.GetNumberOfDimensions() in 
-                                 [x[1] for x in itk.Image.__template__])
-                if dimensions_ok :
+                
+                # Check if we can use itk::ImageFileReader, i.e. check if 
+                # itk.Image is wrapped for the dimension as stored in the file
+                use_image_file_reader = (l.GetNumberOfDimensions() in 
+                                        [x[1] for x in itk.Image.__template__])
+                # Check if we can use PyArrayImageReader
+                use_py_array_file_reader = (l.GetNumberOfDimensions() in 
+                                            [x[1] for x in itk.PyArrayFileReader.__template__])
+                
+                if use_image_file_reader :
+                    filter = itk.ImageFileReader
+                elif use_py_array_file_reader :
+                    filter = itk.PyArrayFileReader
+                    
+                if use_image_file_reader or use_py_array_file_reader :
                     self._image_informations_read = True
                     loader = l
                     break
-        return loader
+        return filter, loader
     
     def _find_saver(self) :
         """ Return an instance of a subclass of itk.ImageIOBase that can read
