@@ -248,7 +248,7 @@ class Image(Observable):
         return len(shape)
     
     def _get_number_of_components(self):
-        """
+        """ Return the number of scalar components per voxel.
         """
         
         if self.data_type == "scalar" :
