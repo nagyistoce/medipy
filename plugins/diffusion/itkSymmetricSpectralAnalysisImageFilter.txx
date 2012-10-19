@@ -67,15 +67,12 @@ void
 SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
 {
-    std::cout << OrderByValue << "," << OrderByMagnitude << "," << DoNotOrder << std::endl;
-    std::cout << this->m_Calculator.GetOrderEigenValues() << "," << this->m_Calculator.GetOrderEigenMagnitudes() << std::endl;
     if( this->m_SortOrder == OrderByMagnitude ) {
         this->m_Calculator.SetOrderEigenMagnitudes( true );
     }
     else if( this->m_SortOrder == DoNotOrder ) {
         this->m_Calculator.SetOrderEigenValues( false );
     }
-    std::cout << this->m_Calculator.GetOrderEigenValues() << "," << this->m_Calculator.GetOrderEigenMagnitudes() << std::endl;
 }
 
 template<typename TInputImage, typename TOutputImage>

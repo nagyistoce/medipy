@@ -16,6 +16,9 @@ from wx import GetTranslation as _
 import medipy.base
 from medipy.vtk import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
 
+from vtk import vtkImageExport
+from vtk import vtkImageImport
+
 def get_vtk_array_type(numeric_array_type) :
     """Return a VTK typecode from a numpy array."""
     
@@ -100,6 +103,120 @@ def build_vtk_image(array, vtk_image=None, save=1) :
         vtk_image.SetOrigin(origin)
     
     return vtk_image
+
+
+
+# Useful constants for VTK arrays.
+VTK_ID_TYPE_SIZE = vtk.vtkIdTypeArray().GetDataTypeSize()
+if VTK_ID_TYPE_SIZE == 4:
+    ID_TYPE_CODE = numpy.int32
+elif VTK_ID_TYPE_SIZE == 8:
+    ID_TYPE_CODE = numpy.int64
+
+VTK_LONG_TYPE_SIZE = vtk.vtkLongArray().GetDataTypeSize()
+if VTK_LONG_TYPE_SIZE == 4:
+    LONG_TYPE_CODE = numpy.int32
+    ULONG_TYPE_CODE = numpy.uint32
+elif VTK_LONG_TYPE_SIZE == 8:
+    LONG_TYPE_CODE = numpy.int64
+    ULONG_TYPE_CODE = numpy.uint64
+
+
+def get_vtk_to_numpy_typemap():
+    """Returns the VTK array type to numpy array type mapping."""
+    _vtk_np = {vtkConstants.VTK_BIT:numpy.bool,
+                vtkConstants.VTK_CHAR:numpy.int8,
+                vtkConstants.VTK_UNSIGNED_CHAR:numpy.uint8,
+                vtkConstants.VTK_SHORT:numpy.int16,
+                vtkConstants.VTK_UNSIGNED_SHORT:numpy.uint16,
+                vtkConstants.VTK_INT:numpy.int32,
+                vtkConstants.VTK_UNSIGNED_INT:numpy.uint32,
+                vtkConstants.VTK_LONG:LONG_TYPE_CODE,
+                vtkConstants.VTK_UNSIGNED_LONG:ULONG_TYPE_CODE,
+                vtkConstants.VTK_ID_TYPE:ID_TYPE_CODE,
+                vtkConstants.VTK_FLOAT:numpy.float32,
+                vtkConstants.VTK_DOUBLE:numpy.float64}
+    return _vtk_np
+
+def get_numpy_array_type(vtk_array_type):
+    """Returns a numpy array typecode given a VTK array type."""
+    return get_vtk_to_numpy_typemap()[vtk_array_type]
+
+def vtk_to_numpy_array(vtk_image) :
+    """ Build a numpy array from the given vtk image data. 
+    """
+    vtk_image_shape = vtk_image.GetDimensions()
+    vtk_type = vtk_image.GetScalarType()
+    extent = vtk_image.GetWholeExtent()
+    numComponents = vtk_image.GetNumberOfScalarComponents()
+    dim = (extent[5]-extent[4]+1,
+           extent[3]-extent[2]+1,
+           extent[1]-extent[0]+1)
+    assert vtk_type in get_vtk_to_numpy_typemap().keys(), "Unsupported array type %s"%vtk_type
+    assert vtk_type != vtkConstants.VTK_BIT, 'Bit arrays are not supported.'
+
+    if (numComponents > 1):
+        dim = dim + (numComponents,)
+
+    dtype = get_numpy_array_type(vtk_type)
+    array = numpy.zeros(dim,dtype=dtype)
+    export = vtkImageExport()
+    export.SetInput(vtk_image)
+    export.Export(array)
+
+    return array
+
+def vtk_type_size():
+    _vtk_size = { vtkConstants.VTK_SIGNED_CHAR:1,
+                vtkConstants.VTK_UNSIGNED_CHAR:1,
+                vtkConstants.VTK_SHORT:2,
+                vtkConstants.VTK_UNSIGNED_SHORT:2,
+                vtkConstants.VTK_INT:4,
+                vtkConstants.VTK_UNSIGNED_INT:4,
+                vtkConstants.VTK_FLOAT:4,
+                vtkConstants.VTK_DOUBLE:8 }
+    return _vtk_size
+
+def get_vtk_type_size(vtk_array_type):
+    """Returns the size of a given VTK array type."""
+    return vtk_type_size()[vtk_array_type]
+
+def numpy_array_to_vtk(array):
+    numComponents = 1
+    dim = array.shape
+    if len(dim) == 0:
+        dim = (1,1,1)
+    elif len(dim) == 1:
+        dim = (1, 1, dim[0])
+    elif len(dim) == 2:
+        dim = (1, dim[0], dim[1])
+    elif len(dim) == 4:
+        numComponents = dim[3]
+        dim = (dim[0],dim[1],dim[2])
+
+    vtk_extent = (0, dim[2]-1,
+              0, dim[1]-1,
+              0, dim[0]-1)
+
+    vtk_array_type = get_vtk_array_type(array.dtype)
+
+    # Adjust the number of components for complex types
+    complexComponents = 1
+    if array.dtype in [numpy.complex64, numpy.complex128] :
+        number_of_components = number_of_components*2
+        complexComponents = 2
+
+    _import = vtkImageImport()
+    size = len(array.flat)*get_vtk_type_size(vtk_array_type)*complexComponents
+    _import.SetDataScalarType(vtk_array_type)
+    _import.SetNumberOfScalarComponents(numComponents)
+    _import.SetDataExtent(vtk_extent)
+    _import.SetWholeExtent(vtk_extent)
+    _import.CopyImportVoidPointer(array, size)
+    _import.Update()
+
+    return _import.GetOutput()
+
 
 def build_vtk_colormap(colormap, vtk_colormap=None) :
     """ Build either a vtkLookupTable or a vtkColorTransferFunctionWithAlpha 
