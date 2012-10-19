@@ -222,7 +222,12 @@ class Image(Observable):
         return self.data.dtype
     
     def _get_ndim(self):
-        return self.data.ndim
+        if self.data_type == "scalar" :
+            return self.data.ndim
+        elif self.data_type == "vector" :
+            return self.data.ndim-1
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
     
     def _get_computed_ndim(self):
         """ Return the dimensionality of the image, neglecting the first values
