@@ -57,11 +57,11 @@ public :
     typedef SymmetricEigenAnalysis<InputMatrixType, EigenValuesArrayType, EigenVectorMatrixType> CalculatorType;
 
     /** Intern types */
-    typedef enum {
+    enum EigenValueOrderType {
         OrderByValue,
         OrderByMagnitude,
         DoNotOrder
-    } EigenValueOrderType;
+    };
 
     /** Accessors */
     itkGetMacro(SortOrder, EigenValueOrderType);
