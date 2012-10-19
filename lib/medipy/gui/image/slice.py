@@ -21,6 +21,7 @@ from medipy.gui.colormap import Colormap
 from medipy.gui.annotations import ImageAnnotation as GUIImageAnnotation
 from contour_layer import ContourLayer
 from image_layer import ImageLayer
+from tensor2_layer import Tensor2Layer
 from medipy.vtk import vtkOrientationAnnotation
 
 import mouse_tools
@@ -259,7 +260,8 @@ class Slice(PropertySynchronized) :
         
         # Find out which layer class we will use
         classes = {
-            "spectroscopy" : ContourLayer
+            "spectroscopy" : ContourLayer,
+            "tensor_2" : Tensor2Layer
         }
         LayerClass = classes.get(image.image_type, ImageLayer)
         

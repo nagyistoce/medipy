@@ -16,6 +16,7 @@ from wx import GetTranslation as _
 import medipy.base
 from medipy.vtk import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
 
+import vtk
 from vtk import vtkImageExport
 from vtk import vtkImageImport
 
