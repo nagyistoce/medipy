@@ -420,7 +420,7 @@ class Layer(medipy.base.Observable) :
             # Add ones on the diagonal when necessary
             for rank in range(self._image.ndim) :
                 if numpy.less_equal(self.world_to_slice.shape, rank).all() : 
-                    world_to_slice_3d[self._image.ndim-rank-1, self._image.ndim-rank-1] = 1.
+                    world_to_slice[self._image.ndim-rank-1, self._image.ndim-rank-1] = 1.
             
             corners = itertools.product(
                 *[(0, x-1) for x in self._image.shape])
