@@ -13,11 +13,14 @@
 import numpy as np
 
 def spectral_decomposition(slice_tensor):
-    print slice_tensor.shape
     shape = slice_tensor.shape
-    v1 = np.zeros(shape+(3,),dtype=np.single)
-    v1[...,0] = 1
-    return v1
+    eigVal = np.ones(shape[:3]+(3,),dtype=np.single)
+    eigVec = np.zeros(shape[:3]+(9,),dtype=np.single)
+    eigVec[...,1] = 1
+    eigVec[...,3] = 1
+    eigVec[...,8] = 1
+
+    return eigVal,eigVec
 
 def dti6to33(dt6):
     """ Full second order symmetric tensor from the six independent components
