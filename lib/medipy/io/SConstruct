@@ -14,10 +14,10 @@ env = env.Clone()
 env.Glob("*.py")
 
 types = get_scalar_types(wrapitk_root())
-dimensions = list(set(get_dimensions(wrapitk_root())+[4]))
+dimensions = [4]
 instantiations = list(itertools.product(types, dimensions))
 classes_template_info = [
     ("itk::PyArrayFileReader", instantiations, "pointer"),
-    #("itk::PyArrayFileWriter", instantiations, None)
+    ("itk::PyArrayFileWriter", instantiations, "pointer")
 ]
 env.WrapITKPythonModule("PyArrayIO", classes_template_info)
