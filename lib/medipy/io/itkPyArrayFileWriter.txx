@@ -36,8 +36,6 @@ void
 PyArrayFileWriter<TPixel, VImageDimension>
 ::Update()
 {
-	this->m_Image->Print(std::cout);
-
 	typedef ImageFileWriter<ImageType> WriterType;
 
 	typename WriterType::Pointer writer = WriterType::New();
