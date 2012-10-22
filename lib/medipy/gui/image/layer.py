@@ -234,8 +234,8 @@ class Layer(medipy.base.Observable) :
         # Update the pipeline
         self._update_reslicer_matrix()
         self._update_change_information()
-        
         self._reslicer.SetInput(self._vtk_image)
+
         
         self.notify_observers("image")
 
