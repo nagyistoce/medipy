@@ -55,6 +55,7 @@ class ITK(IOBase) :
         
         self._filter = None
         self._loader = None
+        self._saver = None
         self._image_informations_read = False
         self._saver = None
         
@@ -132,12 +133,36 @@ class ITK(IOBase) :
             return False
         
         # Check the instantiations
-        return (image.ndim in [x[1] for x in itk.Image.__template__])
+        InstantiatedTypes = set([itk.template(x[0])[1][0] 
+                                 for x in itk.NumpyBridge.__template__.keys()])
+        PixelType = ITK._component_type_to_type[self._loader.GetComponentType()]
+        while PixelType not in InstantiatedTypes :
+            PixelType = ITK._larger_type[PixelType]
+        Dimension = image.ndim
+        
+        return ((PixelType, Dimension) in itk.Image.__template__ or
+                (PixelType, Dimension) in itk.PyArrayFileWriter.__template__)
     
     def save(self, image) :
-        itk_image = medipy_image_to_itk_image(image, False)
-        writer = itk.ImageFileWriter[itk_image].New(
-            ImageIO = self._saver, FileName = self._filename, Input = itk_image)
+        InstantiatedTypes = set([itk.template(x[0])[1][0] 
+                                 for x in itk.NumpyBridge.__template__.keys()])
+        PixelType = ITK._component_type_to_type[self._loader.GetComponentType()]
+        while PixelType not in InstantiatedTypes :
+            PixelType = ITK._larger_type[PixelType]
+        Dimension = image.ndim
+        
+        if (PixelType, Dimension) in itk.Image.__template__ :
+            itk_image = medipy_image_to_itk_image(image, False)
+            writer = itk.ImageFileWriter[itk_image].New(
+                ImageIO = self._saver, Input = itk_image)
+        else :
+            writer = itk.PyArrayFileWriter[PixelType, Dimension].New()
+            writer.SetArray(image.data)
+            writer.SetOrigin(image.origin)
+            writer.SetSpacing(image.spacing)
+            writer.SetDirection(image.direction)
+        
+        writer.SetFileName(self._filename)
         writer.Update()
     
     ##############
