@@ -45,19 +45,47 @@ def ls_estimation_SecondOrderSymmetricTensor(images):
     return output
 
 
-def fa_SecondOrderSymmetricTensor(tensor):
+def fa_SecondOrderSymmetricTensor(images):
     """ Compute the fractional anisotropy from a second order symmetric tensor field
 
     <gui>
-        <item name="tensor" type="Image" label="Input"/>
+        <item name="images" type="Image" label="Input"/>
         <item name="output" type="Image" initializer="output=True" role="return" label="Output"/>
     </gui>
     """
     # We're in the same package as itkFractionalAnisotropyImageFilter, so it has already been included in itk by __init__
 
-    print tensor.shape
+    fa_filter = itk.FractionalAnisotropyImageFilter[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
+    layers = [layer['image'] for layer in wx.GetApp().active_image.layers]
+    tensor = ls_SecondOrderSymmetricTensorEstimation_(layers)
+    itk_tensor = medipy.itk.medipy_image_to_itk_image(tensor, False)
+    fa_filter.SetInput(0,itk_tensor)
+    fa_filter.Update()
+    itk_output = fa_filter.GetOutput(0)
+    output = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
 
-    return None
+    return output
+
+def md_SecondOrderSymmetricTensor(images):
+    """ Compute the fractional anisotropy from a second order symmetric tensor field
+
+    <gui>
+        <item name="images" type="Image" label="Input"/>
+        <item name="output" type="Image" initializer="output=True" role="return" label="Output"/>
+    </gui>
+    """
+    # We're in the same package as itkFractionalAnisotropyImageFilter, so it has already been included in itk by __init__
+
+    md_filter = itk.MeanDiffusivityImageFilter[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
+    layers = [layer['image'] for layer in wx.GetApp().active_image.layers]
+    tensor = ls_SecondOrderSymmetricTensorEstimation_(layers)
+    itk_tensor = medipy.itk.medipy_image_to_itk_image(tensor, False)
+    md_filter.SetInput(0,itk_tensor)
+    md_filter.Update()
+    itk_output = md_filter.GetOutput(0)
+    output = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
+
+    return output
 
 
 
@@ -86,7 +114,23 @@ def ls_SecondOrderSymmetricTensorEstimation_(images):
         estimation_filter.SetGradientDirection(cnt,itk_grad)
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
-    tensors.image_type = "tensor_2"
 
     return tensors
+
+def fa_SecondOrderSymmetricTensor_(images):
+    """ Compute the fractional anisotropy from a second order symmetric tensor field
+
+    """
+    # We're in the same package as itkFractionalAnisotropyImageFilter, so it has already been included in itk by __init__
+
+    fa_filter = itk.FractionalAnisotropyImageFilter[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
+    tensor = ls_SecondOrderSymmetricTensorEstimation_(images)
+    itk_tensor = medipy.itk.medipy_image_to_itk_image(tensor, False)
+    fa_filter.SetInput(0,itk_tensor)
+    fa_filter.Update()
+    itk_output = fa_filter.GetOutput(0)
+    output = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
+    output.image_type = "tensor_2"
+
+    return output
 
