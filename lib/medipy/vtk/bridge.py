@@ -165,7 +165,9 @@ def vtk_to_numpy_array(vtk_image) :
     export.SetInput(vtk_image)
     export.Export(array)
 
-    return array
+    image = medipy.base.Image(data=array, spacing=list(reversed(vtk_image.GetSpacing())), origin=list(reversed(vtk_image.GetOrigin())))
+
+    return image
 
 def vtk_type_size():
     _vtk_size = { vtkConstants.VTK_SIGNED_CHAR:1,
@@ -191,9 +193,12 @@ def numpy_array_to_vtk(array):
         dim = (1, 1, dim[0])
     elif len(dim) == 2:
         dim = (1, dim[0], dim[1])
+    elif len(dim) == 3:
+        numComponents = array._get_number_of_components()
+        dim = (dim[0],dim[1],dim[2])
     elif len(dim) == 4:
         numComponents = dim[3]
-        dim = (dim[0],dim[1],dim[2])
+        dim = (dim[0],dim[1],dim[2])           
 
     vtk_extent = (0, dim[2]-1,
               0, dim[1]-1,
@@ -208,15 +213,36 @@ def numpy_array_to_vtk(array):
         complexComponents = 2
 
     _import = vtkImageImport()
-    size = len(array.flat)*get_vtk_type_size(vtk_array_type)*complexComponents
+    if isinstance(array,medipy.base.Image) :
+        size = len(array.data.flat)*get_vtk_type_size(vtk_array_type)*complexComponents
+    else :
+        size = len(array.flat)*get_vtk_type_size(vtk_array_type)*complexComponents
     _import.SetDataScalarType(vtk_array_type)
     _import.SetNumberOfScalarComponents(numComponents)
     _import.SetDataExtent(vtk_extent)
     _import.SetWholeExtent(vtk_extent)
-    _import.CopyImportVoidPointer(array, size)
+    if isinstance(array,medipy.base.Image) :
+        _import.CopyImportVoidPointer(array.data, size)
+    else :
+        _import.CopyImportVoidPointer(array, size)
     _import.Update()
 
-    return _import.GetOutput()
+    vtk_image = _import.GetOutput()
+
+    # If we have an image, use its origin and spacing
+    if hasattr(array, "spacing") :
+        spacing = list(reversed(array.spacing))
+        if len(spacing) == 2 :
+            spacing.append(1)
+        vtk_image.SetSpacing(spacing)
+    # 
+    if hasattr(array, "origin") :
+        origin = list(reversed(array.origin))
+        if len(origin) == 2 :
+            origin.append(0)
+        vtk_image.SetOrigin(origin)
+
+    return vtk_image
 
 
 def build_vtk_colormap(colormap, vtk_colormap=None) :
