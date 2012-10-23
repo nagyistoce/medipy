@@ -13,7 +13,7 @@ import numpy
 
 import medipy.io # add PyArrayIO to itk
 from medipy.io.io_base import IOBase
-from medipy.itk import itk_image_to_array, medipy_image_to_itk_image
+from medipy.itk import itk_image_to_array, medipy_image_to_itk_image, dtype_to_itk
 
 class ITK(IOBase) :
     
@@ -186,7 +186,7 @@ class ITK(IOBase) :
         # Check the instantiations
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = ITK._component_type_to_type[self._loader.GetComponentType()]
+        PixelType = dtype_to_itk[image.dtype.type]
         while PixelType not in InstantiatedTypes :
             PixelType = ITK._larger_type[PixelType]
         Dimension = image.ndim
@@ -197,7 +197,7 @@ class ITK(IOBase) :
     def save(self, image) :
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = ITK._component_type_to_type[self._loader.GetComponentType()]
+        PixelType = dtype_to_itk[image.dtype.type]
         while PixelType not in InstantiatedTypes :
             PixelType = ITK._larger_type[PixelType]
         Dimension = image.ndim
