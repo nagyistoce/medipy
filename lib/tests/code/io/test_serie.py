@@ -38,7 +38,21 @@ class TestSerie(unittest.TestCase):
         
         self.cleanup(tempdir)
         
+        self._test_dti_serie(images)
+    
+    def test_load_nifti(self):
+        filename = os.path.join(self.data_directory, "input",
+                                "ep2d_DTI_20_dir_RL_pitch_yaw_22.nii.gz")
+        images = medipy.io.load_serie(filename)
+        self._test_dti_serie(images)
+    
+    #####################
+    # Private interface #
+    #####################    
+    
+    def _test_dti_serie(self, images):
         self.assertEqual(len(images), 42)
+        
         b_0_images = []
         b_non_0_images = []
         for image in images :
@@ -69,6 +83,7 @@ class TestSerie(unittest.TestCase):
             self.assertAlmostEqual(numpy.linalg.norm(gradient), 1, 3)
             
             self.assertEqual(image.shape, (60, 102, 102))
+        
 
 if __name__ == "__main__" :
     unittest.main()
