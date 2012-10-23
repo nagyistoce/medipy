@@ -265,6 +265,18 @@ class MainFrame(medipy.gui.base.Frame):
                     0, [1,0,0],1)
                 image.spacing = numpy.insert(image.spacing, 0, 1)
             wx.GetApp().append_image(image)
+
+    def OnOpenImageSerie(self, dummy):
+        
+        images = medipy.gui.io.load(self, multiple=True, load_all_images=True)
+
+        if isinstance(images, list) :
+            if len(images)>0 :
+                layers = [layer for layer in images[1:]]
+                wx.GetApp().append_image(images[0],layers)
+                for cnt in range(1,len(wx.GetApp().active_image.layers)) :
+                    wx.GetApp().active_image.set_layer_visibility(cnt,False)
+
                 
     def OnOpenRaw(self, dummy):
         from medipy.gui.image.raw_dialog import RawDialog
@@ -281,9 +293,24 @@ class MainFrame(medipy.gui.base.Frame):
         images = medipy.gui.io.import_dicom_directory(self)
         if images :
             wx.GetApp().append_image(images[0])
+
+    def OnFromDirectorySerie(self, dummy):
+        
+        images = medipy.gui.io.import_dicom_directory(self)
+
+        if isinstance(images, list) :
+            if len(images)>0 :
+                layers = [layer for layer in images[1:]]
+                wx.GetApp().append_image(images[0],layers)
+                for cnt in range(1,len(wx.GetApp().active_image.layers)) :
+                    wx.GetApp().active_image.set_layer_visibility(cnt,False)
     
     def OnSaveImageAs(self, dummy):
         medipy.gui.io.save(wx.GetApp().active_image.get_layer_image(0))
+
+    def OnSaveImageSerieAs(self, dummy):
+        limages = [wx.GetApp().active_image.get_layer_image(i) for i in range(len(wx.GetApp().active_image.layers))]
+        medipy.gui.io.save(limages)
     
     def OnCloseAllImages(self, dummy):
         wx.GetApp().close_all_images()
