@@ -23,14 +23,14 @@ class Tensor2Layer(Layer) :
         viewport such that its origin (i.e. lower left corner) matches the 
         transformed origin of the layer's image (with an altitude of 0).
     """
-    
+      
     def __init__(self, world_to_slice, tensor_image, display_coordinates="physical",
                  colormap=None, opacity = 1.0, display_mode="principal_direction_voxel") :
         
 
-        display_mode = "ellipsoid"
+        self.display_mode = display_mode
 
-        if display_mode=="principal_direction_voxel" :
+        if self.display_mode=="principal_direction_voxel" :
             ############################
             # Property-related members #
             ############################
@@ -44,22 +44,11 @@ class Tensor2Layer(Layer) :
             super(Tensor2Layer, self).__init__(world_to_slice, tensor_image, display_coordinates, colormap, opacity)
             
             self._change_information.Update()
-            vtk_slice_tensors = self._change_information.GetOutput()
-            print ":", vtk_slice_tensors.GetDimensions(),vtk_slice_tensors.GetSpacing(),vtk_slice_tensors.GetOrigin()
-            numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(vtk_slice_tensors)
-            numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(numpy_slice_tensors)
-            numpy_principal_direction = numpy.ascontiguousarray(numpy_eigenvectors[...,::3])
-            numpy_principal_direction[:,:,:] = (0,1,0)
-
-            vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy.cast[numpy.uint8](numpy_principal_direction*255))
-            vtk_principal_direction.SetSpacing(vtk_slice_tensors.GetSpacing())
-            vtk_principal_direction.SetOrigin(vtk_slice_tensors.GetOrigin())
-            print "::", vtk_principal_direction.GetDimensions(),vtk_principal_direction.GetSpacing(),vtk_principal_direction.GetOrigin()
-
-            self._actor.SetInput(vtk_principal_direction)
+            self.vtk_slice_tensors = self._change_information.GetOutput()
+            self.add_observer("position", self.on_position)
             self._actor.InterpolateOff()
 
-        elif display_mode=="principal_direction_line" :
+        elif self.display_mode=="principal_direction_line" :
 
             ############################
             # Property-related members #
@@ -82,42 +71,13 @@ class Tensor2Layer(Layer) :
             super(Tensor2Layer, self).__init__(world_to_slice, tensor_image, display_coordinates, colormap, opacity)
             
             self._change_information.Update()
-            vtk_slice_tensors = self._change_information.GetOutput()
-            print ":", vtk_slice_tensors.GetDimensions(),vtk_slice_tensors.GetSpacing(),vtk_slice_tensors.GetOrigin()
-            numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(vtk_slice_tensors)
-            numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(numpy_slice_tensors)
-            numpy_principal_direction = numpy.ascontiguousarray(numpy_eigenvectors[...,::3])
-            numpy_principal_direction[:,:,:] = (0,1,0)
-
-            vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy.cast[numpy.uint8](numpy_principal_direction*255))
-            vtk_principal_direction.SetSpacing(vtk_slice_tensors.GetSpacing())
-            vtk_principal_direction.SetOrigin(vtk_slice_tensors.GetOrigin())
-            print "::", vtk_principal_direction.GetDimensions(),vtk_principal_direction.GetSpacing(),vtk_principal_direction.GetOrigin()
-
-            self._glyph.ScalingOn()
-            self._glyph.SetScaleModeToScaleByVector()
-            self._glyph.SetColorModeToColorByVector()
-            self._glyph.SetScaleFactor(0.5)
-            self._glyph.SetSource(self._line.GetOutput())
-            self._glyph.SetInput(vtk_principal_direction)
-            self._glyph.ClampingOff()
-
-
-            # set up a stripper for faster rendering
-            stripper = vtk.vtkStripper()
-            stripper.SetInput(self._glyph.GetOutput())
-              
-            # get the maximum norm of the data
-            maxNorm = 1.0
-              
-            # now set up the mapper
-            self._mapper.SetInput(stripper.GetOutput())
-            self._mapper.SetScalarRange(0, maxNorm) 
-
+            self.vtk_slice_tensors = self._change_information.GetOutput()
+            self.add_observer("position", self.on_position)
             # set up the actor
             self._actor.SetMapper(self._mapper)
+            
 
-        elif display_mode=="ellipsoid" :
+        elif self.display_mode=="ellipsoid" :
 
             ############################
             # Property-related members #
@@ -133,6 +93,9 @@ class Tensor2Layer(Layer) :
             self._sphere = vtkSphereSource()
             self._mapper = vtkPolyDataMapper()
 
+            self._sphere.SetThetaResolution(8)
+            self._sphere.SetPhiResolution(8)
+
             ######################
             # Initialize members #
             ######################
@@ -140,10 +103,60 @@ class Tensor2Layer(Layer) :
             super(Tensor2Layer, self).__init__(world_to_slice, tensor_image, display_coordinates, colormap, opacity)
 
             self._change_information.Update()
-            vtk_slice_tensors = self._change_information.GetOutput()
-            print ":", vtk_slice_tensors.GetDimensions(),vtk_slice_tensors.GetSpacing(),vtk_slice_tensors.GetOrigin()
-            numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(vtk_slice_tensors)
-            numpy_slice_tensors_ = numpy.zeros(numpy_slice_tensors.shape[:3]+(9,),dtype=numpy.single)
+            self.vtk_slice_tensors = self._change_information.GetOutput()
+            self.add_observer("position", self.on_position)
+            # set up the actor
+            self._actor.SetMapper(self._mapper)
+
+        else :
+
+            raise medipy.base.Exception("Unknown display mode : %s"%(self.display_mode,))
+
+
+
+    def on_position(self, event) :
+
+        if self.display_mode == "principal_direction_voxel" :
+            #print ":", vtk_slice_tensors.GetDimensions(),vtk_slice_tensors.GetSpacing(),vtk_slice_tensors.GetOrigin()
+            numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(self.vtk_slice_tensors)
+            numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(numpy_slice_tensors)
+            numpy_principal_direction = numpy.ascontiguousarray(numpy_eigenvectors[...,::3])
+            vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy.cast[numpy.uint8](numpy_principal_direction*255))
+            #print "::", vtk_principal_direction.GetDimensions(),vtk_principal_direction.GetSpacing(),vtk_principal_direction.GetOrigin()
+            self._actor.SetInput(vtk_principal_direction)
+
+        elif self.display_mode=="principal_direction_line" :
+            #print ":", vtk_slice_tensors.GetDimensions(),vtk_slice_tensors.GetSpacing(),vtk_slice_tensors.GetOrigin()
+            numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(self.vtk_slice_tensors)
+            numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(numpy_slice_tensors)
+            numpy_principal_direction = numpy.ascontiguousarray(numpy_eigenvectors[...,::3])
+
+            vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy_principal_direction)
+            #print "::", vtk_principal_direction.GetDimensions(),vtk_principal_direction.GetSpacing(),vtk_principal_direction.GetOrigin()
+
+            vtk_principal_direction.GetPointData().SetActiveVectors(vtk_principal_direction.GetPointData().GetScalars().GetName())
+
+            self._glyph.ScalingOn()
+            self._glyph.SetVectorModeToUseVector()
+            self._glyph.SetScaleModeToScaleByVector()
+            self._glyph.SetColorModeToColorByVector()
+            self._glyph.SetScaleFactor(0.5)
+            self._glyph.SetSource(self._line.GetOutput())
+            self._glyph.SetInput(vtk_principal_direction)
+            self._glyph.ClampingOff()
+
+            # set up a stripper for faster rendering
+            stripper = vtk.vtkStripper()
+            stripper.SetInput(self._glyph.GetOutput())
+              
+            # now set up the mapper
+            self._mapper.SetInput(stripper.GetOutput())
+
+        elif self.display_mode=="ellipsoid" :
+
+            numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(self.vtk_slice_tensors)
+            numpy_slice_tensors_ = medipy.base.Image(data=numpy.zeros(numpy_slice_tensors.shape[:3]+(9,),dtype=numpy.single))
+            numpy_slice_tensors_.copy_information(numpy_slice_tensors)
             numpy_slice_tensors_[...,:3] = numpy_slice_tensors[...,:3]
             numpy_slice_tensors_[...,4:6] = numpy_slice_tensors[...,3:5]
             numpy_slice_tensors_[...,8] = numpy_slice_tensors[...,5]
@@ -153,13 +166,13 @@ class Tensor2Layer(Layer) :
             vtk_tensor = medipy.vtk.bridge.numpy_array_to_vtk(numpy_slice_tensors_)
             vtk_tensor.GetPointData().SetActiveTensors(vtk_tensor.GetPointData().GetScalars().GetName())
 
-            self._sphere.SetThetaResolution (8)
-            self._sphere.SetPhiResolution (8)
-
             self._glyph.SetInput(vtk_tensor)
             self._glyph.SetSource(self._sphere.GetOutput())
             self. _glyph.SetScaleFactor (700)
-            self._glyph.SetColorGlyphs(1)
+            self._glyph.ColorGlyphsOn()
+            self._glyph.ExtractEigenvaluesOn()
+            self._glyph.SetColorModeToEigenvalues()
+            self._glyph.ClampScalingOn()
 
             # set up a stripper for faster rendering
             stripper = vtk.vtkStripper()
@@ -170,10 +183,7 @@ class Tensor2Layer(Layer) :
               
             # now set up the mapper
             self._mapper.SetInput(stripper.GetOutput())
-            self._mapper.SetScalarRange(0, maxNorm) 
-
-            # set up the actor
-            self._actor.SetMapper(self._mapper)
+            self._mapper.SetScalarRange(0, maxNorm)    
 
             
 
