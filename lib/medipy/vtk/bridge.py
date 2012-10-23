@@ -194,11 +194,11 @@ def numpy_array_to_vtk(array):
     elif len(dim) == 2:
         dim = (1, dim[0], dim[1])
     elif len(dim) == 3:
-        numComponents = array._get_number_of_components()
+        numComponents = array._get_number_of_components() 
         dim = (dim[0],dim[1],dim[2])
     elif len(dim) == 4:
         numComponents = dim[3]
-        dim = (dim[0],dim[1],dim[2])           
+        dim = (dim[0],dim[1],dim[2])        
 
     vtk_extent = (0, dim[2]-1,
               0, dim[1]-1,
