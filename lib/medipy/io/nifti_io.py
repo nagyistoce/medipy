@@ -102,7 +102,6 @@ class Nifti(IOBase) :
         #########################
         
         # Load gradient direction file
-        # TODO : fix handling of .nii.gz files
         base_name = os.path.splitext(self._filename)[0]
         if base_name.endswith(".nii") :
             base_name = os.path.splitext(base_name)[0]
