@@ -4,9 +4,10 @@ import deployement.scons.wrapitk
 
 Import('env')
 env = env.Clone()
-env.Python(Glob("*.py"))
+env.Glob("*.py")
+env.Use("itk")
 
-env.PythonModule("_dtiEigItk", ["dtiEigItk.i","dtiEigItk.cpp"])
+env.PythonModule("_dtiEigItk", ["dtiEigItk.i","dtiEigItk.cpp"], CXX="g++-4.4")
 
 if False:
     # Second Order Reconstruction Filter, instantiated for the following type (TInputImage and TOutputImage) :

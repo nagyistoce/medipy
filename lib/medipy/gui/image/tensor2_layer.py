@@ -74,7 +74,7 @@ class Tensor2Layer(Layer) :
             self._glyph.SetVectorModeToUseVector()
             self._glyph.SetScaleModeToScaleByVector()
             self._glyph.SetColorModeToColorByVector()
-            self._glyph.SetScaleFactor(4.0)
+            self._glyph.SetScaleFactor(1.0)
             self._glyph.SetSource(self._line.GetOutput())
             self._glyph.ClampingOff()
 
@@ -132,6 +132,8 @@ class Tensor2Layer(Layer) :
         if self.display_coordinates_=="physical" :          
             #self._reslicer_axes_inverse
             self.numpy_slice_tensors.data = rotation33todt6(self.numpy_slice_tensors.data,self.world_to_slice[::-1,::-1])
+        self.numpy_slice_tensors.data_type = "vector"
+        self.numpy_slice_tensors.image_type = "tensor_2"
 
         if self.display_mode == "principal_direction_voxel" :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
@@ -144,9 +146,11 @@ class Tensor2Layer(Layer) :
 
         elif self.display_mode=="principal_direction_line" :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
-            scale = 1.0/numpy_eigenvalues[...,0].max()
+            val = numpy.abs(numpy.log(numpy.maximum(numpy_eigenvalues[...,0],1e-6)))
+            scale = 1.0/val.max()
+            print scale,val.max()
             numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvectors[...,::3]*\
-                                                          numpy_eigenvalues[...,0].repeat(3).reshape(numpy_eigenvalues.shape)*scale))
+                                                          val.repeat(3).reshape(numpy_eigenvalues.shape+(3,))*scale))
             numpy_principal_direction.copy_information(self.numpy_slice_tensors)
             numpy_principal_diffusion = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvalues[...,0]))
             numpy_principal_diffusion.copy_information(self.numpy_slice_tensors)
