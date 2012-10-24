@@ -31,6 +31,10 @@ def load_serie(url, dtype=numpy.single):
         raise medipy.base.Exception("Scheme \"{0}\" cannot load files".format(scheme))
 
     limages = loader(path, fragment)
+    
+    if dtype :
+        for image in limages :
+            image.data = image.data.astype(dtype)
 
     return limages
     
