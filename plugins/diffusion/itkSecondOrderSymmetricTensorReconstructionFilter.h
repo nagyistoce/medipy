@@ -13,10 +13,8 @@
 #include <vector>
 
 #include <itkImageToImageFilter.h>
-#include <itkImageSource.h>
-#include <itkSmartPointer.h>
-#include <vnl/vnl_vector_fixed.h>
-#include <vnl/vnl_vector_fixed_ref.h>
+#include <itkPoint.h>
+#include <vnl/vnl_matrix.h>
 
 namespace itk
 {
@@ -25,10 +23,13 @@ namespace itk
  * \class SecondOrderSymmetricTensorReconstructionFilter
  * \brief Least Square Second Order Symmetric Tensor Reconstruction Filter
  * 
+ * This filter must have as many input images as it has gradient directions.
+ * All inputs are supposed to have the same Region.
  */
 
 template<typename TInputImage, typename TOutputImage>
-class SecondOrderSymmetricTensorReconstructionFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+class SecondOrderSymmetricTensorReconstructionFilter :
+    public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public :
     /** Standard class typedefs. */
@@ -55,13 +56,17 @@ public :
     typedef Point<float,3> DirectionType;
     typedef vnl_matrix<float> BMatrixType;
 
-    /** Accessors */
-    itkGetMacro(BVal, float);
+    /** Return the b-bvalue. */
+    itkGetConstMacro(BVal, float);
+    /** Set the b-value. */
     itkSetMacro(BVal, float);
-    itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
+    /** Return the number of gradient directions. */
+    unsigned int GetNumberOfGradientDirections() const;
+    /** Set the i^th gradient direction. */
     void SetGradientDirection(unsigned int i, DirectionType bvec);
-    DirectionType GetGradientDirection(unsigned int i);
+    /** Return the i^th gradient direction. */
+    DirectionType const & GetGradientDirection(unsigned int i) const;
 
 protected :
     SecondOrderSymmetricTensorReconstructionFilter() {}
@@ -76,6 +81,9 @@ private :
     float m_BVal;
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
+
+    SecondOrderSymmetricTensorReconstructionFilter(Self const &); // purposely not implemented
+    Self const & operator=(Self const &); // purposely not implemented
 
 };
 

@@ -11,9 +11,11 @@
 
 #include "itkSecondOrderSymmetricTensorReconstructionFilter.h"
 
-#include "itkVectorImage.h"
+#include <vector>
+
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
+#include <vnl/vnl_vector_fixed.h>
 
 namespace itk
 {
@@ -57,6 +59,14 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TOutputImage>
+unsigned int
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+::GetNumberOfGradientDirections() const
+{
+    return this->directions.size();
+}
+
+template<typename TInputImage, typename TOutputImage>
 void
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 ::SetGradientDirection(unsigned int i, DirectionType bvec)
@@ -68,13 +78,11 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TOutputImage>
-typename SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>::DirectionType
+typename SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>::DirectionType const &
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
-::GetGradientDirection(unsigned int i)
+::GetGradientDirection(unsigned int i) const
 {
-    if (i<this->directions.size()) {
-        return this->directions[i];
-    }
+    return this->directions[i];
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -110,7 +118,8 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     const unsigned int VectorLength = 6;
     unsigned int const nb_dir = this->directions.size();
 
-    typename OutputImageType::Pointer output = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
+    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
+        this->ProcessObject::GetOutput(0));
 
     // Create an iterator for each input
     typedef ImageRegionConstIterator<InputImageType> InputIterator;
@@ -131,21 +140,28 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
         S.fill(0.);
 
         InputImagePixelType S0 = inputIterators[0].Get();
-        if (S0<min_signal) { S0=min_signal; }
+        if (S0<min_signal)
+        {
+            S0=min_signal;
+        }
+
         for (unsigned int i=1; i<nb_dir; ++i) {
             InputImagePixelType Si = inputIterators[i].Get();
-            if (Si<min_signal) { Si=min_signal; }
-            if (S0>=Si) { S(i-1) = log(S0/Si); }
+            if (Si<min_signal)
+            {
+                Si=min_signal;
+            }
+            if (S0>=Si)
+            {
+                S(i-1) = log(S0/Si);
+            }
         }
 
         vnl_vector_fixed<float, VectorLength> dt6;
         dt6 = this->invbmatrix*S;
 
         OutputPixelType vec = outputIt.Get();
-        for( unsigned int i=0; i<VectorLength; i++ )
-        {
-            vec[i] = (typename OutputPixelType::ValueType) dt6(i);
-        }
+        std::copy(dt6.begin(), dt6.end(), &vec[0]);
 
         for(typename std::vector<InputIterator>::iterator inputIteratorsIt=inputIterators.begin();
             inputIteratorsIt!=inputIterators.end(); ++inputIteratorsIt)
