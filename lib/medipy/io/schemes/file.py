@@ -54,7 +54,7 @@ def load_serie(path, fragment=None, loader=None) :
 
     limages = []
     for index in range(image.shape[0]) :
-        data = image[index,...]
+        data = image[index,:]
         
         metadata = { "loader" : image.metadata["loader"] }
         if "mr_diffusion_sequence" in image.metadata :
