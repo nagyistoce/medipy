@@ -168,6 +168,33 @@ class Nifti(IOBase) :
         nifti_image.pixdim = spacing 
 #        logging.warning("Image direction and origin will not be saved")
         nifti_image.save(self._filename)
+        
+        # Save gradient direction file if saving NIfTI
+        if "mr_diffusion_sequence" in image.metadata :
+            gradients = [[], [], []]
+            b_values = []
+            for diffusion in image.metadata["mr_diffusion_sequence"] :
+                gradient = diffusion.diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
+                b_value = diffusion.diffusion_bvalue
+                
+                for index, value in enumerate(gradient) :
+                    gradients[index].append(str(value))
+                b_values.append(str(b_value))
+            
+            gradients = "\n".join([" ".join(direction) for direction in gradients])
+            b_values = " ".join(b_values)
+            
+            base_name = os.path.splitext(self._filename)[0]
+            if base_name.endswith(".nii") :
+                base_name = os.path.splitext(base_name)[0]
+            
+            gradients_file = open("{0}.bvec".format(base_name), "w")
+            gradients_file.write(gradients)
+            gradients_file.close()
+            
+            bvalues_file = open("{0}.bval".format(base_name), "w")
+            bvalues_file.write(b_values)
+            bvalues_file.close()
 
 if __name__ == "__main__" :
     import sys
