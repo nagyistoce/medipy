@@ -11,19 +11,26 @@
 """
 
 import numpy as np
+import medipy.base
+import medipy.diffusion
+import medipy.itk
 
 def spectral_decomposition(slice_tensor):
     shape = slice_tensor.shape
-    slice_tensor_33 = dti6to33(slice_tensor)
-    eigVal = np.ones(shape[:3]+(3,),dtype=np.single)
-    eigVec = np.zeros(shape[:3]+(9,),dtype=np.single)
-    
-    for k in range(shape[0]) :
-        for j in range(shape[1]) :
-            for i in range(shape[2]) :
-                val, vec = decompose_tensor(slice_tensor_33[k,j,i])
-                eigVal[k,j,i] = val
-                eigVec[k,j,i] = vec.flatten()
+    #slice_tensor_33 = dti6to33(slice_tensor)
+    #eigVal = np.ones(shape[:3]+(3,),dtype=np.single)
+    #eigVec = np.zeros(shape[:3]+(9,),dtype=np.single)
+
+    #for k in range(shape[0]) :
+    #    for j in range(shape[1]) :
+    #        for i in range(shape[2]) :
+    #            val, vec = decompose_tensor(slice_tensor_33[k,j,i])
+    #            eigVal[k,j,i] = val
+    #            eigVec[k,j,i] = vec.flatten()
+
+    eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
+    eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
+    medipy.diffusion.dtiEigItk(slice_tensor,eigVal,eigVec)
 
     return eigVal,eigVec
 
