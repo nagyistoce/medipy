@@ -43,6 +43,7 @@ def least_squares(images):
     
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
+    tensors.image_type = "tensor_2"
 
     return tensors
 
