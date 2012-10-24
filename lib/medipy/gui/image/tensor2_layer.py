@@ -44,15 +44,16 @@ class Tensor2Layer(Layer) :
             ############################
             
             self._actor = vtkImageActor() 
-
-            self._actor.InterpolateOff()         
+            self._actor.InterpolateOff() 
             
             ######################
             # Initialize members #
-            ######################            
+            ######################         
             
+            self._actor.SetPosition(self.vtk_slice_tensors.GetOrigin())
+            self._actor.SetScale(self.vtk_slice_tensors.GetSpacing())
             self.add_observer("position", self.on_position)
-            
+                       
 
         elif self.display_mode=="principal_direction_line" :
 
@@ -85,7 +86,6 @@ class Tensor2Layer(Layer) :
             self.add_observer("position", self.on_position)
             # set up the actor
             self._actor.SetMapper(self._mapper)
-            
 
         elif self.display_mode=="ellipsoid" :
 
@@ -103,8 +103,8 @@ class Tensor2Layer(Layer) :
             self._sphere = vtkSphereSource()
             self._mapper = vtkPolyDataMapper()
 
-            self._sphere.SetThetaResolution(8)
-            self._sphere.SetPhiResolution(8)
+            self._sphere.SetThetaResolution(6)
+            self._sphere.SetPhiResolution(4)
 
             self. _glyph.SetScaleFactor(700)
             self._glyph.ColorGlyphsOn()
@@ -125,7 +125,6 @@ class Tensor2Layer(Layer) :
             raise medipy.base.Exception("Unknown display mode : %s"%(self.display_mode,))
 
 
-
     def on_position(self, event) :
 
         self.numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(self.vtk_slice_tensors)
@@ -137,19 +136,16 @@ class Tensor2Layer(Layer) :
 
         if self.display_mode == "principal_direction_voxel" :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
-            numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy.cast[numpy.uint8](numpy_eigenvectors[...,::3]*255.0)))
+            numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy.cast[numpy.uint8](numpy.abs(numpy_eigenvectors[...,6:])*255.0)))
             numpy_principal_direction.copy_information(self.numpy_slice_tensors) 
-            #print numpy_principal_direction.spacing, numpy_principal_direction.origin, numpy_principal_direction.shape
             vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy_principal_direction)
-            #print vtk_principal_direction.GetDimensions(), vtk_principal_direction.GetSpacing(), vtk_principal_direction.GetOrigin()
             self._actor.SetInput(vtk_principal_direction)
 
         elif self.display_mode=="principal_direction_line" :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
-            val = numpy.abs(numpy.log(numpy.maximum(numpy_eigenvalues[...,0],1e-6)))
+            val = numpy.log(numpy.maximum(numpy_eigenvalues[...,2],1e-4)*1e4)
             scale = 1.0/val.max()
-            print scale,val.max()
-            numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvectors[...,::3]*\
+            numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvectors[...,6:]*\
                                                           val.repeat(3).reshape(numpy_eigenvalues.shape+(3,))*scale))
             numpy_principal_direction.copy_information(self.numpy_slice_tensors)
             numpy_principal_diffusion = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvalues[...,0]))
@@ -170,7 +166,7 @@ class Tensor2Layer(Layer) :
               
             # Generate a lookup table for coloring by vector components or magnitude
             lut = vtk.vtkLookupTable()
-            lut.SetValueRange(0.0, 1.0)
+            lut.SetValueRange(val.min()*scale, 1.0)
             #lut.SetSaturationRange(0.1, 1.0)
             #lut.SetHueRange(0.4,0.6)
             #lut.SetRampToLinear()
@@ -210,22 +206,6 @@ class Tensor2Layer(Layer) :
             # now set up the mapper
             self._mapper.SetInput(stripper.GetOutput())
             
-
-      
-
-   
-    ##############
-    # Properties #
-    ##############
-    
-    #def _set_colormap(self, colormap):
-    #    super(ImageLayer, self)._set_colormap(colormap)
-    #    self._image_map_to_colors.SetLookupTable(self._colormap.vtk_colormap)
-    #    self.colormap.add_observer("vtk_colormap", self._on_vtk_colormap)
-    
-    #def _set_opacity(self, opacity) :
-    #    super(Tensor2Layer, self)._set_opacity(opacity)
-   #     self._actor.GetProperty().SetOpacity(opacity)
     
     def _get_actor(self):
         "VTK ImageActor."
