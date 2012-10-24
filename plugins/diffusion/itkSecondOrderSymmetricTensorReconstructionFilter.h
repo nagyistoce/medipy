@@ -51,14 +51,13 @@ public :
     typedef typename Superclass::InputImagePixelType InputImagePixelType;
 
     /** Intern types */
-    typedef typename TInputImage::PixelType PixelType;
     typedef typename TOutputImage::PixelType OutputPixelType;
     typedef Point<float,3> DirectionType;
     typedef vnl_matrix<float> BMatrixType;
 
     /** Accessors */
-    itkGetMacro(BVal, PixelType);
-    itkSetMacro(BVal, PixelType);
+    itkGetMacro(BVal, float);
+    itkSetMacro(BVal, float);
     itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
     void SetGradientDirection(unsigned int i, DirectionType bvec);
@@ -74,7 +73,7 @@ protected :
 
 private :
     std::vector<DirectionType> directions;
-    PixelType m_BVal;
+    float m_BVal;
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
 
