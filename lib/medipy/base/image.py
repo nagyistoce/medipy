@@ -216,13 +216,23 @@ class Image(Observable):
         self._compute_index_to_physical_matrix()
     
     def _get_shape(self):
-        return self.data.shape
+        if self.data_type == "scalar" :
+            return self.data.shape
+        elif self.data_type == "vector" :
+            return self.data.shape[:-1]
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
     
     def _get_dtype(self):
         return self.data.dtype
     
     def _get_ndim(self):
-        return self.data.ndim
+        if self.data_type == "scalar" :
+            return self.data.ndim
+        elif self.data_type == "vector" :
+            return self.data.ndim-1
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
     
     def _get_computed_ndim(self):
         """ Return the dimensionality of the image, neglecting the first values
@@ -237,6 +247,18 @@ class Image(Observable):
         
         return len(shape)
     
+    def _get_number_of_components(self):
+        """ Return the number of scalar components per voxel.
+        """
+        
+        if self.data_type == "scalar" :
+            return 1
+        elif self.data_type == "vector" :
+            return self.data.shape[-1]
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
+        
+    
     spacing = property(_get_spacing, _set_spacing)
     origin = property(_get_origin, _set_origin)
     direction = property(_get_direction, _set_direction)
@@ -244,6 +266,7 @@ class Image(Observable):
     dtype = property(_get_dtype)
     ndim = property(_get_ndim)
     computed_ndim = property(_get_computed_ndim)
+    number_of_components = property(_get_number_of_components)
     
     #####################    
     # Private interface #

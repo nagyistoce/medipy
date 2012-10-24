@@ -34,7 +34,7 @@ def load_serie(url, dtype=numpy.single):
 
     return limages
     
-def save_serie(image, url) :
+def save_serie(images, url) :
     """ Save a serie of images.
         
         image : image to save.
@@ -48,7 +48,7 @@ def save_serie(image, url) :
     except AttributeError :
         raise medipy.base.Exception("Scheme \"{0}\" cannot save files".format(scheme))
 
-    saver(image, path)    
+    saver(images, path)    
 
 def load(url, dtype=numpy.single) :
     """ Load an image.
