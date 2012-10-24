@@ -44,8 +44,14 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 
     Superclass::PrintSelf(os,indent);
  
-    os << indent << "NumberOfGradientDirections: " << this->directions.size() << std::endl;
-    os << indent << "BValue: " << m_BVal << std::endl;
+    os << indent << "BValue: " << m_BVal << "\n";
+    os << indent << "NumberOfGradientDirections: " << this->directions.size() << "\n";
+    for(unsigned int i=0; i<this->directions.size(); ++i)
+    {
+        os << indent.GetNextIndent()
+           << "Direction " << (i+1) << ": " << this->directions[i] << "\n";
+    }
+
     os.imbue( originalLocale );
 }
 
