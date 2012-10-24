@@ -70,7 +70,7 @@ class Slice(PropertySynchronized) :
     def __init__(self, world_to_slice, layers=None, annotations=None,
                  interpolation=False, display_coordinates="physical", 
                  scalar_bar_visibility = False, orientation_visibility=True,
-                 corner_annotations_visibility=False,display_mode=None) :
+                 corner_annotations_visibility=False,display_mode="ellipsoid") :
         
         layers = layers or []
         annotations = annotations or ObservableList()
@@ -79,8 +79,7 @@ class Slice(PropertySynchronized) :
         # Property-related members #
         ############################
 
-        self.display_mode = display_mode
-
+        self._display_mode = None
         self._interpolation = None
         self._display_coordinates = None
         self._scalar_bar_visibility = None
@@ -142,7 +141,7 @@ class Slice(PropertySynchronized) :
         super(Slice, self).__init__([
             "world_to_slice", "interpolation", "display_coordinates", 
             "scalar_bar_visibility", "orientation_visibility", 
-            "corner_annotations_visibility", "zoom", 
+            "corner_annotations_visibility", "zoom", "display_mode" 
         ])
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
@@ -186,7 +185,8 @@ class Slice(PropertySynchronized) :
         self._renderer.AddActor(self._corner_annotation)
         self._orientation_annotation.SetNonlinearFontScaleFactor(0.25)
         self._renderer.AddActor(self._orientation_annotation)
-        
+    
+        self._set_display_mode(display_mode)    
         self._set_interpolation(interpolation)
         self._set_display_coordinates(display_coordinates)
         
@@ -271,7 +271,7 @@ class Slice(PropertySynchronized) :
         # Create the Layer and insert it in the list
         if LayerClass==Tensor2Layer :
             layer = LayerClass(
-                self._world_to_slice, image, self._display_coordinates, colormap, opacity, self.display_mode)
+                self._world_to_slice, image, self._display_coordinates, colormap, opacity, self._display_mode)
         else :
             layer = LayerClass(
                 self._world_to_slice, image, self._display_coordinates, colormap, opacity)
@@ -532,6 +532,27 @@ class Slice(PropertySynchronized) :
                 layer.actor.SetInterpolate(interpolation)
         
         self.notify_observers("interpolation")
+
+    def _get_display_mode(self) :       
+        return self._display_mode
+    
+    def _set_display_mode(self, display_mode) :
+        if display_mode not in ["principal_direction_voxel", "principal_direction_line", "ellipsoid"] :
+            raise medipy.base.Exception("Unknown display mode : %s"%(display_mode,))
+        
+        self._display_mode = display_mode
+        
+        for layer in self._layers :
+            if isinstance(layer, Tensor2Layer) :
+                layer.display_mode = display_mode
+        
+        # Keep the same pixel under the cursor and centered in the view
+        self._locked = True
+        if self._cursor_index_position is not None :
+            self._set_cursor_index_position(self._get_cursor_index_position())
+        if self._image_index_position is not None :
+            self._set_image_index_position(self._get_image_index_position())
+        self._locked = False
     
     def _get_display_coordinates(self) :
         """ Display image using physical or index coordinates.
@@ -773,6 +794,8 @@ class Slice(PropertySynchronized) :
         
         return self._renderer
     
+    display_mode = property(_get_display_mode, 
+                                   _set_display_mode)
     annotations = property(_get_annotations, _set_annotations)
     interpolation = property(_get_interpolation, _set_interpolation)
     display_coordinates = property(_get_display_coordinates, 

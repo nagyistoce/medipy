@@ -197,6 +197,26 @@
           </object>
           <label>Synchronize</label>
         </object>
+
+
+        <object class="wxMenu" name="display_tensors_menu">
+          <object class="wxMenuItem" name="principal_direction_voxel">
+            <label>Color map</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="principal_direction_line">
+            <label>Principal direction</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="ellipsoid">
+            <label>Ellipsoid</label>
+            <radio>1</radio>
+          </object>
+          <label>Display tensors</label>
+        </object>
+
+
+
         <label>View</label>
       </object>
     </object>

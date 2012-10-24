@@ -329,6 +329,15 @@ class MainFrame(medipy.gui.base.Frame):
     
     def OnSyncDisplayRange(self, dummy):
         wx.GetApp().toggle_synchronize_images("display_range")
+
+    def OnPrincipalDirectionVoxel(self, dummy) :
+        wx.GetApp().tensor2_display_mode = "principal_direction_voxel"
+    
+    def OnPrincipalDirectionLine(self, dummy) :
+        wx.GetApp().tensor2_display_mode = "principal_direction_line"
+    
+    def OnEllipsoid(self, dummy) :
+        wx.GetApp().tensor2_display_mode = "ellipsoid"
     
     def OnDisplayCoordinatesPhysical(self, dummy) :
         wx.GetApp().display_coordinates = "physical"

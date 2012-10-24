@@ -60,6 +60,7 @@ class MediPyApp(medipy.gui.base.Application) :
         self.viewer_3ds = ObservableList()
         
         # Properties
+        self._tensor2_display_mode = None
         self._display_coordinates = None
         self._display_convention = None
         self._synchronize_images = {}
@@ -98,7 +99,7 @@ class MediPyApp(medipy.gui.base.Application) :
             self._frame.ui.images_panel, mode, 
             [{"image" : image}] + [{"image" : l} for l in layers],
             image.annotations, display_coordinates=self._display_coordinates,
-            convention=self._display_convention
+            convention=self._display_convention, display_mode=self.tensor2_display_mode
         )
         gui_image.reset_view()
         gui_image.Bind(wx.EVT_LEFT_DOWN, self.OnImageClicked)
@@ -348,6 +349,16 @@ class MediPyApp(medipy.gui.base.Application) :
     # PROPERTIES #
     ##############
 
+    def _get_tensor2_display_mode(self) :
+        return self._tensor2_display_mode
+    
+    def _set_tensor2_display_mode(self, value) :
+        self._tensor2_display_mode = value
+        for image in self.gui_images :
+            image.display_mode = value
+            image.render()
+        self._preferences.set("Display/mode", value)
+
     def _get_display_coordinates(self) :
         return self._display_coordinates
     
@@ -415,6 +426,8 @@ class MediPyApp(medipy.gui.base.Application) :
     def _get_preferences(self) :
         return self._preferences
     
+    tensor2_display_mode = property(_get_tensor2_display_mode, 
+                                   _set_tensor2_display_mode)
     display_coordinates = property(_get_display_coordinates, 
                                    _set_display_coordinates)
     display_convention = property(_get_display_convention,
@@ -442,6 +455,7 @@ class MediPyApp(medipy.gui.base.Application) :
         
         self.display_coordinates = self._preferences.get("Display/coordinates", "physical")
         self.display_convention = self._preferences.get("Display/convention", "radiological")
+        self.tensor2_display_mode = self._preferences.get("Display/mode", "principal_direction_voxel")
         
         if self.options.menu_file is not None :
             menu = menu_builder.from_file.build_menu(self.options.menu_file)

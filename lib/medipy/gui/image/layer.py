@@ -58,6 +58,7 @@ class Layer(medipy.base.Observable) :
         self._colormap = None
         
         self._opacity = None
+
         
         ###################
         # Private members #

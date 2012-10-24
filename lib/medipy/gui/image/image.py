@@ -92,7 +92,7 @@ class Image(wx.Panel, PropertySynchronized):
         # Properties #
         ##############
 
-        self.display_mode = display_mode
+        self._display_mode = None
         
         self._slice_mode = None
         
@@ -146,7 +146,7 @@ class Image(wx.Panel, PropertySynchronized):
         
         PropertySynchronized.__init__(self, ["interpolation", 
             "display_coordinates", "scalar_bar_visibility", 
-            "orientation_visibility", "zoom"])
+            "orientation_visibility", "zoom", "display_mode"])
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
         self.add_allowed_event("center")
@@ -155,6 +155,7 @@ class Image(wx.Panel, PropertySynchronized):
 #        self.add_allowed_event("layer_modified")
 #        self.add_allowed_event("activated")
 
+        self._set_display_mode(display_mode)
         self._set_interpolation(interpolation)
         self._set_display_coordinates(display_coordinates)
         self._set_scalar_bar_visibility(scalar_bar_visibility)
@@ -359,7 +360,7 @@ class Image(wx.Panel, PropertySynchronized):
                 self._annotations, self._interpolation, 
                 self._display_coordinates,self._scalar_bar_visibility, 
                 self._orientation_visibility, slice_mode != "multiplanar",
-                self.display_mode
+                self._display_mode
             )
         
             if slice_mode == "multiplanar" :
@@ -415,6 +416,15 @@ class Image(wx.Panel, PropertySynchronized):
     
     def _set_interpolation(self, interpolation):
         self._set_slice_property("interpolation", interpolation)
+
+    def _get_display_mode(self) :
+        return self._display_mode
+
+    def _set_display_mode(self,display_mode) :
+        if display_mode not in ["principal_direction_voxel", "principal_direction_line", "ellipsoid"] :
+            raise medipy.base.Exception("Unknown display mode : %s"%(display_mode,))
+
+        self._set_slice_property("display_mode", display_mode)
     
     def _get_display_coordinates(self) :
         return self._display_coordinates
@@ -593,6 +603,7 @@ class Image(wx.Panel, PropertySynchronized):
     center_physical_position = property(_get_center_physical_position, _set_center_physical_position)
     center_index_position = property(_get_center_index_position, _set_center_index_position)
     zoom = property(_get_zoom, _set_zoom)
+    display_mode = property(_get_display_mode, _set_display_mode)
     
     #####################
     # Private interface #
