@@ -6,7 +6,7 @@
 # for details.                                                      
 ##########################################################################
 
-from medipy.io.io import load, load_serie, save, number_of_images
+from medipy.io.io import load, load_serie, save, save_serie, number_of_images
 from medipy.io.io_base import IOBase
 
 import os.path

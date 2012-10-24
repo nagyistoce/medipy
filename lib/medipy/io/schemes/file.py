@@ -17,6 +17,8 @@
 
 import urlparse
 
+import numpy
+
 import medipy.base
 from medipy.base import Image
 
@@ -27,14 +29,6 @@ from medipy.io.nifti_io import Nifti
 from medipy.io.nmr2D import Nmr2D
 from medipy.io.wx_image import WXImage
 io_classes = [Dicom, ITK, IPB, WXImage, Nmr2D, Nifti]
-
-from os.path import splitext
-import numpy as np
-import os
-from dataset import DataSet
-from collections import defaultdict
-from medipy.io.dicom import Tag
-
 
 def load_serie(path, fragment=None, loader=None) :
     """ Load a volume as a serie of N 3D images.
@@ -79,71 +73,30 @@ def save_serie(limages, path, saver=None) :
         a suitable saver will be found automatically.
     """
     
-    N = len(limages)
-    name = path.split('/')[-1].split('.')[0]
-    base = "/".join(path.split('/')[:-1])+"/"
-    ext = "."+".".join(path.split('/')[-1].split('.')[1:])
-    if N>0 :
-        nshape = [tuple(image.shape) for image in limages]
-        nspacing = [tuple(image.spacing) for image in limages]
-        dshape = {}
-        dspacing = {}
-        for t1,t2 in zip(nshape,nspacing) :
-            dshape.setdefault(t1, [])
-            dspacing.setdefault(t2, [])
-        if len(dshape.keys())==1 and len(dspacing.keys())==1 :
-            ndata = np.zeros((N,)+dshape.keys()[0],dtype=np.single)
-            for cnt in range(N) :
-                ndata[cnt] = limages[cnt].data
-            args = {}
-            if "loader" in limages[0].metadata.keys() :
-                args["loader"] = limages[0].metadata["loader"]
-            ndirection = np.diag([1.0]*4)
-            ndirection[1:,1:] = limages[0].direction
-            image = Image(data=ndata,spacing=(1,)+dspacing.keys()[0],origin=(0,)+limages[0].origin,direction=ndirection,metadata=args)
-
-            # Save volume nifti
-            if ext==".nii" or ext==".nii.gz" :
-                save(image,path,saver)
-            else :
-                save(image,base+name+".nii.gz",saver)
-
-            # Save nifti DWI info 
-            bval = []
-            bvec = []
-            tag_bval = Tag(0x0018,0x9087)
-            tag_bvec_seq = Tag(0x0018,0x9076)
-            tag_bvec = Tag(0x0018,0x9089)
-            for cnt in range(N) :
-                if "mr_diffusion_sequence" in limages[cnt].metadata.keys() :
-                    if tag_bval in limages[cnt].metadata["mr_diffusion_sequence"][0].keys() and tag_bvec_seq in limages[cnt].metadata["mr_diffusion_sequence"][0].keys() :
-                        bval.append(limages[cnt].metadata["mr_diffusion_sequence"][0][tag_bval])
-                        if tag_bvec in limages[cnt].metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].keys() :
-                            vec = limages[cnt].metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
-                            if len(vec)==3 :
-                                bvec.append(vec)
-                            else :
-                                break
-                        else :
-                            break
-                    else :
-                        break
-                else :
-                    break
-            if len(bval)==N and len(bvec)==N :
-                fbval = base+name+".bvals"
-                fbvec = base+name+".bvecs"
-                bval = np.asarray(bval)
-                bval.shape += (1,)
-                np.savetxt(fbval,bval.T) 
-                np.savetxt(fbvec,np.asarray(bvec).T)                    
-        else :
-            raise medipy.base.Exception("All images must have the same shape and spacing.")
-    else :
-        raise medipy.base.Exception("A serie of images must contain at least one image.")
-
-
-
+    attributes = ["shape", "origin", "spacing", "direction"]
+    for attribute in attributes :
+        values = [getattr(image, attribute) for image in limages]
+        values = set([tuple(numpy.asarray(x).flatten()) for x in values])
+        if len(values) != 1 :
+            print values
+            raise medipy.base.Exception("All {0}s must be the same".format(attribute))
+    
+    data = numpy.asarray([image.data for image in limages])
+    origin = numpy.hstack(([0], limages[0].origin))
+    spacing = numpy.hstack(([1], limages[0].spacing))
+    direction = numpy.identity(1+limages[0].ndim)
+    direction[1:,1:] = limages[0].direction
+    
+    composite_image = Image(
+        data=data, origin=origin, spacing=spacing, direction=direction)
+    
+    # Add DWI metadata if they exist
+    if all(["mr_diffusion_sequence" in image.metadata for image in limages]) :
+        mr_diffusion_sequence = [image.metadata["mr_diffusion_sequence"][0]
+                                 for image in limages]
+        composite_image.metadata["mr_diffusion_sequence"] = mr_diffusion_sequence
+    
+    save(composite_image, path, saver)
 
 def load(path, fragment=None, loader=None) :
     """ Load an image.
