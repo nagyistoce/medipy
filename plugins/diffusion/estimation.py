@@ -11,30 +11,40 @@ import medipy.itk
 import numpy as np
 from medipy.base import Image
 
-def ls_SecondOrderSymmetricTensorEstimation(images):
+def least_squares(images):
     """ Least Square Second Order Symmetric Tensor Estimation.
-    A diffusion serie is composed of a float reference image (first element in the list) and a set of float diffusion weighted images (on shell, i.e. one bval).
+        A diffusion serie is composed of a float reference image (first element 
+        in the list) and a set of float diffusion weighted images (on shell, 
+        i.e. one bval).
+        
+        All images must have the same shape and the same dtype, and must 
+        contain diffusion metadata.
     """
     
-    # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, so it has already been included in itk by __init__
+    # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, 
+    # so it has already been included in itk by __init__
     
-    estimation_filter = itk.SecondOrderSymmetricTensorReconstructionFilter[itk.Image[itk.F,3], itk.VectorImage[itk.F,3]].New()
+    PixelType = medipy.itk.dtype_to_itk[images[0].dtype.type]
+    Dimension = images[0].ndim
+    InputImage = itk.Image[PixelType, Dimension]
+    OutputImage = itk.VectorImage[PixelType, Dimension]
+    EstimationFilter = itk.SecondOrderSymmetricTensorReconstructionFilter[
+        InputImage, OutputImage]
+    
+    estimation_filter = EstimationFilter.New()
     estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
     for cnt,image in enumerate(images) :
-        image.data = np.cast[np.single](image.data)
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
-        grad = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
-        itk_grad = itk.Point[itk.F,3]()
-        itk_grad[0] = float(grad[0])
-        itk_grad[1] = float(grad[1])
-        itk_grad[2] = float(grad[2])
         estimation_filter.SetInput(cnt,itk_image)
-        estimation_filter.SetGradientDirection(cnt,itk_grad)
+        
+        gradient = image.metadata["mr_diffusion_sequence"][0].\
+            diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
+        estimation_filter.SetGradientDirection(cnt, [float(x) for x in gradient])
+    
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
 
     return tensors
-
 
 def save_SecondOrderSymmetricTensor(tensors,fout):
     """ Save .vtk tensor image  
