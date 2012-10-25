@@ -223,7 +223,7 @@ class FunctionGUIBuilder(object):
             # Create the control
             expression = "medipy.gui.control.%s(self.panel"%parameter["type"]
             
-            if parameter["type"] == "Image" : 
+            if parameter["type"] == "Image" or parameter["type"] == "ImageSerie" : 
                 expression += ", self._images"
             elif parameter["type"] == "Object3D" :
                 expression += ", self._viewer_3ds"

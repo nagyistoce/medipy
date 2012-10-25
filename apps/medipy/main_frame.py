@@ -273,7 +273,7 @@ class MainFrame(medipy.gui.base.Frame):
         if isinstance(images, list) :
             if len(images)>0 :
                 layers = [layer for layer in images[1:]]
-                wx.GetApp().append_image(images[0],layers)
+                wx.GetApp().append_image(images[0],layers,True)
                 for cnt in range(1,len(wx.GetApp().active_image.layers)) :
                     wx.GetApp().active_image.set_layer_visibility(cnt,False)
 

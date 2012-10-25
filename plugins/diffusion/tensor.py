@@ -18,7 +18,7 @@ def ls_estimation_SecondOrderSymmetricTensor(images):
     A diffusion serie is composed of a float reference image (first element in the list) and a set of float diffusion weighted images (on shell, i.e. one bval).
 
     <gui>
-        <item name="images" type="Image" label="Input"/>
+        <item name="images" type="ImageSerie" label="Input"/>
         <item name="output" type="Image" initializer="output=True" role="return" label="Output"/>
     </gui>
     """ 

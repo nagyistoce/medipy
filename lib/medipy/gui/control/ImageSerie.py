@@ -14,7 +14,7 @@ import wx
 import medipy.base
 from medipy.base import Observable
 
-class Image(wx.Panel, Observable):
+class ImageSerie(wx.Panel, Observable):
     def __init__(self, parent, choices, value=None, output=False, 
                  output_checked=False, may_be_empty=False, 
                  may_be_empty_checked=False, *args, **kwargs):
@@ -319,7 +319,7 @@ class Image(wx.Panel, Observable):
                 self._radiobuttons_sizer.Add(button, 0)
                 flag1 = not (self._output and self._new_checkbox.IsChecked())
                 flag2 = not (self._may_be_empty and self._empty_checkbox.IsChecked())
-                flag3 = isinstance(self._choices[i],medipy.base.Image)
+                flag3 = isinstance(self._choices[i],list)
                 enable_widget = flag1 and flag2 and flag3          
                 button.Enable(enable_widget)
             
