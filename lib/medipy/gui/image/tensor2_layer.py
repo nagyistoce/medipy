@@ -194,9 +194,6 @@ class Tensor2Layer(Layer) :
     # Properties #
     ##############
 
-    #def _set_display_coordinates(self, display_coordinates) :
-    #    super(Tensor2Layer, self)._set_display_coordinates(display_coordinates)
-
     def _get_display_mode(self) :
         return self._display_mode
     
@@ -216,8 +213,6 @@ class Tensor2Layer(Layer) :
                 self._actor.AddPart(self._actor_2)
                 self._actor.RemovePart(self._actor_1)
 
-        #self.add_observer("position", self.on_position)  
-        #self.notify_observers("display_mode")
 
     display_mode = property(_get_display_mode, _set_display_mode)
     

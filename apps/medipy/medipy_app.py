@@ -81,16 +81,19 @@ class MediPyApp(medipy.gui.base.Application) :
     # Public interface #
     ####################
         
-    def insert_image(self, index, image, layers=None):  
+    def insert_image(self, index, image, layers=None, is_serie=False):  
         """ Image and layers must be three dimensional
         """
         
         layers = layers or []
         
         self._frame.Freeze()
-        
-        self.images.insert(index, image)
-        
+
+        if is_serie :
+            self.images.insert(index, layers)
+        else :
+            self.images.insert(index, image)
+
         mode = self._preferences.get(
             "Display/slices", 
             "axial" if image.computed_ndim==2 else "multiplanar")
@@ -149,8 +152,8 @@ class MediPyApp(medipy.gui.base.Application) :
         
         self._frame.Thaw()
     
-    def append_image(self, image, layers = None):
-        return self.insert_image(len(self.gui_images), image, layers)
+    def append_image(self, image, layers = None, is_serie=False):
+        return self.insert_image(len(self.gui_images), image, layers, is_serie)
     
     def insert_viewer_3d(self, index, viewer_3d):
         self.viewer_3ds.insert(index, viewer_3d)
@@ -409,7 +412,10 @@ class MediPyApp(medipy.gui.base.Application) :
             pass
 
         # Display active image path in title
-        url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
+        if isinstance(self.images[self._active_image_index],medipy.base.Image) :
+            url = self.images[self._active_image_index].metadata.get("loader", {}).get("url", "")
+        else :
+            url = self.images[self._active_image_index][0].metadata.get("loader", {}).get("url", "")
         self._frame.SetTitle("{0} ({1})".format(self._application_name, url))
 
         if self._cine_dialog :
