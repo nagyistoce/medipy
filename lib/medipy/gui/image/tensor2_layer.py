@@ -59,9 +59,9 @@ class Tensor2Layer(Layer) :
         # Property-related members #
         ############################
 
-        self._actor_1.InterpolateOff()                    
-        self._actor_1.SetPosition(self.vtk_slice_tensors.GetOrigin())
-        self._actor_1.SetScale(self.vtk_slice_tensors.GetSpacing())
+        self._actor_1.InterpolateOff() 
+        self._origin = self.vtk_slice_tensors.GetOrigin()
+        self._spacing = self.vtk_slice_tensors.GetSpacing()                    
 
         if display_mode=="principal_direction_voxel" :
             self._actor.AddPart(self._actor_1)
@@ -111,6 +111,12 @@ class Tensor2Layer(Layer) :
             numpy_principal_direction.copy_information(self.numpy_slice_tensors) 
             vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy_principal_direction)
             self._actor_1.SetInput(vtk_principal_direction)
+            if self._display_coordinates=="physical" :
+                self._actor_1.SetPosition(self._origin)
+                self._actor_1.SetScale(self._spacing)
+            else :
+                self._actor_1.SetPosition((0,0,0))
+                self._actor_1.SetScale((1,1,1))
 
         elif self._display_mode=="principal_direction_line" :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
@@ -187,6 +193,9 @@ class Tensor2Layer(Layer) :
     ##############
     # Properties #
     ##############
+
+    #def _set_display_coordinates(self, display_coordinates) :
+    #    super(Tensor2Layer, self)._set_display_coordinates(display_coordinates)
 
     def _get_display_mode(self) :
         return self._display_mode
