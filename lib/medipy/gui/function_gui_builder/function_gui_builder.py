@@ -48,11 +48,14 @@ class FunctionGUIBuilder(object):
         buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
         buttons_sizer.AddStretchSpacer(1)
         buttons_sizer.Add(self._run_button) 
-        buttons_sizer.Add(reset_button)        
+        buttons_sizer.Add(reset_button)     
+
+
         # Controls
         controls_sizer = wx.BoxSizer(wx.VERTICAL)
         self._create_gui(controls_sizer)
-        self._load_parameters()
+        #self._load_parameters()                                                            #bug
+
         # Main layout
         panel_sizer = wx.BoxSizer(wx.VERTICAL)
         panel_sizer.Add(controls_sizer, flag=wx.EXPAND)
@@ -68,7 +71,7 @@ class FunctionGUIBuilder(object):
     def __call__(self):
         
         # Save the current value of the parameters
-        self._save_parameters()
+        #self._save_parameters()                                                            #bug
         
         # Build the expression namespace
         namespace = {"function" : self._function}
@@ -231,7 +234,8 @@ class FunctionGUIBuilder(object):
             if initializer != "" :
                 expression += ", " + initializer
             expression += ")"
-            
+
+            print expression           
             try :
                 control = eval(expression)
                 self._controls[parameter["name"]] = control
@@ -292,6 +296,7 @@ class FunctionGUIBuilder(object):
         has_next, entry, cookie = wx.ConfigBase_Get().GetFirstEntry()
         while has_next :
             value = wx.ConfigBase_Get().Read(entry)
+            print ":::"
             try :
                 value = cPickle.loads(str(value))
             except :
@@ -299,10 +304,12 @@ class FunctionGUIBuilder(object):
                 pass
             else :
                 try :
+                    print "tto", value
                     self._controls[entry].value = value
                 except :
                     # Could not restore, ignore exception
                     pass
+            print ":::"
             has_next, entry, cookie = wx.ConfigBase_Get().GetNextEntry(cookie)
         
         wx.ConfigBase_Get().SetPath(old_path)

@@ -24,11 +24,12 @@ def ls_estimation_SecondOrderSymmetricTensor(images):
     """ 
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, so it has already been included in itk by __init__
 
-    layers = [layer['image'] for layer in wx.GetApp().active_image.layers]
+    print len(images)
+    print [image.shape for image in images]
 
     estimation_filter = itk.SecondOrderSymmetricTensorReconstructionFilter[itk.Image[itk.F,3], itk.VectorImage[itk.F,3]].New()
-    estimation_filter.SetBVal(layers[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
-    for cnt,image in enumerate(layers) :
+    estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
+    for cnt,image in enumerate(images) :
         image.data = np.cast[np.single](image.data)
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         grad = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
