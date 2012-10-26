@@ -46,16 +46,14 @@ class ImageSerie(wx.Panel, Observable):
                 if isinstance(value,list) :
                     self._value = [weakref.ref(x) for x in value]
                     self._last_choosed = weakref.ref(value[0])
-                else :
-                    self._value = weakref.ref(value)
-                    self._last_choosed = weakref.ref(value)
+                    self._output_checked = False
             else :
-                if isinstance(choices[0],list) :
-                    self._value = [weakref.ref(x) for x in choices[0]] 
-                    self._last_choosed = weakref.ref(choices[0][0])
-                else :
-                    self._value = weakref.ref(choices[0])
-                    self._last_choosed = weakref.ref(choices[0])
+                for i,choice in enumerate(choices) :
+                    if isinstance(choice,list) :
+                        self._value = [weakref.ref(x) for x in choice]
+                        self._last_choosed = weakref.ref(choice[0])
+                        self._output_checked = False
+                        break
         
             if self._output_checked or self._may_be_empty_checked :
                 self._value = None
@@ -95,10 +93,7 @@ class ImageSerie(wx.Panel, Observable):
     # Public interface #
     ####################
     def validate(self):
-        #print "run serie"
-        #print self.print_choices(self._choices)
-        #print "value:", self._value
-        if self._value in self._choices or self._new_checkbox or self._may_be_empty:
+        if self._get_value() in self._choices or self._output_checked or self._may_be_empty: #or self._new_checkbox
             self.SetBackgroundColour(None)
             return True
         else : 
@@ -146,8 +141,9 @@ class ImageSerie(wx.Panel, Observable):
         
         
     def _get_value(self):
-        print "get serie"
-        print self._value
+        #print "get"           
+        #print self._value
+
         if self._value is not None :
             if isinstance(self._value,list) :
                 return [x() for x in self._value]
@@ -229,9 +225,7 @@ class ImageSerie(wx.Panel, Observable):
     output_checked = property(lambda x:x._output_checked, _set_output_checked)
     may_be_empty = property(lambda x:x._may_be_empty, _set_may_be_empty)
     may_be_empty_checked = property(lambda x:x._may_be_empty_checked, _set_may_be_empty_checked)
-
-    
-    
+   
     
     ##########
     # Events #
@@ -266,21 +260,25 @@ class ImageSerie(wx.Panel, Observable):
     def _on_choices_modified(self, event):
         if self._last_choosed is None :
             if self._choices:
-                if isinstance(self._choices[0],list) :
-                    self._last_choosed = weakref.ref(self._choices[0][0])
-                else :
-                    self._last_choosed = weakref.ref(self._choices[0])
+                for i,choice in enumerate(self._choices) :
+                    if isinstance(choice,list) :
+                        self._value = [weakref.ref(x) for x in choice]
+                        self._last_choosed = weakref.ref(choice[0])
+                        self._output_checked = False
+                        break
         else :
             if self._last_choosed() not in self._choices :
+                self._last_choosed = None
                 if self._choices:
-                    if isinstance(self._choices[0],list) :
-                        self._last_choosed = weakref.ref(self._choices[0][0])
-                    else :
-                        self._last_choosed = weakref.ref(self._choices[0])
-                else :
-                    self._last_choosed = None
+                    for i,choice in enumerate(self._choices) :
+                        if isinstance(self._choices[0],list) :
+                            if isinstance(choice,list) :
+                                self._value = [weakref.ref(x) for x in choice]
+                                self._last_choosed = weakref.ref(choice[0])
+                                self._output_checked = False
+                                break
         self._update_gui()
-    
+   
     #####################
     # Private interface #
     #####################
@@ -340,24 +338,15 @@ class ImageSerie(wx.Panel, Observable):
                     self._flat_choices.append(weakref.ref(self.choices[i]))
             
             if self._last_choosed is not None :
-                print "image serie"
-                print self._flat_choices
-                print self._output_checked
-                print self._last_choosed
-                print self._value
+                #print "image serie"
+                #print self._flat_choices
+                #print self._output_checked
+                #print self._last_choosed
                 index = self._flat_choices.index(self._last_choosed)
-                print index
+                #print index
             else : 
                 index = 0
             choosed_button = self._radiobuttons_sizer.GetChildren()[index].GetWindow()
             choosed_button.SetValue(True)
         
         self.Fit()
-
-    def print_choices(self, choices) :
-        print "choices:"
-        for choice in choices :
-            if isinstance(choice,list) :
-                print choice[0], len(choice)
-            else :
-                print choice
