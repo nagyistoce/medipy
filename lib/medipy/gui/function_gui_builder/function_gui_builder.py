@@ -105,6 +105,7 @@ class FunctionGUIBuilder(object):
             return_expression = ", ".join(return_values)
             expression = "{0} = {1}".format(return_expression, expression)
         
+        print expression
         # Execute it
         def f():
             exec expression in namespace
@@ -130,6 +131,7 @@ class FunctionGUIBuilder(object):
             else :
                 name = parameter["name"]
                 value = namespace[name]
+                value.data = numpy.ascontiguousarray(value.data)
                 control = self._controls[name]
                 
                 # Special case for Image and Object3D
@@ -195,6 +197,7 @@ class FunctionGUIBuilder(object):
         self.validate_form()
     
     def _on_images_modified(self, dummy):
+        self.validate_form()
         self.panel.Fit()
     
     def _on_viewer_3ds_modified(self, dummy):
