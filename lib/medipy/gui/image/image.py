@@ -491,7 +491,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._cursor_physical_position = self.cursor_physical_position
         if self._layers :
             image = self._layers[0]["image"]
-            self._cursor_index_position = (cursor_physical_position-image.origin)/image.spacing
+            self._cursor_index_position = image.physical_to_index(cursor_physical_position)
         else :
             self._cursor_index_position = cursor_physical_position
         
@@ -509,7 +509,7 @@ class Image(wx.Panel, PropertySynchronized):
     def _set_cursor_index_position(self, cursor_index_position):
         if self._layers :
             image = self._layers[0]["image"]
-            cursor_physical_position = image.origin+cursor_index_position*image.spacing
+            cursor_physical_position = image.index_to_physical(cursor_index_position)
         else :
             cursor_physical_position = cursor_index_position
         
