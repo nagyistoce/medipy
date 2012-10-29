@@ -69,8 +69,8 @@ class ObservableList(list, Observable) :
     
     def insert(self, index, value) :
         list.insert(self, index, value)
-        self.notify_observers("insert", index=index, value=value)
-    
+        #self.notify_observers("insert", index=index, value=value)
+            
     def remove(self, value) :
         index = list.index(self, value)
         list.remove(self, value)

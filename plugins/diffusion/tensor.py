@@ -24,9 +24,6 @@ def ls_estimation_SecondOrderSymmetricTensor(images):
     """ 
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, so it has already been included in itk by __init__
 
-    print len(images)
-    print [image.shape for image in images]
-
     estimation_filter = itk.SecondOrderSymmetricTensorReconstructionFilter[itk.Image[itk.F,3], itk.VectorImage[itk.F,3]].New()
     estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
     for cnt,image in enumerate(images) :

@@ -92,18 +92,20 @@ class MediPyApp(medipy.gui.base.Application) :
         if is_serie :
             self.images.insert(index, layers)
         else :
+            print index
             self.images.insert(index, image)
 
         mode = self._preferences.get(
             "Display/slices", 
             "axial" if image.computed_ndim==2 else "multiplanar")
-        
+       
         gui_image = medipy.gui.image.Image(
             self._frame.ui.images_panel, mode, 
             [{"image" : image}] + [{"image" : l} for l in layers],
             image.annotations, display_coordinates=self._display_coordinates,
             convention=self._display_convention, display_mode=self.tensor2_display_mode
         )
+
         gui_image.reset_view()
         gui_image.Bind(wx.EVT_LEFT_DOWN, self.OnImageClicked)
         gui_image.Bind(wx.EVT_MIDDLE_DOWN, self.OnImageClicked)
