@@ -12,7 +12,6 @@
 
 
 #include <itkImageToImageFilter.h>
-#include "itkSymmetricSpectralAnalysisImageFilter.h"
 #include <itkSmartPointer.h>
 
 
@@ -50,33 +49,40 @@ public :
     typedef typename TInputImage::PixelType         InputPixelType;
     typedef typename InputPixelType::ValueType      InputValueType;
     typedef typename OutputPixelType::ValueType     OutputValueType;
+    typedef Image<float, 3>                         MaskType;
 
     /** Accessors */
     itkSetMacro(SizePlane, unsigned int);
     itkGetConstMacro(SizePlane, unsigned int);
     itkSetMacro(SizeDepth, unsigned int);
     itkGetConstMacro(SizeDepth, unsigned int);
+    itkGetConstMacro(NumberOfElements, unsigned int);
+    void SetMask(MaskType *m);
+    MaskType* GetMask() const;
 
 protected :
     ParameterEstimationImageFilter();
     ~ParameterEstimationImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
+    void AllocateOutputs();
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
 
 private :
     unsigned int m_SizePlane;
     unsigned int m_SizeDepth;
-    unsigned int nb_elements;
+    unsigned int m_NumberOfElements;
     unsigned int shift_plane;
     unsigned int shift_depth;
-    unsigned int vector_size;
+    typename InputImageType::SizeType size;
+    bool masked;
+    MaskType::Pointer mask;
 };
 
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSymmetricSpectralAnalysisImageFilter.txx"
+#include "itkParameterEstimationImageFilter.txx"
 #endif
 
 #endif 

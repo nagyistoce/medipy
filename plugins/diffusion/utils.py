@@ -44,6 +44,21 @@ def length(xyz, constant_step=None):
         return (xyz.shape[0]-1)*constant_step
 
 
+
+def voxel_parameters(tensor,w_size_plane=3,w_size_depth=3,mask=None):
+    shape = tensor.shape
+    mean = medipy.base.Image(data=np.zeros(shape[:3]+(6,),dtype=np.single),data_type="vector")
+    var = medipy.base.Image(data=np.zeros(shape[:3]+(1,),dtype=np.single),data_type="vector")
+    if mask==None :
+        mask = medipy.base.Image(data=np.zeros((1,1,1),dtype=np.single))
+        medipy.diffusion.dtiParamItk(tensor,mean,var,mask,w_size_plane,w_size_depth,False)
+    else :
+        medipy.diffusion.dtiParamItk(tensor,mean,var,mask,w_size_plane,w_size_depth,True)
+    var.data = np.sqrt( var.data/6.0 ) # compute standard deviation
+
+    return mean,var,w_size_plane*w_size_plane*w_size_depth
+
+
 def spectral_decomposition(slice_tensor):
     shape = slice_tensor.shape
 
