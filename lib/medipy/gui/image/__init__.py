@@ -8,6 +8,7 @@
 
 from medipy.gui.image.contour_layer import ContourLayer
 from medipy.gui.image.image import Image
+from medipy.gui.image.image_grid import ImageGrid
 from medipy.gui.image.image_layer import ImageLayer
 from medipy.gui.image.layer import Layer
 from medipy.gui.image.layers_panel import LayersPanel
