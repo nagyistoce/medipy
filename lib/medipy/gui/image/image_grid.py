@@ -13,7 +13,7 @@ import wx
 import medipy.base
 import medipy.gui.image
 
-class ImageGrid(wx.Panel):
+class ImageGrid(wx.Panel, medipy.base.Observable):
     """ wx container for a list of layers. It synchronizes the view mode (i.e.
         slice_mode, interpolation, display_coordinates, scalar_bar_visibility,
         orientation_visibility, corner_annotations_visibility and convention)
@@ -54,6 +54,7 @@ class ImageGrid(wx.Panel):
         # Initialization #
         ##################
         wx.Panel.__init__(self, parent, *args, **kwargs)
+        medipy.base.Observable.__init__(self, ["active"])
         self.SetSizer(self._sizer)
         
         self._set_slice_mode(slice_mode)
@@ -259,6 +260,7 @@ class ImageGrid(wx.Panel):
                 other_image.SetBackgroundColour(wx.GREEN)
             else :
                 other_image.SetBackgroundColour(wx.BLACK)
+        self.notify_observers("active")
     
     active = property(_get_active, _set_active)
     slice_mode = property(_get_slice_mode, _set_slice_mode)
