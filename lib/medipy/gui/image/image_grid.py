@@ -185,6 +185,7 @@ class ImageGrid(wx.Panel):
         self._slice_mode = value
         for image in self._images :
             image.slice_mode = value
+            image.render()
     
     def _get_interpolation(self) :
         return self._interpolation
@@ -193,6 +194,7 @@ class ImageGrid(wx.Panel):
         self._interpolation = value
         for image in self._images :
             image.interpolation = value
+            image.render()
     
     def _get_display_coordinates(self) :
         return self._display_coordinates
@@ -201,6 +203,7 @@ class ImageGrid(wx.Panel):
         self._display_coordinates = value
         for image in self._images :
             image.display_coordinates = value
+            image.render()
     
     def _get_scalar_bar_visibility(self) :
         return self._scalar_bar_visibility
@@ -209,6 +212,7 @@ class ImageGrid(wx.Panel):
         self._scalar_bar_visibility = value
         for image in self._images :
             image.scalar_bar_visibility = value
+            image.render()
     
     def _get_orientation_visibility(self) :
         return self._orientation_visibility
@@ -217,6 +221,7 @@ class ImageGrid(wx.Panel):
         self._orientation_visibility = value
         for image in self._images :
             image.orientation_visibility = value
+            image.render()
     
     def _get_corner_annotations_visibility(self) :
         return self._corner_annotations_visibility
@@ -225,6 +230,7 @@ class ImageGrid(wx.Panel):
         self._corner_annotations_visibility = value
         for image in self._images :
             image.corner_annotations_visibility = value
+            image.render()
     
     def _get_convention(self) :
         return self._convention
@@ -233,6 +239,7 @@ class ImageGrid(wx.Panel):
         self._convention = value
         for image in self._images :
             image.convention = value
+            image.render()
     
     def _get_active(self):
         return self._active
