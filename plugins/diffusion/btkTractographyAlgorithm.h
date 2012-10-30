@@ -36,24 +36,21 @@
 #ifndef BTK_TRACTOGRAPHY_ALGORITHM_H
 #define BTK_TRACTOGRAPHY_ALGORITHM_H
 
-// STL includes
-#include "vector"
-
 // ITK includes
 #include "itkSmartPointer.h"
 #include "itkMacro.h"
 #include "itkProcessObject.h"
 #include "itkImage.h"
+#include "itkVectorImage.h"
 #include "itkPoint.h"
+#include "itkContinuousIndex.h"
+#include "itkVector.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkVectorImageToImageAdaptor.h"
 
 // VTK includes
-#include "vtkSmartPointer.h"
-#include "vtkAppendPolyData.h"
-
-// Local includes
-#include "btkMacro.h"
-#include "btkDiffusionSequence.h"
-#include "btkDiffusionModel.h"
+/*#include "vtkSmartPointer.h"
+#include "vtkAppendPolyData.h"*/
 
 namespace btk
 {
@@ -66,117 +63,55 @@ namespace btk
 class TractographyAlgorithm : public itk::ProcessObject
 {
     public:
-        typedef TractographyAlgorithm           Self;
-        typedef itk::ProcessObject              Superclass;
-        typedef itk::SmartPointer< Self >       Pointer;
-        typedef itk::SmartPointer< const Self > ConstPointer;
+        typedef TractographyAlgorithm                                               Self;
+        typedef itk::ProcessObject                                                  Superclass;
+        typedef itk::SmartPointer< Self >                                           Pointer;
+        typedef itk::SmartPointer< const Self >                                     ConstPointer;
+    
+        typedef itk::Image< short,3 >                                               MaskType;
+        typedef itk::Point< float,3 >                                               PointType;
+        typedef itk::Vector< float,3 >                                              VectorType;   
+        typedef itk::VariableLengthVector< itk::Vector< float,3 > >                 FiberType;    
+        typedef itk::VectorImage< float, 3 >                                        ModelType;
 
-        typedef itk::Image< short,3 > MaskImage;
-        typedef itk::Image< short,3 > LabelImage;
-        typedef itk::Point< float,3 > PhysicalPoint;
+        typedef itk::VectorImageToImageAdaptor< float,3 >                                        VectorImageToImageAdaptorType; 
+        typedef itk::LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
 
-        itkTypeMacro(TractographyAlgorithm,itk::ProcessObject);
+        itkTypeMacro(TractographyAlgorithm, itk::ProcessObject);
 
-        btkSetMacro(DiffusionSequence, btk::DiffusionSequence::Pointer);
-        btkGetMacro(DiffusionSequence, btk::DiffusionSequence::Pointer);
+        itkSetMacro(Mask, Self::MaskType::Pointer);
+        itkGetConstMacro(Mask, Self::MaskType::Pointer);
 
-        btkSetMacro(DiffusionModel, btk::DiffusionModel::Pointer);
-        btkGetMacro(DiffusionModel, btk::DiffusionModel::Pointer);
+        itkSetMacro(InputModel, ModelType::Pointer);
+        itkGetConstMacro(InputModel, ModelType::Pointer);
 
-        btkSetMacro(Mask, Self::MaskImage::Pointer);
-        btkGetMacro(Mask, Self::MaskImage::Pointer);
-
-        btkSetMacro(RegionsOfInterest, Self::LabelImage::Pointer);
-        btkGetMacro(RegionsOfInterest, Self::LabelImage::Pointer);
-
-        btkSetMacro(SeedLabels, std::vector< unsigned short >);
-        btkGetMacro(SeedLabels, std::vector< unsigned short >);
-
-        btkSetMacro(SeedSpacing, float);
-        btkGetMacro(SeedSpacing, float);
-
-        /**
-         * @brief Run the algorithm.
-         */
-        virtual void Update();
-
-        /**
-         * @brief Accessor to output estimated fibers
-         * @param label Label corresponding to fibers
-         * @return Estimated fibers which seeds have label label.
-         */
-        virtual std::vector< vtkSmartPointer< vtkAppendPolyData > > GetOutputFiber() const;
+        itkSetMacro(Seeds, itk::Vector< VectorType >);
+        itkGetConstMacro(Seeds, itk::Vector< VectorType >);
 
     protected:
-        /**
-         * @brief Constructor.
-         */
         TractographyAlgorithm();
-
-        /**
-         * @brief Print a message on output stream.
-         * @param os Output stream where the message is printed.
-         * @param indent Indentation.
-         */
+        // Print a message on output stream.
         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
-
-        /**
-         * @brief Resample the regions of interest to make a seed per voxels.
-         */
-        virtual void ResampleLabelImage();
-
-        /**
-         * @brief Propagate using the tractography algorithm at a seed point.
-         * @param point Seed point.
-         */
-        virtual void PropagateSeed(Self::PhysicalPoint point) = 0;
+        // Propagate using the tractography algorithm at a seed point.
+        virtual void PropagateSeed(PointType point) = 0;
+        //brief Run the algorithm.
+        virtual void Update();
+        // brief Accessor to output estimated fibers
+        virtual FiberType GetOutputFiber(unsigned int i) const;
 
     protected:
-        /**
-         * @brief Diffusion sequence used as measured observations in algorithm.
-         */
-        btk::DiffusionSequence::Pointer m_DiffusionSequence;
+        // Mask image determining where the tractography algorithm can process.
+        MaskType::Pointer m_Mask;
+        // Tensor image.
+        ModelType::Pointer m_InputModel;
+        // Estimated fibers.
+        std::vector< FiberType > m_OutputFibers;
+        // Seeds.
+        itk::Vector< VectorType >  m_Seeds;
+        // Interpolation tools.
+        InterpolateModelType::Pointer m_InterpolateModelFunction;
+        VectorImageToImageAdaptorType::Pointer m_Adaptor;
 
-        /**
-         * @brief Diffusion modeling used in algorithm.
-         */
-        btk::DiffusionModel::Pointer m_DiffusionModel;
-
-        /**
-         * @brief Mask image determining where the tractography algorithm can process.
-         */
-        Self::MaskImage::Pointer m_Mask;
-
-        /**
-         * @brief Space memory for current fiber under construction.
-         */
-        vtkSmartPointer< vtkPolyData > m_CurrentFiber;
-
-    private:
-        /**
-         * @brief Image of regions of interest (seed regions for tractography algorithm).
-         */
-        Self::LabelImage::Pointer m_RegionsOfInterest;
-
-        /**
-         * @brief Labels corresponding to seed region in image of region of interest where the tractography algorithm can process.
-         */
-        std::vector< unsigned short > m_SeedLabels;
-
-        /**
-         * @brief Space between seeds (in mm).
-         */
-        float m_SeedSpacing;
-
-        /**
-         * @brief Estimated fibers for each label represented by VTK polydata lines.
-         */
-        std::vector< vtkSmartPointer< vtkAppendPolyData > > m_OutputFibers;
-
-        /**
-         * @brief Indices of labels corresponding to output solutions.
-         */
-        std::vector< int > m_OutputIndicesOfLabels;
 };
 
 } // namespace btk

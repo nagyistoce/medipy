@@ -39,9 +39,10 @@
 // ITK includes
 #include "itkMacro.h"
 #include "itkSmartPointer.h"
+#include "itkDiffusionTensor3DReconstructionImageFilter.h"
+#include <itkSymmetricEigenAnalysis.h>
 
 // Local includes
-#include "btkMacro.h"
 #include "btkTractographyAlgorithm.h"
 
 namespace btk
@@ -62,20 +63,25 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
 
         typedef Superclass::PhysicalPoint PhysicalPoint;
 
+        typedef vnl_matrix<double>      InputMatrixType;
+        typedef itk::FixedArray<double, 3>   EigenValuesArrayType;
+        typedef itk::Matrix<double, 3, 3>    EigenVectorMatrixType;
+        typedef itk::SymmetricEigenAnalysis<InputMatrixType, EigenValuesArrayType, EigenVectorMatrixType> CalculatorType;
+
         itkNewMacro(Self);
 
-        itkTypeMacro(StreamlineTractographyAlgorithm,btk::TractographyAlgorithm);
+        itkTypeMacro(StreamlineTractographyAlgorithm, btk::TractographyAlgorithm);
 
-        btkSetMacro(StepSize,float);
-        btkGetMacro(StepSize,float);
+        itkSetMacro(StepSize,float);
+        itkGetConstMacro(StepSize,float);
 
         void UseRungeKuttaOrder4(bool arg)
         {
             m_UseRungeKuttaOrder4 = arg;
         }
 
-        btkSetMacro(ThresholdAngle,float);
-        btkGetMacro(ThresholdAngle,float);
+        itkSetMacro(ThresholdAngle,float);
+        itkGetConstMacro(ThresholdAngle,float);
 
     protected:
         /**
@@ -88,26 +94,34 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
          * @param os Output stream where the message is printed.
          * @param indent Indentation.
          */
-        virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
+         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
 
         /**
          * @brief Propagate using the tractography algorithm at a seed point.
          * @param point Seed point.
          */
         virtual void PropagateSeed(Self::PhysicalPoint point);
+        /**
+         * @brief Get mean directions in a solid angle formed by previous vector and search angle at a location in the physical space.
+         * @param cindex Continuous index in the image space.
+         * @param vector Previous vector
+         * @param angle Angle of search.
+         * @return Vector of mean directions of local model in a solid angle formed by previous vector and search angle at a physical location point.
+         */
+         std::vector< PhysicalPoint > MeanDirectionsAt(PhysicalPoint vector);
 
     private:
         /**
          * @brief Propagate a seed using the Runke-Kutta method at order 4.
          * @param points Vector of points initilized with the coordinates of the seed.
          */
-        void PropagateSeedRK4(std::vector< Self::PhysicalPoint > &points);
+         void PropagateSeedRK4(std::vector< Self::PhysicalPoint > &points);
 
         /**
          * @brief Propagate a seed using the Euler method (Runke-Kutta method at order 1).
          * @param points Vector of points initilized with the coordinates of the seed.
          */
-        void PropagateSeedRK1(std::vector< Self::PhysicalPoint > &points);
+         void PropagateSeedRK1(std::vector< Self::PhysicalPoint > &points);
 
         /**
          * @brief Select the best direction in a vector of direction, depending on the previous direction.
@@ -115,7 +129,7 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
          * @param previousVector Previous direction.
          * @return The closest direction to the previous direction.
          */
-        btk::GradientDirection SelectClosestDirection(std::vector< btk::GradientDirection > &meanDirections, btk::GradientDirection &previousVector);
+         PhysicalPoint SelectClosestDirection(std::vector< PhysicalPoint > &meanDirections, PhysicalPoint &previousVector);
 
     private:
         /**
@@ -132,6 +146,8 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
          * @brief Allowed angle for propagation.
          */
         float m_ThresholdAngle;
+
+        CalculatorType m_Calculator;
 };
 
 } // namespace btk

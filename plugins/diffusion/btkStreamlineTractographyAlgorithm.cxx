@@ -37,14 +37,11 @@
 
 
 // VTK includes
-#include "vtkSmartPointer.h"
+/*#include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
 #include "vtkPoints.h"
 #include "vtkCellArray.h"
-#include "vtkPolyLine.h"
-
-// Local includes
-#include "btkGradientDirection.h"
+#include "vtkPolyLine.h"*/
 
 
 namespace btk
@@ -53,6 +50,7 @@ namespace btk
 StreamlineTractographyAlgorithm::StreamlineTractographyAlgorithm() : m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_ThresholdAngle(M_PI/3.0f), Superclass()
 {
     // ----
+    m_Calculator.SetDimension(3);
 }
 
 //----------------------------------------------------------------------------------------
@@ -88,7 +86,7 @@ void StreamlineTractographyAlgorithm::PropagateSeed(Self::PhysicalPoint point)
 
     if(points.size() > 1)
     {
-        m_CurrentFiber = vtkSmartPointer< vtkPolyData >::New();
+        /*m_CurrentFiber = vtkSmartPointer< vtkPolyData >::New();
 
         // Graphical representation structures
         vtkSmartPointer< vtkPoints >  vpoints = vtkSmartPointer< vtkPoints >::New();
@@ -105,7 +103,16 @@ void StreamlineTractographyAlgorithm::PropagateSeed(Self::PhysicalPoint point)
 
         lines->InsertNextCell(line);
         m_CurrentFiber->SetPoints(vpoints);
-        m_CurrentFiber->SetLines(lines);
+        m_CurrentFiber->SetLines(lines);*/
+
+        m_CurrentFiber.SetSize(points.size());
+        for(unsigned int i = 0; i < points.size(); i++) {
+            itk::Vector<float,3> v;
+            v[0] = -points[i][0];
+            v[1] = -points[i][1];
+            v[2] = points[i][2];
+            m_CurrentFiber[i] = v;
+        }
     }
 }
 
@@ -117,31 +124,35 @@ void StreamlineTractographyAlgorithm::PropagateSeedRK4(std::vector< Self::Physic
     float stepSize_2 = m_StepSize / 2.f;
     float stepSize_6 = m_StepSize / 6.f;
 
-    bool stop                              = false;
-    btk::GradientDirection nextDirection = m_DiffusionModel->MeanDirectionsAt(points.back())[0];
+    bool stop = false;
+    PhysicalPoint nextDirection = MeanDirectionsAt(points.back())[0];
 
     do
     {
         // This use the RK4 to compute the next point (Runge-Kutta, order 4)
         Self::PhysicalPoint lastPoint = points.back();
 
-        btk::GradientDirection k1 = nextDirection;
-        std::vector< btk::GradientDirection > directions = m_DiffusionModel->MeanDirectionsAt(lastPoint + (k1*stepSize_2), k1, m_ThresholdAngle);
-        btk::GradientDirection k2 = Self::SelectClosestDirection(directions, k1);
+        PhysicalPoint k1 = nextDirection;
+        Self::PhysicalPoint nextPoint;
+        for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k1[i]*stepSize_2); }
+        std::vector< PhysicalPoint > directions = MeanDirectionsAt(nextPoint);
+        PhysicalPoint k2 = Self::SelectClosestDirection(directions, k1);
 
-        if(k2 != btk::GradientDirection())
+        if(k2 != PhysicalPoint())
         {
-                           directions = m_DiffusionModel->MeanDirectionsAt(lastPoint + (k2*stepSize_2), k2, m_ThresholdAngle);
-            btk::GradientDirection k3 = Self::SelectClosestDirection(directions, k2);
+            for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k2[i]*stepSize_2); }
+            directions = MeanDirectionsAt(nextPoint);
+            PhysicalPoint k3 = Self::SelectClosestDirection(directions, k2);
 
-            if(k3 != btk::GradientDirection())
+            if(k3 != PhysicalPoint())
             {
-                               directions = m_DiffusionModel->MeanDirectionsAt(lastPoint + (k3*m_StepSize), k3, m_ThresholdAngle);
-                btk::GradientDirection k4 = Self::SelectClosestDirection(directions, k3);
+                for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k3[i]*m_StepSize); }
+                directions = MeanDirectionsAt(nextPoint);
+                PhysicalPoint k4 = Self::SelectClosestDirection(directions, k3);
 
-                if(k4 != btk::GradientDirection())
+                if(k4 != PhysicalPoint())
                 {
-                    Self::PhysicalPoint nextPoint = lastPoint + (k1 + (k2*2.f) + (k3*2.f) + k4) * stepSize_6;
+                    for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k1[i] + (k2[i]*2.f) + (k3[i]*2.f) + k4[i]) * stepSize_6; }
 
                     // Check if the physical point is in the mask
                     Self::MaskImage::IndexType maskIndex;
@@ -157,10 +168,10 @@ void StreamlineTractographyAlgorithm::PropagateSeedRK4(std::vector< Self::Physic
                         points.push_back(nextPoint);
 
                         // Search next direction
-                        std::vector< btk::GradientDirection > meanDirections = m_DiffusionModel->MeanDirectionsAt(nextPoint, k1, m_ThresholdAngle);
+                        std::vector< PhysicalPoint > meanDirections = MeanDirectionsAt(nextPoint);
                         nextDirection = Self::SelectClosestDirection(meanDirections, k1);
 
-                        if(nextDirection == btk::GradientDirection())
+                        if(nextDirection == PhysicalPoint())
                         {
                             stop = true;
                         }
@@ -187,14 +198,15 @@ void StreamlineTractographyAlgorithm::PropagateSeedRK4(std::vector< Self::Physic
 
 void StreamlineTractographyAlgorithm::PropagateSeedRK1(std::vector< Self::PhysicalPoint > &points)
 {
-    bool                            stop = false;
-    btk::GradientDirection nextDirection = m_DiffusionModel->MeanDirectionsAt(points.back())[0];
+    bool stop = false;
+    PhysicalPoint nextDirection = MeanDirectionsAt(points.back())[0];
 
     do
     {
-        // This use the RK1 (Euler) to compute the next point (Runge-Kutta, order 1, Euler method)
-        btk::GradientDirection     k1 = nextDirection;
-        Self::PhysicalPoint nextPoint = points.back() + (k1*m_StepSize);
+        // This use the RK0 (Euler) to compute the next point (Runge-Kutta, order 0, Euler method)
+        PhysicalPoint k1 = nextDirection;
+        Self::PhysicalPoint nextPoint;
+        for (unsigned int i=0; i<3; i++) { nextPoint[i] = points.back()[i] + (k1[i]*m_StepSize); }
 
         // Check if the physical point is in the mask
         Self::MaskImage::IndexType maskIndex;
@@ -210,10 +222,10 @@ void StreamlineTractographyAlgorithm::PropagateSeedRK1(std::vector< Self::Physic
             points.push_back(nextPoint);
 
             // Search next direction
-            std::vector< btk::GradientDirection > meanDirections = m_DiffusionModel->MeanDirectionsAt(nextPoint, k1, m_ThresholdAngle);
-            nextDirection = Self::SelectClosestDirection(meanDirections, k1);
+            std::vector< PhysicalPoint > meanDirections = MeanDirectionsAt(nextPoint);
+            nextDirection = Self::SelectClosestDirection(meanDirections, k1); // critère d'arrêt ici
 
-            if(nextDirection == btk::GradientDirection())
+            if(nextDirection==PhysicalPoint())
             {
                 stop = true;
             }
@@ -223,10 +235,11 @@ void StreamlineTractographyAlgorithm::PropagateSeedRK1(std::vector< Self::Physic
 
 //----------------------------------------------------------------------------------------
 
-btk::GradientDirection StreamlineTractographyAlgorithm::SelectClosestDirection(std::vector< btk::GradientDirection > &meanDirections, btk::GradientDirection &previousVector)
+StreamlineTractographyAlgorithm::PhysicalPoint StreamlineTractographyAlgorithm::SelectClosestDirection(std::vector< PhysicalPoint > &meanDirections, 
+                                                                                                        PhysicalPoint &previousVector)
 {
     unsigned int meanDirectionsSize = meanDirections.size();
-    btk::GradientDirection nextDirection;
+    PhysicalPoint nextDirection;
 
     if(meanDirectionsSize == 1)
     {
@@ -235,12 +248,12 @@ btk::GradientDirection StreamlineTractographyAlgorithm::SelectClosestDirection(s
     else if(meanDirectionsSize > 1)
     {
         // The next direction is choosen to be the closer to the previous one.
-        float   minDotProduct = std::abs(meanDirections[0]*previousVector);
+        float   minDotProduct = std::abs(meanDirections[0][0]*previousVector[0]+meanDirections[0][1]*previousVector[1]+meanDirections[0][2]*previousVector[2]);
         unsigned int minIndex = 0;
 
         for(unsigned int i = 1; i < meanDirections.size(); i++)
         {
-            float dotProduct = std::abs(meanDirections[i]*previousVector);
+            float dotProduct = std::abs(meanDirections[i][0]*previousVector[0]+meanDirections[i][1]*previousVector[1]+meanDirections[i][2]*previousVector[2]);
 
             if(dotProduct < minDotProduct)
             {
@@ -254,5 +267,52 @@ btk::GradientDirection StreamlineTractographyAlgorithm::SelectClosestDirection(s
 
     return nextDirection;
 }
+
+
+
+std::vector< StreamlineTractographyAlgorithm::PhysicalPoint >  StreamlineTractographyAlgorithm::MeanDirectionsAt(PhysicalPoint vector)
+{
+    itk::Vector<float,6> dt6;    
+    for( unsigned int i=0; i<6; i++) {
+        m_Adaptor->SetExtractComponentIndex( i );
+        m_Adaptor->SetImage( m_InputModelImage );
+        m_Adaptor->Update();
+        m_ModelImageFunction->SetInputImage( m_Adaptor );
+        dt6[i] = m_ModelImageFunction->Evaluate(vector);
+    } 
+    //ModelImage::PixelType tensor = m_ModelImageFunction->EvaluateAtContinuousIndex(vector);
+
+    InputMatrixType dt33(3,3);
+    dt33[0][0] =  (double) dt6[0];
+    dt33[1][1] =  (double) dt6[3];
+    dt33[2][2] =  (double) dt6[5];
+    dt33[0][1] =  (double) dt6[1];
+    dt33[0][2] =  (double) dt6[2];
+    dt33[1][2] =  (double) dt6[4];
+    dt33[1][0] =  dt33[0][1];
+    dt33[2][0] =  dt33[0][2];
+    dt33[2][1] =  dt33[1][2];
+
+    EigenValuesArrayType eigenvalues;
+    EigenVectorMatrixType eigenvectors;
+
+    m_Calculator.ComputeEigenValuesAndVectors(dt33,eigenvalues,eigenvectors);
+
+    /*ModelImage::PixelType::EigenValuesArrayType   eigenValues;
+    ModelImage::PixelType::EigenVectorsMatrixType eigenVectors;
+    tensor.ComputeEigenAnalysis(eigenValues, eigenVectors);*/
+
+    std::vector< PhysicalPoint > meanDirections;
+    PhysicalPoint p;
+    p[0] = eigenvectors(2,0);
+    p[1] = eigenvectors(2,1);
+    p[2] = eigenvectors(2,2);
+    meanDirections.push_back(p);
+
+    return meanDirections;
+}
+
+
+
 
 } // namespace btk
