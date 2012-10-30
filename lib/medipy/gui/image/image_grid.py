@@ -151,16 +151,22 @@ class ImageGrid(wx.Panel):
         
         return self._images.__iter__()
     
+    def __getitem__(self, index):
+        """ Return an image from the grid
+        """
+        
+        return self._images[index]
+    
     def get_synchronization(self, attribute):
         """ Return the synchronization state of an image attribute (may be
-            cursor_position, center, zoom or display range).
+            cursor_position, center, zoom or display_range).
         """
         
         return self._synchronization[attribute]
     
     def set_synchronization(self, attribute, value):
         """ Set the synchronization state of an image attribute (may be
-            cursor_position, center, zoom or display range).
+            cursor_position, center, zoom or display_range).
         """
         
         if attribute not in self._synchronization :
