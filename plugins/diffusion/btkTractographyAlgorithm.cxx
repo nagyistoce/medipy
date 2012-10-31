@@ -42,7 +42,7 @@
 namespace btk
 {
 
-TractographyAlgorithm::TractographyAlgorithm()
+TractographyAlgorithm::TractographyAlgorithm(): m_Mask(NULL), m_InputModel(NULL)
 {
     // Create interpolate function on model image
     m_InterpolateModelFunction = InterpolateModelType::New();
@@ -60,26 +60,23 @@ void TractographyAlgorithm::PrintSelf(std::ostream &os, itk::Indent indent) cons
 
 void TractographyAlgorithm::Update()
 {
-    unsigned int numberOfSeeds = m_Seeds.GetNumberOfComponents();
-
+    unsigned int numberOfSeeds = m_Seeds.size();
+    m_size = m_InputModel->GetLargestPossibleRegion().GetSize();
+    // iterator 
     for (unsigned int l=0; l<numberOfSeeds; l++) {
 
         // Get the seed point to process
-        VectorType seed_ = m_Seeds[l];
-        PointType seed;
-        for (unsigned int ll=0; ll<seed_.GetNumberOfComponents(); ll++) { seed[ll] = seed_[ll]; }
-         // Check if the physical point is in the mask
+        PointType seed = m_Seeds[l];
+        // Check if the physical point is in the mask
         MaskType::IndexType maskIndex;
         m_Mask->TransformPhysicalPointToIndex(seed, maskIndex);
 
         if (m_Mask->GetPixel(maskIndex) != 0) {
 
-            // Init fiber under construction.
-            FiberType m_CurrentFiber;
             // Start tractography from seed point
-            PropagateSeed(seed);
+            FiberType currentFiber = PropagateSeed(seed);
             // Save fiber
-            if (m_CurrentFiber.GetNumberOfElements()>1) { m_OutputFibers.push_back(m_CurrentFiber); }
+            m_OutputFibers.push_back(currentFiber);
 
         }
     } // for each seed
@@ -87,9 +84,28 @@ void TractographyAlgorithm::Update()
 
 //----------------------------------------------------------------------------------------
 
+void TractographyAlgorithm::AppendSeed(PointType seed)
+{
+    m_Seeds.push_back(seed);
+}
+
+//----------------------------------------------------------------------------------------
+
+unsigned int TractographyAlgorithm::GetNumberOfFibers() const
+{
+    return m_OutputFibers.size();
+}
+
+//----------------------------------------------------------------------------------------
+
 TractographyAlgorithm::FiberType TractographyAlgorithm::GetOutputFiber(unsigned int i) const
 {
-    return m_OutputFibers[i];
+    if (i<m_OutputFibers.size()) {
+        return m_OutputFibers[i];
+    }
+    else {
+        throw "Wrong index to access fibers!";
+    }
 }
 
 } // namespace btk
