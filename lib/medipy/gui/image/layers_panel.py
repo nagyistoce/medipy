@@ -198,24 +198,30 @@ class LayersPanel(medipy.gui.base.Panel):
             for i in range(len(self._image.layers)) :
                 self._image.get_layer_colormap(i).remove_observer(
                   "display_range", self.on_colormap_event)
+        
+        self.ui.layers.Clear()
+        
         self._image = image
         self._current_layer = 0
         
         self._display_ranges = []
-        for i in range(len(self._image.layers)) :
-            self._display_ranges.append((image.get_layer_image(i).data.min(), 
-                                         image.get_layer_image(i).data.max()))
-            for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
-                self._image.get_layer_colormap(i).add_observer(event, self.on_colormap_event)
         
-        self.ui.layers.Clear()
-        for index, layer in enumerate(self._image.layers) :
-            self.ui.layers.Append(
-               "Layer {0}".format(len(self._image.layers)-index))
+        if self._image is not None :
+            for i in range(len(self._image.layers)) :
+                self._display_ranges.append((image.get_layer_image(i).data.min(), 
+                                             image.get_layer_image(i).data.max()))
+                for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
+                    self._image.get_layer_colormap(i).add_observer(event, self.on_colormap_event)
+            
+            for index, layer in enumerate(self._image.layers) :
+                self.ui.layers.Append(
+                   "Layer {0}".format(len(self._image.layers)-index))
         
-        self._update_checked_layers()
-        self.ui.delete.Enable(len(self._image.layers) > 1)
-        self.select_layer(self._current_layer)
+            self._update_checked_layers()
+            self.ui.delete.Enable(len(self._image.layers) > 1)
+            self.select_layer(self._current_layer)
+        else :
+            self.ui.delete.Disable()
     
     image = property(_get_image, _set_image)
     
