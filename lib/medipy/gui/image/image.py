@@ -148,6 +148,7 @@ class Image(wx.Panel, PropertySynchronized):
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
         self.add_allowed_event("center")
+        self.add_allowed_event("layer_visibility")
         for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
             self.add_allowed_event("colormap_{0}".format(event))
 #        self.add_allowed_event("layer_modified")
@@ -371,12 +372,14 @@ class Image(wx.Panel, PropertySynchronized):
         for index, slice in enumerate(self._slices) :
             for event in slice.allowed_events :
                 if event in ["any", "cursor_position", "image_position", "center",
-                             "corner_annotations_visibility", "world_to_slice"] :
+                             "corner_annotations_visibility", "world_to_slice",
+                             "layer_visibility"] :
                     continue
                 slice.add_observer(event, self._on_slice_event)
             
             slice.add_observer("cursor_position", self._on_cursor_position)
             slice.add_observer("center", self._on_center)
+            slice.add_observer("layer_visibility", self._on_layer_visibility)
             
             # Synchronize the Slices' colormaps
             # Do not use PropertySynchronized API for better event handling
@@ -667,6 +670,9 @@ class Image(wx.Panel, PropertySynchronized):
             slice.add_observer(event.event, self._on_center)
         
         self._update_informations()
+    
+    def _on_layer_visibility(self, event):
+        self.notify_observers("layer_visibility", index=event.index)
     
     def _on_button_down(self,event):
         """ Propagate mouse clicks to parent.
