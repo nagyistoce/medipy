@@ -136,7 +136,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
         
         # Adjust the active image
         if len(self._images) > 0 and self._active >= len(self._images) : 
-            self.active = -1
+            self.active = len(self._images)-1
         elif len(self._images) > 0 :
             self.active = self.active
     
