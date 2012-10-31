@@ -33,37 +33,48 @@
   
 ==========================================================================*/
 
+#ifndef BTK_STREAMLINE_TRACTOGRAPHY_ALGORITHM_cxx
+#define BTK_STREAMLINE_TRACTOGRAPHY_ALGORITHM_cxx
+
 #include "btkStreamlineTractographyAlgorithm.h"
 
 
 namespace btk
 {
 
-StreamlineTractographyAlgorithm::StreamlineTractographyAlgorithm() : m_StepSize(0.5), m_UseRungeKuttaOrder4(false), 
-                                                                     m_ThresholdAngle(M_PI/3.0f), m_ThresholdFA(0.2), Superclass()
+template<typename ModelType, typename MaskType>
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::StreamlineTractographyAlgorithm() : m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_ThresholdAngle(M_PI/3.0f), m_ThresholdFA(0.2), Superclass()
 {
     m_Calculator.SetDimension(3);
 }
 
 //----------------------------------------------------------------------------------------
 
-void StreamlineTractographyAlgorithm::PrintSelf(std::ostream &os, itk::Indent indent) const
+template<typename ModelType, typename MaskType>
+void
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
     Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------------------
 
-StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::PropagateSeed(PointType const &seed)
+
+template<typename ModelType, typename MaskType>
+typename StreamlineTractographyAlgorithm<ModelType, MaskType>::FiberType
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::PropagateSeed(PointType const &seed)
 {
     FiberType currentFiber;
 
     // Propagation
     if(m_UseRungeKuttaOrder4) {
-        currentFiber = Self::PropagateSeedRK4(seed);
+        currentFiber = PropagateSeedRK4(seed);
     }
     else {
-        currentFiber = Self::PropagateSeedRK0(seed);
+        currentFiber = PropagateSeedRK0(seed);
     }
 
     return currentFiber;
@@ -71,7 +82,10 @@ StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::Prop
 
 //----------------------------------------------------------------------------------------
 
-StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::PropagateSeedRK0(PointType const &seed)
+template<typename ModelType, typename MaskType>
+typename StreamlineTractographyAlgorithm<ModelType, MaskType>::FiberType
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::PropagateSeedRK0(PointType const &seed)
 {
     bool stop = false;
     VectorType d1 = PropagationDirectionT2At(seed,stop);
@@ -105,7 +119,7 @@ StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::Prop
 
     // Concatenate
     std::vector< PointType > points;
-    for (unsigned int i=(points2.size()-1); i>0; i--) { points.push_back(points2[i]); }
+    for (unsigned int i=0; i<points2.size()-1; i++) { points.push_back(points2[points2.size()-1-i]); }
     for (unsigned int i=0; i<points1.size(); i++) { points.push_back(points1[i]); }
 
     return points;
@@ -113,28 +127,34 @@ StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::Prop
 
 //----------------------------------------------------------------------------------------
 
-StreamlineTractographyAlgorithm::VectorType StreamlineTractographyAlgorithm::PropagationDirectionT2At(PointType const &point, bool &stop)
+template<typename ModelType, typename MaskType>
+typename StreamlineTractographyAlgorithm<ModelType, MaskType>::VectorType
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::PropagationDirectionT2At(PointType const &point, bool &stop)
 {
     VectorType pd;
 
     // Check if the point is in the mask
-    if (m_Mask.IsNotNull()) {
-        MaskType::IndexType maskIndex;
-        m_Mask->TransformPhysicalPointToIndex(point, maskIndex);
-        if(m_Mask->GetPixel(maskIndex)==0) { stop = true; }
+    if (this->m_Mask.IsNotNull()) {
+        typename MaskType::IndexType maskIndex;
+        this->m_Mask->TransformPhysicalPointToIndex(point, maskIndex);
+        if(this->m_Mask->GetPixel(maskIndex)==0) { stop = true; }
     }
     else {
-        if ( (point[0]>(m_size[0]-1)) || (point[1]>(m_size[1]-1)) || (point[2]>(m_size[2]-1)) ) { stop = true; }
+        typename ModelType::IndexType modelIndex;
+        this->m_InputModel->TransformPhysicalPointToIndex(point, modelIndex);
+        if ( (modelIndex[0]>=(this->m_size[0]-1)) || (modelIndex[1]>=(this->m_size[1]-1)) || (modelIndex[2]>=(this->m_size[2]-1)) ||
+             (modelIndex[0]<=0) || (modelIndex[1]<=0) || (modelIndex[2]<=0) ) { stop = true; }
     }
 
     if (!stop) {
         itk::Vector<float,6> dt6;    
         for( unsigned int i=0; i<6; i++) {
-            m_Adaptor->SetExtractComponentIndex( i );
-            m_Adaptor->SetImage( m_InputModel );
-            m_Adaptor->Update();
-            m_InterpolateModelFunction->SetInputImage( m_Adaptor );
-            dt6[i] = m_InterpolateModelFunction->Evaluate(point);
+            this->m_Adaptor->SetExtractComponentIndex( i );
+            this->m_Adaptor->SetImage( this->m_InputModel );
+            this->m_Adaptor->Update();
+            this->m_InterpolateModelFunction->SetInputImage( this->m_Adaptor );
+            dt6[i] = this->m_InterpolateModelFunction->Evaluate(point);
         } 
 
         InputMatrixType dt33(3,3);
@@ -173,8 +193,10 @@ StreamlineTractographyAlgorithm::VectorType StreamlineTractographyAlgorithm::Pro
 
 //----------------------------------------------------------------------------------------
 
-StreamlineTractographyAlgorithm::VectorType StreamlineTractographyAlgorithm::SelectClosestDirectionT2(VectorType const &currentDirection, 
-                        VectorType const &previousDirection, bool &stop)
+template<typename ModelType, typename MaskType>
+typename StreamlineTractographyAlgorithm<ModelType, MaskType>::VectorType
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::SelectClosestDirectionT2(VectorType const &currentDirection, VectorType const &previousDirection, bool &stop)
 {
     // The new direction is choosen to be the closer to the previous one.
     float dotProduct = currentDirection*previousDirection;
@@ -191,7 +213,10 @@ StreamlineTractographyAlgorithm::VectorType StreamlineTractographyAlgorithm::Sel
 
 //----------------------------------------------------------------------------------------
 
-StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::PropagateSeedRK4(PointType const &seed)
+template<typename ModelType, typename MaskType>
+typename StreamlineTractographyAlgorithm<ModelType, MaskType>::FiberType
+StreamlineTractographyAlgorithm<ModelType, MaskType>
+::PropagateSeedRK4(PointType const &seed)
 {
     // Usefull constants
     /*float stepSize_2 = m_StepSize / 2.f;
@@ -268,5 +293,6 @@ StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::Prop
 }
 
 
-
 } // namespace btk
+
+#endif

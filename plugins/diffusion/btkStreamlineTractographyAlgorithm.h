@@ -53,18 +53,19 @@ namespace btk
  * @author Julien Pontabry
  * @ingroup Tractography
  */
-class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
+
+template<typename ModelType, typename MaskType>
+class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelType, MaskType>
 {
     public:
-        typedef StreamlineTractographyAlgorithm     Self;
-        typedef btk::TractographyAlgorithm          Superclass;
-        typedef itk::SmartPointer< Self >           Pointer;
-        typedef itk::SmartPointer< const Self >     ConstPointer;
+        typedef StreamlineTractographyAlgorithm                         Self;
+        typedef btk::TractographyAlgorithm<ModelType, MaskType>         Superclass;
+        typedef itk::SmartPointer< Self >                               Pointer;
+        typedef itk::SmartPointer< const Self >                         ConstPointer;
 
-        typedef Superclass::PointType               PointType;
-        typedef Superclass::VectorType              VectorType;
-        typedef Superclass::FiberType               FiberType;
-        typedef Superclass::MaskType                MaskType;
+        typedef typename Superclass::PointType               PointType;
+        typedef typename Superclass::VectorType              VectorType;
+        typedef typename Superclass::FiberType               FiberType;
 
         itkNewMacro(Self);
         itkTypeMacro(StreamlineTractographyAlgorithm, btk::TractographyAlgorithm);
@@ -116,5 +117,9 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
 };
 
 } // namespace btk
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "btkStreamlineTractographyAlgorithm.cxx"
+#endif
 
 #endif // BTK_STREAMLINE_TRACTOGRAPHY_ALGORITHM_H
