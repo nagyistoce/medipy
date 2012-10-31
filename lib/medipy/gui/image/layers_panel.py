@@ -195,6 +195,7 @@ class LayersPanel(medipy.gui.base.Panel):
     def _set_image(self, image):
 
         if self._image is not None :
+            self._image.remove_observer("layer_visibility", self.on_layer_visibility)
             for i in range(len(self._image.layers)) :
                 self._image.get_layer_colormap(i).remove_observer(
                   "display_range", self.on_colormap_event)
@@ -220,6 +221,8 @@ class LayersPanel(medipy.gui.base.Panel):
             self._update_checked_layers()
             self.ui.delete.Enable(len(self._image.layers) > 1)
             self.select_layer(self._current_layer)
+            
+            self._image.add_observer("layer_visibility", self.on_layer_visibility)
         else :
             self.ui.delete.Disable()
     
@@ -291,14 +294,14 @@ class LayersPanel(medipy.gui.base.Panel):
         
         self.select_layer(len(self._image.layers)-self.ui.layers.GetSelection()-1)
     
-    def OnLayersCheck(self, dummy):
+    def OnLayersCheck(self, event):
         """ Called when a layer is checked or unchecked
         """
         
-        for index in range(len(self._image.layers)) :
-            visibility = self.ui.layers.IsChecked(len(self._image.layers)-index-1)
-            self._image.set_layer_visibility(index, visibility)
-        
+        wx_index = event.GetInt()
+        visibility = self.ui.layers.IsChecked(wx_index)
+        index = len(self._image.layers)-wx_index-1
+        self._image.set_layer_visibility(index, visibility)
         self._image.render()
     
     def OnLoad(self, dummy):
@@ -350,6 +353,10 @@ class LayersPanel(medipy.gui.base.Panel):
             self.ui.cut_high.SetValue(colormap.cut_high)
         elif event.event == "zero_transparency" :
             self.ui.transparent_background.SetValue(colormap.zero_transparency)
+    
+    def on_layer_visibility(self, event):
+        self.ui.layers.Check(self.ui.layers.GetCount()-event.index-1, 
+                             self._image.get_layer_visibility(event.index))
     
     def _relabel_layers(self):
         # Re-label the layers
