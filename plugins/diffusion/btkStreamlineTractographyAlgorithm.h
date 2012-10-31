@@ -66,6 +66,8 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelT
         typedef typename Superclass::PointType               PointType;
         typedef typename Superclass::VectorType              VectorType;
         typedef typename Superclass::FiberType               FiberType;
+        typedef typename Superclass::InterpolateModelType             InterpolateModelType;
+        typedef typename Superclass::VectorImageToImageAdaptorType    VectorImageToImageAdaptorType;
 
         itkNewMacro(Self);
         itkTypeMacro(StreamlineTractographyAlgorithm, btk::TractographyAlgorithm);

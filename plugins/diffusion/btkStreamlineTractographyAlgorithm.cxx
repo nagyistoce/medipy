@@ -149,12 +149,14 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 
     if (!stop) {
         itk::Vector<float,6> dt6;    
+        typename InterpolateModelType::Pointer m_InterpolateModelFunction = InterpolateModelType::New();
+        typename VectorImageToImageAdaptorType::Pointer m_Adaptor = VectorImageToImageAdaptorType::New(); 
         for( unsigned int i=0; i<6; i++) {
-            this->m_Adaptor->SetExtractComponentIndex( i );
-            this->m_Adaptor->SetImage( this->m_InputModel );
-            this->m_Adaptor->Update();
-            this->m_InterpolateModelFunction->SetInputImage( this->m_Adaptor );
-            dt6[i] = this->m_InterpolateModelFunction->Evaluate(point);
+            m_Adaptor->SetExtractComponentIndex( i );
+            m_Adaptor->SetImage( this->m_InputModel );
+            m_Adaptor->Update();
+            m_InterpolateModelFunction->SetInputImage( m_Adaptor );
+            dt6[i] = m_InterpolateModelFunction->Evaluate(point);
         } 
 
         InputMatrixType dt33(3,3);
