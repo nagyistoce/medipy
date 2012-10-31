@@ -48,10 +48,6 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorImageToImageAdaptor.h"
 
-// VTK includes
-/*#include "vtkSmartPointer.h"
-#include "vtkAppendPolyData.h"*/
-
 namespace btk
 {
 
@@ -60,6 +56,7 @@ namespace btk
  * @author Julien Pontabry
  * @ingroup Tractography
  */
+template<typename ModelType, typename MaskType>
 class TractographyAlgorithm : public itk::ProcessObject
 {
     public:
@@ -69,21 +66,21 @@ class TractographyAlgorithm : public itk::ProcessObject
         typedef itk::SmartPointer< const Self >             ConstPointer;
 
         // TODO : template parameters    
-        typedef itk::VectorImage< float,3 >                 ModelType;        
-        typedef itk::Image< short,3 >                       MaskType;
+        /*typedef itk::VectorImage< float,3 >                 ModelType;        
+        typedef itk::Image< short,3 >                       MaskType;*/
 
-        typedef ModelType::PointType                        PointType;
-        typedef PointType::VectorType                       VectorType;   
-        typedef std::vector< PointType >                    FiberType;    
+        typedef typename ModelType::PointType               PointType;
+        typedef typename PointType::VectorType              VectorType;   
+        typedef typename std::vector< PointType >           FiberType;    
 
 
         itkTypeMacro(TractographyAlgorithm, itk::ProcessObject);
 
-        itkSetMacro(Mask, Self::MaskType::Pointer);
-        itkGetConstMacro(Mask, Self::MaskType::Pointer);
+        itkSetMacro(Mask, typename MaskType::Pointer);
+        itkGetConstMacro(Mask, typename MaskType::Pointer);
 
-        itkSetMacro(InputModel, ModelType::Pointer);
-        itkGetConstMacro(InputModel, ModelType::Pointer);
+        itkSetMacro(InputModel, typename ModelType::Pointer);
+        itkGetConstMacro(InputModel, typename ModelType::Pointer);
 
         //itkSetMacro(Seeds, itk::Vector< VectorType >);
         //itkGetConstMacro(Seeds, itk::Vector< VectorType >);
@@ -93,10 +90,12 @@ class TractographyAlgorithm : public itk::ProcessObject
         // Accessor to output estimated fibers
         FiberType GetOutputFiber(unsigned int i) const;
         // Get number of output fibers
+        unsigned int GetNumberOfSeeds() const;
         unsigned int GetNumberOfFibers() const;
         // Get fiber length
-        static VectorType::ValueType GetLength(FiberType const &fiber);
-        // Set seeds
+        static typename VectorType::ValueType GetLength(FiberType const &fiber);
+        // Set seeds (index must be in range of m_Seeds size)
+        void SetSeed(unsigned int index, PointType seed);
         void AppendSeed(PointType seed);
 
     protected:
@@ -112,10 +111,10 @@ class TractographyAlgorithm : public itk::ProcessObject
         typedef itk::LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
 
         // Mask image determining where the tractography algorithm can process.
-        MaskType::Pointer m_Mask;
+        typename MaskType::Pointer m_Mask;
         // Tensor image.
-        ModelType::Pointer m_InputModel;
-        ModelType::SizeType m_size;
+        typename ModelType::Pointer m_InputModel;
+        typename ModelType::SizeType m_size;
         // Estimated fibers.
         std::vector< FiberType > m_OutputFibers;
         // Seeds.
@@ -127,5 +126,9 @@ class TractographyAlgorithm : public itk::ProcessObject
 };
 
 } // namespace btk
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "btkTractographyAlgorithm.cxx"
+#endif
 
 #endif // BTK_TRACTOGRAPHY_ALGORITHM_H

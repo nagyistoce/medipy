@@ -33,6 +33,11 @@
   
 ==========================================================================*/
 
+
+#ifndef _BTK_TRACTOGRAPHY_ALGORITHM_cxx
+#define _BTK_TRACTOGRAPHY_ALGORITHM_cxx
+
+
 #include "btkTractographyAlgorithm.h"
 
 
@@ -42,7 +47,9 @@
 namespace btk
 {
 
-TractographyAlgorithm::TractographyAlgorithm(): m_Mask(NULL), m_InputModel(NULL)
+template<typename ModelType, typename MaskType>
+TractographyAlgorithm<ModelType, MaskType>
+::TractographyAlgorithm(): m_Mask(NULL), m_InputModel(NULL)
 {
     // Create interpolate function on model image
     m_InterpolateModelFunction = InterpolateModelType::New();
@@ -51,54 +58,81 @@ TractographyAlgorithm::TractographyAlgorithm(): m_Mask(NULL), m_InputModel(NULL)
 
 //----------------------------------------------------------------------------------------
 
-void TractographyAlgorithm::PrintSelf(std::ostream &os, itk::Indent indent) const
+template<typename ModelType, typename MaskType>
+void 
+TractographyAlgorithm<ModelType, MaskType>
+::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
     Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------------------------
 
-void TractographyAlgorithm::Update()
+template<typename ModelType, typename MaskType>
+void 
+TractographyAlgorithm<ModelType, MaskType>
+::Update()
 {
-    unsigned int numberOfSeeds = m_Seeds.size();
-    m_size = m_InputModel->GetLargestPossibleRegion().GetSize();
-    // iterator 
-    for (unsigned int l=0; l<numberOfSeeds; l++) {
+    if (m_InputModel.IsNotNull()) {
 
-        // Get the seed point to process
-        PointType seed = m_Seeds[l];
-        // Check if the physical point is in the mask
-        MaskType::IndexType maskIndex;
-        m_Mask->TransformPhysicalPointToIndex(seed, maskIndex);
+        m_size = m_InputModel->GetLargestPossibleRegion().GetSize();
+        typename std::vector< PointType >::iterator it;
 
-        if (m_Mask->GetPixel(maskIndex) != 0) {
+        for (it=m_Seeds.begin(); it<m_Seeds.end(); it++) {
 
+            // Get the seed point to process
+            PointType seed = *it;
             // Start tractography from seed point
             FiberType currentFiber = PropagateSeed(seed);
             // Save fiber
             m_OutputFibers.push_back(currentFiber);
 
-        }
-    } // for each seed
+        } // for each seed
+    }
 }
 
 //----------------------------------------------------------------------------------------
 
-void TractographyAlgorithm::AppendSeed(PointType seed)
+template<typename ModelType, typename MaskType>
+void 
+TractographyAlgorithm<ModelType, MaskType>
+::SetSeed(unsigned int index, PointType seed)
+{
+    m_Seeds[index] = seed;
+}
+
+template<typename ModelType, typename MaskType>
+void 
+TractographyAlgorithm<ModelType, MaskType>
+::AppendSeed(PointType seed)
 {
     m_Seeds.push_back(seed);
 }
 
 //----------------------------------------------------------------------------------------
 
-unsigned int TractographyAlgorithm::GetNumberOfFibers() const
+template<typename ModelType, typename MaskType>
+unsigned int
+TractographyAlgorithm<ModelType, MaskType>
+::GetNumberOfSeeds() const
+{
+    return m_Seeds.size();
+}
+
+template<typename ModelType, typename MaskType>
+unsigned int
+TractographyAlgorithm<ModelType, MaskType>
+::GetNumberOfFibers() const
 {
     return m_OutputFibers.size();
 }
 
 //----------------------------------------------------------------------------------------
 
-TractographyAlgorithm::FiberType TractographyAlgorithm::GetOutputFiber(unsigned int i) const
+template<typename ModelType, typename MaskType>
+typename TractographyAlgorithm<ModelType, MaskType>::FiberType
+TractographyAlgorithm<ModelType, MaskType>
+::GetOutputFiber(unsigned int i) const
 {
     if (i<m_OutputFibers.size()) {
         return m_OutputFibers[i];
@@ -109,3 +143,5 @@ TractographyAlgorithm::FiberType TractographyAlgorithm::GetOutputFiber(unsigned 
 }
 
 } // namespace btk
+
+#endif
