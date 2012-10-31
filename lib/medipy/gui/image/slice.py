@@ -138,11 +138,12 @@ class Slice(PropertySynchronized) :
         super(Slice, self).__init__([
             "world_to_slice", "interpolation", "display_coordinates", 
             "scalar_bar_visibility", "orientation_visibility", 
-            "corner_annotations_visibility", "zoom", 
+            "corner_annotations_visibility", "zoom"
         ])
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
         self.add_allowed_event("center")
+        self.add_allowed_event("layer_visibility")
         
         # Configure camera
         camera = self._renderer.GetActiveCamera()
@@ -298,7 +299,8 @@ class Slice(PropertySynchronized) :
         return self._layers[index].actor.GetVisibility()
     
     def set_layer_visibility(self, index, visibility):
-        return self._layers[index].actor.SetVisibility(visibility)
+        self._layers[index].actor.SetVisibility(visibility)
+        self.notify_observers("layer_visibility", index=index)
     
     def center_on_physical_position(self, position):
         self._set_cursor_physical_position(position)
