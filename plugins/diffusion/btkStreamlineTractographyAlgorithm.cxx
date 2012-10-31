@@ -36,20 +36,12 @@
 #include "btkStreamlineTractographyAlgorithm.h"
 
 
-// VTK includes
-/*#include "vtkSmartPointer.h"
-#include "vtkPolyData.h"
-#include "vtkPoints.h"
-#include "vtkCellArray.h"
-#include "vtkPolyLine.h"*/
-
-
 namespace btk
 {
 
-StreamlineTractographyAlgorithm::StreamlineTractographyAlgorithm() : m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_ThresholdAngle(M_PI/3.0f), Superclass()
+StreamlineTractographyAlgorithm::StreamlineTractographyAlgorithm() : m_StepSize(0.5), m_UseRungeKuttaOrder4(false), 
+                                                                     m_ThresholdAngle(M_PI/3.0f), m_ThresholdFA(0.2), Superclass()
 {
-    // ----
     m_Calculator.SetDimension(3);
 }
 
@@ -62,66 +54,147 @@ void StreamlineTractographyAlgorithm::PrintSelf(std::ostream &os, itk::Indent in
 
 //----------------------------------------------------------------------------------------
 
-void StreamlineTractographyAlgorithm::PropagateSeed(Self::PhysicalPoint point)
+StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::PropagateSeed(PointType const &seed)
 {
-    //
-    // Estimate Fiber
-    //
+    FiberType currentFiber;
 
-    std::vector< Self::PhysicalPoint > points;
-    points.push_back(point);
-
-    if(m_UseRungeKuttaOrder4)
-    {
-        Self::PropagateSeedRK4(points);
+    // Propagation
+    if(m_UseRungeKuttaOrder4) {
+        currentFiber = Self::PropagateSeedRK4(seed);
     }
-    else // m_UseRungeKuttaOrder4 = false
-    {
-        Self::PropagateSeedRK1(points);
+    else {
+        currentFiber = Self::PropagateSeedRK0(seed);
     }
 
-    //
-    // Build graphical fiber
-    //
-
-    if(points.size() > 1)
-    {
-        /*m_CurrentFiber = vtkSmartPointer< vtkPolyData >::New();
-
-        // Graphical representation structures
-        vtkSmartPointer< vtkPoints >  vpoints = vtkSmartPointer< vtkPoints >::New();
-        vtkSmartPointer< vtkCellArray > lines = vtkSmartPointer< vtkCellArray >::New();
-        vtkSmartPointer< vtkPolyLine >   line = vtkSmartPointer< vtkPolyLine >::New();
-
-        line->GetPointIds()->SetNumberOfIds(points.size());
-
-        for(unsigned int i = 0; i < points.size(); i++)
-        {
-            vpoints->InsertNextPoint(-points[i][0], -points[i][1], points[i][2]);
-            line->GetPointIds()->SetId(i,i);
-        }
-
-        lines->InsertNextCell(line);
-        m_CurrentFiber->SetPoints(vpoints);
-        m_CurrentFiber->SetLines(lines);*/
-
-        m_CurrentFiber.SetSize(points.size());
-        for(unsigned int i = 0; i < points.size(); i++) {
-            itk::Vector<float,3> v;
-            v[0] = -points[i][0];
-            v[1] = -points[i][1];
-            v[2] = points[i][2];
-            m_CurrentFiber[i] = v;
-        }
-    }
+    return currentFiber;
 }
 
 //----------------------------------------------------------------------------------------
 
-void StreamlineTractographyAlgorithm::PropagateSeedRK4(std::vector< Self::PhysicalPoint > &points)
+StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::PropagateSeedRK0(PointType const &seed)
+{
+    bool stop = false;
+    VectorType d1 = PropagationDirectionT2At(seed,stop);
+    VectorType d2 = -d1;
+
+    std::vector< PointType > points1;  
+    std::vector< PointType > points2;
+
+    // Track towards one direction
+    PointType nextPoint = seed;
+    while (!stop) {
+        // Insert new point 
+        points1.push_back(nextPoint);
+        // This use the RK0 (Euler) to compute the next point (Runge-Kutta, order 0, Euler method)
+        nextPoint = points1.back() + (d1*m_StepSize);
+        // Propagation
+        VectorType d = PropagationDirectionT2At(nextPoint,stop);
+        // Select the best propagation direction
+        d1 = SelectClosestDirectionT2(d,d1,stop);
+    }
+
+    // Track towards the opposite direction
+    stop = false;
+    nextPoint = seed;
+    while (!stop) {
+        points2.push_back(nextPoint);
+        nextPoint = points2.back() + (d2*m_StepSize);
+        VectorType d = PropagationDirectionT2At(nextPoint,stop);
+        d2 = SelectClosestDirectionT2(d,d2,stop);
+    }
+
+    // Concatenate
+    std::vector< PointType > points;
+    for (unsigned int i=(points2.size()-1); i>0; i--) { points.push_back(points2[i]); }
+    for (unsigned int i=0; i<points1.size(); i++) { points.push_back(points1[i]); }
+
+    return points;
+}
+
+//----------------------------------------------------------------------------------------
+
+StreamlineTractographyAlgorithm::VectorType StreamlineTractographyAlgorithm::PropagationDirectionT2At(PointType const &point, bool &stop)
+{
+    VectorType pd;
+
+    // Check if the point is in the mask
+    if (m_Mask.IsNotNull()) {
+        MaskType::IndexType maskIndex;
+        m_Mask->TransformPhysicalPointToIndex(point, maskIndex);
+        if(m_Mask->GetPixel(maskIndex)==0) { stop = true; }
+    }
+    else {
+        if ( (point[0]>(m_size[0]-1)) || (point[1]>(m_size[1]-1)) || (point[2]>(m_size[2]-1)) ) { stop = true; }
+    }
+
+    if (!stop) {
+        itk::Vector<float,6> dt6;    
+        for( unsigned int i=0; i<6; i++) {
+            m_Adaptor->SetExtractComponentIndex( i );
+            m_Adaptor->SetImage( m_InputModel );
+            m_Adaptor->Update();
+            m_InterpolateModelFunction->SetInputImage( m_Adaptor );
+            dt6[i] = m_InterpolateModelFunction->Evaluate(point);
+        } 
+
+        InputMatrixType dt33(3,3);
+        dt33[0][0] =  (double) dt6[0];
+        dt33[1][1] =  (double) dt6[3];
+        dt33[2][2] =  (double) dt6[5];
+        dt33[0][1] =  (double) dt6[1];
+        dt33[0][2] =  (double) dt6[2];
+        dt33[1][2] =  (double) dt6[4];
+        dt33[1][0] =  dt33[0][1];
+        dt33[2][0] =  dt33[0][2];
+        dt33[2][1] =  dt33[1][2];
+
+        EigenValuesArrayType eigenvalues;
+        EigenVectorMatrixType eigenvectors;
+        m_Calculator.ComputeEigenValuesAndVectors(dt33,eigenvalues,eigenvectors);
+
+        pd[0] = eigenvectors(2,0);
+        pd[1] = eigenvectors(2,1);
+        pd[2] = eigenvectors(2,2);
+
+        // Check if the point is within the white matter
+        double ev1 = eigenvalues[2];
+        double ev2 = eigenvalues[1];
+        double ev3 = eigenvalues[0];
+        double fa = 0.5 * ((ev1-ev2)*(ev1-ev2) + (ev2-ev3)*(ev2-ev3) + (ev3-ev1)*(ev3-ev1)) / (ev1*ev1 + ev2*ev2 + ev3*ev3);
+        if (fa>0) { fa = sqrt(fa); }
+        else { fa = 0; }
+        if ((float)fa<m_ThresholdFA) {
+            stop = true;
+        }
+    }
+
+    return pd;
+}
+
+//----------------------------------------------------------------------------------------
+
+StreamlineTractographyAlgorithm::VectorType StreamlineTractographyAlgorithm::SelectClosestDirectionT2(VectorType const &currentDirection, 
+                        VectorType const &previousDirection, bool &stop)
+{
+    // The new direction is choosen to be the closer to the previous one.
+    float dotProduct = currentDirection*previousDirection;
+    VectorType nextDirection;
+    if (dotProduct<0) { nextDirection = -currentDirection; }
+    else { nextDirection = currentDirection; }
+
+    // Check if the propagation angle is allowed
+    float angle = std::acos( std::abs(dotProduct) );
+    if (angle > m_ThresholdAngle) { stop = true; }
+
+    return nextDirection;
+}
+
+//----------------------------------------------------------------------------------------
+
+StreamlineTractographyAlgorithm::FiberType StreamlineTractographyAlgorithm::PropagateSeedRK4(PointType const &seed)
 {
     // Usefull constants
-    float stepSize_2 = m_StepSize / 2.f;
+    /*float stepSize_2 = m_StepSize / 2.f;
     float stepSize_6 = m_StepSize / 6.f;
 
     bool stop = false;
@@ -191,127 +264,8 @@ void StreamlineTractographyAlgorithm::PropagateSeedRK4(std::vector< Self::Physic
         {
             stop = true;
         }
-    } while(!stop);
+    } while(!stop);*/
 }
-
-//----------------------------------------------------------------------------------------
-
-void StreamlineTractographyAlgorithm::PropagateSeedRK1(std::vector< Self::PhysicalPoint > &points)
-{
-    bool stop = false;
-    PhysicalPoint nextDirection = MeanDirectionsAt(points.back())[0];
-
-    do
-    {
-        // This use the RK0 (Euler) to compute the next point (Runge-Kutta, order 0, Euler method)
-        PhysicalPoint k1 = nextDirection;
-        Self::PhysicalPoint nextPoint;
-        for (unsigned int i=0; i<3; i++) { nextPoint[i] = points.back()[i] + (k1[i]*m_StepSize); }
-
-        // Check if the physical point is in the mask
-        Self::MaskImage::IndexType maskIndex;
-        m_Mask->TransformPhysicalPointToIndex(nextPoint, maskIndex);
-
-        if(m_Mask->GetPixel(maskIndex) == 0)
-        {
-            stop = true;
-        }
-        else // m_Mask->GetPixel(maskIndex) != 0
-        {
-            // Add the new point
-            points.push_back(nextPoint);
-
-            // Search next direction
-            std::vector< PhysicalPoint > meanDirections = MeanDirectionsAt(nextPoint);
-            nextDirection = Self::SelectClosestDirection(meanDirections, k1); // critère d'arrêt ici
-
-            if(nextDirection==PhysicalPoint())
-            {
-                stop = true;
-            }
-        }
-    } while(!stop);
-}
-
-//----------------------------------------------------------------------------------------
-
-StreamlineTractographyAlgorithm::PhysicalPoint StreamlineTractographyAlgorithm::SelectClosestDirection(std::vector< PhysicalPoint > &meanDirections, 
-                                                                                                        PhysicalPoint &previousVector)
-{
-    unsigned int meanDirectionsSize = meanDirections.size();
-    PhysicalPoint nextDirection;
-
-    if(meanDirectionsSize == 1)
-    {
-        nextDirection = meanDirections[0];
-    }
-    else if(meanDirectionsSize > 1)
-    {
-        // The next direction is choosen to be the closer to the previous one.
-        float   minDotProduct = std::abs(meanDirections[0][0]*previousVector[0]+meanDirections[0][1]*previousVector[1]+meanDirections[0][2]*previousVector[2]);
-        unsigned int minIndex = 0;
-
-        for(unsigned int i = 1; i < meanDirections.size(); i++)
-        {
-            float dotProduct = std::abs(meanDirections[i][0]*previousVector[0]+meanDirections[i][1]*previousVector[1]+meanDirections[i][2]*previousVector[2]);
-
-            if(dotProduct < minDotProduct)
-            {
-                minDotProduct = dotProduct;
-                minIndex      = i;
-            }
-        } // for each mean direction
-
-        nextDirection = meanDirections[minIndex];
-    }
-
-    return nextDirection;
-}
-
-
-
-std::vector< StreamlineTractographyAlgorithm::PhysicalPoint >  StreamlineTractographyAlgorithm::MeanDirectionsAt(PhysicalPoint vector)
-{
-    itk::Vector<float,6> dt6;    
-    for( unsigned int i=0; i<6; i++) {
-        m_Adaptor->SetExtractComponentIndex( i );
-        m_Adaptor->SetImage( m_InputModelImage );
-        m_Adaptor->Update();
-        m_ModelImageFunction->SetInputImage( m_Adaptor );
-        dt6[i] = m_ModelImageFunction->Evaluate(vector);
-    } 
-    //ModelImage::PixelType tensor = m_ModelImageFunction->EvaluateAtContinuousIndex(vector);
-
-    InputMatrixType dt33(3,3);
-    dt33[0][0] =  (double) dt6[0];
-    dt33[1][1] =  (double) dt6[3];
-    dt33[2][2] =  (double) dt6[5];
-    dt33[0][1] =  (double) dt6[1];
-    dt33[0][2] =  (double) dt6[2];
-    dt33[1][2] =  (double) dt6[4];
-    dt33[1][0] =  dt33[0][1];
-    dt33[2][0] =  dt33[0][2];
-    dt33[2][1] =  dt33[1][2];
-
-    EigenValuesArrayType eigenvalues;
-    EigenVectorMatrixType eigenvectors;
-
-    m_Calculator.ComputeEigenValuesAndVectors(dt33,eigenvalues,eigenvectors);
-
-    /*ModelImage::PixelType::EigenValuesArrayType   eigenValues;
-    ModelImage::PixelType::EigenVectorsMatrixType eigenVectors;
-    tensor.ComputeEigenAnalysis(eigenValues, eigenVectors);*/
-
-    std::vector< PhysicalPoint > meanDirections;
-    PhysicalPoint p;
-    p[0] = eigenvectors(2,0);
-    p[1] = eigenvectors(2,1);
-    p[2] = eigenvectors(2,2);
-    meanDirections.push_back(p);
-
-    return meanDirections;
-}
-
 
 
 

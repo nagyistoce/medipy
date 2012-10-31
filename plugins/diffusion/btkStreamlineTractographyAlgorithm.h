@@ -56,97 +56,62 @@ namespace btk
 class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm
 {
     public:
-        typedef StreamlineTractographyAlgorithm Self;
-        typedef btk::TractographyAlgorithm      Superclass;
-        typedef itk::SmartPointer< Self >       Pointer;
-        typedef itk::SmartPointer< const Self > ConstPointer;
+        typedef StreamlineTractographyAlgorithm     Self;
+        typedef btk::TractographyAlgorithm          Superclass;
+        typedef itk::SmartPointer< Self >           Pointer;
+        typedef itk::SmartPointer< const Self >     ConstPointer;
 
-        typedef Superclass::PhysicalPoint PhysicalPoint;
-
-        typedef vnl_matrix<double>      InputMatrixType;
-        typedef itk::FixedArray<double, 3>   EigenValuesArrayType;
-        typedef itk::Matrix<double, 3, 3>    EigenVectorMatrixType;
-        typedef itk::SymmetricEigenAnalysis<InputMatrixType, EigenValuesArrayType, EigenVectorMatrixType> CalculatorType;
+        typedef Superclass::PointType               PointType;
+        typedef Superclass::VectorType              VectorType;
+        typedef Superclass::FiberType               FiberType;
+        typedef Superclass::MaskType                MaskType;
 
         itkNewMacro(Self);
-
         itkTypeMacro(StreamlineTractographyAlgorithm, btk::TractographyAlgorithm);
 
         itkSetMacro(StepSize,float);
         itkGetConstMacro(StepSize,float);
 
-        void UseRungeKuttaOrder4(bool arg)
-        {
-            m_UseRungeKuttaOrder4 = arg;
-        }
-
         itkSetMacro(ThresholdAngle,float);
         itkGetConstMacro(ThresholdAngle,float);
 
+        itkSetMacro(ThresholdFA,float);
+        itkGetConstMacro(ThresholdFA,float);
+
+        itkSetMacro(UseRungeKuttaOrder4,bool);
+        itkGetConstMacro(UseRungeKuttaOrder4,bool);
+
     protected:
-        /**
-         * @brief Constructor.
-         */
+
+        typedef vnl_matrix< double >                InputMatrixType;
+        typedef itk::FixedArray< double,3 >         EigenValuesArrayType;
+        typedef itk::Matrix< double,3,3 >           EigenVectorMatrixType;
+        typedef itk::SymmetricEigenAnalysis< InputMatrixType,EigenValuesArrayType,EigenVectorMatrixType > CalculatorType;
+
         StreamlineTractographyAlgorithm();
-
-        /**
-         * @brief Print a message on output stream.
-         * @param os Output stream where the message is printed.
-         * @param indent Indentation.
-         */
-         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
-
-        /**
-         * @brief Propagate using the tractography algorithm at a seed point.
-         * @param point Seed point.
-         */
-        virtual void PropagateSeed(Self::PhysicalPoint point);
-        /**
-         * @brief Get mean directions in a solid angle formed by previous vector and search angle at a location in the physical space.
-         * @param cindex Continuous index in the image space.
-         * @param vector Previous vector
-         * @param angle Angle of search.
-         * @return Vector of mean directions of local model in a solid angle formed by previous vector and search angle at a physical location point.
-         */
-         std::vector< PhysicalPoint > MeanDirectionsAt(PhysicalPoint vector);
+        // Print a message on output stream.
+        virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
+        // Propagation using the streamline tractography algorithm at a seed point.
+        virtual FiberType PropagateSeed(PointType const &seed);
+        // Compute the propagation direction at a given point for a second order diffusion tensor model (ie, principal direction).
+        VectorType PropagationDirectionT2At(PointType const &point, bool &stop);
+        // Propagate a seed using the Runge-Kutta method at order 4.
+        FiberType PropagateSeedRK4(PointType const &seed);
+        // Propagate a seed using the Euler method (Runge-Kutta method at order 0).
+        FiberType PropagateSeedRK0(PointType const &seed);
+        // Select the best direction (+ or -), depending on the previous direction.
+        VectorType SelectClosestDirectionT2(VectorType const &currentDirection, VectorType const &previousDirection, bool &stop);
 
     private:
-        /**
-         * @brief Propagate a seed using the Runke-Kutta method at order 4.
-         * @param points Vector of points initilized with the coordinates of the seed.
-         */
-         void PropagateSeedRK4(std::vector< Self::PhysicalPoint > &points);
-
-        /**
-         * @brief Propagate a seed using the Euler method (Runke-Kutta method at order 1).
-         * @param points Vector of points initilized with the coordinates of the seed.
-         */
-         void PropagateSeedRK1(std::vector< Self::PhysicalPoint > &points);
-
-        /**
-         * @brief Select the best direction in a vector of direction, depending on the previous direction.
-         * @param meanDirections Vector of mean directions.
-         * @param previousVector Previous direction.
-         * @return The closest direction to the previous direction.
-         */
-         PhysicalPoint SelectClosestDirection(std::vector< PhysicalPoint > &meanDirections, PhysicalPoint &previousVector);
-
-    private:
-        /**
-         * @brief Step size between two points of output.
-         */
+        //Step size between two points of output.
         float m_StepSize;
-
-        /**
-         * @brief True if the RK4 method is used or false if the RK1 (Euler) method is used.
-         */
+        //True if the RK4 method is used or false if the RK0 (Euler) method is used.
         bool m_UseRungeKuttaOrder4;
-
-        /**
-         * @brief Allowed angle for propagation.
-         */
+        // Allowed angle for propagation.
         float m_ThresholdAngle;
-
+        // FA criterion for propagation.
+        float m_ThresholdFA;
+        // Calculator to extract principal direction
         CalculatorType m_Calculator;
 };
 

@@ -63,19 +63,19 @@ namespace btk
 class TractographyAlgorithm : public itk::ProcessObject
 {
     public:
-        typedef TractographyAlgorithm                                               Self;
-        typedef itk::ProcessObject                                                  Superclass;
-        typedef itk::SmartPointer< Self >                                           Pointer;
-        typedef itk::SmartPointer< const Self >                                     ConstPointer;
-    
-        typedef itk::Image< short,3 >                                               MaskType;
-        typedef itk::Point< float,3 >                                               PointType;
-        typedef itk::Vector< float,3 >                                              VectorType;   
-        typedef itk::VariableLengthVector< itk::Vector< float,3 > >                 FiberType;    
-        typedef itk::VectorImage< float, 3 >                                        ModelType;
+        typedef TractographyAlgorithm                       Self;
+        typedef itk::ProcessObject                          Superclass;
+        typedef itk::SmartPointer< Self >                   Pointer;
+        typedef itk::SmartPointer< const Self >             ConstPointer;
 
-        typedef itk::VectorImageToImageAdaptor< float,3 >                                        VectorImageToImageAdaptorType; 
-        typedef itk::LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
+        // TODO : template parameters    
+        typedef itk::VectorImage< float,3 >                 ModelType;        
+        typedef itk::Image< short,3 >                       MaskType;
+
+        typedef ModelType::PointType                        PointType;
+        typedef PointType::VectorType                       VectorType;   
+        typedef std::vector< PointType >                    FiberType;    
+
 
         itkTypeMacro(TractographyAlgorithm, itk::ProcessObject);
 
@@ -85,29 +85,41 @@ class TractographyAlgorithm : public itk::ProcessObject
         itkSetMacro(InputModel, ModelType::Pointer);
         itkGetConstMacro(InputModel, ModelType::Pointer);
 
-        itkSetMacro(Seeds, itk::Vector< VectorType >);
-        itkGetConstMacro(Seeds, itk::Vector< VectorType >);
+        //itkSetMacro(Seeds, itk::Vector< VectorType >);
+        //itkGetConstMacro(Seeds, itk::Vector< VectorType >);
+
+        // Run the algorithm.
+        virtual void Update();
+        // Accessor to output estimated fibers
+        FiberType GetOutputFiber(unsigned int i) const;
+        // Get number of output fibers
+        unsigned int GetNumberOfFibers() const;
+        // Get fiber length
+        static VectorType::ValueType GetLength(FiberType const &fiber);
+        // Set seeds
+        void AppendSeed(PointType seed);
 
     protected:
         TractographyAlgorithm();
         // Print a message on output stream.
         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
         // Propagate using the tractography algorithm at a seed point.
-        virtual void PropagateSeed(PointType point) = 0;
-        //brief Run the algorithm.
-        virtual void Update();
-        // brief Accessor to output estimated fibers
-        virtual FiberType GetOutputFiber(unsigned int i) const;
+        virtual FiberType PropagateSeed(PointType const &point) = 0;
 
     protected:
+
+        typedef itk::VectorImageToImageAdaptor< float,3 >                                        VectorImageToImageAdaptorType; 
+        typedef itk::LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
+
         // Mask image determining where the tractography algorithm can process.
         MaskType::Pointer m_Mask;
         // Tensor image.
         ModelType::Pointer m_InputModel;
+        ModelType::SizeType m_size;
         // Estimated fibers.
         std::vector< FiberType > m_OutputFibers;
         // Seeds.
-        itk::Vector< VectorType >  m_Seeds;
+        std::vector< PointType > m_Seeds;
         // Interpolation tools.
         InterpolateModelType::Pointer m_InterpolateModelFunction;
         VectorImageToImageAdaptorType::Pointer m_Adaptor;
