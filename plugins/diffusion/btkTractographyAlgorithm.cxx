@@ -52,8 +52,8 @@ TractographyAlgorithm<ModelType, MaskType>
 ::TractographyAlgorithm(): m_Mask(NULL), m_InputModel(NULL)
 {
     // Create interpolate function on model image
-    m_InterpolateModelFunction = InterpolateModelType::New();
-    m_Adaptor = VectorImageToImageAdaptorType::New(); 
+    //m_InterpolateModelFunction = InterpolateModelType::New();
+    //m_Adaptor = VectorImageToImageAdaptorType::New(); 
 }
 
 //----------------------------------------------------------------------------------------
@@ -71,12 +71,75 @@ TractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 void 
 TractographyAlgorithm<ModelType, MaskType>
+::ThreadedUpdate(PointType seed, unsigned int index, int threadId)
+{
+    // Start tractography from seed point
+    // TODO pass interpolator as parameter
+    FiberType currentFiber = PropagateSeed(seed);
+    // Save fiber
+    m_OutputFibers[index] = currentFiber;
+}
+
+template<typename ModelType, typename MaskType>
+ITK_THREAD_RETURN_TYPE 
+TractographyAlgorithm<ModelType, MaskType>
+::ThreaderCallback( void *arg )
+{
+    ThreadStruct *str;
+    int total, threadId, threadCount;
+
+    threadId = ((itk::MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+    threadCount = ((itk::MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
+
+    str = (ThreadStruct *)(((itk::MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+    // execute the actual method with appropriate parameters
+    int seedsPerThread = str->Filter->m_Seeds.size()/threadCount;
+    std::vector<PointType> seeds;
+    std::vector<unsigned int> indexs;
+    for(int i=seedsPerThread*threadId; i<seedsPerThread*(threadId+1); i++) {
+        seeds.push_back(str->Filter->m_Seeds[i]);
+        indexs.push_back(i);
+    }
+    if ((seedsPerThread*threadCount+threadId)<str->Filter->m_Seeds.size()) {
+        seeds.push_back(str->Filter->m_Seeds[seedsPerThread*threadCount+threadId]);
+        indexs.push_back(seedsPerThread*threadCount+threadId);
+    }
+
+    //std::cout << "thread " << threadId << "; size " << seeds.size() << "; nb " << seedsPerThread << std::endl;
+    for(unsigned int i=0; i<seeds.size(); i++) {
+        PointType seed = seeds[i];
+        unsigned int index = indexs[i];
+        str->Filter->ThreadedUpdate(seed, index, threadId);
+    }
+
+    return ITK_THREAD_RETURN_VALUE;
+}
+
+//----------------------------------------------------------------------------------------
+
+template<typename ModelType, typename MaskType>
+void 
+TractographyAlgorithm<ModelType, MaskType>
 ::Update()
 {
     if (m_InputModel.IsNotNull()) {
 
-        m_size = m_InputModel->GetLargestPossibleRegion().GetSize();
-        typename std::vector< PointType >::iterator it;
+         m_size = m_InputModel->GetLargestPossibleRegion().GetSize();
+
+        // Allocate memory to store fibers
+        m_OutputFibers.resize(m_Seeds.size());
+
+        // Set up the multithreaded processing
+        ThreadStruct str;
+        str.Filter = this;
+        this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+        this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
+
+        // multithread the execution
+        this->GetMultiThreader()->SingleMethodExecute();
+
+        /* typename std::vector< PointType >::iterator it;
 
         for (it=m_Seeds.begin(); it<m_Seeds.end(); it++) {
 
@@ -87,7 +150,7 @@ TractographyAlgorithm<ModelType, MaskType>
             // Save fiber
             m_OutputFibers.push_back(currentFiber);
 
-        } // for each seed
+        } // for each seed*/
     }
 }
 

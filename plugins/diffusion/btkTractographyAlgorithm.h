@@ -57,7 +57,7 @@ namespace btk
  * @ingroup Tractography
  */
 template<typename ModelType, typename MaskType>
-class TractographyAlgorithm : public itk::ProcessObject
+class ITK_EXPORT TractographyAlgorithm : public itk::ProcessObject
 {
     public:
         typedef TractographyAlgorithm                       Self;
@@ -86,7 +86,11 @@ class TractographyAlgorithm : public itk::ProcessObject
         //itkGetConstMacro(Seeds, itk::Vector< VectorType >);
 
         // Run the algorithm.
+        virtual void ThreadedUpdate(PointType seed, unsigned int index, int threadId);
         virtual void Update();
+        // Static function used as a "callback" by the MultiThreader.  The threading library will call this routine for each thread, which will delegate the
+        // control to ThreadedUpdate().
+        static ITK_THREAD_RETURN_TYPE ThreaderCallback( void *arg );
         // Accessor to output estimated fibers
         FiberType GetOutputFiber(unsigned int i) const;
         // Get number of output fibers
@@ -104,6 +108,10 @@ class TractographyAlgorithm : public itk::ProcessObject
         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
         // Propagate using the tractography algorithm at a seed point.
         virtual FiberType PropagateSeed(PointType const &point) = 0;
+        // Internal structure used for passing image data into the threading library */
+        struct ThreadStruct {
+            Pointer Filter;
+        };
 
     protected:
 
@@ -120,8 +128,8 @@ class TractographyAlgorithm : public itk::ProcessObject
         // Seeds.
         std::vector< PointType > m_Seeds;
         // Interpolation tools.
-        InterpolateModelType::Pointer m_InterpolateModelFunction;
-        VectorImageToImageAdaptorType::Pointer m_Adaptor;
+        //InterpolateModelType::Pointer m_InterpolateModelFunction;
+        //VectorImageToImageAdaptorType::Pointer m_Adaptor;
 
 };
 
