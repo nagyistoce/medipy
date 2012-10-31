@@ -139,6 +139,65 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
     
     if dialog.ShowModal() != wx.ID_OK :
         return []
+        
+    directory = dialog.GetPath()
+    if recursive :
+        files = []
+        for dirpath, dirnames, filenames in os.walk(directory) :
+            files.extend([(os.path.join(dirpath, x)) for x in filenames])
+    else :
+        files = os.listdir(directory)
+        files = [str(os.path.join(directory, x)) for x in files]
+    files.sort()
+    
+    def loader(files):
+        datasets = []
+        for file in files :
+            try :
+                dataset = medipy.io.dicom.parse(file)
+            except Exception, e :
+                logging.warning("Could not parse file {0} : {1}".format(file, e))
+            else :
+                datasets.append(dataset)
+        return datasets
+    
+    periodic_progress_dialog = PeriodicProgressDialog(
+        0.2, "Loading files", "Loading ...")
+    worker_thread = WorkerThread(periodic_progress_dialog,
+                                 target=loader, args=(files,))
+    worker_thread.start()
+    periodic_progress_dialog.start()
+    worker_thread.join()
+    periodic_progress_dialog.Destroy()
+        
+    if worker_thread.exception is not None :
+        wx.MessageBox(
+            "Could not load files : %s"%(worker_thread.exception, ), 
+            "Could not load files")
+        return []
+    
+    images = reconstruction.images(worker_thread.result, parent, dtype, True)
+    
+    if images :
+        preferences.set("IO/load_path", dialog.GetPath())
+        return images
+
+def import_serie_from_dicom_directory(parent=None, dtype=numpy.single):
+    """ Import an image from a directory containing DICOM files
+        
+        parent : parent wx Window for dialogs
+        dtype : type to cast images to, or None to preserve original type
+    """
+
+    preferences = medipy.gui.base.Preferences(
+        wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+    path = preferences.get("IO/load_path", "")
+    
+    dialog = wx.DirDialog(parent, style=wx.FD_OPEN)
+    dialog.SetPath(path)
+    
+    if dialog.ShowModal() != wx.ID_OK :
+        return []
        
     directory = dialog.GetPath()
 
@@ -150,35 +209,6 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
     periodic_progress_dialog.start()
     worker_thread.join()
     periodic_progress_dialog.Destroy()
-
-#    if recursive :
-#        files = []
-#        for dirpath, dirnames, filenames in os.walk(directory) :
-#            files.extend([(os.path.join(dirpath, x)) for x in filenames])
-#    else :
-#        files = os.listdir(directory)
-#        files = [str(os.path.join(directory, x)) for x in files]
-#    files.sort()
-    
-#    def loader(files):
-#        datasets = []
-#        for file in files :
-#            try :
-#                dataset = medipy.io.dicom.parse(file)
-#            except Exception, e :
-#                logging.warning("Could not parse file {0} : {1}".format(file, e))
-#            else :
-#                datasets.append(dataset)
-#        return datasets
-    
-#    periodic_progress_dialog = PeriodicProgressDialog(
-#        0.2, "Loading files", "Loading ...")
-#    worker_thread = WorkerThread(periodic_progress_dialog,
-#                                 target=loader, args=(files,))
-#    worker_thread.start()
-#    periodic_progress_dialog.start()
-#    worker_thread.join()
-#    periodic_progress_dialog.Destroy()
         
     if worker_thread.exception is not None :
         wx.MessageBox(
@@ -187,8 +217,6 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
         return []
     else :
         images = worker_thread.result
-    
-#    images = reconstruction.images(worker_thread.result, parent, dtype, True)
     
     if images :
         preferences.set("IO/load_path", dialog.GetPath())
