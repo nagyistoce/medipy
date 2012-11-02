@@ -53,7 +53,7 @@ namespace btk
 
 /**
  * @brief Representation of an abstract tractography algorithm.
- * @author Julien Pontabry
+ * @author Julien Pontabry / Antoine Grigis
  * @ingroup Tractography
  */
 template<typename ModelType, typename MaskType>
@@ -65,14 +65,9 @@ class ITK_EXPORT TractographyAlgorithm : public itk::ProcessObject
         typedef itk::SmartPointer< Self >                   Pointer;
         typedef itk::SmartPointer< const Self >             ConstPointer;
 
-        // TODO : template parameters    
-        /*typedef itk::VectorImage< float,3 >                 ModelType;        
-        typedef itk::Image< short,3 >                       MaskType;*/
-
         typedef typename ModelType::PointType               PointType;
         typedef typename PointType::VectorType              VectorType;   
-        typedef typename std::vector< PointType >           FiberType;    
-
+        typedef typename std::vector< PointType >           FiberType;   
 
         itkTypeMacro(TractographyAlgorithm, itk::ProcessObject);
 
@@ -103,21 +98,21 @@ class ITK_EXPORT TractographyAlgorithm : public itk::ProcessObject
         void AppendSeed(PointType seed);
 
     protected:
+
+        typedef itk::VectorImageToImageAdaptor< float,3 >                                        VectorImageToImageAdaptorType; 
+        typedef itk::LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
+
         TractographyAlgorithm();
         // Print a message on output stream.
         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
         // Propagate using the tractography algorithm at a seed point.
-        virtual FiberType PropagateSeed(PointType const &point) = 0;
+        virtual FiberType PropagateSeed(PointType const &point, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor) = 0;
         // Internal structure used for passing image data into the threading library */
         struct ThreadStruct {
             Pointer Filter;
         };
 
     protected:
-
-        typedef itk::VectorImageToImageAdaptor< float,3 >                                        VectorImageToImageAdaptorType; 
-        typedef itk::LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
-
         // Mask image determining where the tractography algorithm can process.
         typename MaskType::Pointer m_Mask;
         // Tensor image.
@@ -127,10 +122,6 @@ class ITK_EXPORT TractographyAlgorithm : public itk::ProcessObject
         std::vector< FiberType > m_OutputFibers;
         // Seeds.
         std::vector< PointType > m_Seeds;
-        // Interpolation tools.
-        //InterpolateModelType::Pointer m_InterpolateModelFunction;
-        //VectorImageToImageAdaptorType::Pointer m_Adaptor;
-
 };
 
 } // namespace btk

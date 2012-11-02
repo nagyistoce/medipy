@@ -50,7 +50,7 @@ namespace btk
 
 /**
  * @brief Define a deterministic streamline propagation algorithm.
- * @author Julien Pontabry
+ * @author Julien Pontabry / Antoine Grigis
  * @ingroup Tractography
  */
 
@@ -66,8 +66,6 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelT
         typedef typename Superclass::PointType               PointType;
         typedef typename Superclass::VectorType              VectorType;
         typedef typename Superclass::FiberType               FiberType;
-        typedef typename Superclass::InterpolateModelType             InterpolateModelType;
-        typedef typename Superclass::VectorImageToImageAdaptorType    VectorImageToImageAdaptorType;
 
         itkNewMacro(Self);
         itkTypeMacro(StreamlineTractographyAlgorithm, btk::TractographyAlgorithm);
@@ -86,6 +84,9 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelT
 
     protected:
 
+        typedef typename Superclass::InterpolateModelType             InterpolateModelType;
+        typedef typename Superclass::VectorImageToImageAdaptorType    VectorImageToImageAdaptorType;
+
         typedef vnl_matrix< double >                InputMatrixType;
         typedef itk::FixedArray< double,3 >         EigenValuesArrayType;
         typedef itk::Matrix< double,3,3 >           EigenVectorMatrixType;
@@ -95,13 +96,13 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelT
         // Print a message on output stream.
         virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
         // Propagation using the streamline tractography algorithm at a seed point.
-        virtual FiberType PropagateSeed(PointType const &seed);
+        virtual FiberType PropagateSeed(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor);
         // Compute the propagation direction at a given point for a second order diffusion tensor model (ie, principal direction).
-        VectorType PropagationDirectionT2At(PointType const &point, bool &stop);
+        VectorType PropagationDirectionT2At(PointType const &point, bool &stop, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor);
         // Propagate a seed using the Runge-Kutta method at order 4.
-        FiberType PropagateSeedRK4(PointType const &seed);
-        // Propagate a seed using the Euler method (Runge-Kutta method at order 0).
-        FiberType PropagateSeedRK0(PointType const &seed);
+        FiberType PropagateSeedRK4(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor);
+        // Propagate a seed using the Euler method (Runge-Kutta method at order 1).
+        FiberType PropagateSeedRK1(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor);
         // Select the best direction (+ or -), depending on the previous direction.
         VectorType SelectClosestDirectionT2(VectorType const &currentDirection, VectorType const &previousDirection, bool &stop);
 

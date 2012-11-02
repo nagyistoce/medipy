@@ -51,9 +51,7 @@ template<typename ModelType, typename MaskType>
 TractographyAlgorithm<ModelType, MaskType>
 ::TractographyAlgorithm(): m_Mask(NULL), m_InputModel(NULL)
 {
-    // Create interpolate function on model image
-    //m_InterpolateModelFunction = InterpolateModelType::New();
-    //m_Adaptor = VectorImageToImageAdaptorType::New(); 
+    //---
 }
 
 //----------------------------------------------------------------------------------------
@@ -74,8 +72,11 @@ TractographyAlgorithm<ModelType, MaskType>
 ::ThreadedUpdate(PointType seed, unsigned int index, int threadId)
 {
     // Start tractography from seed point
-    // TODO pass interpolator as parameter
-    FiberType currentFiber = PropagateSeed(seed);
+    typename InterpolateModelType::Pointer interpolate = InterpolateModelType::New();
+    typename VectorImageToImageAdaptorType::Pointer adaptor = VectorImageToImageAdaptorType::New(); 
+    adaptor->SetImage( m_InputModel );
+    interpolate->SetInputImage( adaptor );
+    FiberType currentFiber = PropagateSeed(seed,interpolate,adaptor);
     // Save fiber
     m_OutputFibers[index] = currentFiber;
 }
