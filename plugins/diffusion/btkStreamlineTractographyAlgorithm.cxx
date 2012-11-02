@@ -65,16 +65,16 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 typename StreamlineTractographyAlgorithm<ModelType, MaskType>::FiberType
 StreamlineTractographyAlgorithm<ModelType, MaskType>
-::PropagateSeed(PointType const &seed)
+::PropagateSeed(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor)
 {
     FiberType currentFiber;
 
     // Propagation
     if(m_UseRungeKuttaOrder4) {
-        currentFiber = PropagateSeedRK4(seed);
+        currentFiber = PropagateSeedRK4(seed,interpolate,adaptor);
     }
     else {
-        currentFiber = PropagateSeedRK0(seed);
+        currentFiber = PropagateSeedRK1(seed,interpolate,adaptor);
     }
 
     return currentFiber;
@@ -85,10 +85,10 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 typename StreamlineTractographyAlgorithm<ModelType, MaskType>::FiberType
 StreamlineTractographyAlgorithm<ModelType, MaskType>
-::PropagateSeedRK0(PointType const &seed)
+::PropagateSeedRK1(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor)
 {
     bool stop = false;
-    VectorType d1 = PropagationDirectionT2At(seed,stop);
+    VectorType d1 = PropagationDirectionT2At(seed,stop,interpolate,adaptor);
     VectorType d2 = -d1;
 
     std::vector< PointType > points1;  
@@ -99,10 +99,10 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
     while (!stop) {
         // Insert new point 
         points1.push_back(nextPoint);
-        // This use the RK0 (Euler) to compute the next point (Runge-Kutta, order 0, Euler method)
+        // This use the RK1 (Euler) to compute the next point (Runge-Kutta, order 1, Euler method)
         nextPoint = points1.back() + (d1*m_StepSize);
         // Propagation
-        VectorType d = PropagationDirectionT2At(nextPoint,stop);
+        VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         // Select the best propagation direction
         d1 = SelectClosestDirectionT2(d,d1,stop);
     }
@@ -113,7 +113,7 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
     while (!stop) {
         points2.push_back(nextPoint);
         nextPoint = points2.back() + (d2*m_StepSize);
-        VectorType d = PropagationDirectionT2At(nextPoint,stop);
+        VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         d2 = SelectClosestDirectionT2(d,d2,stop);
     }
 
@@ -130,7 +130,7 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 typename StreamlineTractographyAlgorithm<ModelType, MaskType>::VectorType
 StreamlineTractographyAlgorithm<ModelType, MaskType>
-::PropagationDirectionT2At(PointType const &point, bool &stop)
+::PropagationDirectionT2At(PointType const &point, bool &stop, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor)
 {
     VectorType pd;
 
@@ -148,15 +148,11 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
     }
 
     if (!stop) {
-        itk::Vector<float,6> dt6;    
-        typename InterpolateModelType::Pointer m_InterpolateModelFunction = InterpolateModelType::New();
-        typename VectorImageToImageAdaptorType::Pointer m_Adaptor = VectorImageToImageAdaptorType::New(); 
+        itk::Vector<float,6> dt6;          
         for( unsigned int i=0; i<6; i++) {
-            m_Adaptor->SetExtractComponentIndex( i );
-            m_Adaptor->SetImage( this->m_InputModel );
-            m_Adaptor->Update();
-            m_InterpolateModelFunction->SetInputImage( m_Adaptor );
-            dt6[i] = m_InterpolateModelFunction->Evaluate(point);
+            adaptor->SetExtractComponentIndex( i );
+            adaptor->Update();
+            dt6[i] = interpolate->Evaluate(point);
         } 
 
         InputMatrixType dt33(3,3);
@@ -218,80 +214,85 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 typename StreamlineTractographyAlgorithm<ModelType, MaskType>::FiberType
 StreamlineTractographyAlgorithm<ModelType, MaskType>
-::PropagateSeedRK4(PointType const &seed)
+::PropagateSeedRK4(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor)
 {
     // Usefull constants
-    /*float stepSize_2 = m_StepSize / 2.f;
+    float stepSize_2 = m_StepSize / 2.f;
     float stepSize_6 = m_StepSize / 6.f;
 
     bool stop = false;
-    PhysicalPoint nextDirection = MeanDirectionsAt(points.back())[0];
+    VectorType d1 = PropagationDirectionT2At(seed,stop,interpolate,adaptor);
+    VectorType d2 = -d1;
 
-    do
-    {
+    std::vector< PointType > points1;  
+    std::vector< PointType > points2;
+
+    // Track towards one direction
+    PointType nextPoint = seed;
+    while (!stop) {
+        // Insert new point 
+        points1.push_back(nextPoint);
         // This use the RK4 to compute the next point (Runge-Kutta, order 4)
-        Self::PhysicalPoint lastPoint = points.back();
+        // k1
+        VectorType k1 = d1;
+        // k2
+        nextPoint = points1.back() + (k1*stepSize_2);
+        VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        if (d==VectorType()) { break; }
+        VectorType k2 = SelectClosestDirectionT2(d,k1,stop);
+        // k3
+        nextPoint = points1.back() + (k2*stepSize_2);
+        d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        if (d==VectorType()) { break; }
+        VectorType k3 = SelectClosestDirectionT2(d,k2,stop);
+        // k4
+        nextPoint = points1.back() + (k3*m_StepSize);
+        d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        if (d==VectorType()) { break; }
+        VectorType k4 = SelectClosestDirectionT2(d,k3,stop);
+        // result
+        nextPoint = points1.back() + (k1 + k2*2.f + k3*2.f + k4) * stepSize_6;
+        d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        d1 = SelectClosestDirectionT2(d,k1,stop);
+    }
 
-        PhysicalPoint k1 = nextDirection;
-        Self::PhysicalPoint nextPoint;
-        for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k1[i]*stepSize_2); }
-        std::vector< PhysicalPoint > directions = MeanDirectionsAt(nextPoint);
-        PhysicalPoint k2 = Self::SelectClosestDirection(directions, k1);
 
-        if(k2 != PhysicalPoint())
-        {
-            for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k2[i]*stepSize_2); }
-            directions = MeanDirectionsAt(nextPoint);
-            PhysicalPoint k3 = Self::SelectClosestDirection(directions, k2);
+    // Track towards the opposite direction
+    stop = false;
+    nextPoint = seed;
+    while (!stop) {
+        // Insert new point 
+        points2.push_back(nextPoint);
+        // This use the RK4 to compute the next point (Runge-Kutta, order 4)
+        // k1
+        VectorType k1 = d2;
+        // k2
+        nextPoint = points2.back() + (k1*stepSize_2);
+        VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        if (d==VectorType()) { break; }
+        VectorType k2 = SelectClosestDirectionT2(d,k1,stop);
+        // k3
+        nextPoint = points2.back() + (k2*stepSize_2);
+        d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        if (d==VectorType()) { break; }
+        VectorType k3 = SelectClosestDirectionT2(d,k2,stop);
+        // k4
+        nextPoint = points2.back() + (k3*m_StepSize);
+        d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        if (d==VectorType()) { break; }
+        VectorType k4 = SelectClosestDirectionT2(d,k3,stop);
+        // result
+        nextPoint = points2.back() + (k1 + k2*2.f + k3*2.f + k4) * stepSize_6;
+        d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
+        d2 = SelectClosestDirectionT2(d,k1,stop);
+    }
 
-            if(k3 != PhysicalPoint())
-            {
-                for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k3[i]*m_StepSize); }
-                directions = MeanDirectionsAt(nextPoint);
-                PhysicalPoint k4 = Self::SelectClosestDirection(directions, k3);
+    // Concatenate
+    std::vector< PointType > points;
+    for (unsigned int i=0; i<points2.size()-1; i++) { points.push_back(points2[points2.size()-1-i]); }
+    for (unsigned int i=0; i<points1.size(); i++) { points.push_back(points1[i]); }
 
-                if(k4 != PhysicalPoint())
-                {
-                    for (unsigned int i=0; i<3; i++) { nextPoint[i] = lastPoint[i] + (k1[i] + (k2[i]*2.f) + (k3[i]*2.f) + k4[i]) * stepSize_6; }
-
-                    // Check if the physical point is in the mask
-                    Self::MaskImage::IndexType maskIndex;
-                    m_Mask->TransformPhysicalPointToIndex(nextPoint, maskIndex);
-
-                    if(m_Mask->GetPixel(maskIndex) == 0)
-                    {
-                        stop = true;
-                    }
-                    else // m_Mask->GetPixel(maskIndex) != 0
-                    {
-                        // Add the new point
-                        points.push_back(nextPoint);
-
-                        // Search next direction
-                        std::vector< PhysicalPoint > meanDirections = MeanDirectionsAt(nextPoint);
-                        nextDirection = Self::SelectClosestDirection(meanDirections, k1);
-
-                        if(nextDirection == PhysicalPoint())
-                        {
-                            stop = true;
-                        }
-                    }
-                }
-                else
-                {
-                    stop = true;
-                }
-            }
-            else
-            {
-                stop = true;
-            }
-        }
-        else
-        {
-            stop = true;
-        }
-    } while(!stop);*/
+    return points;
 }
 
 
