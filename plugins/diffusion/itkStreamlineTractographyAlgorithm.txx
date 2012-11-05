@@ -36,15 +36,16 @@
 #ifndef BTK_STREAMLINE_TRACTOGRAPHY_ALGORITHM_cxx
 #define BTK_STREAMLINE_TRACTOGRAPHY_ALGORITHM_cxx
 
-#include "btkStreamlineTractographyAlgorithm.h"
+#include "itkStreamlineTractographyAlgorithm.h"
 
 
-namespace btk
+namespace itk
 {
 
 template<typename ModelType, typename MaskType>
 StreamlineTractographyAlgorithm<ModelType, MaskType>
-::StreamlineTractographyAlgorithm() : m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_ThresholdAngle(M_PI/3.0f), m_ThresholdFA(0.2), Superclass()
+::StreamlineTractographyAlgorithm() 
+: Superclass(), m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_ThresholdAngle(M_PI/3.0f), m_ThresholdFA(0.2)
 {
     m_Calculator.SetDimension(3);
 }
@@ -54,7 +55,7 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 void
 StreamlineTractographyAlgorithm<ModelType, MaskType>
-::PrintSelf(std::ostream &os, itk::Indent indent) const
+::PrintSelf(std::ostream &os, Indent indent) const
 {
     Superclass::PrintSelf(os, indent);
 }
@@ -143,12 +144,12 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
     else {
         typename ModelType::IndexType modelIndex;
         this->m_InputModel->TransformPhysicalPointToIndex(point, modelIndex);
-        if ( (modelIndex[0]>=(this->m_size[0]-1)) || (modelIndex[1]>=(this->m_size[1]-1)) || (modelIndex[2]>=(this->m_size[2]-1)) ||
-             (modelIndex[0]<=0) || (modelIndex[1]<=0) || (modelIndex[2]<=0) ) { stop = true; }
+        if ( ((unsigned int)modelIndex[0]>=(this->m_size[0]-1)) || ((unsigned int)modelIndex[1]>=(this->m_size[1]-1)) || ((unsigned int)modelIndex[2]>=(this->m_size[2]-1)) ||
+             ((unsigned int)modelIndex[0]<=0) || ((unsigned int)modelIndex[1]<=0) || ((unsigned int)modelIndex[2]<=0) ) { stop = true; }
     }
 
     if (!stop) {
-        itk::Vector<float,6> dt6;          
+        Vector<float,6> dt6;          
         for( unsigned int i=0; i<6; i++) {
             adaptor->SetExtractComponentIndex( i );
             adaptor->Update();
@@ -296,6 +297,6 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 }
 
 
-} // namespace btk
+} // namespace itk
 
 #endif
