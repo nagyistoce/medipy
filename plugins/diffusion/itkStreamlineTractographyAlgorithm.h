@@ -39,13 +39,13 @@
 // ITK includes
 #include "itkMacro.h"
 #include "itkSmartPointer.h"
-#include "itkDiffusionTensor3DReconstructionImageFilter.h"
+//#include "itkDiffusionTensor3DReconstructionImageFilter.h"
 #include <itkSymmetricEigenAnalysis.h>
 
 // Local includes
-#include "btkTractographyAlgorithm.h"
+#include "itkTractographyAlgorithm.h"
 
-namespace btk
+namespace itk
 {
 
 /**
@@ -55,20 +55,20 @@ namespace btk
  */
 
 template<typename ModelType, typename MaskType>
-class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelType, MaskType>
+class StreamlineTractographyAlgorithm : public TractographyAlgorithm<ModelType, MaskType>
 {
     public:
-        typedef StreamlineTractographyAlgorithm                         Self;
-        typedef btk::TractographyAlgorithm<ModelType, MaskType>         Superclass;
-        typedef itk::SmartPointer< Self >                               Pointer;
-        typedef itk::SmartPointer< const Self >                         ConstPointer;
+        typedef StreamlineTractographyAlgorithm                    Self;
+        typedef TractographyAlgorithm<ModelType, MaskType>         Superclass;
+        typedef SmartPointer< Self >                               Pointer;
+        typedef SmartPointer< const Self >                         ConstPointer;
 
         typedef typename Superclass::PointType               PointType;
         typedef typename Superclass::VectorType              VectorType;
         typedef typename Superclass::FiberType               FiberType;
 
         itkNewMacro(Self);
-        itkTypeMacro(StreamlineTractographyAlgorithm, btk::TractographyAlgorithm);
+        itkTypeMacro(StreamlineTractographyAlgorithm, TractographyAlgorithm);
 
         itkSetMacro(StepSize,float);
         itkGetConstMacro(StepSize,float);
@@ -88,13 +88,14 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelT
         typedef typename Superclass::VectorImageToImageAdaptorType    VectorImageToImageAdaptorType;
 
         typedef vnl_matrix< double >                InputMatrixType;
-        typedef itk::FixedArray< double,3 >         EigenValuesArrayType;
-        typedef itk::Matrix< double,3,3 >           EigenVectorMatrixType;
-        typedef itk::SymmetricEigenAnalysis< InputMatrixType,EigenValuesArrayType,EigenVectorMatrixType > CalculatorType;
+        typedef FixedArray< double,3 >         EigenValuesArrayType;
+        typedef Matrix< double,3,3 >           EigenVectorMatrixType;
+        typedef SymmetricEigenAnalysis< InputMatrixType,EigenValuesArrayType,EigenVectorMatrixType > CalculatorType;
 
         StreamlineTractographyAlgorithm();
+        ~StreamlineTractographyAlgorithm() {}
         // Print a message on output stream.
-        virtual void PrintSelf(std::ostream &os, itk::Indent indent) const;
+        virtual void PrintSelf(std::ostream &os, Indent indent) const;
         // Propagation using the streamline tractography algorithm at a seed point.
         virtual FiberType PropagateSeed(PointType const &seed, typename InterpolateModelType::Pointer &interpolate, typename VectorImageToImageAdaptorType::Pointer &adaptor);
         // Compute the propagation direction at a given point for a second order diffusion tensor model (ie, principal direction).
@@ -119,10 +120,10 @@ class StreamlineTractographyAlgorithm : public btk::TractographyAlgorithm<ModelT
         CalculatorType m_Calculator;
 };
 
-} // namespace btk
+} // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "btkStreamlineTractographyAlgorithm.cxx"
+#include "itkStreamlineTractographyAlgorithm.txx"
 #endif
 
 #endif // BTK_STREAMLINE_TRACTOGRAPHY_ALGORITHM_H

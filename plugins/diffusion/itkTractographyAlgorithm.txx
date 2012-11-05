@@ -38,13 +38,13 @@
 #define _BTK_TRACTOGRAPHY_ALGORITHM_cxx
 
 
-#include "btkTractographyAlgorithm.h"
+#include "itkTractographyAlgorithm.h"
 
 
 // STL includes
 #include "algorithm"
 
-namespace btk
+namespace itk
 {
 
 template<typename ModelType, typename MaskType>
@@ -59,7 +59,7 @@ TractographyAlgorithm<ModelType, MaskType>
 template<typename ModelType, typename MaskType>
 void 
 TractographyAlgorithm<ModelType, MaskType>
-::PrintSelf(std::ostream &os, itk::Indent indent) const
+::PrintSelf(std::ostream &os, Indent indent) const
 {
     Superclass::PrintSelf(os, indent);
 }
@@ -87,18 +87,18 @@ TractographyAlgorithm<ModelType, MaskType>
 ::ThreaderCallback( void *arg )
 {
     ThreadStruct *str;
-    int total, threadId, threadCount;
+    unsigned int threadId, threadCount;
 
-    threadId = ((itk::MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-    threadCount = ((itk::MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
+    threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+    threadCount = ((MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
 
-    str = (ThreadStruct *)(((itk::MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+    str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
     // execute the actual method with appropriate parameters
     int seedsPerThread = str->Filter->m_Seeds.size()/threadCount;
     std::vector<PointType> seeds;
     std::vector<unsigned int> indexs;
-    for(int i=seedsPerThread*threadId; i<seedsPerThread*(threadId+1); i++) {
+    for(unsigned int i=seedsPerThread*threadId; i<seedsPerThread*(threadId+1); i++) {
         seeds.push_back(str->Filter->m_Seeds[i]);
         indexs.push_back(i);
     }
@@ -206,6 +206,6 @@ TractographyAlgorithm<ModelType, MaskType>
     }
 }
 
-} // namespace btk
+} // namespace itk
 
 #endif
