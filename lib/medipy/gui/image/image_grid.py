@@ -117,6 +117,18 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
             other_image.delete_all_children()
             other_image.append_child(next_image)
         
+        # Synchronize if more than one image
+        if len(self) > 1 :
+            reference = self[(index+1)%len(self)]
+            if self._synchronization["cursor_position"] :
+                reference.notify_observers("cursor_position")
+            if self._synchronization["center"] :
+                reference.notify_observers("center")
+            if self._synchronization["zoom"] :
+                reference.notify_observers("zoom")
+            if self._synchronization["display_range"] :
+                reference.notify_observers("display_range")
+        
         # Refresh the GUI
         self._sizer.Insert(index, image, 1, wx.EXPAND)
         self._adjust_sizer()
