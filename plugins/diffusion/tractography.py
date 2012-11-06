@@ -12,7 +12,6 @@ def streamline_tractography(model,seeds,step=1.0,thr_fa=0.2,thr_angle=np.pi,rk4=
     tractography_filter = itk.StreamlineTractographyAlgorithm[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
 
     itk_model = medipy.itk.medipy_image_to_itk_image(model, False)
-    print itk_model
     tractography_filter.SetInputModel(itk_model)
     for seed in seeds:
         tractography_filter.AppendSeed(seed)
@@ -22,4 +21,10 @@ def streamline_tractography(model,seeds,step=1.0,thr_fa=0.2,thr_angle=np.pi,rk4=
     tractography_filter.SetThresholdFA(thr_fa)
     tractography_filter.Update()
 
-    print tractography_filter.GetNumberOfFibers()
+    nb_fiber = tractography_filter.GetNumberOfFibers()
+    print "nb fibers=", nb_fiber
+    fibers = []
+    for i in range(nb_fiber) :
+        fibers.append(tractography_filter.GetOutputFiberAsPyArray(i))
+    print [ fiber.shape for fiber in fibers]
+    print fibers[0]

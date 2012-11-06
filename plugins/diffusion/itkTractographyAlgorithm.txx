@@ -206,6 +206,93 @@ TractographyAlgorithm<ModelType, MaskType>
     }
 }
 
+template<typename ModelType, typename MaskType>
+PyObject*
+TractographyAlgorithm<ModelType, MaskType>
+::GetOutputFiberAsPyArray(unsigned int i) const
+{
+    typedef typename PointType::ValueType ValueType;
+    FiberType fiber = GetOutputFiber(i);
+    unsigned int length = fiber.size();
+    unsigned int dim = 0;
+    if (length>0) { dim = fiber[0].GetPointDimension(); }
+
+    // Create Array
+    npy_intp size[] = {length, dim};
+    PyObject* py_fiber = PyArray_SimpleNew(2, size, Self::template GetPyType<ValueType>());
+
+    // Copy from ITK object, reversing the order to get the NumPy order
+    typename std::vector< PointType >::iterator it;
+    ValueType* it_out = reinterpret_cast<ValueType*>(PyArray_DATA(py_fiber));
+    for (it=fiber.begin(); it<fiber.end(); it++) {
+        PointType point = *it;
+	    it_out = std::reverse_copy(point.GetDataPointer(), point.GetDataPointer()+dim, it_out);
+    }
+
+    return py_fiber;
+
+}
+
+template<typename ModelType, typename MaskType>
+template<typename T>
+typename TractographyAlgorithm<ModelType, MaskType>::PyArrayType
+TractographyAlgorithm<ModelType, MaskType>
+::GetPyType(void)
+{
+	PyArrayType item_type;
+	typedef typename PixelTraits<T>::ValueType ScalarType;
+	if(typeid(ScalarType) == typeid(double))
+	{
+		item_type = PyArray_DOUBLE;
+	}
+	else if(typeid(ScalarType) == typeid(float))
+	{
+		item_type = PyArray_FLOAT;
+	}
+	else if(typeid(ScalarType) == typeid(long))
+	{
+		item_type = PyArray_LONG;
+	}
+	else if(typeid(ScalarType) == typeid(unsigned long))
+	{
+#ifdef NDARRAY_VERSION
+		item_type = PyArray_ULONG;
+#else
+		throw std::runtime_error("Type currently not supported");
+#endif
+	}
+	else if(typeid(ScalarType) == typeid(int))
+	{
+		item_type = PyArray_INT;
+	}
+	else if(typeid(ScalarType) == typeid(unsigned int))
+	{
+		item_type = PyArray_UINT;
+	}
+	else if(typeid(ScalarType) == typeid(short))
+	{
+		item_type = PyArray_SHORT;
+	}
+	else if(typeid(ScalarType) == typeid(unsigned short))
+	{
+		item_type = PyArray_USHORT;
+	}
+	else if(typeid(ScalarType) == typeid(signed char))
+	{
+		item_type = PyArray_BYTE;
+	}
+	else if(typeid(ScalarType) == typeid(unsigned char))
+	{
+		item_type = PyArray_UBYTE;
+	}
+	else
+	{
+		item_type = PyArray_NOTYPE;
+		throw std::runtime_error("Type currently not supported");
+	}
+	return item_type;
+}
+
 } // namespace itk
 
 #endif
