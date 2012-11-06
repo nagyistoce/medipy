@@ -52,7 +52,7 @@ class ObservableList(list, Observable) :
 
     def append(self, value) :
         list.append(self, value)
-        self.notify_observers("append")
+        #self.notify_observers("append")
     
     def pop(self, *args) :
         popped_value = list.pop(self, *args)
