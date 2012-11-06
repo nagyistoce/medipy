@@ -35,5 +35,5 @@ env.WrapITKPythonModule("MediPyDiffusion", [
     ("itk::TractographyAlgorithm", 
         [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"), 
     ("itk::StreamlineTractographyAlgorithm", 
-        [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer") ]
+        [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"),
 ])

@@ -48,6 +48,10 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorImageToImageAdaptor.h"
 
+// Python includes
+#include <Python.h>
+#include <numpy/arrayobject.h>
+
 namespace itk
 {
 
@@ -71,11 +75,11 @@ class ITK_EXPORT TractographyAlgorithm : public ProcessObject
 
         itkTypeMacro(TractographyAlgorithm, ProcessObject);
 
-        itkSetMacro(Mask, typename MaskType::Pointer);
-        itkGetConstMacro(Mask, typename MaskType::Pointer);
+        itkSetObjectMacro(Mask, MaskType);
+        itkGetObjectMacro(Mask, MaskType);
 
-        itkSetMacro(InputModel, typename ModelType::Pointer);
-        itkGetConstMacro(InputModel, typename ModelType::Pointer);
+        itkSetObjectMacro(InputModel, ModelType);
+        itkGetObjectMacro(InputModel, ModelType);
 
         // Run the algorithm.
         virtual void ThreadedUpdate(PointType seed, unsigned int index, int threadId);
@@ -85,6 +89,7 @@ class ITK_EXPORT TractographyAlgorithm : public ProcessObject
         static ITK_THREAD_RETURN_TYPE ThreaderCallback( void *arg );
         // Accessor to output estimated fibers
         FiberType GetOutputFiber(unsigned int i) const;
+        PyObject* GetOutputFiberAsPyArray(unsigned int i) const;
         // Get number of output fibers
         unsigned int GetNumberOfSeeds() const;
         unsigned int GetNumberOfFibers() const;
@@ -97,8 +102,13 @@ class ITK_EXPORT TractographyAlgorithm : public ProcessObject
         typedef VectorImageToImageAdaptor< float,3 >                                        VectorImageToImageAdaptorType; 
         typedef LinearInterpolateImageFunction< VectorImageToImageAdaptorType,float >       InterpolateModelType;
 
+        typedef enum PyArray_TYPES PyArrayType;
+
         TractographyAlgorithm();
         ~TractographyAlgorithm() {}
+	    // Return a NumPy array type from a C type.
+	    template<typename T>
+	    static PyArrayType GetPyType(void);
         // Print a message on output stream.
         virtual void PrintSelf(std::ostream &os, Indent indent) const;
         // Propagate using the tractography algorithm at a seed point.
