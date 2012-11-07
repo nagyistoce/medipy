@@ -15,6 +15,23 @@ import medipy.base
 
 from spectral_analysis import spectral_analysis
 
+def log_transformation(dt6,epsi=1e-5) :
+    """ Compute Log tensors
+    """
+    imgEigVal,imgEigVec = spectral_decomposition(dt6)
+    imgEigVec.data = imgEigVec.data.reshape(imgEigVec.shape+(3,3))
+    imgEigVal.data[np.where(imgEigVal.data<=epsi)] = epsi
+    imgEigVal.data = np.log(imgEigVal.data)  
+    return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal),origin=dt6.origin,spacing=dt6.spacing,direction=dt6.direction,data_type="vector",image_type="tensor_2")
+
+def exp_transformation(dt6) :
+    """ Compute Exp tensor
+    """
+    imgEigVal,imgEigVec = spectral_decomposition(dt6)
+    imgEigVec.data = imgEigVec.data.reshape(imgEigVec.shape+(3,3))
+    imgEigVal.data = np.exp(imgEigVal.data)
+    return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal),origin=dt6.origin,spacing=dt6.spacing,direction=dt6.direction,data_type="vector",image_type="tensor_2")
+
 def gradient_itk(im):
     """ Compute the gradient of an image
     """
@@ -148,29 +165,29 @@ def rotation33todt6(dt6,R):
 
     dt6_r = np.zeros(dt6.shape,dtype=np.single)
 
-    dt6_r[:,:,:,0] = R[0,0]*(R[0,0]*dt6[:,:,:,0] + R[0,1]*dt6[:,:,:,1] + R[0,2]*dt6[:,:,:,2])\
-                   + R[0,1]*(R[0,0]*dt6[:,:,:,1] + R[0,1]*dt6[:,:,:,3] + R[0,2]*dt6[:,:,:,4])\
-                   + R[0,2]*(R[0,0]*dt6[:,:,:,2] + R[0,1]*dt6[:,:,:,4] + R[0,2]*dt6[:,:,:,5])
+    dt6_r[...,0] = R[0,0]*(R[0,0]*dt6[...,0] + R[0,1]*dt6[...,1] + R[0,2]*dt6[...,2])\
+                 + R[0,1]*(R[0,0]*dt6[...,1] + R[0,1]*dt6[...,3] + R[0,2]*dt6[...,4])\
+                 + R[0,2]*(R[0,0]*dt6[...,2] + R[0,1]*dt6[...,4] + R[0,2]*dt6[...,5])
 
-    dt6_r[:,:,:,1] = R[1,0]*(R[0,0]*dt6[:,:,:,0] + R[0,1]*dt6[:,:,:,1] + R[0,2]*dt6[:,:,:,2])\
-                   + R[1,1]*(R[0,0]*dt6[:,:,:,1] + R[0,1]*dt6[:,:,:,3] + R[0,2]*dt6[:,:,:,4])\
-                   + R[1,2]*(R[0,0]*dt6[:,:,:,2] + R[0,1]*dt6[:,:,:,4] + R[0,2]*dt6[:,:,:,5])
+    dt6_r[...,1] = R[1,0]*(R[0,0]*dt6[...,0] + R[0,1]*dt6[...,1] + R[0,2]*dt6[...,2])\
+                 + R[1,1]*(R[0,0]*dt6[...,1] + R[0,1]*dt6[...,3] + R[0,2]*dt6[...,4])\
+                 + R[1,2]*(R[0,0]*dt6[...,2] + R[0,1]*dt6[...,4] + R[0,2]*dt6[...,5])
      	
-    dt6_r[:,:,:,2] = R[2,0]*(R[0,0]*dt6[:,:,:,0] + R[0,1]*dt6[:,:,:,1] + R[0,2]*dt6[:,:,:,2])\
-                   + R[2,1]*(R[0,0]*dt6[:,:,:,1] + R[0,1]*dt6[:,:,:,3] + R[0,2]*dt6[:,:,:,4])\
-                   + R[2,2]*(R[0,0]*dt6[:,:,:,2] + R[0,1]*dt6[:,:,:,4] + R[0,2]*dt6[:,:,:,5])
+    dt6_r[...,2] = R[2,0]*(R[0,0]*dt6[...,0] + R[0,1]*dt6[...,1] + R[0,2]*dt6[...,2])\
+                 + R[2,1]*(R[0,0]*dt6[...,1] + R[0,1]*dt6[...,3] + R[0,2]*dt6[...,4])\
+                 + R[2,2]*(R[0,0]*dt6[...,2] + R[0,1]*dt6[...,4] + R[0,2]*dt6[...,5])
 
-    dt6_r[:,:,:,3] = R[1,0]*(R[1,0]*dt6[:,:,:,0] + R[1,1]*dt6[:,:,:,1] + R[1,2]*dt6[:,:,:,2])\
-                   + R[1,1]*(R[1,0]*dt6[:,:,:,1] + R[1,1]*dt6[:,:,:,3] + R[1,2]*dt6[:,:,:,4])\
-                   + R[1,2]*(R[1,0]*dt6[:,:,:,2] + R[1,1]*dt6[:,:,:,4] + R[1,2]*dt6[:,:,:,5])
+    dt6_r[...,3] = R[1,0]*(R[1,0]*dt6[...,0] + R[1,1]*dt6[...,1] + R[1,2]*dt6[...,2])\
+                 + R[1,1]*(R[1,0]*dt6[...,1] + R[1,1]*dt6[...,3] + R[1,2]*dt6[...,4])\
+                 + R[1,2]*(R[1,0]*dt6[...,2] + R[1,1]*dt6[...,4] + R[1,2]*dt6[...,5])
 
-    dt6_r[:,:,:,4] = R[2,0]*(R[1,0]*dt6[:,:,:,0] + R[1,1]*dt6[:,:,:,1] + R[1,2]*dt6[:,:,:,2])\
-                   + R[2,1]*(R[1,0]*dt6[:,:,:,1] + R[1,1]*dt6[:,:,:,3] + R[1,2]*dt6[:,:,:,4])\
-                   + R[2,2]*(R[1,0]*dt6[:,:,:,2] + R[1,1]*dt6[:,:,:,4] + R[1,2]*dt6[:,:,:,5])
+    dt6_r[...,4] = R[2,0]*(R[1,0]*dt6[...,0] + R[1,1]*dt6[...,1] + R[1,2]*dt6[...,2])\
+                 + R[2,1]*(R[1,0]*dt6[...,1] + R[1,1]*dt6[...,3] + R[1,2]*dt6[...,4])\
+                 + R[2,2]*(R[1,0]*dt6[...,2] + R[1,1]*dt6[...,4] + R[1,2]*dt6[...,5])
 
-    dt6_r[:,:,:,5] = R[2,0]*(R[2,0]*dt6[:,:,:,0] + R[2,1]*dt6[:,:,:,1] + R[2,2]*dt6[:,:,:,2])\
-                   + R[2,1]*(R[2,0]*dt6[:,:,:,1] + R[2,1]*dt6[:,:,:,3] + R[2,2]*dt6[:,:,:,4])\
-                   + R[2,2]*(R[2,0]*dt6[:,:,:,2] + R[2,1]*dt6[:,:,:,4] + R[2,2]*dt6[:,:,:,5])
+    dt6_r[...,5] = R[2,0]*(R[2,0]*dt6[...,0] + R[2,1]*dt6[...,1] + R[2,2]*dt6[...,2])\
+                 + R[2,1]*(R[2,0]*dt6[...,1] + R[2,1]*dt6[...,3] + R[2,2]*dt6[...,4])\
+                 + R[2,2]*(R[2,0]*dt6[...,2] + R[2,1]*dt6[...,4] + R[2,2]*dt6[...,5])
 
     return dt6_r
 
@@ -179,26 +196,25 @@ def compose_spectral(eigVec, eigVal):
     """ Recovers a DTI image in dt6 format [Dxx, Dyy, Dzz, Dxy, Dxz, Dyz]
     """
 
-    dz,dy,dx = eigVal.shape[:3]
-    tensor = np.zeros((dz,dy,dx,6),dtype=np.single)
+    tensor = np.zeros(eigVal.shape+(6,),dtype=np.single)
 
-    tensor[:,:,:,0] = eigVec[:,:,:,2,0]*eigVal[:,:,:,2]*eigVec[:,:,:,2,0]\
-                	+ eigVec[:,:,:,1,0]*eigVal[:,:,:,1]*eigVec[:,:,:,1,0]\
-                	+ eigVec[:,:,:,0,0]*eigVal[:,:,:,0]*eigVec[:,:,:,0,0]
-    tensor[:,:,:,3] = eigVec[:,:,:,2,1]*eigVal[:,:,:,2]*eigVec[:,:,:,2,1]\
-                	+ eigVec[:,:,:,1,1]*eigVal[:,:,:,1]*eigVec[:,:,:,1,1]\
-                	+ eigVec[:,:,:,0,1]*eigVal[:,:,:,0]*eigVec[:,:,:,0,1]
-    tensor[:,:,:,5] = eigVec[:,:,:,2,2]*eigVal[:,:,:,2]*eigVec[:,:,:,2,2]\
-                	+ eigVec[:,:,:,1,2]*eigVal[:,:,:,1]*eigVec[:,:,:,1,2]\
-                	+ eigVec[:,:,:,0,2]*eigVal[:,:,:,0]*eigVec[:,:,:,0,2]
-    tensor[:,:,:,1] = eigVec[:,:,:,2,0]*eigVal[:,:,:,2]*eigVec[:,:,:,2,1]\
-                	+ eigVec[:,:,:,1,0]*eigVal[:,:,:,1]*eigVec[:,:,:,1,1]\
-                	+ eigVec[:,:,:,0,0]*eigVal[:,:,:,0]*eigVec[:,:,:,0,1]
-    tensor[:,:,:,2] = eigVec[:,:,:,2,0]*eigVal[:,:,:,2]*eigVec[:,:,:,2,2]\
-                	+ eigVec[:,:,:,1,0]*eigVal[:,:,:,1]*eigVec[:,:,:,1,2]\
-                	+ eigVec[:,:,:,0,0]*eigVal[:,:,:,0]*eigVec[:,:,:,2,2]
-    tensor[:,:,:,4] = eigVec[:,:,:,2,1]*eigVal[:,:,:,2]*eigVec[:,:,:,2,2]\
-               	    + eigVec[:,:,:,1,1]*eigVal[:,:,:,1]*eigVec[:,:,:,1,2]\
-                	+ eigVec[:,:,:,0,1]*eigVal[:,:,:,0]*eigVec[:,:,:,0,2]	
+    tensor[...,0] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,0]\
+                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,0]\
+                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,0]
+    tensor[...,3] = eigVec[...,2,1]*eigVal[...,2]*eigVec[...,2,1]\
+                  + eigVec[...,1,1]*eigVal[...,1]*eigVec[...,1,1]\
+                  + eigVec[...,0,1]*eigVal[...,0]*eigVec[...,0,1]
+    tensor[...,5] = eigVec[...,2,2]*eigVal[...,2]*eigVec[...,2,2]\
+                  + eigVec[...,1,2]*eigVal[...,1]*eigVec[...,1,2]\
+                  + eigVec[...,0,2]*eigVal[...,0]*eigVec[...,0,2]
+    tensor[...,1] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,1]\
+                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,1]\
+                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,1]
+    tensor[...,2] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,2]\
+                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,2]\
+                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,2]
+    tensor[...,4] = eigVec[...,2,1]*eigVal[...,2]*eigVec[...,2,2]\
+               	  + eigVec[...,1,1]*eigVal[...,1]*eigVec[...,1,2]\
+                  + eigVec[...,0,1]*eigVal[...,0]*eigVec[...,0,2]	
 
     return tensor
