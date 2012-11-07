@@ -17,8 +17,8 @@ def voxel_test(tensor1,tensor2,*args,**kwargs):
     """Multivariate Statistical Tests at a voxel level.
 
     <gui>
-        <item name="tensor1" type="Image" label="Input"/>
-        <item name="tensor2" type="Image" label="Input"/>
+        <item name="tensor1" type="Image" label="First time point tensor image"/>
+        <item name="tensor2" type="Image" label="Second time point tensor image"/>
         <item name="size_plane" type="Int" initializer="3" label="Neighborhood plane size"/>
         <item name="size_depth" type="Int" initializer="3" label="Neighborhood depth size"/>
         <item name="test_flag" type="Enum" initializer="('unrestricted', 'eigenvalues')" label="Choose test"/>
@@ -80,6 +80,9 @@ def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
     # Statistic
     T = df[1]/df[0] * T/(q*(N-2)*s)
     s = np.sqrt(s)
+
+    T[np.isnan(T)] = -1
+    T[np.isinf(T)] = -1
 
     return Image(data=T,spacing=spacing,origin=origin,direction=direction),Image(data=s,spacing=spacing,origin=origin,direction=direction),df
 
