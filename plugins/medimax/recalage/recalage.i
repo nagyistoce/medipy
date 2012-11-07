@@ -35,6 +35,8 @@ Multiresolution rigid registration
                     8 : IM NORM MAES2
                     9 : Entropie conjointe
                     10 : Correlation ratio
+                    11 : ICP
+                    12 : ICP sym
     
     inter_type : interpolation method
                     0 : nearest
