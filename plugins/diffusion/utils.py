@@ -15,6 +15,25 @@ import medipy.base
 
 from spectral_analysis import spectral_analysis
 
+def gradient_itk(im):
+    """ Compute the gradient of an image
+    """
+    im_i = medipy.base.Image(data=np.ascontiguousarray(im), data_type="scalar")
+    grad = medipy.base.Image(data=np.zeros(im.shape+(3,),dtype=np.single), data_type="vector")
+    medipy.diffusion.gradient(im_i,grad)
+
+    return grad
+
+def invert_itk(M):
+    """ Invert 3 by 3 Matrix at each voxel of M 
+    """
+    M = M.reshape(M.shape[:3]+(9,))
+    M_i = medipy.base.Image(data=M, data_type="vector")
+    medipy.diffusion.dtiInvMatrix(M_i)
+    M = M_i.data.reshape(M.shape[:3]+(3,3))
+
+    return M
+
 def generate_image_sampling(image,step=(1,1,1)) :
     """ Generate seeds to init tractographu
     step is expressed in mm
@@ -62,10 +81,10 @@ def voxel_parameters(tensor,w_size_plane=3,w_size_depth=3,mask=None):
 def spectral_decomposition(slice_tensor):
     shape = slice_tensor.shape
 
-    eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
+    eigVal = medipy.base.Image(data=np.zeros(shape+(3,),dtype=np.single),data_type="vector")
     eigVal_itk = medipy.itk.medipy_image_to_itk_image(eigVal, False)
     
-    eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
+    eigVec = medipy.base.Image(data=np.zeros(shape+(9,),dtype=np.single),data_type="vector")
     eigVec_itk = medipy.itk.medipy_image_to_itk_image(eigVec, False)
     
     itk_tensors = medipy.itk.medipy_image_to_itk_image(slice_tensor, False)
@@ -154,3 +173,32 @@ def rotation33todt6(dt6,R):
                    + R[2,2]*(R[2,0]*dt6[:,:,:,2] + R[2,1]*dt6[:,:,:,4] + R[2,2]*dt6[:,:,:,5])
 
     return dt6_r
+
+
+def compose_spectral(eigVec, eigVal):
+    """ Recovers a DTI image in dt6 format [Dxx, Dyy, Dzz, Dxy, Dxz, Dyz]
+    """
+
+    dz,dy,dx = eigVal.shape[:3]
+    tensor = np.zeros((dz,dy,dx,6),dtype=np.single)
+
+    tensor[:,:,:,0] = eigVec[:,:,:,2,0]*eigVal[:,:,:,2]*eigVec[:,:,:,2,0]\
+                	+ eigVec[:,:,:,1,0]*eigVal[:,:,:,1]*eigVec[:,:,:,1,0]\
+                	+ eigVec[:,:,:,0,0]*eigVal[:,:,:,0]*eigVec[:,:,:,0,0]
+    tensor[:,:,:,3] = eigVec[:,:,:,2,1]*eigVal[:,:,:,2]*eigVec[:,:,:,2,1]\
+                	+ eigVec[:,:,:,1,1]*eigVal[:,:,:,1]*eigVec[:,:,:,1,1]\
+                	+ eigVec[:,:,:,0,1]*eigVal[:,:,:,0]*eigVec[:,:,:,0,1]
+    tensor[:,:,:,5] = eigVec[:,:,:,2,2]*eigVal[:,:,:,2]*eigVec[:,:,:,2,2]\
+                	+ eigVec[:,:,:,1,2]*eigVal[:,:,:,1]*eigVec[:,:,:,1,2]\
+                	+ eigVec[:,:,:,0,2]*eigVal[:,:,:,0]*eigVec[:,:,:,0,2]
+    tensor[:,:,:,1] = eigVec[:,:,:,2,0]*eigVal[:,:,:,2]*eigVec[:,:,:,2,1]\
+                	+ eigVec[:,:,:,1,0]*eigVal[:,:,:,1]*eigVec[:,:,:,1,1]\
+                	+ eigVec[:,:,:,0,0]*eigVal[:,:,:,0]*eigVec[:,:,:,0,1]
+    tensor[:,:,:,2] = eigVec[:,:,:,2,0]*eigVal[:,:,:,2]*eigVec[:,:,:,2,2]\
+                	+ eigVec[:,:,:,1,0]*eigVal[:,:,:,1]*eigVec[:,:,:,1,2]\
+                	+ eigVec[:,:,:,0,0]*eigVal[:,:,:,0]*eigVec[:,:,:,2,2]
+    tensor[:,:,:,4] = eigVec[:,:,:,2,1]*eigVal[:,:,:,2]*eigVec[:,:,:,2,2]\
+               	    + eigVec[:,:,:,1,1]*eigVal[:,:,:,1]*eigVec[:,:,:,1,2]\
+                	+ eigVec[:,:,:,0,1]*eigVal[:,:,:,0]*eigVec[:,:,:,0,2]	
+
+    return tensor
