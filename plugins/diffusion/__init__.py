@@ -1,6 +1,8 @@
 import os.path
 import medipy.itk
 
+from dtiEigItk import dtiEigItk
+
 import estimation
 import utils
 

@@ -70,7 +70,7 @@ class Slice(PropertySynchronized) :
     def __init__(self, world_to_slice, layers=None, annotations=None,
                  interpolation=False, display_coordinates="physical", 
                  scalar_bar_visibility = False, orientation_visibility=True,
-                 corner_annotations_visibility=False) :
+                 corner_annotations_visibility=False,display_mode=None) :
         
         layers = layers or []
         annotations = annotations or ObservableList()
@@ -78,6 +78,9 @@ class Slice(PropertySynchronized) :
         ############################
         # Property-related members #
         ############################
+
+        self.display_mode = display_mode
+
         self._interpolation = None
         self._display_coordinates = None
         self._scalar_bar_visibility = None
@@ -267,8 +270,12 @@ class Slice(PropertySynchronized) :
         LayerClass = classes.get(image.image_type, ImageLayer)
         
         # Create the Layer and insert it in the list
-        layer = LayerClass(
-            self._world_to_slice, image, self._display_coordinates, colormap, opacity)
+        if LayerClass==Tensor2Layer :
+            layer = LayerClass(
+                self._world_to_slice, image, self._display_coordinates, colormap, opacity, self.display_mode)
+        else :
+            layer = LayerClass(
+                self._world_to_slice, image, self._display_coordinates, colormap, opacity)
         self._layers.insert(index, layer)
         
         # Update the physical extent

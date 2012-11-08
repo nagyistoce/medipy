@@ -83,7 +83,7 @@ class Image(wx.Panel, PropertySynchronized):
                  annotations=None, interpolation=False,
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
-                 convention="radiological", *args, **kwargs):
+                 convention="radiological", display_mode="ellipsoid", *args, **kwargs):
         
         if annotations is None :
             annotations = ObservableList()
@@ -91,6 +91,8 @@ class Image(wx.Panel, PropertySynchronized):
         ##############
         # Properties #
         ##############
+
+        self.display_mode = display_mode
         
         self._slice_mode = None
         
@@ -357,7 +359,8 @@ class Image(wx.Panel, PropertySynchronized):
             slice = Slice(world_to_slice, self._layers, 
                 self._annotations, self._interpolation, 
                 self._display_coordinates,self._scalar_bar_visibility, 
-                self._orientation_visibility, slice_mode != "multiplanar"
+                self._orientation_visibility, slice_mode != "multiplanar",
+                self.display_mode
             )
         
             if slice_mode == "multiplanar" :

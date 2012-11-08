@@ -11,13 +11,44 @@
 """
 
 import numpy as np
+import medipy.base
+import medipy.diffusion
+import medipy.itk
 
 def spectral_decomposition(slice_tensor):
-    print slice_tensor.shape
     shape = slice_tensor.shape
-    v1 = np.zeros(shape+(3,),dtype=np.single)
-    v1[...,0] = 1
-    return v1
+    #slice_tensor_33 = dti6to33(slice_tensor)
+    #eigVal = np.ones(shape[:3]+(3,),dtype=np.single)
+    #eigVec = np.zeros(shape[:3]+(9,),dtype=np.single)
+
+    #for k in range(shape[0]) :
+    #    for j in range(shape[1]) :
+    #        for i in range(shape[2]) :
+    #            val, vec = decompose_tensor(slice_tensor_33[k,j,i])
+    #            eigVal[k,j,i] = val
+    #            eigVec[k,j,i] = vec.flatten()
+
+    eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
+    eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
+    medipy.diffusion.dtiEigItk(slice_tensor,eigVal,eigVec)
+
+    return eigVal,eigVec
+
+
+
+def decompose_tensor(tensor):
+    #outputs multiplicity as well so need to unique
+    eigenvals, eigenvecs = np.linalg.eig(tensor)
+
+    #need to sort the eigenvalues and associated eigenvectors
+    order = eigenvals.argsort()[::-1]
+    eigenvecs = eigenvecs[:, order]
+    eigenvals = eigenvals[order]
+
+    #Forcing negative eigenvalues to 0
+    eigenvals = np.maximum(eigenvals, 0)
+
+    return eigenvals, eigenvecs
 
 def dti6to33(dt6):
     """ Full second order symmetric tensor from the six independent components.
