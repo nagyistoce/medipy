@@ -140,7 +140,7 @@ class MediPyApp(medipy.gui.base.Application) :
         self.frame = MainFrame(menu, None, title=self._application_name, size=(1000,800))
         self.frame.Show()
         self.frame.Bind(wx.EVT_CLOSE, self.OnMainFrameClose)
-        self.SetTopWindow(self._frame)
+        self.SetTopWindow(self.frame)
         
         return True
 
