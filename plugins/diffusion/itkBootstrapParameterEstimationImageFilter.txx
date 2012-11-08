@@ -148,8 +148,8 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
         typename OutputImageType::IndexType idx_;
 
         // test if the neigborhood is correct
-        if ( ((idx[2]-this->shift_depth)>=0) && ((idx[1]-this->shift_plane)>=0) && ((idx[0]-this->shift_plane)>=0) && 
-             ((idx[2]+this->shift_depth)<size[2]) && ((idx[1]+this->shift_plane)<size[1]) && ((idx[0]+this->shift_plane)<size[0]) ) {
+        if ( (((unsigned int)idx[2]-this->shift_depth)>=0) && (((unsigned int)idx[1]-this->shift_plane)>=0) && (((unsigned int)idx[0]-this->shift_plane)>=0) && 
+             (((unsigned int)idx[2]+this->shift_depth)<size[2]) && (((unsigned int)idx[1]+this->shift_plane)<size[1]) && (((unsigned int)idx[0]+this->shift_plane)<size[0]) ) {
 
             // first get the neighborhood signals
             for (int kk=idx[2]-this->shift_depth; kk<=idx[2]+this->shift_depth; kk++) {
@@ -257,6 +257,133 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
 //----------------------------------------------------------------------------------------
 
 template<typename TInputImage, typename TOutputImage>
+std::vector< vnl_matrix<float> >
+BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
+::LocalBootstrapInit(typename OutputImageType::IndexType idx)
+{
+    const float min_signal = 5;
+    unsigned int nb_dir = this->directions.size();
+    std::vector< vnl_matrix<float> > signals;
+    vnl_matrix<float> signal(nb_dir, 1); 
+    vnl_matrix<float> adc(nb_dir-1,1,0.0);
+
+    if (this->m_Mask->GetPixel(idx)==1) {
+        for (unsigned int l=0; l<nb_dir; ++l) { signal(l,0) = (float)this->GetInput(l)->GetPixel(idx); }
+        // compute signal
+        for (unsigned int l=1; l<nb_dir; ++l) {
+            float S0 = signal(0,0);
+            float Si = signal(l,0);
+            if (S0<min_signal) { S0=min_signal; }
+            if (Si<min_signal) { Si=min_signal; }
+            if (S0>=Si) { adc(l-1,0) = log(S0/Si); }
+        }
+        signals.push_back(adc);
+    }
+    return signals;
+}
+
+template<typename TInputImage, typename TOutputImage>
+std::vector<unsigned int> 
+BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
+::RandomLocal(unsigned int N)
+{
+    static int first = 0;
+    std::vector<unsigned int> index(N,0);
+
+    for (unsigned int i=0; i<N; i++) {
+        if (first==0){
+            srand (time (NULL));
+            first = 1;
+        }
+        index[i] = (unsigned int)( (rand()/(double)RAND_MAX)*(N-1.0));
+    }
+    return index;
+}
+
+template<typename TInputImage, typename TOutputImage>
+std::vector< typename BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>::TensorType > 
+BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
+::LocalBootstrapGenerator(std::vector< vnl_matrix<float> > signals)
+{
+    const unsigned int VectorLength = 6;
+
+    vnl_matrix<float> adc = signals[0];
+    TensorType dt6(VectorLength,1);
+    const double epsi = 1e-5;
+    std::vector< TensorType > tensors;
+
+    // loop over the bootsrap sample
+    for (unsigned int c=0; c<this->m_NumberOfBootstrap; ++c) {
+
+        // draw with replacement
+        std::vector<unsigned int> sampling = RandomLocal(adc.rows());
+
+        // precompute system + organized gradients at iteration c
+        BMatrixType bmatrix_c;
+        BMatrixType invbmatrix_c;
+        bmatrix_c.set_size(sampling.size(),VectorLength);
+        for (unsigned int i=0; i<sampling.size(); i++) {					
+            DirectionType bvec = this->directions[sampling[i]+1];
+            bmatrix_c(i,0) = (float) this->m_BVal*bvec[0]*bvec[0];        //Dxx
+            bmatrix_c(i,1) = (float) this->m_BVal*2.0*bvec[0]*bvec[1];    //Dxy
+            bmatrix_c(i,2) = (float) this->m_BVal*2.0*bvec[0]*bvec[2];    //Dxz
+            bmatrix_c(i,3) = (float) this->m_BVal*bvec[1]*bvec[1];        //Dyy
+            bmatrix_c(i,4) = (float) this->m_BVal*2.0*bvec[1]*bvec[2];    //Dyz
+            bmatrix_c(i,5) = (float) this->m_BVal*bvec[2]*bvec[2];        //Dzz
+        }
+        invbmatrix_c.set_size(bmatrix_c.cols(),bmatrix_c.rows()); 
+        BMatrixType b1 = bmatrix_c.transpose();
+        BMatrixType b2 = vnl_matrix_inverse<float>(b1*bmatrix_c);
+        invbmatrix_c = b2*b1;
+
+	    // organized adc at iteration c
+	    vnl_matrix<float> adc_c(adc.rows(),adc.cols());
+	    for (unsigned int l=0; l<adc.rows(); l++) { adc_c(l,0) = adc(sampling[l],0); }
+
+        // estimate tensor
+        dt6 = invbmatrix_c*adc_c;
+
+        // log eucliden space
+	    vnl_matrix<double> m_L(3,3);
+
+	    m_L[0][0] =  dt6(0,0);
+      	m_L[1][1] =  dt6(3,0);
+      	m_L[2][2] =  dt6(5,0);
+      	m_L[0][1] =  dt6(1,0);
+      	m_L[0][2] =  dt6(2,0);
+      	m_L[1][2] =  dt6(4,0);
+      	m_L[1][0] =  m_L[0][1];
+      	m_L[2][0] =  m_L[0][2];
+      	m_L[2][1] =  m_L[1][2];
+
+        vnl_symmetric_eigensystem<double> eig(m_L);
+
+        if ( eig.D(0,0)<epsi ) { eig.D(0,0) = epsi; }
+        if ( eig.D(1,1)<epsi ) { eig.D(1,1) = epsi; }
+        if ( eig.D(2,2)<epsi ) { eig.D(2,2) = epsi; }
+        eig.D(0,0) = log(eig.D(0,0));
+        eig.D(1,1) = log(eig.D(1,1));
+        eig.D(2,2) = log(eig.D(2,2));
+
+        m_L = eig.recompose();
+
+        dt6(0,0) = (float)m_L[0][0];
+        dt6(1,0) = (float)m_L[0][1];
+        dt6(2,0) = (float)m_L[0][2];
+        dt6(3,0) = (float)m_L[1][1];
+        dt6(4,0) = (float)m_L[1][2];
+        dt6(5,0) = (float)m_L[2][2];
+
+        tensors.push_back(dt6);
+    }
+
+    return tensors;
+}
+
+
+//----------------------------------------------------------------------------------------
+
+template<typename TInputImage, typename TOutputImage>
 void 
 BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
 ::ComputeParameters( std::vector< TensorType > tensors, typename OutputImageType::IndexType idx, 
@@ -319,7 +446,11 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
             }
         }
         else {
-            throw "Local bootstrap not implemented yet!";
+            std::vector< vnl_matrix<float> > signals = LocalBootstrapInit(idx);
+            if (signals.size()>0) {
+                std::vector< TensorType > tensors = LocalBootstrapGenerator(signals);
+                ComputeParameters(tensors,idx,output_mean,output_var);
+            }
         }
 
         ++it;
