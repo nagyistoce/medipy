@@ -84,6 +84,10 @@ protected :
     std::vector<unsigned int> RandomSpatial(unsigned int N);
     std::vector< TensorType > SpatialBootstrapGenerator(std::vector< vnl_matrix<float> > signals);
 
+    std::vector< vnl_matrix<float> > LocalBootstrapInit(typename OutputImageType::IndexType idx);
+    std::vector<unsigned int> RandomLocal(unsigned int N);
+    std::vector< TensorType > LocalBootstrapGenerator(std::vector< vnl_matrix<float> > signals);
+
     void ComputeParameters( std::vector< TensorType > tensors, typename OutputImageType::IndexType idx,
                             typename OutputImageType::Pointer &output_mean, typename OutputImageType::Pointer &output_var);
 
