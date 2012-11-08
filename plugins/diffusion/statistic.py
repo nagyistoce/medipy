@@ -13,6 +13,58 @@ import numpy as np
 from medipy.base import Image
 from medipy.diffusion.utils import spectral_decomposition,voxel_parameters
 
+
+def bootstrap_parameter_estimation(images,*args,**kwargs) :
+    """ Local or Spatial bootstrap parameter estimation.
+
+    <gui>
+        <item name="images" type="ImageSerie" label="Input diffusion data"/>
+        <item name="size_plane" type="Int" initializer="3" label="Neighborhood plane size (for spatial bootstrap only)"/>
+        <item name="size_depth" type="Int" initializer="3" label="Neighborhood depth size (for spatial bootstrap only)"/>
+        <item name="nb_bootstrap" type="Int" initializer="10" label="Number of bootstrap samples"/>
+        <item name="bootstrap_type" type="Enum" initializer="('spatial', 'local')" label="Choose bootstrap strategy"/>
+        <item name="mean" type="Image" initializer="output=True" role="return" label="Mean tensor image"/>
+        <item name="var" type="Image" initializer="output=True" role="return" label="Variance image"/>
+    </gui>
+    """    
+    bootstrap_type = kwargs['bootstrap_type']
+    size_plane = kwargs['size_plane']
+    size_depth = kwargs['size_depth']
+    nb_bootstrap = kwargs['nb_bootstrap']
+
+    ndim = len(images[0].shape)
+    estimation_filter = itk.BootstrapParameterEstimationImageFilter[itk.Image[itk.F,ndim], itk.VectorImage[itk.F,ndim]].New()
+    estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
+    estimation_filter.SetNumberOfBootstrap(nb_bootstrap)
+    estimation_filter.SetSizePlane(size_plane)
+    estimation_filter.SetSizeDepth(size_depth)
+    if bootstrap_type=='spatial' :
+        estimation_filter.SetUseSpatialBootstrap(True)
+    else :
+        estimation_filter.SetUseSpatialBootstrap(False)
+
+    for cnt,image in enumerate(images) :
+        image.data = np.cast[np.single](image.data)
+        itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
+        grad = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
+        itk_grad = itk.Point[itk.F,3]()
+        itk_grad[0] = float(grad[0])
+        itk_grad[1] = float(grad[1])
+        itk_grad[2] = float(grad[2])
+        estimation_filter.SetInput(cnt,itk_image)
+        estimation_filter.SetGradientDirection(cnt,itk_grad)
+
+    estimation_filter.Update()
+
+    itk_mean = estimation_filter.GetOutput(0)
+    itk_var = estimation_filter.GetOutput(1)
+    mean = medipy.itk.itk_image_to_medipy_image(itk_mean,None,True)
+    var = medipy.itk.itk_image_to_medipy_image(itk_var,None,True)
+    mean.image_type = "tensor_2"
+
+    return mean,var
+
+
 def voxel_test(tensor1,tensor2,*args,**kwargs):
     """Multivariate Statistical Tests at a voxel level.
 
