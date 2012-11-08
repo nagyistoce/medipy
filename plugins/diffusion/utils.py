@@ -12,6 +12,13 @@
 
 import numpy as np
 
+def spectral_decomposition(slice_tensor):
+    print slice_tensor.shape
+    shape = slice_tensor.shape
+    v1 = np.zeros(shape+(3,),dtype=np.single)
+    v1[...,0] = 1
+    return v1
+
 def dti6to33(dt6):
     """ Full second order symmetric tensor from the six independent components.
         dt6 must be a numpy array, NOT a medipy.base.Image
