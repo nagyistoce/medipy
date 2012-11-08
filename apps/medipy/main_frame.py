@@ -464,7 +464,6 @@ class MainFrame(medipy.gui.base.Frame):
             self.delete_image(0)
     
     def OnQuit(self, dummy):
-        wx.GetApp().quit()
         self.Close()
     
 #    def OnCineImage(self, dummy) :
