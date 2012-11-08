@@ -139,44 +139,56 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
     
     if dialog.ShowModal() != wx.ID_OK :
         return []
-        
+       
     directory = dialog.GetPath()
-    if recursive :
-        files = []
-        for dirpath, dirnames, filenames in os.walk(directory) :
-            files.extend([(os.path.join(dirpath, x)) for x in filenames])
-    else :
-        files = os.listdir(directory)
-        files = [str(os.path.join(directory, x)) for x in files]
-    files.sort()
-    
-    def loader(files):
-        datasets = []
-        for file in files :
-            try :
-                dataset = medipy.io.dicom.parse(file)
-            except Exception, e :
-                logging.warning("Could not parse file {0} : {1}".format(file, e))
-            else :
-                datasets.append(dataset)
-        return datasets
-    
+
     periodic_progress_dialog = PeriodicProgressDialog(
         0.2, "Loading files", "Loading ...")
     worker_thread = WorkerThread(periodic_progress_dialog,
-                                 target=loader, args=(files,))
+                                 target=medipy.io.load_serie, args=("dicom:"+directory,))
     worker_thread.start()
     periodic_progress_dialog.start()
     worker_thread.join()
     periodic_progress_dialog.Destroy()
+
+#    if recursive :
+#        files = []
+#        for dirpath, dirnames, filenames in os.walk(directory) :
+#            files.extend([(os.path.join(dirpath, x)) for x in filenames])
+#    else :
+#        files = os.listdir(directory)
+#        files = [str(os.path.join(directory, x)) for x in files]
+#    files.sort()
+    
+#    def loader(files):
+#        datasets = []
+#        for file in files :
+#            try :
+#                dataset = medipy.io.dicom.parse(file)
+#            except Exception, e :
+#                logging.warning("Could not parse file {0} : {1}".format(file, e))
+#            else :
+#                datasets.append(dataset)
+#        return datasets
+    
+#    periodic_progress_dialog = PeriodicProgressDialog(
+#        0.2, "Loading files", "Loading ...")
+#    worker_thread = WorkerThread(periodic_progress_dialog,
+#                                 target=loader, args=(files,))
+#    worker_thread.start()
+#    periodic_progress_dialog.start()
+#    worker_thread.join()
+#    periodic_progress_dialog.Destroy()
         
     if worker_thread.exception is not None :
         wx.MessageBox(
             "Could not load files : %s"%(worker_thread.exception, ), 
             "Could not load files")
         return []
+    else :
+        images = worker_thread.result
     
-    images = reconstruction.images(worker_thread.result, parent, dtype, True)
+#    images = reconstruction.images(worker_thread.result, parent, dtype, True)
     
     if images :
         preferences.set("IO/load_path", dialog.GetPath())
