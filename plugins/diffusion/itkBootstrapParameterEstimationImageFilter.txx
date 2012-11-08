@@ -14,6 +14,7 @@
 #include "itkVectorImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
+#include <vnl/vnl_matrix_fixed.h>
 #include <vnl/vnl_vector_fixed.h>
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 #include <math.h>
@@ -129,6 +130,7 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
     BMatrixType b1 = this->bmatrix.transpose();
     BMatrixType b2 = vnl_matrix_inverse<float>(b1*this->bmatrix);
     this->invbmatrix = b2*b1;
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -154,7 +156,7 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
                 for (int jj=idx[1]-this->shift_plane; jj<=idx[1]+this->shift_plane; jj++) {
                     for (int ii=idx[0]-this->shift_plane; ii<=idx[0]+this->shift_plane; ii++) {
                         idx_[0]=ii; idx_[1]=jj; idx_[2]=kk;
-                        for (unsigned int l=1; l<nb_dir; ++l) { signal(l,0) = (float)this->GetInput(l)->GetPixel(idx_); }
+                        for (unsigned int l=0; l<nb_dir; ++l) { signal(l,0) = (float)this->GetInput(l)->GetPixel(idx_); }
                         signals.push_back( signal );
                     }
                 }
@@ -189,8 +191,9 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
 ::SpatialBootstrapGenerator(std::vector< vnl_matrix<float> > signals)
 {
     const unsigned int VectorLength = 6;
+    unsigned int nb_dir = this->directions.size();
     const float min_signal = 5;
-    vnl_matrix<float> signal(signals.size()-1,1);
+    vnl_matrix<float> signal(nb_dir-1,1);
     TensorType dt6(VectorLength,1);
     const double epsi = 1e-5;
     std::vector< TensorType > tensors;
@@ -199,10 +202,10 @@ BootstrapParameterEstimationImageFilter<TInputImage, TOutputImage>
     for (unsigned int c=0; c<this->m_NumberOfBootstrap; ++c) {
 
         // draw with replacement
-        std::vector<unsigned int> sampling = RandomSpatial(signals.size());
+        std::vector<unsigned int> sampling = RandomSpatial(nb_dir);
 
         // compute signal at iteration c
-        for (unsigned int l=1; l<signals.size(); ++l) {
+        for (unsigned int l=1; l<nb_dir; ++l) {
             float S0 = signals[sampling[l]](0,0);
             float Si = signals[sampling[l]](l,0);
             if (S0<min_signal) { S0=min_signal; }
