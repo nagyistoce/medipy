@@ -11,10 +11,51 @@ import itk
 import medipy.itk
 import numpy as np
 from medipy.base import Image
-from medipy.diffusion.utils import spectral_decomposition,voxel_parameters
+from medipy.diffusion.utils import spectral_decomposition, exp_transformation, log_transformation
+from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
 
 
-def bootstrap_parameter_estimation(images,*args,**kwargs) :
+def spatial_voxel_parameter_estimation_gui(images,*args,**kwargs) :
+    """ Spatial parameter estimation.
+
+    <gui>
+        <item name="images" type="ImageSerie" label="Input diffusion data"/>
+        <item name="size_plane" type="Int" initializer="3" label="Neighborhood plane size"/>
+        <item name="size_depth" type="Int" initializer="3" label="Neighborhood depth size"/>
+        <item name="mean" type="Image" initializer="output=True" role="return" label="Mean tensor image"/>
+        <item name="var" type="Image" initializer="output=True" role="return" label="Variance image"/>
+    </gui>
+    """    
+    size_plane = kwargs['size_plane']
+    size_depth = kwargs['size_depth']
+
+    model = ls_SecondOrderSymmetricTensorEstimation_(images)
+    mean,var,N = spatial_voxel_parameter_estimation(model,size_plane,size_depth)
+    # zero at the image edges == ellispoid display break
+    mean = exp_transformation(mean)
+    var.data[np.isnan(var.data)] = 0.0
+    var.data[np.where(var.data>1.0)] = 0.0
+
+    return mean,var
+
+def spatial_voxel_parameter_estimation(tensor,w_size_plane=3,w_size_depth=3,mask=None):
+
+    mean = medipy.base.Image(data=np.zeros(tensor.shape+(6,),dtype=np.single),spacing=tensor.spacing,origin=tensor.origin,direction=tensor.direction,data_type="vector")
+    var = medipy.base.Image(data=np.zeros(tensor.shape+(1,),dtype=np.single),spacing=tensor.spacing,origin=tensor.origin,direction=tensor.direction,data_type="vector")
+    log_tensor = log_transformation(tensor)
+
+    if mask==None :
+        mask = medipy.base.Image(data=np.zeros((1,1,1),dtype=np.single))
+        medipy.diffusion.dtiParamItk(log_tensor,mean,var,mask,w_size_plane,w_size_depth,False)
+    else :
+        medipy.diffusion.dtiParamItk(log_tensor,mean,var,mask,w_size_plane,w_size_depth,True)
+    var.data = np.sqrt( var.data/6.0 ) # compute standard deviation
+    mean.image_type = "tensor_2"
+
+    return mean,var,w_size_plane*w_size_plane*w_size_depth
+
+
+def bootstrap_parameter_estimation_gui(images,*args,**kwargs) :
     """ Local or Spatial bootstrap parameter estimation.
 
     <gui>
@@ -31,6 +72,16 @@ def bootstrap_parameter_estimation(images,*args,**kwargs) :
     size_plane = kwargs['size_plane']
     size_depth = kwargs['size_depth']
     nb_bootstrap = kwargs['nb_bootstrap']
+
+    mean,var = bootstrap_parameter_estimation(images,bootstrap_type,size_plane,size_depth,nb_bootstrap)
+    # zero at the image edges == ellispoid display break
+    mean = exp_transformation(mean)
+    var.data[np.isnan(var.data)] = 0.0
+    var.data[np.where(var.data>1.0)] = 0.0
+
+    return mean,var
+
+def bootstrap_parameter_estimation(images,bootstrap_type,size_plane,size_depth,nb_bootstrap) :
 
     ndim = len(images[0].shape)
     estimation_filter = itk.BootstrapParameterEstimationImageFilter[itk.Image[itk.F,ndim], itk.VectorImage[itk.F,ndim]].New()
@@ -65,7 +116,11 @@ def bootstrap_parameter_estimation(images,*args,**kwargs) :
     return mean,var
 
 
-def voxel_test(tensor1,tensor2,*args,**kwargs):
+
+
+
+
+def spatial_voxel_test_gui(tensor1,tensor2,*args,**kwargs):
     """Multivariate Statistical Tests at a voxel level.
 
     <gui>
@@ -81,8 +136,8 @@ def voxel_test(tensor1,tensor2,*args,**kwargs):
     spacing = tensor1.spacing
     origin = tensor1.origin
     direction = tensor1.direction
-    M1,S1,N1 = voxel_parameters(tensor1,kwargs['size_plane'],kwargs['size_depth'])
-    M2,S2,N2 = voxel_parameters(tensor2,kwargs['size_plane'],kwargs['size_depth'])
+    M1,S1,N1 = spatial_voxel_parameter_estimation(tensor1,kwargs['size_plane'],kwargs['size_depth'])
+    M2,S2,N2 = spatial_voxel_parameter_estimation(tensor2,kwargs['size_plane'],kwargs['size_depth'])
     T,s,df = dtiLogTensorTestAS(kwargs['test_flag'],M1.data,M2.data,S1.data.squeeze(),S2.data.squeeze(),N1,N2,spacing,origin,direction)
     output = T
     return output
