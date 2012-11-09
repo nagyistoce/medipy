@@ -150,6 +150,7 @@ class Image(wx.Panel, PropertySynchronized):
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
         self.add_allowed_event("center")
+        self.add_allowed_event("layer_visibility")
         for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
             self.add_allowed_event("colormap_{0}".format(event))
 #        self.add_allowed_event("layer_modified")
@@ -374,12 +375,14 @@ class Image(wx.Panel, PropertySynchronized):
         for index, slice in enumerate(self._slices) :
             for event in slice.allowed_events :
                 if event in ["any", "cursor_position", "image_position", "center",
-                             "corner_annotations_visibility", "world_to_slice"] :
+                             "corner_annotations_visibility", "world_to_slice",
+                             "layer_visibility"] :
                     continue
                 slice.add_observer(event, self._on_slice_event)
             
             slice.add_observer("cursor_position", self._on_cursor_position)
             slice.add_observer("center", self._on_center)
+            slice.add_observer("layer_visibility", self._on_layer_visibility)
             
             # Synchronize the Slices' colormaps
             # Do not use PropertySynchronized API for better event handling
@@ -491,10 +494,10 @@ class Image(wx.Panel, PropertySynchronized):
         return self._cursor_physical_position
     
     def _set_cursor_physical_position(self, cursor_physical_position):
-        self._cursor_physical_position = self.cursor_physical_position
+        self._cursor_physical_position = cursor_physical_position
         if self._layers :
             image = self._layers[0]["image"]
-            self._cursor_index_position = (cursor_physical_position-image.origin)/image.spacing
+            self._cursor_index_position = image.physical_to_index(cursor_physical_position)
         else :
             self._cursor_index_position = cursor_physical_position
         
@@ -512,7 +515,7 @@ class Image(wx.Panel, PropertySynchronized):
     def _set_cursor_index_position(self, cursor_index_position):
         if self._layers :
             image = self._layers[0]["image"]
-            cursor_physical_position = image.origin+cursor_index_position*image.spacing
+            cursor_physical_position = image.index_to_physical(cursor_index_position)
         else :
             cursor_physical_position = cursor_index_position
         
@@ -529,23 +532,19 @@ class Image(wx.Panel, PropertySynchronized):
     
     def _set_center_physical_position(self, position):
         self._center_physical_position = position
-        
-        for slice in self._slices :
-            slice.remove_observer("center", self._on_center)
-        for slice in self._slices :
-            slice.center_on_physical_position(position)
-        for slice in self._slices :
-            slice.add_observer("center", self._on_center)
-        
-        self._cursor_physical_position = position
         if self._layers :
             image = self._layers[0]["image"]
-            self._cursor_index_position = (position-image.origin)/image.spacing
+            self._center_index_position = image.physical_to_index(position)
         else :
-            self._cursor_index_position = position
-        self._center_index_position = self._cursor_index_position
-            
-        self.notify_observers("center")
+            self._center_index_position = cursor_physical_position
+        
+        if self._slices :
+            # All slices are synchronized
+            self._slices[0].center_on_physical_position(position)
+        
+        self._rwi.Render()
+        
+        self.notify_observers("cursor_position")
     
     def _get_center_index_position(self):
         if self._center_index_position is not None :
@@ -556,22 +555,13 @@ class Image(wx.Panel, PropertySynchronized):
             return None
     
     def _set_center_index_position(self, position):
-        self._center_index_position = position
-        
-        for slice in self._slices :
-            slice.remove_observer("center", self._on_center)
-        for slice in self._slices :
-            slice.center_on_index_position(position)
-        for slice in self._slices :
-            slice.add_observer("center", self._on_center)
-        
-        self._cursor_index_position = position
         if self._layers :
             image = self._layers[0]["image"]
-            self._cursor_physical_position = image.origin+position*image.spacing
+            center_physical_position = image.index_to_physical(position)
         else :
-            self._cursor_physical_position = position
-        self._center_physical_position = self._cursor_physical_position
+            center_physical_position = position
+        
+        self._set_center_physical_position(center_physical_position)
     
     def _get_zoom(self) :
         return self._zoom
@@ -668,6 +658,9 @@ class Image(wx.Panel, PropertySynchronized):
     
     def _on_center(self, event):
         
+        self._center_index_position = event.object.image_index_position
+        self._center_physical_position = event.object.image_physical_position
+        
         for slice in self._slices :
             slice.remove_observer(event.event, self._on_center)
         
@@ -680,6 +673,9 @@ class Image(wx.Panel, PropertySynchronized):
             slice.add_observer(event.event, self._on_center)
         
         self._update_informations()
+    
+    def _on_layer_visibility(self, event):
+        self.notify_observers("layer_visibility", index=event.index)
     
     def _on_button_down(self,event):
         """ Propagate mouse clicks to parent.

@@ -174,11 +174,16 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         self._image = image
         
         self.ui.annotations.Clear()
-        for annotation in image.annotations :
-            self.ui.annotations.Append(annotation.label)
         
-        self.ui.delete.Enable(len(image.annotations)!=0)
-        self.ui.save.Enable(len(image.annotations)!=0)
+        if self._image is not None :
+            for annotation in image.annotations :
+                self.ui.annotations.Append(annotation.label)
+            
+            self.ui.delete.Enable(len(image.annotations)!=0)
+            self.ui.save.Enable(len(image.annotations)!=0)
+        else :
+            self.ui.delete.Disable()
+            self.ui.save.Disable()
     
     image = property(_get_image, _set_image)
     

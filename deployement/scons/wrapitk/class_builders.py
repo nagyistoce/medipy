@@ -62,8 +62,8 @@ def cable_swig_files(env, class_name, header, instantiations, pointer=None):
     
     return nodes
 
-def swig_files(env, class_name, instantiations, pointer, class_nodes, 
-                             module_name, module_nodes, wrapitk_root) :
+def swig_files(env, class_name, instantiations, pointer, libraries, class_nodes, 
+               module_name, module_nodes, wrapitk_root) :
     """ Builder for class-specific Swig files : wrap_MyClass.i and 
         wrap_MyClass_ext.i 
     """
@@ -82,12 +82,13 @@ def swig_files(env, class_name, instantiations, pointer, class_nodes,
     
     extra_arguments = {
         "swig" : { "CLASS_NAME" : class_name,
-                         "MODULE_NAME" : module_name, 
-                         "MASTER_INDEX" : module_nodes["master_index"][0],
-                         "WRAPITK_ROOT" : wrapitk_root }, 
+                   "MODULE_NAME" : module_name,
+                   "WRAPITK_LIBRARIES" : libraries, 
+                   "MASTER_INDEX" : module_nodes["master_index"][0],
+                   "WRAPITK_ROOT" : wrapitk_root }, 
         "swig_extra" : { "CLASS_NAME" : class_name,
-                               "INSTANTIATIONS" : instantiations,
-                               "POINTER" : pointer },
+                         "INSTANTIATIONS" : instantiations,
+                         "POINTER" : pointer },
     } 
     
     nodes = {}
@@ -124,17 +125,25 @@ def swig(source, target, env, for_signature) :
     swig_ext_file = "wrap_%s_ext.i"%swig_class_name
     module_includes_file = "%s.includes"%env["MODULE_NAME"]
     
+    libraries = env["WRAPITK_LIBRARIES"]
+    
     command = ["python",
         wrapitk_root+"/Configuration/Languages/SwigInterface/igenerator.py",
-        "--mdx", wrapitk_root + "/Configuration/Typedefs/Base.mdx",
-        "--include", "Base.includes",
+    ]
+    for library in libraries :
+        mdx = ["--mdx", wrapitk_root + "/Configuration/Typedefs/{0}.mdx".format(library)]
+        command.extend(mdx)
+    for library in libraries :
+        include = ["--include", "{0}.includes".format(library)]
+        command.extend(include)
+    command.extend([
         "--include", module_includes_file,
         "--swig-include", "itk.i",
         "--swig-include", user_swig_file,
         "--mdx", env["MASTER_INDEX"].path,
         "--swig-include", swig_ext_file, 
         "-w1", "-w3", "-w51", "-w52", "-w53", "-w54",
-        str(source[0]), str(target[0])]
+        str(source[0]), str(target[0])])
     
     return " ".join(command)
 

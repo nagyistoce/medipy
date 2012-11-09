@@ -12,7 +12,7 @@ def get_config(requirements, classes_template_info):
         ",".join(["{0}".format(repr(x)) for x in depends])))
     
     content.append("templates = (")
-    for class_name, template_parameters_list, pointer in classes_template_info :
+    for class_name, template_parameters_list, _, _ in classes_template_info :
         unqualified_class_name = class_name.split("::")[-1]
         for template_parameters in template_parameters_list :
             full_type = utils.Instantiation(class_name, *template_parameters)
@@ -63,7 +63,7 @@ def get_includes(requirements, classes_template_info):
     
     # Instantiations includes
     includes = set()
-    for class_name, template_parameters_list, pointer in classes_template_info :
+    for class_name, template_parameters_list, _, _ in classes_template_info :
         for template_parameters in template_parameters_list :
             full_type = utils.Instantiation(class_name, *template_parameters)
             includes.update(utils.get_includes(full_type))
@@ -72,7 +72,7 @@ def get_includes(requirements, classes_template_info):
     content.append("")
     
     # Typedefs
-    for class_name, template_parameters_list, pointer in classes_template_info :
+    for class_name, template_parameters_list, pointer, _ in classes_template_info :
         for template_parameters in template_parameters_list :
             full_type = utils.Instantiation(class_name, *template_parameters)
             typedefs = utils.get_typedefs(full_type, pointer)
