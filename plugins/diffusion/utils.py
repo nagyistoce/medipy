@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -20,7 +20,7 @@ def spectral_decomposition(slice_tensor):
 
     eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
     eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
-    medipy.diffusion.dtiEigItk(slice_tensor,eigVal,eigVec)
+    medipy.diffusion.spectral_analysis(slice_tensor,eigVal,eigVec)
 
     return eigVal,eigVec
 
