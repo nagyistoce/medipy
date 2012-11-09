@@ -13,11 +13,13 @@ import vtk
 from medipy.base import Object3D 
 import medipy.itk
 
+import fiber_clustering
 from utils import length, generate_image_sampling
 
 def streamline_tractography(model, seeds=None, step=1.0, min_fa=0.2, 
-                            max_angle=numpy.pi/3.0, min_length=25.0, 
-                            propagation_type="Euler"):
+                            max_angle=numpy.pi/3.0, min_length=50.0, 
+                            propagation_type="Euler", clustering_type="None",
+                            clustering_threshold=20):
     """ Streamline 2nd order tensor tractography 
  
     <gui>
@@ -25,10 +27,14 @@ def streamline_tractography(model, seeds=None, step=1.0, min_fa=0.2,
         <item name="step" type="Float" initializer="1.0" label="Propagation step"/>
         <item name="min_fa" type="Float" initializer="0.2" label="FA threshold"/>
         <item name="max_angle" type="Float" initializer="1.04" label="Angle threshold"/>
-        <item name="min_length" type="Float" initializer="25.0" label="Length threshold"/>
+        <item name="min_length" type="Float" initializer="50.0" label="Length threshold"/>
         <item name="propagation_type" type="Enum" 
             initializer="('Euler', 'Runge Kutta 4')" 
             label="Choose propagation order"/>
+        <item name="clustering_type" type="Enum" initializer="('None', 'Fast')" 
+              label="Choose the clustering strategy"/>
+        <item name="clustering_threshold" type="Float" initializer="20.0" 
+              label="Threshold in clustering"/>
         <item name="output" type="Object3D" role="return" label="Output"/>
     </gui>
     """
@@ -60,29 +66,44 @@ def streamline_tractography(model, seeds=None, step=1.0, min_fa=0.2,
     for i in range(nb_fiber) :
         fibers.append(tractography_filter.GetOutputFiberAsPyArray(i))
 
+    final_fibers = []
+    for fiber in fibers :
+        if length(fiber,step)>=thr_length :
+            final_fibers.append(fiber)
+
+    C = {}
+    if clustering_type=='Fast' :
+        C = medipy.diffusion.fiber_clustering.local_skeleton_clustering(final_fibers, d_thr=thr_clustering)
+
+    clusters = np.ones((len(final_fibers),))
+    nb_clusters = len(C.keys())
+    for cnt,c in enumerate(C.keys()) :
+        indices = C[c]['indices']
+        for i in indices :
+            clusters[i] = float(cnt)/ float(nb_clusters)    
+
     fusion = vtk.vtkAppendPolyData()
 
-    for fiber in fibers :
+    for cluster,fiber in zip(clusters,final_fibers) :
+        nb_points = fiber.shape[0]
+        scalars = vtk.vtkFloatArray()
+        scalars.SetName("clusters")
+        points= vtk.vtkPoints()
+        line = vtk.vtkCellArray()
+        line.InsertNextCell(nb_points)
 
-        if length(fiber,step)>=min_length :
-            nb_points = fiber.shape[0]
-            scalars = vtk.vtkFloatArray()
-            points= vtk.vtkPoints()
-            line = vtk.vtkCellArray()
-            line.InsertNextCell(nb_points)
+        for i in range(nb_points):
+            z,y,x = fiber[i]
+            points.InsertPoint(i,(x,y,z))
+            scalars.InsertTuple1(i,cluster)
+            line.InsertCellPoint(i)
 
-            for i in range(nb_points):
-                z,y,x = fiber[i]
-                points.InsertPoint(i,(x,y,z))
-                scalars.InsertTuple1(i,1.0)
-                line.InsertCellPoint(i)
+        polydata = vtk.vtkPolyData()
+        polydata.SetPoints(points)
+        polydata.GetPointData().SetScalars(scalars)
+        polydata.SetLines(line) 
 
-            polydata = vtk.vtkPolyData()
-            polydata.SetPoints(points)
-            polydata.GetPointData().SetScalars(scalars)
-            polydata.SetLines(line) 
-
-            fusion.AddInput(polydata)
+        fusion.AddInput(polydata)
    
     fusion.Update()
     output = Object3D(fusion.GetOutput(),"Streamline Tractography")
