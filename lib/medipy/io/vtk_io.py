@@ -50,34 +50,32 @@ class Vtk(IOBase) :
             if fnmatch.fnmatch(self.filename, pattern):
                 found = True
                 break
-        return found
+        
+        return (found and image.image_type == "tensor_2")
     
     def save(self, image) :
-        if image.image_type == "tensor_2" :
-            data = dti6to33(self.to_axis_aligned_lps_space(image))
-            spacing = image.spacing
-            origin = image.origin
+        data = dti6to33(self.to_axis_aligned_lps_space(image))
+        spacing = image.spacing
+        origin = image.origin
 
-            # Convert numpy -> VTK table
-            vtk_array = vtk.vtkFloatArray()
-            vtk_array.SetNumberOfComponents(9)
-            vtk_array.SetVoidArray(data, len(data.ravel()), 1)
+        # Convert numpy -> VTK table
+        vtk_array = vtk.vtkFloatArray()
+        vtk_array.SetNumberOfComponents(9)
+        vtk_array.SetVoidArray(data, len(data.ravel()), 1)
 
-            # Create VTK dataset
-            structured_points = vtk.vtkStructuredPoints()
-            structured_points.SetDimensions(data.shape[2],data.shape[1],data.shape[0])
-            structured_points.SetSpacing(spacing[2],spacing[1],spacing[0])
-            structured_points.SetOrigin(origin[2],origin[1],origin[0])
-            structured_points.GetPointData().SetTensors(vtk_array)
+        # Create VTK dataset
+        structured_points = vtk.vtkStructuredPoints()
+        structured_points.SetDimensions(data.shape[2],data.shape[1],data.shape[0])
+        structured_points.SetSpacing(spacing[2],spacing[1],spacing[0])
+        structured_points.SetOrigin(origin[2],origin[1],origin[0])
+        structured_points.GetPointData().SetTensors(vtk_array)
 
-            # Write VTK file
-            writer = vtk.vtkStructuredPointsWriter()
-            writer.SetFileName(self._filename)
-            writer.SetFileTypeToBinary()
-            writer.SetInput(structured_points)
-            writer.Update()
-        else :
-            raise medipy.base.Exception("Can only save tensor 2 image in .vtk format")    
+        # Write VTK file
+        writer = vtk.vtkStructuredPointsWriter()
+        writer.SetFileName(self._filename)
+        writer.SetFileTypeToBinary()
+        writer.SetInput(structured_points)
+        writer.Update()
 
     def to_axis_aligned_lps_space(self, image):
         """ Transform a tensor image to the closest axis-aligned approximation of LPS (i.e. DICOM) space

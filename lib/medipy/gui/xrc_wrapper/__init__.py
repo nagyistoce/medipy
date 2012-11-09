@@ -22,6 +22,7 @@ from medipy.gui.xrc_wrapper.control_image_xml_handler import ControlImageXMLHand
 from medipy.gui.xrc_wrapper.coordinates_xml_handler import CoordinatesXMLHandler
 from medipy.gui.xrc_wrapper.dicom_explorer_xml_handler import DICOMExplorerXMLHandler
 from medipy.gui.xrc_wrapper.directory_xml_handler import DirectoryXMLHandler
+from medipy.gui.xrc_wrapper.enum_xml_handler import EnumXMLHandler
 from medipy.gui.xrc_wrapper.file_xml_handler import FileXMLHandler
 from medipy.gui.xrc_wrapper.float_xml_handler import FloatXMLHandler
 from medipy.gui.xrc_wrapper.float_interval_xml_handler import FloatIntervalXMLHandler

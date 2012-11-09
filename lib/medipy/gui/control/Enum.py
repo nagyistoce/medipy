@@ -10,7 +10,9 @@ import wx
 from medipy.base import Observable
 
 class Enum(wx.Panel, Observable):
-    def __init__(self, parent, choices, value=None, *args, **kwargs):
+    def __init__(self, parent, choices=None, value=None, *args, **kwargs):
+        
+        choices = choices or []
         
         ##############
         # Properties #
@@ -22,7 +24,7 @@ class Enum(wx.Panel, Observable):
         ##############
         # Initialize #
         ##############
-        if value is None :
+        if value is None and choices :
             value = choices[0]
         
         wx.Panel.__init__(self, parent, *args, **kwargs)

@@ -6,4 +6,4 @@ import module_wrapper
 import utils
 
 from config import get_scalar_types, get_dimensions
-from utils import get_instantiations
+from utils import Instantiation, get_instantiations

@@ -39,6 +39,9 @@ class Observable(object) :
         """ Add an allowed event.
             Return False if the event was already allowed, else return True.
         """
+        
+        self._remove_dead_observers()
+        
         if event not in self._allowed_events :
             self._allowed_events.append(event)
             self._observers[event] = []
@@ -51,6 +54,8 @@ class Observable(object) :
         Return False if the observer was already in the list, 
         otherwise return True"""
         
+        self._remove_dead_observers()
+        
         if not self.is_allowed_event(event) :
             raise exception.Exception("Event " + event + " is not allowed for type " + str(type(self)))
         
@@ -62,6 +67,8 @@ class Observable(object) :
     def has_observer(self, event, observer):
         """ Test if the object has a specific observer
         """
+        
+        self._remove_dead_observers()
         
         if "im_self" in dir(observer) and "im_func" in dir(observer) :
             for im_self, im_func in self._observers[event] :
@@ -78,6 +85,8 @@ class Observable(object) :
         Return False if the observer was not in the list. Otherwise return True
         """
         
+        self._remove_dead_observers()
+        
         if not self.is_allowed_event(event) :
             raise exception.Exception("Event " + event + " is not allowed for type " + str(type(self)))
         
@@ -91,6 +100,8 @@ class Observable(object) :
         The event must be a member function of the observer. Arguments will
         depend on the event. Events are documented in the concrete observable
         classes""" 
+        
+        self._remove_dead_observers()
         
         # We are already processing an event
         if self._locked :
@@ -119,12 +130,13 @@ class Observable(object) :
         self._locked = False
     
     def is_allowed_event(self, event):
+        self._remove_dead_observers()
         return event in self._allowed_events
     
     allowed_events = property(fget=lambda self : self._allowed_events)
     
     def _add_bound_method_observer(self, event, observer):
-        observers = [(o[0](), o[1]) for o in self._observers[event]]
+        observers = [(o[0](), o[1]) for o in self._observers[event] if isinstance(o, tuple)]
         if (observer.im_self, observer.im_func) in observers :
             return False
         else :
@@ -161,3 +173,17 @@ class Observable(object) :
     
     def _notify_function_observer(self, observer, event_info):
         observer(event_info)
+    
+    def _remove_dead_observers(self):
+        for event, observers in self._observers.items() :
+            living_observers = []
+            for observer in observers :
+                if isinstance(observer, tuple) :
+                    if observer[0]() is not None :
+                        # Weakref is alive, keep observer
+                        living_observers.append(observer)
+                    # Otherwise discard it
+                else :
+                    # No weakref involved, keep observer
+                    living_observers.append(observer)
+            self._observers[event] = living_observers

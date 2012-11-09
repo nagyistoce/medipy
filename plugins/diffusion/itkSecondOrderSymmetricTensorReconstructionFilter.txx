@@ -11,8 +11,11 @@
 
 #include "itkSecondOrderSymmetricTensorReconstructionFilter.h"
 
-#include "itkVectorImage.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include <vector>
+
+#include "itkImageRegionConstIterator.h"
+#include "itkImageRegionIterator.h"
+#include <vnl/vnl_vector_fixed.h>
 
 namespace itk
 {
@@ -44,9 +47,23 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 
     Superclass::PrintSelf(os,indent);
  
-    os << indent << "NumberOfGradientDirections: " << this->directions.size() << std::endl;
-    os << indent << "BValue: " << m_BVal << std::endl;
+    os << indent << "BValue: " << m_BVal << "\n";
+    os << indent << "NumberOfGradientDirections: " << this->directions.size() << "\n";
+    for(unsigned int i=0; i<this->directions.size(); ++i)
+    {
+        os << indent.GetNextIndent()
+           << "Direction " << (i+1) << ": " << this->directions[i] << "\n";
+    }
+
     os.imbue( originalLocale );
+}
+
+template<typename TInputImage, typename TOutputImage>
+unsigned int
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+::GetNumberOfGradientDirections() const
+{
+    return this->directions.size();
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -61,13 +78,11 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TOutputImage>
-typename SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>::DirectionType
+typename SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>::DirectionType const &
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
-::GetGradientDirection(unsigned int i)
+::GetGradientDirection(unsigned int i) const
 {
-    if (i<this->directions.size()) {
-        return this->directions[i];
-    }
+    return this->directions[i];
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -99,32 +114,60 @@ void
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
 {
-    const PixelType min_signal = 5;
+    const InputImagePixelType min_signal = 5;
     const unsigned int VectorLength = 6;
-    unsigned int nb_dir = this->directions.size();
+    unsigned int const nb_dir = this->directions.size();
 
-    typename OutputImageType::Pointer output = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
+    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
+        this->ProcessObject::GetOutput(0));
 
-    ImageRegionConstIteratorWithIndex< OutputImageType > it(output, outputRegionForThread);
-    it.GoToBegin();
+    // Create an iterator for each input
+    typedef ImageRegionConstIterator<InputImageType> InputIterator;
+    std::vector<InputIterator> inputIterators;
+    for (unsigned int i=0; i<this->GetNumberOfInputs(); ++i)
+    {
+        InputIterator iterator(this->GetInput(i), outputRegionForThread);
+        inputIterators.push_back(iterator);
+    }
 
-    while( !it.IsAtEnd() ) {
+    vnl_vector<float> S(nb_dir-1, 0.0);
 
-        vnl_matrix<float> S(nb_dir-1, 1, 0.0); 
-        PixelType S0 = this->GetInput(0)->GetPixel(it.GetIndex());
-        if (S0<min_signal) { S0=min_signal; }
-        for (unsigned int i=1; i<nb_dir; ++i) {
-            float Si = this->GetInput(i)->GetPixel(it.GetIndex());
-            if (Si<min_signal) { Si=min_signal; }
-            if (S0>=Si) { S(i-1,0) = log(S0/Si); }
+    typedef ImageRegionIterator<OutputImageType> OutputIterator;
+    for(OutputIterator outputIt(output, outputRegionForThread);
+        !outputIt.IsAtEnd(); ++outputIt)
+    {
+        // Set the signal vector to 0, to avoid using previous values if S0<Si
+        S.fill(0.);
+
+        InputImagePixelType S0 = inputIterators[0].Get();
+        if (S0<min_signal)
+        {
+            S0=min_signal;
         }
-        vnl_matrix<float> dt6(VectorLength, 1);
+
+        for (unsigned int i=1; i<nb_dir; ++i) {
+            InputImagePixelType Si = inputIterators[i].Get();
+            if (Si<min_signal)
+            {
+                Si=min_signal;
+            }
+            if (S0>=Si)
+            {
+                S(i-1) = log(S0/Si);
+            }
+        }
+
+        vnl_vector_fixed<float, VectorLength> dt6;
         dt6 = this->invbmatrix*S;
 
-        OutputPixelType vec = output->GetPixel(it.GetIndex());
-        for( unsigned int i=0; i<VectorLength; i++ ) { vec[i] = (typename OutputPixelType::ValueType) dt6(i,0); }
+        OutputPixelType vec = outputIt.Get();
+        std::copy(dt6.begin(), dt6.end(), &vec[0]);
 
-        ++it;
+        for(typename std::vector<InputIterator>::iterator inputIteratorsIt=inputIterators.begin();
+            inputIteratorsIt!=inputIterators.end(); ++inputIteratorsIt)
+        {
+            ++(*inputIteratorsIt);
+        }
     }
 
 }
