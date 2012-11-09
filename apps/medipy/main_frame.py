@@ -190,6 +190,8 @@ class MainFrame(medipy.gui.base.Frame):
         image.set_keyboard_tool("p", SelectMainTool, self)
         image.set_keyboard_tool("c", SelectMainTool, self)
         
+        image.display_mode = self.tensor2_display_mode 
+        
         # Update menu items
         for item in self._menus_active_when_image_loaded :
             menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item))
