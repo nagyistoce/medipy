@@ -1,7 +1,7 @@
 import unittest
 
 import numpy
-from vtk import vtkImageData
+import vtk
 import vtk.util.numpy_support
 
 import medipy.vtk
@@ -101,7 +101,7 @@ class TestArrayBridge(unittest.TestCase) :
         self.array_to_vtk_image_complex_vector(False)
 
     def get_vtk_image(self, number_of_scalar_components) :
-        vtk_image = vtkImageData()
+        vtk_image = vtk.vtkImageData()
         vtk_image.SetScalarTypeToUnsignedShort()
         vtk_image.SetNumberOfScalarComponents(number_of_scalar_components)
         
