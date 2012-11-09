@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -98,7 +98,8 @@ class Tensor2Layer(Layer) :
 
     def on_position(self, event) :
 
-        self.numpy_slice_tensors = medipy.vtk.bridge.vtk_to_numpy_array(self.vtk_slice_tensors)
+        self.numpy_slice_tensors = medipy.vtk.bridge.vtk_image_to_medipy_image(
+            self.vtk_slice_tensors, None)
         if self.display_coordinates_=="physical" :          
             #self._reslicer_axes_inverse
             self.numpy_slice_tensors.data = rotation33todt6(self.numpy_slice_tensors.data,self.world_to_slice[::-1,::-1])
@@ -107,9 +108,14 @@ class Tensor2Layer(Layer) :
 
         if self._display_mode == "principal_direction_voxel" :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
-            numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy.cast[numpy.uint8](numpy.abs(numpy_eigenvectors[...,6:])*255.0)))
+            numpy_principal_direction = medipy.base.Image(
+                    data=numpy.ascontiguousarray(numpy.cast[numpy.uint8](
+                        numpy.abs(numpy_eigenvectors[...,6:])*255.0)),
+                    data_type="vector")
             numpy_principal_direction.copy_information(self.numpy_slice_tensors) 
-            vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy_principal_direction)
+            vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
+                numpy_principal_direction.data, False, 
+                numpy_principal_direction.data_type)
             self._actor_1.SetInput(vtk_principal_direction)
             if self._display_coordinates=="physical" :
                 self._actor_1.SetPosition(self._origin)
@@ -122,13 +128,25 @@ class Tensor2Layer(Layer) :
             numpy_eigenvalues,numpy_eigenvectors = spectral_decomposition(self.numpy_slice_tensors)
             val = numpy.log(numpy.maximum(numpy_eigenvalues[...,2],1e-4)*1e4)
             scale = 1.0/val.max()
-            numpy_principal_direction = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvectors[...,6:]*\
-                                                          val.repeat(3).reshape(numpy_eigenvalues.shape+(3,))*scale))
+            
+            numpy_principal_direction = medipy.base.Image(
+                data=numpy.ascontiguousarray(
+                    numpy_eigenvectors[...,6:]*val.repeat(3).reshape(
+                        numpy_eigenvalues.shape+(3,))*scale),
+                    data_type="vector")
             numpy_principal_direction.copy_information(self.numpy_slice_tensors)
-            numpy_principal_diffusion = medipy.base.Image(data=numpy.ascontiguousarray(numpy_eigenvalues[...,0]))
+            
+            numpy_principal_diffusion = medipy.base.Image(
+                data=numpy.ascontiguousarray(numpy_eigenvalues[...,0]),
+                data_type="vector")
             numpy_principal_diffusion.copy_information(self.numpy_slice_tensors)
-            vtk_principal_direction = medipy.vtk.bridge.numpy_array_to_vtk(numpy_principal_direction)
-            vtk_principal_diffusion = medipy.vtk.bridge.numpy_array_to_vtk(numpy_principal_diffusion)
+            
+            vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
+                numpy_principal_direction.data, False, 
+                numpy_principal_direction.data_type)
+            vtk_principal_diffusion = medipy.vtk.bridge.array_to_vtk_image(
+                numpy_principal_diffusion.data, False,
+                numpy_principal_direction.data_type)
 
             #vtk_principal_direction.GetPointData().SetActiveVectors(vtk_principal_direction.GetPointData().GetScalars().GetName())
             name = vtk_principal_direction.GetPointData().GetScalars().GetName()
@@ -162,7 +180,10 @@ class Tensor2Layer(Layer) :
             self._actor_2.SetMapper(self._mapper_line)
 
         elif self._display_mode=="ellipsoid" :
-            numpy_slice_tensors_ = medipy.base.Image(data=numpy.zeros(self.numpy_slice_tensors.shape[:3]+(9,),dtype=numpy.single))
+            numpy_slice_tensors_ = medipy.base.Image(
+                data=numpy.zeros(self.numpy_slice_tensors.shape[:3]+(9,),
+                                 dtype=numpy.single),
+                data_type="vector")
             numpy_slice_tensors_.copy_information(self.numpy_slice_tensors)
             numpy_slice_tensors_[...,:3] = self.numpy_slice_tensors[...,:3]
             numpy_slice_tensors_[...,4:6] = self.numpy_slice_tensors[...,3:5]
@@ -170,7 +191,8 @@ class Tensor2Layer(Layer) :
             numpy_slice_tensors_[...,3] = self.numpy_slice_tensors[...,1]
             numpy_slice_tensors_[...,6] = self.numpy_slice_tensors[...,2]
             numpy_slice_tensors_[...,7] = self.numpy_slice_tensors[...,4]
-            vtk_tensor = medipy.vtk.bridge.numpy_array_to_vtk(numpy_slice_tensors_)
+            vtk_tensor = medipy.vtk.bridge.array_to_vtk_image(
+                numpy_slice_tensors_.data, False, numpy_slice_tensors_.data_type)
             vtk_tensor.GetPointData().SetActiveTensors(vtk_tensor.GetPointData().GetScalars().GetName())
 
             self._glyph_tensor.SetInput(vtk_tensor)
