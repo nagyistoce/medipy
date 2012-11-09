@@ -221,23 +221,37 @@ class Pan(MouseTool) :
         
     def stop_interaction(self, rwi, slice) :
         if not self._interaction_dispatched :
-            slice_position = self._display_to_slice(rwi.GetEventPosition(), slice)
-            
-            image = slice.layers[0].image
             
             if slice.display_coordinates == "physical" :
-                slice_position[0] = numpy.dot(slice.world_to_slice, 
-                                              slice.cursor_physical_position)[0]
-                world_position = numpy.dot(slice.slice_to_world, slice_position)
-                index_position = (world_position-image.origin)/image.spacing
+                physical_position = self._display_to_image_physical(
+                    rwi.GetEventPosition(), slice)
+                
+                if slice.layers :
+                    index_position = slice.layers[0].image.physical_to_index(physical_position)
+                    if slice.layers[0].image.is_inside(index_position) :
+                        set_center = True
+                    else :
+                        set_center = False
+                else :
+                    set_center = True
+                
+                if set_center :
+                    slice.center_on_physical_position(physical_position)
             else :
-                slice_position[0] = numpy.dot(slice.world_to_slice, 
-                                              slice.cursor_index_position)[0]
-                index_position = numpy.dot(slice.slice_to_world, slice_position)
-                world_position = image.origin+index_position*image.spacing
+                index_position = self._display_to_image_int_index(
+                rwi.GetEventPosition(), slice)
+                if slice.layers :
+                    if slice.layers[0].image.is_inside(index_position) :
+                        set_center = True
+                    else :
+                        set_center = False
+                else :
+                    set_center = True
+                
+                if set_center :
+                    slice.center_on_index_position(index_position)
             
-            if image.is_inside(index_position) :
-                slice.center_on_physical_position(world_position)
+            if set_center :
                 rwi.Render()
 
 class PopupMenu(MouseTool) :

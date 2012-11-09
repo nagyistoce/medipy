@@ -12,6 +12,8 @@ import subprocess
 
 import medipy.base
 
+import utils
+
 class FSLTool(object):
     """ Base class for wrappers around FSL tools.
         
@@ -25,19 +27,18 @@ class FSLTool(object):
     """
     
     _suffixes = {
-        "NIFTI_PAIR" : ".hdr",
-        "NIFTI" : ".nii",
-        "NIFTI_GZ" : ".nii.gz",
-        "NIFTI_PAIR_GZ" : ".hdr.gz",
+        "NIFTI_PAIR" : "hdr",
+        "NIFTI" : "nii",
+        "NIFTI_GZ" : "nii.gz",
+        "NIFTI_PAIR_GZ" : "hdr.gz",
     }
     
-    def __init__(self, fsl_dir=None, fsl_output_type="NIFTI"):
+    def __init__(self, fsl_environment=None):
         self._stdout = None
         self._stderr = None
         self._returncode = None
         
-        self.fsl_dir = fsl_dir
-        self.fsl_output_type = fsl_output_type
+        self.fsl_environment = fsl_environment or utils.environment()
     
     def __call__(self):
         """ Run the specific FSL command.
@@ -45,25 +46,10 @@ class FSLTool(object):
         
         env = copy.deepcopy(os.environ)
 
-        if self.fsl_dir is None :
-            if "FSLDIR" not in os.environ :
-                raise Exception("No FSLDIR in environment, no fsl_dir defined in wrapper.")
-        else :
-            env["FSLDIR"] = self.fsl_dir
-            
-        path = env.get("PATH", "").split(os.pathsep)
-        path.append(os.path.join(env["FSLDIR"], "bin"))
-        env["PATH"] = os.pathsep.join(path)
-        
-        ld_library_path = env.get("LD_LIBRARY_PATH", "").split(os.pathsep)
-        ld_library_path.insert(0, os.path.join(env["FSLDIR"], "bin"))
-        env["LD_LIBRARY_PATH"] = os.pathsep.join(ld_library_path)
-
-        env.setdefault("FSLOUTPUTTYPE", self.fsl_output_type)
         command = copy.deepcopy(self.command)
-        command[0] = os.path.join(env["FSLDIR"], "bin", command[0])
         process = subprocess.Popen(
-            command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            command, env=self.fsl_environment, 
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._stdout, self._stderr = process.communicate()
         self._returncode = process.returncode
 
