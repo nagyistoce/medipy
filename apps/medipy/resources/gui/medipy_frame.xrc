@@ -200,15 +200,15 @@
 
 
         <object class="wxMenu" name="display_tensors_menu">
-          <object class="wxMenuItem" name="principal_direction_voxel">
+          <object class="wxMenuItem" name="tensor2_display_principal_direction_voxel">
             <label>Color map</label>
             <radio>1</radio>
           </object>
-          <object class="wxMenuItem" name="principal_direction_line">
+          <object class="wxMenuItem" name="tensor2_display_principal_direction_line">
             <label>Principal direction</label>
             <radio>1</radio>
           </object>
-          <object class="wxMenuItem" name="ellipsoid">
+          <object class="wxMenuItem" name="tensor2_display_ellipsoid">
             <label>Ellipsoid</label>
             <radio>1</radio>
           </object>
