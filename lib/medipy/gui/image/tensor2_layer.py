@@ -114,7 +114,7 @@ class Tensor2Layer(Layer) :
                     data_type="vector")
             numpy_principal_direction.copy_information(self.numpy_slice_tensors) 
             vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
-                numpy_principal_direction.data, False, 
+                numpy_principal_direction.data, True, 
                 numpy_principal_direction.data_type)
             self._actor_1.SetInput(vtk_principal_direction)
             if self._display_coordinates=="physical" :
@@ -142,10 +142,10 @@ class Tensor2Layer(Layer) :
             numpy_principal_diffusion.copy_information(self.numpy_slice_tensors)
             
             vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
-                numpy_principal_direction.data, False, 
+                numpy_principal_direction.data, True, 
                 numpy_principal_direction.data_type)
             vtk_principal_diffusion = medipy.vtk.bridge.array_to_vtk_image(
-                numpy_principal_diffusion.data, False,
+                numpy_principal_diffusion.data, True,
                 numpy_principal_direction.data_type)
 
             #vtk_principal_direction.GetPointData().SetActiveVectors(vtk_principal_direction.GetPointData().GetScalars().GetName())
@@ -192,7 +192,7 @@ class Tensor2Layer(Layer) :
             numpy_slice_tensors_[...,6] = self.numpy_slice_tensors[...,2]
             numpy_slice_tensors_[...,7] = self.numpy_slice_tensors[...,4]
             vtk_tensor = medipy.vtk.bridge.array_to_vtk_image(
-                numpy_slice_tensors_.data, False, numpy_slice_tensors_.data_type)
+                numpy_slice_tensors_.data, True, numpy_slice_tensors_.data_type)
             vtk_tensor.GetPointData().SetActiveTensors(vtk_tensor.GetPointData().GetScalars().GetName())
 
             self._glyph_tensor.SetInput(vtk_tensor)
