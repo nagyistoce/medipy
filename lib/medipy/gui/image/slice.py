@@ -70,7 +70,7 @@ class Slice(PropertySynchronized) :
     def __init__(self, world_to_slice, layers=None, annotations=None,
                  interpolation=False, display_coordinates="physical", 
                  scalar_bar_visibility = False, orientation_visibility=True,
-                 corner_annotations_visibility=False,display_mode="ellipsoid") :
+                 corner_annotations_visibility=False,display_mode="principal_direction_voxel") :
         
         layers = layers or []
         annotations = annotations or ObservableList()

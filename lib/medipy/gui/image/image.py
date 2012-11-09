@@ -83,7 +83,7 @@ class Image(wx.Panel, PropertySynchronized):
                  annotations=None, interpolation=False,
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
-                 convention="radiological", display_mode="ellipsoid", *args, **kwargs):
+                 convention="radiological", display_mode="principal_direction_voxel", *args, **kwargs):
         
         if annotations is None :
             annotations = ObservableList()
