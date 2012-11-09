@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -223,11 +223,8 @@ class Layer(medipy.base.Observable) :
             
         self._image = image
         
-        #self._vtk_image = medipy.vtk.build_vtk_image(self._image, self._vtk_image)
-        #self._image[:15,:,:] = numpy.array([2.,0,0,1.,0,1.])*1e-3
-        #self._image[15:30,:,:] = numpy.array([1.,0,0,3.,0,1.])*1e-3
-        #self._image[30:,:,:] = numpy.array([1.,0,0,1.,0,4.])*1e-3
-        self._vtk_image = medipy.vtk.bridge.numpy_array_to_vtk(self._image)
+        self._vtk_image = medipy.vtk.bridge.array_to_vtk_image(
+            self._image.data, False, self._image.data_type)
         
         self._image.add_observer("modified", self._on_image_modified)
         
@@ -239,7 +236,6 @@ class Layer(medipy.base.Observable) :
         self._update_reslicer_matrix()
         self._update_change_information()
         self._reslicer.SetInput(self._vtk_image)
-
         
         self.notify_observers("image")
 
