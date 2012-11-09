@@ -271,7 +271,8 @@
 									<content>
 										<item>Color</item>
 										<item>Pseudo-texture</item>
-									</content>
+										<item>Point array</item>
+									 </content>
 								</object>
 							</object>
 						</object>
@@ -330,6 +331,34 @@
 							</object>
 						</object>
 					</object>
+
+
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="array_name_label">
+									<label>Array name :</label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxComboBox" name="array_name_combobox">
+									<style>wxCB_DROPDOWN|wxCB_READONLY</style>
+								</object>
+							</object>
+						</object>
+					</object>
+
+
 					<object class="sizeritem">
 						<option>1</option>
 						<flag></flag>

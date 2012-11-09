@@ -105,10 +105,10 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         
         self._outer_display_panel = resource.LoadPanel(self._inner_display_scrolled_panel, "outer_display_panel")
         # display_panel controls
-        for control in ["color_type_choice", "color_label", "color_button", "opacity_label", 
+        for control in ["color_type_choice", "color_label", "color_button", "opacity_label",
                         "opacity_slider", "texture_image_label", "texture_image_chooser", 
                         "depth_label", "depth_slider",
-                        "representation_combobox", "points_size_slider", "shading_combobox"
+                        "representation_combobox", "array_name_combobox", "array_name_label", "points_size_slider", "shading_combobox"
                         ] :
             setattr(self, "_"+control, wx.xrc.XRCCTRL(self._outer_display_panel, control))
         
@@ -169,6 +169,7 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         self._color_button.Bind(wx.EVT_BUTTON, self.OnColorChanged)
         self._opacity_slider.Bind(wx.EVT_SLIDER, self.OnOpacityChanged)
         self._representation_combobox.Bind(wx.EVT_COMBOBOX, self.OnRepresentationChanged)
+        self._array_name_combobox.Bind(wx.EVT_COMBOBOX, self.OnArrayNameChanged)
         self._points_size_slider.Bind(wx.EVT_SLIDER, self.OnPointsSizeChanged)
         self._shading_combobox.Bind(wx.EVT_COMBOBOX, self.OnShadingChanged)
         self._depth_slider.Bind(wx.EVT_SLIDER, self.OnDepthChanged)
@@ -292,6 +293,8 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
             self._texture_image_chooser.Hide()
             self._depth_label.Hide()
             self._depth_slider.Hide()
+            self._array_name_label.Hide()
+            self._array_name_combobox.Hide()
         elif coloration_type == 1 : #"Pseudo-texture"
             self._color_label.Hide()
             self._color_button.Hide()
@@ -301,6 +304,19 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
             self._texture_image_chooser.Show()
             self._depth_label.Show()
             self._depth_slider.Show()
+            self._array_name_label.Hide()
+            self._array_name_combobox.Hide()
+        elif coloration_type == 2 : #"Point array"
+            self._color_label.Hide()
+            self._color_button.Hide()
+            self._opacity_label.Hide()
+            self._opacity_slider.Hide()
+            self._texture_image_label.Hide()
+            self._texture_image_chooser.Hide()
+            self._depth_label.Hide()
+            self._depth_slider.Hide()
+            self._array_name_label.Show()
+            self._array_name_combobox.Show()
         
         
         self._texture_image_chooser.remove_observer("any", self._on_texture_image_changed)
@@ -441,6 +457,8 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
             self._texture_image_chooser.Hide()
             self._depth_label.Hide()
             self._depth_slider.Hide()
+            self._array_name_label.Hide()
+            self._array_name_combobox.Hide()
             
             _object.color_by_material()
         elif choice == "Pseudo-texture" :
@@ -452,6 +470,8 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
             self._texture_image_chooser.Show()
             self._depth_label.Show()
             self._depth_slider.Show()
+            self._array_name_label.Hide()
+            self._array_name_combobox.Hide()
             
             if image :
                 depth = self._depth_slider.GetValue()/100.
@@ -459,7 +479,26 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
                 self._depth_slider.Enable()
             else :
                 self._depth_slider.Disable()
-        
+
+        elif choice == "Point array" :
+            self._color_label.Hide()
+            self._color_button.Hide()
+            self._opacity_label.Hide()
+            self._opacity_slider.Hide()
+            self._texture_image_label.Hide()
+            self._texture_image_chooser.Hide()
+            self._depth_label.Hide()
+            self._depth_slider.Hide()
+            self._array_name_label.Show()
+            self._array_name_combobox.Show()
+
+            self._array_name_combobox.Clear()
+            array_names = _object.point_arrays()
+            for name in array_names :
+                self._array_name_combobox.Append(str(name)) 
+                self._array_name_combobox.SetValue(str(name))
+                _object.color_by_point_scalars(str(name))         
+     
         self._save_object_state(_object)
         
         #self._outer_display_scrolled_panel.Layout()
@@ -606,7 +645,17 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         else :
             self._points_size_slider.Enable(True)
         self._viewer_3d.render_window_interactor.Render()
-            
+
+    def OnArrayNameChanged(self, event):
+        index = self._objects_check_list_box.GetSelection()
+        _object = self._objects_3d[index]
+        index = self._objects_check_list_box.GetSelection()
+        repr = self._array_name_combobox.GetValue()
+        _object.color_by_point_scalars(repr)
+ 
+        self._save_object_state(_object)       
+        self._viewer_3d.render_window_interactor.Render()
+          
     def OnPointsSizeChanged(self, event):
         size = self._points_size_slider.GetValue()
         index = self._objects_check_list_box.GetSelection()
