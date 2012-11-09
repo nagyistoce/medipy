@@ -8,7 +8,7 @@ env = env.Clone()
 env.Glob("*.py")
 env.Use("itk")
 
-env.PythonModule("_dtiEigItk", ["dtiEigItk.i","dtiEigItk.cpp"], CXX="g++-4.4")
+#env.PythonModule("_dtiEigItk", ["dtiEigItk.i","dtiEigItk.cpp"], CXX="g++-4.4")
 
 # Second Order Reconstruction Filter, itk::Image<T, N> -> itk::VectorImage<T, N>    
 types = get_scalar_types(wrapitk_root())
