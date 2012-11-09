@@ -19,6 +19,12 @@ def least_squares(images):
         
         All images must have the same shape and the same dtype, and must 
         contain diffusion metadata.
+        
+        <gui>
+            <item name="images" type="Image" label="Input"/>
+            <item name="output" type="Image" initializer="output=True" 
+                  role="return" label="Output"/>
+        </gui>
     """
     
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, 
@@ -46,4 +52,3 @@ def least_squares(images):
     tensors.image_type = "tensor_2"
 
     return tensors
-
