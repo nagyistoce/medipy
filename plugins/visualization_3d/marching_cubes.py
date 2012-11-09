@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 from vtk import vtkDiscreteMarchingCubes, vtkMarchingCubes
@@ -24,7 +24,7 @@ def marching_cubes(input, isovalue, compute_normals, output):
         </gui>
     """
     
-    vtk_image = medipy.vtk.build_vtk_image(input)
+    vtk_image = medipy.vtk.array_to_vtk_image(input.data, False, input.data_type)
     marching_cubes = vtkMarchingCubes()
     marching_cubes.SetInput(vtk_image)
     marching_cubes.SetValue(0, isovalue)
@@ -45,7 +45,7 @@ def discrete_marching_cubes(input, isovalue, output):
         </gui>
     """
     
-    vtk_image = medipy.vtk.build_vtk_image(input)
+    vtk_image = medipy.vtk.array_to_vtk_image(input.data, False, input.data_type)
     marching_cubes = vtkDiscreteMarchingCubes()
     marching_cubes.SetInput(vtk_image)
     marching_cubes.SetValue(0, isovalue)

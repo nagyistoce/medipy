@@ -1,51 +1,55 @@
-import os
-import sys
-import deployement.scons.wrapitk
+import itertools
+from deployement.scons.itk import wrapitk_root
+from deployement.scons.wrapitk import (Instantiation, 
+                                       get_dimensions, get_scalar_types)
 
 Import('env')
 env = env.Clone()
 env.Glob("*.py")
 env.Use("itk")
 
-env.PythonModule("_dtiEigItk", ["dtiEigItk.i","dtiEigItk.cpp"], CXX="g++-4.4")
+#env.PythonModule("_dtiEigItk", ["dtiEigItk.i","dtiEigItk.cpp"], CXX="g++-4.4")
 
+# Second Order Reconstruction Filter, itk::Image<T, N> -> itk::VectorImage<T, N>    
+types = get_scalar_types(wrapitk_root())
+dimensions = get_dimensions(wrapitk_root())
+instantiations = {
+    "input" : [Instantiation("itk::Image", *x) 
+               for x in itertools.product(types, dimensions)],
+    "output" : [Instantiation("itk::VectorImage", *x) 
+                for x in itertools.product(types, dimensions)]
+}
+instantiations = [(input, output) 
+                  for input, output in zip(instantiations["input"], instantiations["output"])]
 
-# Second Order Reconstruction Filter, instantiated for the following type (TInputImage and TOutputImage) :
-# * itk::Image<float, 3>, itk::VectorImage<float, 3>    
-types = ["float"]
-dimensions = [3]
-instantiations_input = deployement.scons.wrapitk.get_instantiations("itk::Image", types, dimensions)
-instantiations_output = deployement.scons.wrapitk.get_instantiations("itk::VectorImage", types, dimensions)
-instantiations = [(i,j) for i,j in zip(instantiations_input,instantiations_output)]
 classes_template_info = [ ("itk::SecondOrderSymmetricTensorReconstructionFilter", instantiations, "pointer") ]
 env.WrapITKPythonModule("SecondOrderSymmetricTensorReconstructionFilter", classes_template_info)
 
-# Spectral Decomposition Filter, instantiated for the following type (TInputImage and TOutputImage) :
-# * itk::VectorImage<float, 3> , itk::VectorImage<float, 3>    
-#types = ["float"]
-#dimensions = [3]
-#instantiations = deployement.scons.wrapitk.get_instantiations("itk::VectorImage", types, dimensions)
-#instantiations = [(i,i) for i in instantiations]
-#classes_template_info = [ ("itk::SymmetricSpectralAnalysisImageFilter", instantiations, "pointer") ]
-#env.WrapITKPythonModule("SymmetricSpectralAnalysisImageFilter", classes_template_info)
-
-# Fractional Anisotropy Image Filter, instantiated for the following type (TInputImage and TOutputImage) :
-# * itk::VectorImage<float, 3> , itk::Image<float, 3>    
-types = ["float"]
-dimensions = [3]
-instantiations_output = deployement.scons.wrapitk.get_instantiations("itk::Image", types, dimensions)
-instantiations_input = deployement.scons.wrapitk.get_instantiations("itk::VectorImage", types, dimensions)
-instantiations = [(i,j) for i,j in zip(instantiations_input,instantiations_output)]
+# Fractional Anisotropy Image Filter, itk::VectorImage<T, N> -> itk::Image<T, N>  
+types = get_scalar_types(wrapitk_root())
+dimensions = get_dimensions(wrapitk_root())
+instantiations = {
+    "input" : [Instantiation("itk::VectorImage", *x) 
+               for x in itertools.product(types, dimensions)],
+    "output" : [Instantiation("itk::Image", *x) 
+                for x in itertools.product(types, dimensions)]
+}
+instantiations = [(input, output) 
+                  for input, output in zip(instantiations["input"], instantiations["output"])]
 classes_template_info = [ ("itk::FractionalAnisotropyImageFilter", instantiations, "pointer") ]
 env.WrapITKPythonModule("FractionalAnisotropyImageFilter", classes_template_info)
 
-# Mean Diffusivity Image Filter, instantiated for the following type (TInputImage and TOutputImage) :
-# * itk::VectorImage<float, 3> , itk::Image<float, 3>    
-types = ["float"]
-dimensions = [3]
-instantiations_output = deployement.scons.wrapitk.get_instantiations("itk::Image", types, dimensions)
-instantiations_input = deployement.scons.wrapitk.get_instantiations("itk::VectorImage", types, dimensions)
-instantiations = [(i,j) for i,j in zip(instantiations_input,instantiations_output)]
+# Mean Diffusivity Image Filter, itk::VectorImage<T, N> -> itk::Image<T, N>    
+types = get_scalar_types(wrapitk_root())
+dimensions = get_dimensions(wrapitk_root())
+instantiations = {
+    "input" : [Instantiation("itk::VectorImage", *x) 
+               for x in itertools.product(types, dimensions)],
+    "output" : [Instantiation("itk::Image", *x) 
+                for x in itertools.product(types, dimensions)]
+}
+instantiations = [(input, output) 
+                  for input, output in zip(instantiations["input"], instantiations["output"])]
 classes_template_info = [ ("itk::MeanDiffusivityImageFilter", instantiations, "pointer") ]
 env.WrapITKPythonModule("MeanDiffusivityImageFilter", classes_template_info)
 

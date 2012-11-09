@@ -63,21 +63,21 @@ class BET(FSLTool):
     def _get_outline(self):
         if self.create_outline :
             return os.path.extsep.join([os.path.splitext(self.input)[0]+"_overlay", 
-                                        self._suffixes[self.fsl_output_type]])
+                                        self._suffixes[self.fsl_environment["FSLOUTPUTTYPE"]]])
         else :
             return None
     
     def _get_brain_mask(self):
         if self.create_brain_mask :
             return os.path.extsep.join([os.path.splitext(self.input)[0]+"_mask", 
-                                        self._suffixes[self.fsl_output_type]])
+                                        self._suffixes[self.fsl_environment["FSLOUTPUTTYPE"]]])
         else :
             return None
     
     def _get_skull(self):
         if self.create_skull :
             return os.path.extsep.join([os.path.splitext(self.input)[0]+"_skull", 
-                                        self._suffixes[self.fsl_output_type]])
+                                        self._suffixes[self.fsl_environment["FSLOUTPUTTYPE"]]])
         else :
             return None
     

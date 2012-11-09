@@ -194,6 +194,46 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False)
         preferences.set("IO/load_path", dialog.GetPath())
         return images
 
+def import_serie_from_dicom_directory(parent=None, dtype=numpy.single):
+    """ Import an image from a directory containing DICOM files
+        
+        parent : parent wx Window for dialogs
+        dtype : type to cast images to, or None to preserve original type
+    """
+
+    preferences = medipy.gui.base.Preferences(
+        wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+    path = preferences.get("IO/load_path", "")
+    
+    dialog = wx.DirDialog(parent, style=wx.FD_OPEN)
+    dialog.SetPath(path)
+    
+    if dialog.ShowModal() != wx.ID_OK :
+        return []
+       
+    directory = dialog.GetPath()
+
+    periodic_progress_dialog = PeriodicProgressDialog(
+        0.2, "Loading files", "Loading ...")
+    worker_thread = WorkerThread(periodic_progress_dialog,
+                                 target=medipy.io.load_serie, args=("dicom:"+directory,))
+    worker_thread.start()
+    periodic_progress_dialog.start()
+    worker_thread.join()
+    periodic_progress_dialog.Destroy()
+        
+    if worker_thread.exception is not None :
+        wx.MessageBox(
+            "Could not load files : %s"%(worker_thread.exception, ), 
+            "Could not load files")
+        return []
+    else :
+        images = worker_thread.result
+    
+    if images :
+        preferences.set("IO/load_path", dialog.GetPath())
+        return images
+
 def save(image, parent=None):
     """ Save an image with appropriate dialogs (file selector)
         

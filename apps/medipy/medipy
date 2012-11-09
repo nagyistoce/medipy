@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -13,14 +13,7 @@ import os
 import wx
 
 try :
-    app = wx.App()
-    from importer_dialog import preimport
-    nb_imported = preimport()
-    logging.debug("%i modules imported"%nb_imported)
-    del app
-    
     from medipy_app import MediPyApp
-    from medipy.base import find_resource
     
     app = MediPyApp( 
         [[("-m", "--menu-file"), {"dest" : "menu_file", "default" : None,
@@ -56,7 +49,7 @@ except :
 
     message = "Could not launch MediPy : " + str(exc_info[1])
     if wx.GetApp() is None :
-        app = wx.App()
+        app = wx.PySimpleApp()
     
     dialog = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
     button_sizer = dialog.CreateButtonSizer(wx.OK)

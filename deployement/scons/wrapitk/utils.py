@@ -49,7 +49,7 @@ def get_includes(instantiation):
     
     includes = set()
     
-    if isinstance(instantiation, Instantiation) :
+    if hasattr(instantiation, "class_name") :
         # Try to guess the include of the class name
         if "::" in instantiation.class_name :
             namespace, class_name = instantiation.class_name.split("::", 1)
