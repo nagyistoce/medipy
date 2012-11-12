@@ -8,7 +8,7 @@
 
 import numpy
 import medipy.medimax.recalage
-from utils import gradient_itk, invert_itk, spectral_decomposition, compose_spectral, log_transformation, exp_transformation
+from medipy.diffusion.utils import gradient_itk, invert_itk, spectral_decomposition, compose_spectral, log_transformation, exp_transformation
 import medipy.base
 import medipy.io
 from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
@@ -16,22 +16,17 @@ from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
 def apply_tensor_trf_gui(*args,**kwargs) :
     """ Interpolation + PPD reorientation from a .trf deformation field
 
+    <gui>
         <item name="fmodel_ref" type="File" label="Reference diffusion image"/>
         <item name="fmodel_wrap" type="File" label="Diffusion Image to wrap"/>
-        <item name="ftrf" type="File" label=".trf deformation field" />
-
-    <gui>
+        <item name="ftrf" type="File" label="Deformation field"/>
         <item name="tensor_ref" type="Image" initializer="output=True" role="return" label="Reference tensor"/>
         <item name="tensor_registered" type="Image" initializer="output=True" role="return" label="Registered tensor"/>
     </gui>
     """
-    #fmodel_ref = kwargs['fmodel_ref']
-    #fmodel_wrap = kwargs['fmodel_wrap']
-    #ftrf = kwargs['ftrf']
-
-    fmodel_ref = "/home/grigis/data/SOM/01/data_fsl_eddy.nii.gz"
-    fmodel_wrap = "/home/grigis/data/SOM/02/data_fsl_eddy.nii.gz"
-    ftrf = "/home/grigis/data/SOM/affnl.trf"
+    fmodel_ref = kwargs['fmodel_ref']
+    fmodel_wrap = kwargs['fmodel_wrap']
+    ftrf = kwargs['ftrf']
 
     images_wrap = medipy.io.io.load_serie(fmodel_wrap)
     model_wrap = ls_SecondOrderSymmetricTensorEstimation_(images_wrap)
@@ -63,7 +58,7 @@ def load_trf(ftrf,model_wrap) :
     uz = medipy.base.Image(shape=(1), dtype=numpy.float32)
 
     imSource = medipy.base.Image(shape=(1), spacing=model_wrap.spacing, origin=model_wrap.origin, direction=model_wrap.direction, dtype=numpy.float32)
-    medipy.medimax.recalage.LoadTrfFile(ftrf,ux,uy,uz,imSource)
+    medipy.medimax.recalage.LoadTrfFile(str(ftrf),ux,uy,uz,imSource)
 
     field = medipy.base.Image(data=numpy.zeros(ux.shape+(3,),dtype=numpy.single),data_type="vector")
     field[...,0] = ux.data
