@@ -165,7 +165,7 @@ def cut_polydata(hits) :
     scalars.SetName("cut")
 
     i = 0
-    for key in hits.keys() :
+    for key in hits.keys()[:2] :
         fiber_hits = hits[key]['indices']
         for hit in fiber_hits :
             color = np.random.rand()

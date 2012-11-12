@@ -185,7 +185,12 @@ def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
     s = ( (N1-1)*S1**2 + (N2-1)*S2**2 )/(N-2)
 
     # Statistic
-    T = df[1]/df[0] * T/(q*(N-2)*s)
+    #T = df[1]/df[0] * T/(q*(N-2)*s)
+    index = np.where(s!=0)
+    temp = np.zeros(T.shape,dtype=np.single)
+    temp[index] = df[1]/df[0] * T[index]/(q*(N-2)*s[index])
+    T = temp
+
     s = np.sqrt(s)
 
     T[np.isnan(T)] = -1
