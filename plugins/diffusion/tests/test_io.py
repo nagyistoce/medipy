@@ -10,7 +10,7 @@ import medipy.io
 import medipy.diffusion
 
 class TestIO(unittest.TestCase):
-    def test_io(self):
+    def test_itk_io(self):
         tensors = medipy.base.Image(
             data=numpy.arange(10*20*30*6, dtype=numpy.single).reshape((10,20,30,6)),
             dti="tensor_2",
@@ -24,7 +24,7 @@ class TestIO(unittest.TestCase):
         
         self.assertTrue(isinstance(
             other_tensors.metadata["loader"]["loader"], 
-            medipy.diffusion.io.Tensor2IO))
+            medipy.diffusion.itk_io.ITK))
         
         self.assertEqual(other_tensors.shape, (10,20,30))
         self.assertEqual(other_tensors.dtype, numpy.single)
