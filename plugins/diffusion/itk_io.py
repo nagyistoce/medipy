@@ -15,7 +15,7 @@ import numpy
 import medipy.itk
 import medipy.io
 
-class Tensor2IO(medipy.io.IOBase):
+class ITK(medipy.io.IOBase):
     _io_classes = [itk.BMPImageIO, itk.JPEGImageIO, itk.MetaImageIO, 
                    itk.NiftiImageIO, itk.NrrdImageIO, itk.PNGImageIO, 
                    itk.TIFFImageIO, itk.VTKImageIO]
