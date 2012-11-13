@@ -21,7 +21,8 @@ def streamline_tractography_gui(model,*args,**kwargs) :
 
     <gui>
         <item name="model" type="Image" label="Input"/>
-        <item name="step" type="Float" initializer="1.0" label="Propagation step"/>
+        <item name="step" type="Float" initializer="0.5" label="Propagation step"/>
+        <item name="seed_spacing" type="Float" initializer="1.0" label="Seeds spacing (mm)"/>
         <item name="thr_fa" type="Float" initializer="0.2" label="FA threshold"/>
         <item name="thr_angle" type="Float" initializer="1.04" label="Angle threshold"/>
         <item name="thr_length" type="Float" initializer="50.0" label="Length threshold"/>
@@ -39,8 +40,9 @@ def streamline_tractography_gui(model,*args,**kwargs) :
     propagation_type = kwargs['propagation_type']
     clustering_type = kwargs['clustering_type']
     thr_clustering = kwargs['thr_clustering']
+    seed_spacing = kwargs['seed_spacing']
 
-    T,C = streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering)
+    T,C = streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering,(seed_spacing,seed_spacing,seed_spacing))
     vtk_polydata = fiber_polydata(T,C)
     output = Object3D(vtk_polydata,"Streamline Tractography")
 
@@ -51,7 +53,8 @@ def skeleton_gui(model,*args,**kwargs) :
 
     <gui>
         <item name="model" type="Image" label="Input"/>
-        <item name="step" type="Float" initializer="1.0" label="Propagation step"/>
+        <item name="step" type="Float" initializer="0.5" label="Propagation step"/>
+        <item name="seed_spacing" type="Float" initializer="1.0" label="Seeds spacing (mm)"/>
         <item name="thr_fa" type="Float" initializer="0.2" label="FA threshold"/>
         <item name="thr_angle" type="Float" initializer="1.04" label="Angle threshold"/>
         <item name="thr_length" type="Float" initializer="50.0" label="Length threshold"/>
@@ -69,8 +72,9 @@ def skeleton_gui(model,*args,**kwargs) :
     propagation_type = kwargs['propagation_type']
     clustering_type = kwargs['clustering_type']
     thr_clustering = kwargs['thr_clustering']
+    seed_spacing = kwargs['seed_spacing']
 
-    T,C = streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering)
+    T,C = streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering,(seed_spacing,seed_spacing,seed_spacing))
     skeleton(T,C)
     vtk_polydata = fiber_polydata(T,C)
     output = Object3D(vtk_polydata,"Fiber Skeleton")
@@ -97,7 +101,9 @@ def fiber_polydata(T,C) :
     clusters_skel = np.ones((len(T),))
     clusters = np.ones((len(T),))
     nb_clusters = len(C.keys())
-    flag = 'skel' in C[C.keys()[0]].keys()
+    flag = False
+    if C!={} :
+        flag = 'skel' in C[C.keys()[0]].keys()
     for cnt,c in enumerate(C.keys()) :
         indices = C[c]['indices']
         for i in indices :
@@ -140,11 +146,17 @@ def fiber_polydata(T,C) :
     fusion.Update()
     return fusion.GetOutput()
 
-def streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering) :
+def streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering,seed_spacing=None,mask=None) :
     """ Streamline 2nd order tensor tractography 
     """
 
-    seeds = generate_image_sampling(model,step=2.0*model.spacing)
+    if seed_spacing==None : 
+        seed_spacing = 2.0*model.spacing
+
+    if mask==None :
+        seeds = generate_image_sampling(model,step=seed_spacing)
+    else :
+        seeds = generate_image_sampling(model,step=seed_spacing,mask=mask)
     ndim = len(model.shape)
 
     tractography_filter = itk.StreamlineTractographyAlgorithm[itk.VectorImage[itk.F,ndim], itk.Image[itk.F,ndim]].New()
