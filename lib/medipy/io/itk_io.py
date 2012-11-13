@@ -13,6 +13,7 @@ import numpy
 
 import medipy.io # add PyArrayIO to itk
 from medipy.io.io_base import IOBase
+import medipy.itk
 from medipy.itk import itk_image_to_array, medipy_image_to_itk_image, dtype_to_itk
 
 class ITK(IOBase) :
@@ -20,29 +21,6 @@ class ITK(IOBase) :
     _io_classes = [itk.BMPImageIO, itk.JPEGImageIO, itk.MetaImageIO, 
                    itk.NiftiImageIO, itk.NrrdImageIO, itk.PNGImageIO, 
                    itk.TIFFImageIO, itk.VTKImageIO]
-    
-    _larger_type = {
-        itk.UC : itk.US,
-        itk.US : itk.UL,
-        itk.UI : itk.UL,
-        itk.SC : itk.SS,
-        itk.SS : itk.SL,
-        itk.SI : itk.SL,
-        itk.F : itk.D
-    }
-    
-    _component_type_to_type = {
-        itk.ImageIOBase.UCHAR : itk.UC,
-        itk.ImageIOBase.CHAR : itk.SC,
-        itk.ImageIOBase.USHORT : itk.US,
-        itk.ImageIOBase.SHORT : itk.SS,
-        itk.ImageIOBase.UINT : itk.UI,
-        itk.ImageIOBase.INT : itk.SI,
-        itk.ImageIOBase.ULONG : itk.UL,
-        itk.ImageIOBase.LONG : itk.SL,
-        itk.ImageIOBase.FLOAT : itk.F,
-        itk.ImageIOBase.DOUBLE : itk.D,
-    }
     
     # Merge all supported read extensions, add a "*" before each of them       
     filenames = ["*"+str(x) for x in 
@@ -79,9 +57,9 @@ class ITK(IOBase) :
         # TODO : NumberOfComponents != 1
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = ITK._component_type_to_type[self._loader.GetComponentType()]
+        PixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
         while PixelType not in InstantiatedTypes :
-            PixelType = ITK._larger_type[PixelType]
+            PixelType = medipy.itk.types.larger_type[PixelType]
         Dimension = self._loader.GetNumberOfDimensions()
         
         if self._filter == itk.ImageFileReader :
@@ -188,7 +166,7 @@ class ITK(IOBase) :
                                  for x in itk.NumpyBridge.__template__.keys()])
         PixelType = dtype_to_itk[image.dtype.type]
         while PixelType not in InstantiatedTypes :
-            PixelType = ITK._larger_type[PixelType]
+            PixelType = medipy.itk.types.larger_type[PixelType]
         Dimension = image.ndim
         
         return ((PixelType, Dimension) in itk.Image.__template__ or
@@ -199,7 +177,7 @@ class ITK(IOBase) :
                                  for x in itk.NumpyBridge.__template__.keys()])
         PixelType = dtype_to_itk[image.dtype.type]
         while PixelType not in InstantiatedTypes :
-            PixelType = ITK._larger_type[PixelType]
+            PixelType = medipy.itk.types.larger_type[PixelType]
         Dimension = image.ndim
         
         if (PixelType, Dimension) in itk.Image.__template__ :
