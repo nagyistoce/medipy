@@ -58,6 +58,21 @@ def dti6to33(dt6):
 
     return dt33
 
+def dti33to6(dt33):
+    """ Six independent components from the full second order symmetric tensor.
+        dt33 must be a numpy array, NOT a medipy.base.Image
+    """
+    
+    dt6 = np.zeros(dt33.shape[:-1]+(6,),dtype=dt33.dtype)
+    dt6[...,0] = dt33[...,0,0]
+    dt6[...,1] = dt33[...,0,1]
+    dt6[...,2] = dt33[...,0,2]
+    dt6[...,3] = dt33[...,1,1]
+    dt6[...,4] = dt33[...,1,2]
+    dt6[...,5] = dt33[...,2,2]
+
+    return dt6
+
 def rotation33todt6(dt6,R):
     """ Apply a rotation R to a 3D numpy array (NOT a medipy.base.Image) 
         representing a second-order tensor by its six independant components.
