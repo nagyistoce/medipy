@@ -1,9 +1,9 @@
 import itertools
 from deployement.scons.itk import wrapitk_root
 from deployement.scons.wrapitk import (Instantiation, 
-                                       get_dimensions, get_scalar_types)
+                                       get_dimensions, get_real_types)
 
-Import('env')
+Import("env")
 env = env.Clone()
 env.Glob("*.py")
 env.Use("itk")
@@ -12,47 +12,25 @@ env.PythonModule("_spectral_analysis",
                  ["spectral_analysis.i", "spectral_analysis.cpp"], 
                  CXX="g++-4.4")
 
-# Second Order Reconstruction Filter, itk::Image<T, N> -> itk::VectorImage<T, N>    
-types = get_scalar_types(wrapitk_root())
+# Only wrap for real types
+types = get_real_types(wrapitk_root())
 dimensions = get_dimensions(wrapitk_root())
-instantiations = {
-    "input" : [Instantiation("itk::Image", *x) 
-               for x in itertools.product(types, dimensions)],
-    "output" : [Instantiation("itk::VectorImage", *x) 
-                for x in itertools.product(types, dimensions)]
-}
-instantiations = [(input, output) 
-                  for input, output in zip(instantiations["input"], instantiations["output"])]
 
-classes_template_info = [ ("itk::SecondOrderSymmetricTensorReconstructionFilter", instantiations, "pointer") ]
-env.WrapITKPythonModule("SecondOrderSymmetricTensorReconstructionFilter", classes_template_info)
+image_types = [Instantiation("itk::Image", *x) 
+               for x in itertools.product(types, dimensions)]
 
-# Fractional Anisotropy Image Filter, itk::VectorImage<T, N> -> itk::Image<T, N>  
-types = get_scalar_types(wrapitk_root())
-dimensions = get_dimensions(wrapitk_root())
-instantiations = {
-    "input" : [Instantiation("itk::VectorImage", *x) 
-               for x in itertools.product(types, dimensions)],
-    "output" : [Instantiation("itk::Image", *x) 
-                for x in itertools.product(types, dimensions)]
-}
-instantiations = [(input, output) 
-                  for input, output in zip(instantiations["input"], instantiations["output"])]
-classes_template_info = [ ("itk::FractionalAnisotropyImageFilter", instantiations, "pointer") ]
-env.WrapITKPythonModule("FractionalAnisotropyImageFilter", classes_template_info)
+vector_image_types = [Instantiation("itk::VectorImage", *x) 
+                      for x in itertools.product(types, dimensions)]
 
-# Mean Diffusivity Image Filter, itk::VectorImage<T, N> -> itk::Image<T, N>    
-types = get_scalar_types(wrapitk_root())
-dimensions = get_dimensions(wrapitk_root())
-instantiations = {
-    "input" : [Instantiation("itk::VectorImage", *x) 
-               for x in itertools.product(types, dimensions)],
-    "output" : [Instantiation("itk::Image", *x) 
-                for x in itertools.product(types, dimensions)]
-}
-instantiations = [(input, output) 
-                  for input, output in zip(instantiations["input"], instantiations["output"])]
-classes_template_info = [ ("itk::MeanDiffusivityImageFilter", instantiations, "pointer") ]
-env.WrapITKPythonModule("MeanDiffusivityImageFilter", classes_template_info)
-
-
+env.WrapITKPythonModule("MediPyDiffusion", [ 
+    ("itk::Tensor2ImageFileReader", 
+         [(x,) for x in vector_image_types], "pointer", ["Base", "IO"]), 
+    ("itk::Tensor2ImageFileWriter", 
+         [(x,) for x in vector_image_types], "pointer", ["Base", "IO"]),
+    ("itk::SecondOrderSymmetricTensorReconstructionFilter", 
+         [(x,y) for x,y in zip(image_types, vector_image_types)], "pointer"),
+    ("itk::FractionalAnisotropyImageFilter", 
+         [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"),
+    ("itk::MeanDiffusivityImageFilter", 
+         [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"),
+])
