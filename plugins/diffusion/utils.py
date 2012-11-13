@@ -51,7 +51,7 @@ def invert_itk(M):
 
     return M
 
-def generate_image_sampling(image,step=(1,1,1)) :
+def generate_image_sampling(image,step=(1,1,1),mask=None) :
     """ Generate seeds to init tractographu
     step is expressed in mm
     """
@@ -63,8 +63,14 @@ def generate_image_sampling(image,step=(1,1,1)) :
     Y = Y.flatten()
     Z = Z.flatten()
     seeds = []
-    for i,j,k in zip(X,Y,Z) :
-        seeds.append((i,j,k))
+    if mask==None :
+        for i,j,k in zip(X,Y,Z) :
+            seeds.append((i,j,k))
+    else :
+        for i,j,k in zip(X,Y,Z) :
+            point = np.cast[int](np.floor(np.array([k,j,i])/spacing))
+            if mask[tuple(point)]==1 :
+                seeds.append((i,j,k))
     return seeds
 
 def length(xyz, constant_step=None):

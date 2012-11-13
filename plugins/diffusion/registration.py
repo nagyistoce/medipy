@@ -6,12 +6,85 @@
 # for details.                                                      
 ##########################################################################
 
+from __future__ import division
+import multiprocessing
+import itertools
 import numpy
+from scipy import ndimage
 import medipy.medimax.recalage
 from medipy.diffusion.utils import gradient_itk, invert_itk, spectral_decomposition, compose_spectral, log_transformation, exp_transformation
 import medipy.base
 import medipy.io
 from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
+
+
+
+
+############
+# Fiber
+############
+
+def interpolate_field(points,field,spacing):
+    """
+    Interpolate (linear) Image instance at arbitrary points in world space   
+    The resampling is done with scipy.ndimage.
+    """
+    
+    points_voxel = points/spacing
+    points_voxel = points_voxel.T
+
+    comps = []
+    for i in range(3):
+        im_comp = field[:,:,:,i]
+        comp = ndimage.interpolation.map_coordinates(im_comp, points_voxel, order=0, prefilter=False)
+        comps.insert(0,comp)
+
+    return numpy.asarray(comps).T
+
+def apply_transfo(points,transfo,spacing):
+    """
+    Apply the transformation to the fiber points.
+    """
+    transfo = transfo*spacing
+
+    #points x y z in mm
+    return points + transfo
+
+
+def register_multi(points,field,spacing):
+    """
+    Register a track.
+    """
+    transfo = interpolate_field(points,field,spacing)
+    return apply_transfo(points,transfo,spacing)
+
+def register_star(params):
+    return register_multi(*params)
+
+def register_fibers(T,ftrf,model_wrap) :
+
+    field_backward = load_trf(ftrf,model_wrap)
+
+    pool = multiprocessing.Pool() # Create a group of CPUs to run on
+    asyncResult = pool.map_async(register_star, [a for a in itertools.izip(T,itertools.repeat(field_backward),itertools.repeat(model_wrap.spacing))])
+    resultList = asyncResult.get()
+
+    return resultList
+
+def invert_trf(fname_aff,fname_nl,fname_inv_aff,fname_inv_nl, fname_inv_affnl, model_wrap) :
+
+    dpthref,hghtref,wdthref = model_wrap.shape
+    dzref,dyref,dxref = model_wrap.spacing
+    dzref = float(dzref)
+    dyref = float(dyref)
+    dxref = float(dxref)
+    medipy.medimax.recalage.InvertTransfo3d(str(fname_aff), str(fname_inv_aff), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+    medipy.medimax.recalage.InvertTransfo3d(str(fname_nl), str(fname_inv_nl), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+    medipy.medimax.recalage.CombineTransfo3d(str(fname_inv_nl), str(fname_inv_aff), str(fname_inv_affnl), 5)
+
+#############
+# Voxel
+#############
 
 def apply_tensor_trf_gui(*args,**kwargs) :
     """ Interpolation + PPD reorientation from a .trf deformation field
