@@ -12,6 +12,7 @@ from numpy_bridge import (array_to_itk_matrix, itk_matrix_to_array,
                           medipy_image_to_itk_image, itk_image_to_medipy_image, 
                           itk_to_dtype, dtype_to_itk, itk_image_type)
 from loader import load_wrapitk_module
+import types
 
 import os.path
 load_wrapitk_module(os.path.dirname(__file__), "MediPyBridge")
