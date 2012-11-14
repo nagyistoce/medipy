@@ -24,6 +24,8 @@ import medipy.gui.image.mouse_tools
 import medipy.gui.image.tools
 from medipy.gui.viewer_3d_frame import Viewer3DFrame
 
+import medipy.diffusion
+
 import menu_builder
 from medipy.base.observable import Observable
 
@@ -190,7 +192,9 @@ class MainFrame(medipy.gui.base.Frame):
         image.set_keyboard_tool("p", SelectMainTool, self)
         image.set_keyboard_tool("c", SelectMainTool, self)
         
-        image.display_mode = self.tensor2_display_mode 
+        for index in range(len(image.layers)) :
+            if image.get_layer_class(index) == medipy.diffusion.gui.Tensor2Layer :
+                image.set_layer_property(index, "display_mode", self.tensor2_display_mode)
         
         # Update menu items
         for item in self._menus_active_when_image_loaded :
@@ -383,8 +387,13 @@ class MainFrame(medipy.gui.base.Frame):
         self._tensor2_display_mode = value
         
         for image in self.ui.image_grid :
-            image.display_mode = value
-            image.render()
+            for index in range(len(image.layers)) :
+                render = False
+                if image.get_layer_class(index) == medipy.diffusion.gui.Tensor2Layer :
+                    image.set_layer_property(index, "display_mode", self.tensor2_display_mode)
+                    render = True
+                if render :
+                    image.render()
         
         # Update GUI
         item_id = wx.xrc.XRCID("tensor2_display_" + value)
