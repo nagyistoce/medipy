@@ -32,6 +32,7 @@ class Vtk(medipy.io.IOBase) :
     
     def can_load(self) :
         generic_reader = vtkDataReader()
+        generic_reader.GlobalWarningDisplayOff()
         generic_reader.SetFileName(self.filename)
         
         return (generic_reader.OpenVTKFile() and 
@@ -61,6 +62,8 @@ class Vtk(medipy.io.IOBase) :
         
         vtk_array = self._image.GetPointData().GetTensors()
         array = vtk.util.numpy_support.vtk_to_numpy(vtk_array)
+        # Reshape to matrix instead of vector of length 9
+        array = array.reshape(array.shape[:-1]+(3,3))
         array = dti33to6(array)
         
         vtk_shape = list(1+numpy.subtract(self._image.GetExtent()[1::2],
@@ -119,8 +122,8 @@ class Vtk(medipy.io.IOBase) :
             of LPS (i.e. DICOM) space.
         """
         
-        direction = numpy.linalg.inv(original_direction)
-        return rotation33todt6(image.data,direction)
+        direction = numpy.linalg.inv(image.direction)
+        return rotation33todt6(image.data, direction)
     
     def _read(self):
         reader = vtkStructuredPointsReader()
