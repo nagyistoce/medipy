@@ -9,10 +9,9 @@
 import numpy
 
 from vtk import vtkGlyph3D, vtkPolyDataMapper, vtkActor, vtkLineSource, vtkImageActor, vtkTensorGlyph, vtkSphereSource
-
-from layer import Layer
  
 import medipy.itk
+import medipy.gui.image
 import medipy.vtk
 from medipy.diffusion.utils import spectral_decomposition
 
@@ -20,7 +19,7 @@ import vtk
 
 from medipy.diffusion.utils import rotation33todt6
 
-class Tensor2Layer(Layer) :
+class Tensor2Layer(medipy.gui.image.Layer) :
     """ Layer showing its diffusion data. The image will be positionned in the
         viewport such that its origin (i.e. lower left corner) matches the 
         transformed origin of the layer's image (with an altitude of 0).
@@ -38,7 +37,8 @@ class Tensor2Layer(Layer) :
         self._display_mode = "principal_direction_voxel"
         self.display_coordinates_ = display_coordinates
 
-        super(Tensor2Layer, self).__init__(world_to_slice, tensor_image, display_coordinates, colormap, opacity)
+        medipy.gui.image.Layer.__init__(self, world_to_slice, tensor_image, 
+                                        display_coordinates, colormap, opacity)
         self.add_allowed_event("display_mode")
 
         self._change_information.Update()
@@ -254,4 +254,4 @@ class Tensor2Layer(Layer) :
         
         self._set_colormap(self._colormap)
 
-Layer.derived_classes.append(Tensor2Layer)
+medipy.gui.image.Layer.derived_classes.append(Tensor2Layer)
