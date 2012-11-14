@@ -142,17 +142,17 @@ class Tensor2Layer(medipy.gui.image.Layer) :
                     data_type="vector")
             numpy_principal_direction.copy_information(self.numpy_slice_tensors)
             
-            numpy_principal_diffusion = medipy.base.Image(
-                data=numpy.ascontiguousarray(numpy_eigenvalues[...,0]),
-                data_type="vector")
-            numpy_principal_diffusion.copy_information(self.numpy_slice_tensors)
+#            numpy_principal_diffusion = medipy.base.Image(
+#                data=numpy.ascontiguousarray(numpy_eigenvalues[...,0]),
+#                data_type="vector")
+#            numpy_principal_diffusion.copy_information(self.numpy_slice_tensors)
             
             vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
                 numpy_principal_direction.data, True, 
                 numpy_principal_direction.data_type)
-            vtk_principal_diffusion = medipy.vtk.bridge.array_to_vtk_image(
-                numpy_principal_diffusion.data, True,
-                numpy_principal_direction.data_type)
+#            vtk_principal_diffusion = medipy.vtk.bridge.array_to_vtk_image(
+#                numpy_principal_diffusion.data, True,
+#                numpy_principal_direction.data_type)
 
             #vtk_principal_direction.GetPointData().SetActiveVectors(vtk_principal_direction.GetPointData().GetScalars().GetName())
             name = vtk_principal_direction.GetPointData().GetScalars().GetName()
@@ -160,10 +160,6 @@ class Tensor2Layer(medipy.gui.image.Layer) :
             self._glyph_line.SetInput(vtk_principal_direction)
             #self._glyph.SetInputArrayToProcess(0,0,0,0,name) # scalars
             self._glyph_line.SetInputArrayToProcess(1,0,0,0,name) # vectors
-
-            # set up a stripper for faster rendering
-            stripper = vtk.vtkStripper()
-            stripper.SetInput(self._glyph_line.GetOutput())
               
             # Generate a lookup table for coloring by vector components or magnitude
             lut = vtk.vtkLookupTable()
@@ -179,7 +175,7 @@ class Tensor2Layer(medipy.gui.image.Layer) :
             lut.Build()
 
             # now set up the mapper
-            self._mapper_line.SetInput(stripper.GetOutput())
+            self._mapper_line.SetInput(self._glyph_line.GetOutput())
             self._mapper_line.SetLookupTable(lut)
             self._mapper_line.SelectColorArray(name) 
 
