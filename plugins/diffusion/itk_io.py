@@ -20,6 +20,13 @@ class ITK(medipy.io.IOBase):
                    itk.NiftiImageIO, itk.NrrdImageIO, itk.PNGImageIO, 
                    itk.TIFFImageIO, itk.VTKImageIO]
     
+    # Merge all supported read extensions, add a "*" before each of them       
+    filenames = ["*"+str(x) for x in 
+                 reduce(lambda l1, l2:list(l1)+list(l2), 
+                        [x.New().GetSupportedReadExtensions() 
+                         for x in _io_classes], 
+                        [])]
+    
     def __init__(self, filename, *args, **kwargs) :
         medipy.io.IOBase.__init__(self, filename, *args, **kwargs)
         self._loader = None
