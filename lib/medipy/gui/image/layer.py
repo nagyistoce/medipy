@@ -38,6 +38,21 @@ class Layer(medipy.base.Observable) :
         coordinates : it is up to the client to do this if needed.
     """
     
+    derived_classes = []
+    
+    @staticmethod
+    def can_create(image):
+        raise NotImplementedError()
+    
+    @staticmethod
+    def get_derived_class(image):
+        derived_class = None
+        for class_ in Layer.derived_classes :
+            if class_.can_create(image) :
+                derived_class = class_
+                break
+        return derived_class
+    
     def __init__(self, world_to_slice, image, display_coordinates="physical",
                  colormap=None, opacity = 1.0) :
         

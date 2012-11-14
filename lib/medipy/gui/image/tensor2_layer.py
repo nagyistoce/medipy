@@ -25,6 +25,12 @@ class Tensor2Layer(Layer) :
         viewport such that its origin (i.e. lower left corner) matches the 
         transformed origin of the layer's image (with an altitude of 0).
     """
+    
+    @staticmethod
+    def can_create(image):
+        return (image.data_type == "vector" and
+                image.image_type == "tensor_2" and
+                image.ndim <= 3)
       
     def __init__(self, world_to_slice, tensor_image, display_coordinates="physical",
                  colormap=None, opacity = 1.0, display_mode="principal_direction_voxel") :
@@ -247,3 +253,5 @@ class Tensor2Layer(Layer) :
         """
         
         self._set_colormap(self._colormap)
+
+Layer.derived_classes.append(Tensor2Layer)
