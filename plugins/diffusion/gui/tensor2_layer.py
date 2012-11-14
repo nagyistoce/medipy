@@ -239,15 +239,5 @@ class Tensor2Layer(medipy.gui.image.Layer) :
 
 
     display_mode = property(_get_display_mode, _set_display_mode)
-    
-    #####################
-    # Private interface #
-    #####################
-    
-    def _on_vtk_colormap(self, dummy) :
-        """ Event handler called when the ID of colormap.vtk_colormap changes.
-        """
-        
-        self._set_colormap(self._colormap)
 
 medipy.gui.image.Layer.derived_classes.append(Tensor2Layer)
