@@ -242,6 +242,16 @@ class Image(wx.Panel, PropertySynchronized):
         for slice in self._slices :
             slice.layers[index].opacity = opacity
     
+    def get_layer_class(self, index):
+        return self._slices[0].layers[index].__class__
+    
+    def get_layer_property(self, index, name):
+        return getattr(self._slices[0].layers[index], name)
+    
+    def set_layer_property(self, index, name, value):
+        for slice in self._slices :
+            setattr(slice.layers[index], name, value)
+    
     def render(self):
         self._rwi.Render()
     
