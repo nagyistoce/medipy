@@ -410,6 +410,16 @@ class MainFrame(medipy.gui.base.Frame):
         self._slices = value
         self.ui.image_grid.slice_mode = value
         
+        # Update the tensor display mode
+        for image in self.ui.image_grid :
+            for index in range(len(image.layers)) :
+                render = False
+                if image.get_layer_class(index) == medipy.diffusion.gui.Tensor2Layer :
+                    image.set_layer_property(index, "display_mode", self.tensor2_display_mode)
+                    render = True
+                if render :
+                    image.render()
+        
         # Update GUI
         item_id = wx.xrc.XRCID("view_" + value)
         item = self.GetMenuBar().FindItemById(item_id)
