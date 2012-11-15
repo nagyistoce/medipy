@@ -8,8 +8,8 @@
 
 import numpy
 from vtk import (vtkActor, vtkAssembly, vtkGlyph3D, vtkImageActor, 
-                 vtkLineSource, vtkPolyDataMapper, vtkSphereSource, 
-                 vtkStripper, vtkTensorGlyph)
+                 vtkLineSource, vtkLookupTable, vtkPolyDataMapper, 
+                 vtkSphereSource, vtkStripper, vtkTensorGlyph)
  
 import medipy.itk
 import medipy.gui.image
@@ -72,7 +72,7 @@ class PrincipalDirectionLinePipeline(object):
         self._glyph_line.SetInputArrayToProcess(1,0,0,0,name) # vectors
           
         # Generate a lookup table for coloring by vector components or magnitude
-        lut = vtk.vtkLookupTable()
+        lut = vtkLookupTable()
         lut.SetValueRange(val.min()*scale, 1.0)
         lut.SetVectorModeToMagnitude()
         lut.Build()
@@ -82,7 +82,10 @@ class PrincipalDirectionLinePipeline(object):
         self._mapper_line.SetLookupTable(lut)
         self._mapper_line.SelectColorArray(name)
         
-        self._glyph_line.Modified() 
+        self._glyph_line.Modified()
+        
+        self.actor.SetPosition(image.origin[::-1])
+        self.actor.SetScale(image.spacing[::-1])
 
 class EllipsoidPipeline(object):
     def __init__(self):
@@ -124,6 +127,9 @@ class EllipsoidPipeline(object):
         self._glyph_tensor.SetInput(vtk_tensor)
         
         self._glyph_tensor.Modified()
+        
+        self.actor.SetPosition(image.origin[::-1])
+        self.actor.SetScale(image.spacing[::-1])
 
 class Tensor2Layer(medipy.gui.image.Layer) :
     """ Layer showing its diffusion data. The image will be positionned in the
@@ -140,7 +146,7 @@ class Tensor2Layer(medipy.gui.image.Layer) :
     def __init__(self, world_to_slice, tensor_image, display_coordinates="physical",
                  colormap=None, opacity = 1.0, display_mode="principal_direction_voxel") :
         
-        self._display_mode = "principal_direction_voxel"
+        self._display_mode = None
         self.display_coordinates_ = display_coordinates
 
         medipy.gui.image.Layer.__init__(self, world_to_slice, tensor_image, 
@@ -162,28 +168,20 @@ class Tensor2Layer(medipy.gui.image.Layer) :
         ############################
         
         self._actor = vtkAssembly()
+        for pipeline in self._pipelines.values() :
+            self._actor.AddPart(pipeline.actor)
 
         ###################
         # Private members #
         ###################
 
         self._set_display_mode(display_mode)
-        self.add_observer("any", self._update)
+        self.add_observer("any", self._on_any_event)
         
-    def _update(self, event) :
-
-        # We need the actual output of _change_information
-        self._change_information.Update()
-
-        numpy_slice_tensors = medipy.vtk.bridge.vtk_image_to_medipy_image(
-            self._change_information.GetOutput(), None)
-        if self.display_coordinates_=="physical" :          
-            numpy_slice_tensors.data = rotation33todt6(numpy_slice_tensors.data,self.world_to_slice[::-1,::-1])
-        numpy_slice_tensors.data_type = "vector"
-        numpy_slice_tensors.image_type = "tensor_2"
-
-        self._pipelines[self._display_mode].update(numpy_slice_tensors)
-
+        # Update once so that the VTK pipeline is executed (and the extents of
+        # the objects updated) before displaying. 
+        self._update()
+    
     def _get_actor(self):
         "VTK ImageActor."
         return self._actor
@@ -202,9 +200,44 @@ class Tensor2Layer(medipy.gui.image.Layer) :
         if self._display_mode!=display_mode :
             self._display_mode = display_mode
             for pipeline in self._pipelines.values() :
-                self._actor.RemovePart(pipeline.actor)
-            self._actor.AddPart(self._pipelines[self._display_mode].actor)
+                pipeline.actor.VisibilityOff()
+            self._pipelines[self._display_mode].actor.VisibilityOn()
         
     display_mode = property(_get_display_mode, _set_display_mode)
+    
+    #####################
+    # Private interface #
+    #####################
+    
+    def _on_any_event(self, event):
+        # Update the pipeline each time the layer properties are modified
+        self._update()
+    
+    def _update(self) :
+        """ Update the VTK pipeline
+        """
+        
+        # We need the actual output of _change_information
+        self._change_information.Update()
+
+        numpy_slice_tensors = medipy.vtk.bridge.vtk_image_to_medipy_image(
+            self._change_information.GetOutput(), None)
+        if self.display_coordinates in ["physical", "nearest_axis_aligned"] :
+            
+            matrix = self.image.direction
+            if self.display_coordinates == "nearest_axis_aligned" :
+                matrix = medipy.base.coordinate_system.\
+                            best_fitting_axes_aligned_matrix(matrix)
+            
+            # The direction matrix is in the numpy order (z,y,x), while the
+            # components of the tensor are in the ITK order (dxx, dxy, dxz, 
+            # dyy, dyz, dzz)
+            matrix = matrix[::-1,::-1]
+            numpy_slice_tensors.data = rotation33todt6(numpy_slice_tensors.data,
+                                                       matrix)
+        numpy_slice_tensors.data_type = "vector"
+        numpy_slice_tensors.image_type = "tensor_2"
+
+        self._pipelines[self._display_mode].update(numpy_slice_tensors)
 
 medipy.gui.image.Layer.derived_classes.append(Tensor2Layer)
