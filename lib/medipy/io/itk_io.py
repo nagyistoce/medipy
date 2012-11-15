@@ -134,8 +134,10 @@ class ITK(IOBase) :
                     break
             
             if None not in [gradient_file, bvalue_file] :
-                gradients = numpy.loadtxt(gradient_file, dtype=numpy.single)
-                bvalues = numpy.loadtxt(bvalue_file, dtype=numpy.single)
+                # Specify ndmin, since files with only 1 value will return
+                # [a,b,c] instead of [[a,b,c]]. Same remark applies for bvalues.
+                gradients = numpy.loadtxt(gradient_file, dtype=numpy.single, ndmin=2)
+                bvalues = numpy.loadtxt(bvalue_file, dtype=numpy.single, ndmin=1)
                 
                 gradients = gradients.T
                 
