@@ -136,10 +136,14 @@ class ITK(IOBase) :
             if None not in [gradient_file, bvalue_file] :
                 # Specify ndmin, since files with only 1 value will return
                 # [a,b,c] instead of [[a,b,c]]. Same remark applies for bvalues.
-                gradients = numpy.loadtxt(gradient_file, dtype=numpy.single, ndmin=2)
-                bvalues = numpy.loadtxt(bvalue_file, dtype=numpy.single, ndmin=1)
-                
+                gradients = numpy.loadtxt(gradient_file, dtype=numpy.single)
                 gradients = gradients.T
+                
+                if gradients.ndim == 1 :
+                    gradients = numpy.asarray([gradients])
+                bvalues = numpy.loadtxt(bvalue_file, dtype=numpy.single)
+                if bvalues.ndim == 0 :
+                    bvalues = numpy.asarray([bvalues])
                 
                 mr_diffusion_sequence = []
                 for index, gradient in enumerate(gradients) :
