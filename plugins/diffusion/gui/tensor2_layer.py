@@ -22,11 +22,34 @@ class PrincipalDirectionVoxelPipeline(object):
         self.actor.InterpolateOff()
     
     def update(self, image):
-        _, eigenvectors = spectral_decomposition(image)
-        numpy_principal_direction = numpy.ascontiguousarray(
-            (numpy.abs(eigenvectors[...,6:])*255.0).astype(numpy.uint8))
+        eigenvalues, eigenvectors = spectral_decomposition(image)
+        
+        ev1 = eigenvalues[...,0]
+        ev2 = eigenvalues[...,1]
+        ev3 = eigenvalues[...,2]
+        
+        fa_numerator = 0.5*(
+            numpy.square(ev1-ev2)+numpy.square(ev2-ev3)+numpy.square(ev3-ev1))
+        fa_denominator = numpy.square(ev1)+numpy.square(ev2)+numpy.square(ev3)
+        
+        # Avoid divisions by 0. Assume that ev1=ev2=ev3=0 <=> fa=0  
+        null_denominator = numpy.where(fa_denominator == 0)
+        fa_numerator[null_denominator] = 0
+        fa_denominator[null_denominator] = 1
+        
+        fa = numpy.sqrt(0.5*fa_numerator/fa_denominator)
+        fa /= fa.max()
+        
+        principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
+        principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])
+        principal_direction[...,0] *= fa
+        principal_direction[...,1] *= fa
+        principal_direction[...,2] *= fa
+        
+        principal_direction = (principal_direction*255).astype(numpy.uint8)
+        
         vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
-            numpy_principal_direction, True, "vector")
+            principal_direction, True, "vector")
         vtk_principal_direction.Modified()
         
         self.actor.SetInput(vtk_principal_direction)
