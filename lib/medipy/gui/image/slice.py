@@ -520,7 +520,7 @@ class Slice(PropertySynchronized) :
     def _set_interpolation(self, interpolation) :
         self._interpolation = interpolation
         for layer in self._layers :
-            if isinstance(layer, ImageLayer) :
+            if hasattr(layer.actor, "SetInterpolate") :
                 layer.actor.SetInterpolate(interpolation)
         
         self.notify_observers("interpolation")
