@@ -58,6 +58,7 @@ def generate_image_sampling(image,step=(1,1,1),mask=None) :
 
     spacing = image.spacing
     shape = image.shape*spacing
+    origin = image.origin[::-1]
     Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
     X = X.flatten()
     Y = Y.flatten()
@@ -65,12 +66,12 @@ def generate_image_sampling(image,step=(1,1,1),mask=None) :
     seeds = []
     if mask==None :
         for i,j,k in zip(X,Y,Z) :
-            seeds.append((i,j,k))
+            seeds.append((i+origin[0],j+origin[1],k+origin[2]))
     else :
         for i,j,k in zip(X,Y,Z) :
             point = np.cast[int](np.floor(np.array([k,j,i])/spacing))
             if mask[tuple(point)]==1 :
-                seeds.append((i,j,k))
+                seeds.append((i+origin[0],j+origin[1],k+origin[2]))
     return seeds
 
 def length(xyz, constant_step=None):
