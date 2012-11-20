@@ -614,4 +614,112 @@ cdef inline void cnormalized_3vec(float *vec_in, float *vec_out):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def mam_distances(xyz1,xyz2,t,metric='all'):
+    ''' Min/Max/Mean Average Minimume Distance between tracks xyz1 and xyz2
+    
+    Based on the metrics in Zhang, Correia, Laidlaw 2008
+    http://ieeexplore.ieee.org/xpl/freeabs_all.jsp?arnumber=4479455
+    which in turn are based on those of Corouge et al. 2004
+    
+    Parameters
+    ----------
+    xyz1 : array, shape (N1,3), dtype float32
+    xyz2 : array, shape (N2,3), dtype float32
+       arrays representing x,y,z of the N1 and N2 points of two tracks
+	t : float, minimum threshold so that distances below it are not considered
+    metrics : {'avg','min','max','all'}
+       Metric to calculate.  {'avg','min','max'} return a scalar. 'all'
+       returns a tuple
+       
+    Returns
+    -------
+    avg_mcd: float
+       average_mean_closest_distance
+    min_mcd: float
+       minimum_mean_closest_distance
+    max_mcd: float
+       maximum_mean_closest_distance
+                    
+    Notes
+    -----
+    Algorithmic description
+    
+    Lets say we have curves A and B.
+    
+    For every point in A calculate the minimum distance from every point
+    in B stored in minAB
+    
+    For every point in B calculate the minimum distance from every point
+    in A stored in minBA
+    
+    find average of minAB stored as avg_minAB
+    find average of minBA stored as avg_minBA
+    
+    if metric is 'avg' then return (avg_minAB + avg_minBA)/2.0
+    if metric is 'min' then return min(avg_minAB,avg_minBA)
+    if metric is 'max' then return max(avg_minAB,avg_minBA)
+    '''
+    cdef:
+        cnp.ndarray[cnp.float32_t, ndim=2] track1 
+        cnp.ndarray[cnp.float32_t, ndim=2] track2
+        size_t t1_len, t2_len
+    track1 = np.ascontiguousarray(xyz1, dtype=f32_dt)
+    t1_len = track1.shape[0]
+    track2 = np.ascontiguousarray(xyz2, dtype=f32_dt)
+    t2_len = track2.shape[0]
+    # preallocate buffer array for track distance calculations
+    cdef:
+        cnp.float32_t *min_t2t1, *min_t1t2
+        cnp.ndarray [cnp.float32_t, ndim=1] distances_buffer
+    distances_buffer = np.zeros((t1_len + t2_len,), dtype=np.float32)
+    min_t2t1 = <cnp.float32_t *> distances_buffer.data
+    min_t1t2 = min_t2t1 + t2_len
+    min_distances(t1_len, <cnp.float32_t *>track1.data,
+                  t2_len, <cnp.float32_t *>track2.data,
+                  min_t2t1,
+                  min_t1t2)
+    cdef:
+        size_t t1_pi, t2_pi
+        cnp.float32_t mean_t2t1 = 0, mean_t1t2 = 0
+    for t1_pi from 0<= t1_pi < t1_len:
+        if min_t1t2[t1_pi]>t:
+            mean_t1t2+=min_t1t2[t1_pi]
+    mean_t1t2=mean_t1t2/t1_len
+    for t2_pi from 0<= t2_pi < t2_len:
+        if min_t2t1[t2_pi]>t:
+            mean_t2t1+=min_t2t1[t2_pi]
+    mean_t2t1=mean_t2t1/t2_len
+    if metric=='all':
+        return ((mean_t2t1+mean_t1t2)/2.0,
+                np.min((mean_t2t1,mean_t1t2)),
+                np.max((mean_t2t1,mean_t1t2)))
+    elif metric=='avg':
+        return (mean_t2t1+mean_t1t2)/2.0
+    elif metric=='min':            
+        return np.min((mean_t2t1,mean_t1t2))
+    elif metric =='max':
+        return np.max((mean_t2t1,mean_t1t2))
+    else :
+        ValueError('Wrong argument for metric')
+
+
+
         
