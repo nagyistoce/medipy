@@ -10,11 +10,30 @@ import numpy
 from vtk import (vtkActor, vtkAssembly, vtkGlyph3D, vtkImageActor, 
                  vtkLineSource, vtkLookupTable, vtkPolyDataMapper, 
                  vtkSphereSource, vtkStripper, vtkTensorGlyph)
+import vtk.util.numpy_support 
  
 import medipy.itk
 import medipy.gui.image
 import medipy.vtk
 from medipy.diffusion.utils import rotation33todt6, spectral_decomposition
+
+def get_fa(eigenvalues, eigenvectors):
+    ev1 = eigenvalues[...,0]
+    ev2 = eigenvalues[...,1]
+    ev3 = eigenvalues[...,2]
+    
+    fa_numerator = 0.5*(
+        numpy.square(ev1-ev2)+numpy.square(ev2-ev3)+numpy.square(ev3-ev1))
+    fa_denominator = numpy.square(ev1)+numpy.square(ev2)+numpy.square(ev3)
+    
+    # Avoid divisions by 0. Assume that ev1=ev2=ev3=0 <=> fa=0  
+    null_denominator = numpy.where(fa_denominator == 0)
+    fa_numerator[null_denominator] = 0
+    fa_denominator[null_denominator] = 1
+    
+    fa = numpy.sqrt(0.5*fa_numerator/fa_denominator)
+    
+    return fa
 
 class PrincipalDirectionVoxelPipeline(object):
     def __init__(self):
@@ -24,20 +43,8 @@ class PrincipalDirectionVoxelPipeline(object):
     def update(self, image):
         eigenvalues, eigenvectors = spectral_decomposition(image)
         
-        ev1 = eigenvalues[...,0]
-        ev2 = eigenvalues[...,1]
-        ev3 = eigenvalues[...,2]
-        
-        fa_numerator = 0.5*(
-            numpy.square(ev1-ev2)+numpy.square(ev2-ev3)+numpy.square(ev3-ev1))
-        fa_denominator = numpy.square(ev1)+numpy.square(ev2)+numpy.square(ev3)
-        
-        # Avoid divisions by 0. Assume that ev1=ev2=ev3=0 <=> fa=0  
-        null_denominator = numpy.where(fa_denominator == 0)
-        fa_numerator[null_denominator] = 0
-        fa_denominator[null_denominator] = 1
-        
-        fa = numpy.sqrt(0.5*fa_numerator/fa_denominator)
+        fa = get_fa(eigenvalues, eigenvectors)
+        # Normalize the FA to 1
         fa /= fa.max()
         
         principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
@@ -59,53 +66,42 @@ class PrincipalDirectionVoxelPipeline(object):
 class PrincipalDirectionLinePipeline(object):
     def __init__(self):
         self._glyph_line = vtkGlyph3D()
+        self._line = vtkLineSource()
         self._mapper_line = vtkPolyDataMapper()
         self.actor = vtkActor()
         
-        self._line = vtkLineSource()
-        
         self._glyph_line.ScalingOn()
-        self._glyph_line.SetVectorModeToUseVector()
         self._glyph_line.SetScaleModeToScaleByVector()
-        self._glyph_line.SetColorModeToColorByVector()
-        self._glyph_line.SetScaleFactor(1.0)
+        self._glyph_line.SetColorModeToColorByScalar()
         self._glyph_line.SetSource(self._line.GetOutput())
-        self._glyph_line.ClampingOff()
         
-        self._mapper_line.ScalarVisibilityOn()
-        self._mapper_line.SetScalarModeToUsePointFieldData()
+        self._mapper_line.SetInput(self._glyph_line.GetOutput())
         
         self.actor.SetMapper(self._mapper_line)
     
     def update(self, image):
         eigenvalues, eigenvectors = spectral_decomposition(image)
-        val = numpy.log(numpy.maximum(eigenvalues[...,2],1e-4)*1e4)
-        scale = 1.0/val.max()
+        fa = get_fa(eigenvalues, eigenvectors)
+        # Normalize the FA to 1
+        fa /= fa.max()
         
-        numpy_principal_direction = numpy.ascontiguousarray(
-            eigenvectors[...,6:]*val.repeat(3).reshape(
-                eigenvalues.shape+(3,))*scale)
+        principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
+        principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])
+        principal_direction[...,0] *= fa
+        principal_direction[...,1] *= fa
+        principal_direction[...,2] *= fa
+        
+        # Flatten the direction array, and convert it to VTK array
+        principal_direction = vtk.util.numpy_support.numpy_to_vtk(
+            principal_direction.reshape(
+                (numpy.cumprod(principal_direction.shape[:-1])[-1], 3)), 
+            True)
         
         vtk_principal_direction = medipy.vtk.bridge.array_to_vtk_image(
-            numpy_principal_direction, True, "vector")
-
-        name = vtk_principal_direction.GetPointData().GetScalars().GetName()
+            fa, True, "scalar")
+        vtk_principal_direction.GetPointData().SetVectors(principal_direction)
 
         self._glyph_line.SetInput(vtk_principal_direction)
-        self._glyph_line.SetInputArrayToProcess(1,0,0,0,name) # vectors
-          
-        # Generate a lookup table for coloring by vector components or magnitude
-        lut = vtkLookupTable()
-        lut.SetValueRange(val.min()*scale, 1.0)
-        lut.SetVectorModeToMagnitude()
-        lut.Build()
-
-        # now set up the mapper
-        self._mapper_line.SetInput(self._glyph_line.GetOutput())
-        self._mapper_line.SetLookupTable(lut)
-        self._mapper_line.SelectColorArray(name)
-        
-        self._glyph_line.Modified()
         
         self.actor.SetPosition(image.origin[::-1])
         self.actor.SetScale(image.spacing[::-1])
