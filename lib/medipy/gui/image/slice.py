@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -19,8 +19,7 @@ from medipy.base import ObservableList, PropertySynchronized
 from medipy.gui import colormaps
 from medipy.gui.colormap import Colormap
 from medipy.gui.annotations import ImageAnnotation as GUIImageAnnotation
-from contour_layer import ContourLayer
-from image_layer import ImageLayer
+from layer import Layer
 from medipy.vtk import vtkOrientationAnnotation
 
 import mouse_tools
@@ -69,7 +68,7 @@ class Slice(PropertySynchronized) :
     def __init__(self, world_to_slice, layers=None, annotations=None,
                  interpolation=False, display_coordinates="physical", 
                  scalar_bar_visibility = False, orientation_visibility=True,
-                 corner_annotations_visibility=False) :
+                 corner_annotations_visibility=False,) :
         
         layers = layers or []
         annotations = annotations or ObservableList()
@@ -77,6 +76,7 @@ class Slice(PropertySynchronized) :
         ############################
         # Property-related members #
         ############################
+
         self._interpolation = None
         self._display_coordinates = None
         self._scalar_bar_visibility = None
@@ -183,7 +183,7 @@ class Slice(PropertySynchronized) :
         self._renderer.AddActor(self._corner_annotation)
         self._orientation_annotation.SetNonlinearFontScaleFactor(0.25)
         self._renderer.AddActor(self._orientation_annotation)
-        
+    
         self._set_interpolation(interpolation)
         self._set_display_coordinates(display_coordinates)
         
@@ -259,14 +259,13 @@ class Slice(PropertySynchronized) :
             colormap.display_range = (image.data.min(), image.data.max())
         
         # Find out which layer class we will use
-        classes = {
-            "spectroscopy" : ContourLayer
-        }
-        LayerClass = classes.get(image.image_type, ImageLayer)
+        LayerClass = Layer.get_derived_class(image)
+        if LayerClass is None :
+            raise medipy.base.Exception("Cannot create layer")
         
-        # Create the Layer and insert it in the list
-        layer = LayerClass(
-            self._world_to_slice, image, self._display_coordinates, colormap, opacity)
+        # Create the layer and insert it
+        layer = LayerClass(self.world_to_slice, image, self.display_coordinates,
+                           colormap, opacity) 
         self._layers.insert(index, layer)
         
         # Update the physical extent
@@ -280,8 +279,8 @@ class Slice(PropertySynchronized) :
         self._update_layers_positions()
         if self._cursor_physical_position is not None : 
             layer.physical_position = self._cursor_physical_position
-        if isinstance(layer, ImageLayer) :
-            layer.actor.SetInterpolate(self._interpolation)
+#        if isinstance(layer, ImageLayer) :
+#            layer.actor.SetInterpolate(self._interpolation)
         
         # And finally add it to the renderer
         self._renderer.AddActor(layer.actor)
@@ -521,7 +520,7 @@ class Slice(PropertySynchronized) :
     def _set_interpolation(self, interpolation) :
         self._interpolation = interpolation
         for layer in self._layers :
-            if isinstance(layer, ImageLayer) :
+            if hasattr(layer.actor, "SetInterpolate") :
                 layer.actor.SetInterpolate(interpolation)
         
         self.notify_observers("interpolation")

@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -91,7 +91,7 @@ class Image(wx.Panel, PropertySynchronized):
         ##############
         # Properties #
         ##############
-        
+
         self._slice_mode = None
         
         self._interpolation = None
@@ -241,6 +241,16 @@ class Image(wx.Panel, PropertySynchronized):
         self._layers[index]["opacity"] = opacity
         for slice in self._slices :
             slice.layers[index].opacity = opacity
+    
+    def get_layer_class(self, index):
+        return self._slices[0].layers[index].__class__
+    
+    def get_layer_property(self, index, name):
+        return getattr(self._slices[0].layers[index], name)
+    
+    def set_layer_property(self, index, name, value):
+        for slice in self._slices :
+            setattr(slice.layers[index], name, value)
     
     def render(self):
         self._rwi.Render()
@@ -415,7 +425,7 @@ class Image(wx.Panel, PropertySynchronized):
     
     def _set_interpolation(self, interpolation):
         self._set_slice_property("interpolation", interpolation)
-    
+
     def _get_display_coordinates(self) :
         return self._display_coordinates
     

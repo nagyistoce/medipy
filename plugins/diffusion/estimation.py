@@ -1,15 +1,13 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import itk
 import medipy.itk
-import numpy as np
-from medipy.base import Image
 
 def least_squares(images):
     """ Least Square Second Order Symmetric Tensor Estimation.
@@ -19,6 +17,12 @@ def least_squares(images):
         
         All images must have the same shape and the same dtype, and must 
         contain diffusion metadata.
+        
+        <gui>
+            <item name="images" type="ImageSerie" label="Input"/>
+            <item name="output" type="Image" initializer="output=True" 
+                  role="return" label="Output"/>
+        </gui>
     """
     
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, 
@@ -46,4 +50,3 @@ def least_squares(images):
     tensors.image_type = "tensor_2"
 
     return tensors
-
