@@ -24,6 +24,8 @@ import medipy.gui.image.mouse_tools
 import medipy.gui.image.tools
 from medipy.gui.viewer_3d_frame import Viewer3DFrame
 
+import medipy.diffusion
+
 import menu_builder
 from medipy.base.observable import Observable
 
@@ -149,6 +151,7 @@ class MainFrame(medipy.gui.base.Frame):
         # Update UI from preferences
         self.display_coordinates = self._preferences.get("Display/coordinates", "index")
         self.display_convention = self._preferences.get("Display/convention", "radiological")
+        self.tensor2_display_mode = self._preferences.get("Display/tensor2", "principal_direction_voxel")
         self.slices = self._preferences.get("Display/slices", "axial")
         for attribute in self._synchronization :
             value = self._preferences.get(
@@ -188,6 +191,10 @@ class MainFrame(medipy.gui.base.Frame):
         image.set_keyboard_tool("s", SelectMainTool, self)
         image.set_keyboard_tool("p", SelectMainTool, self)
         image.set_keyboard_tool("c", SelectMainTool, self)
+        
+        for index in range(len(image.layers)) :
+            if image.get_layer_class(index) == medipy.diffusion.gui.Tensor2Layer :
+                image.set_layer_property(index, "display_mode", self.tensor2_display_mode)
         
         # Update menu items
         for item in self._menus_active_when_image_loaded :
@@ -369,12 +376,49 @@ class MainFrame(medipy.gui.base.Frame):
         # Update preferences
         self._preferences.set("Display/convention", value)
     
+    def _get_tensor2_display_mode(self):
+        return self._tensor2_display_mode
+    
+    def _set_tensor2_display_mode(self, value):
+        if value not in ["principal_direction_voxel", 
+                         "principal_direction_line", "ellipsoid"] :
+            raise medipy.base.Exception(
+                "Unknown display mode: {0}".format(repr(value)))
+        self._tensor2_display_mode = value
+        
+        for image in self.ui.image_grid :
+            for index in range(len(image.layers)) :
+                render = False
+                if image.get_layer_class(index) == medipy.diffusion.gui.Tensor2Layer :
+                    image.set_layer_property(index, "display_mode", self.tensor2_display_mode)
+                    render = True
+                if render :
+                    image.render()
+        
+        # Update GUI
+        item_id = wx.xrc.XRCID("tensor2_display_" + value)
+        item = self.GetMenuBar().FindItemById(item_id)
+        item.Check()
+        
+        # Update preferences
+        self._preferences.set("Display/tensor2", value)
+    
     def _get_slices(self) :
         return self._slices
     
     def _set_slices(self, value):
         self._slices = value
         self.ui.image_grid.slice_mode = value
+        
+        # Update the tensor display mode
+        for image in self.ui.image_grid :
+            for index in range(len(image.layers)) :
+                render = False
+                if image.get_layer_class(index) == medipy.diffusion.gui.Tensor2Layer :
+                    image.set_layer_property(index, "display_mode", self.tensor2_display_mode)
+                    render = True
+                if render :
+                    image.render()
         
         # Update GUI
         item_id = wx.xrc.XRCID("view_" + value)
@@ -390,6 +434,7 @@ class MainFrame(medipy.gui.base.Frame):
                                    _set_display_coordinates)
     display_convention = property(_get_display_convention,
                                   _set_display_convention)
+    tensor2_display_mode = property(_get_tensor2_display_mode, _set_tensor2_display_mode)
     slices = property(_get_slices, _set_slices)
     current_ui = property(_get_current_ui)
     
@@ -464,7 +509,6 @@ class MainFrame(medipy.gui.base.Frame):
             self.delete_image(0)
     
     def OnQuit(self, dummy):
-        wx.GetApp().quit()
         self.Close()
     
 #    def OnCineImage(self, dummy) :
@@ -483,6 +527,15 @@ class MainFrame(medipy.gui.base.Frame):
     def OnSyncDisplayRange(self, dummy):
         self.set_synchronization(
             "display_range",not self.get_synchronization("display_range"))
+
+    def OnTensor2DisplayPrincipalDirectionVoxel(self, dummy) :
+        self.tensor2_display_mode = "principal_direction_voxel"
+    
+    def OnTensor2DisplayPrincipalDirectionLine(self, dummy) :
+        self.tensor2_display_mode = "principal_direction_line"
+    
+    def OnTensor2DisplayEllipsoid(self, dummy) :
+        self.tensor2_display_mode = "ellipsoid"
     
     def OnDisplayCoordinatesPhysical(self, dummy) :
         self.display_coordinates = "physical"

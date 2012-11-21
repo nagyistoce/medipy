@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -157,55 +157,3 @@ class Colormap(PropertySynchronized) :
             self._vtk_colormap = medipy.vtk.build_vtk_colormap(data, self._vtk_colormap)
         else :
             raise medipy.base.Exception("Unknown colormap type : %s"%self._vtk_colormap.GetClassName())
-        
-def main() :
-    from vtk import (vtkImageActor, vtkImageMapToColors, vtkRenderer, 
-                     vtkRenderWindow, vtkRenderWindowInteractor)
-    
-    import numpy
-    
-    import colormaps
-    
-    my_colormaps = [
-        Colormap(colormaps.colormaps["red"], None), #(-2,-1)),
-        Colormap(colormaps.colormaps["rainbow"], (64,192), cut_low = True),
-        Colormap(colormaps.colormaps["rainbow2"], (64,192), cut_high = True),
-        #Colormap(colormaps.stage_colormaps["label128"], (64,192)),
-    ]
-    
-    actors = []
-    for index, colormap in enumerate(my_colormaps) :
-        image = numpy.ndarray((25, 256), dtype=numpy.single)
-        for i in range(image.shape[1]) :
-            image[:,i] = i
-        vtk_image = medipy.vtk.build_vtk_image(image)
-        
-        image_map_to_colors = vtkImageMapToColors()
-        image_map_to_colors.SetInput(vtk_image)
-        image_map_to_colors.SetLookupTable(colormap.vtk_colormap)
-        
-        image_map_to_colors.Update()
-        
-        actor = vtkImageActor()
-        actor.SetInput(image_map_to_colors.GetOutput())
-        actor.SetInterpolate(False)
-        actor.SetPosition(0, index*(image.shape[0]+8), 0)
-        
-        actors.append(actor)
-    
-    # Display
-    renderer = vtkRenderer()
-    
-    for actor in actors :
-        renderer.AddActor(actor)
-
-    render_window = vtkRenderWindow()
-    render_window.AddRenderer(renderer)
-
-    rwi = vtkRenderWindowInteractor()
-    rwi.SetRenderWindow(render_window)
-    rwi.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
-    rwi.Start()
-
-if __name__ == "__main__" :
-    main()

@@ -344,8 +344,13 @@ def module_builder(env, module_name, classes_template_info, **kwargs) :
         "template" : [".txx"]
     }
 
+    requirements = ["Base"]
+    for name, instantiations, pointer, libraries in classes_template_info :
+        for library in libraries :
+            if library not in requirements :
+                requirements.append(library)
     module_nodes = wrapitk.module_builders.module_files(
-        env, module_name, classes_template_info, ["Base"])
+        env, module_name, classes_template_info, requirements)
     
     class_nodes = {}
     for name, instantiations, pointer, _ in classes_template_info :

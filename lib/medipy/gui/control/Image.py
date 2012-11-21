@@ -110,7 +110,9 @@ class Image(wx.Panel, medipy.base.Observable):
                 style=0
                 button.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButton)
                 self._radiobuttons_sizer.Add(button, 0)
-                button.Enable(not self.output_checked and not self.may_be_empty_checked)
+                button.Enable(isinstance(self._choices[i], medipy.base.Image) and
+                              not self.output_checked and 
+                              not self.may_be_empty_checked)
             
             ids = [id(x) for x in self.choices]
             try :

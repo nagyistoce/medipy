@@ -54,7 +54,7 @@ class FunctionGUIBuilder(Observable):
         buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)
         buttons_sizer.AddStretchSpacer(1)
         buttons_sizer.Add(self._run_button) 
-        buttons_sizer.Add(reset_button)        
+        buttons_sizer.Add(reset_button)
         # Controls
         controls_sizer = wx.BoxSizer(wx.VERTICAL)
         self._create_gui(controls_sizer)
@@ -210,6 +210,7 @@ class FunctionGUIBuilder(Observable):
         self.validate_form()
     
     def _on_images_modified(self, dummy):
+        self.validate_form()
         self.panel.Fit()
     
     def _on_viewer_3ds_modified(self, dummy):
@@ -241,7 +242,7 @@ class FunctionGUIBuilder(Observable):
             # Create the control
             expression = "medipy.gui.control.%s(self.panel"%parameter["type"]
             
-            if parameter["type"] == "Image" : 
+            if parameter["type"] == "Image" or parameter["type"] == "ImageSerie" : 
                 expression += ", self._images"
             elif parameter["type"] == "Object3D" :
                 expression += ", self._viewer_3ds"

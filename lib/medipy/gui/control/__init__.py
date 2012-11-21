@@ -16,6 +16,7 @@ from File import File
 from Float import Float
 from float_interval import FloatInterval
 from Image import Image
+from ImageSerie import ImageSerie
 from Int import Int
 from Object3D import Object3D
 from String import String

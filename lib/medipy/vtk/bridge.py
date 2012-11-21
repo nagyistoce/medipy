@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -7,99 +7,116 @@
 ##########################################################################
 
 import logging
-import numpy
-from vtk import vtkDataArray, vtkImageData, vtkLookupTable
-from vtk.util import vtkConstants
+import operator
 
-from wx import GetTranslation as _
+import numpy
+
+from vtk import vtkDataArray, vtkImageData, vtkImageExport, vtkImageImport, vtkLookupTable
+import vtk.util.numpy_support
+from vtk.util import vtkConstants
 
 import medipy.base
 from medipy.vtk import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
 
-def get_vtk_array_type(numeric_array_type) :
-    """Return a VTK typecode from a numpy array."""
-    
-    # Mapping from numpy array types to VTK array types
-    numpy_to_vtk = {
-        numpy.dtype(numpy.character):vtkConstants.VTK_UNSIGNED_CHAR,
-        numpy.dtype(numpy.uint8):vtkConstants.VTK_UNSIGNED_CHAR,
-        numpy.dtype(numpy.uint16):vtkConstants.VTK_UNSIGNED_SHORT,
-#       numpy.dtype(ULONG_TYPE_CODE):vtkConstants.VTK_UNSIGNED_LONG,
-        numpy.dtype(numpy.int8):vtkConstants.VTK_CHAR,
-        numpy.dtype(numpy.int16):vtkConstants.VTK_SHORT,
-        numpy.dtype(numpy.int32):vtkConstants.VTK_INT,
-#       numpy.dtype(LONG_TYPE_CODE):vtkConstants.VTK_LONG,
-        numpy.dtype(numpy.float32):vtkConstants.VTK_FLOAT,
-        numpy.dtype(numpy.float64):vtkConstants.VTK_DOUBLE,
-        numpy.dtype(numpy.complex64):vtkConstants.VTK_FLOAT,
-        numpy.dtype(numpy.complex128):vtkConstants.VTK_DOUBLE
-    }
-    
-    try :
-        return numpy_to_vtk[numeric_array_type]
-    except KeyError :
-        for key in numpy_to_vtk :
-            if numpy.issubdtype(numeric_array_type, key):
-                return numpy_to_vtk[key]
-    raise TypeError, "Couldn't translate array's type %s to VTK"%(numeric_array_type)
-
-def build_vtk_image(array, vtk_image=None, save=1) :
-    """ Build a vtkImageData from the given array.
-        If vtk_image is None, a new vtkImageData is created, otherwise vtk_image
-        is used as a container. 
+def array_to_vtk_image(array, copy_data, data_type="scalar"):
+    """ Create an vtkImage matching the contents and type of given array. If
+        copy_data is True, then the data of the will be copied. Otherwise the
+        data will be shared, and the array MUST NOT be destroyed before the 
+        vtkImage. data_type specifies how the array should be interpreted : 
+        either as a n-array of scalars (data_type="scalar") or as an n-1 array
+        of vectors (data_type="vector").
     """
     
-    numpy_array = numpy.asarray(array)
+    if data_type not in ["scalar", "vector"] :
+        raise medipy.base.Exception("Unknown data_type: {0}".format(repr(data_type)))
     
-    number_of_components = 1
-    shape = numpy_array.shape
-    if len(numpy_array.shape) == 2 :
-        shape = [1, shape[0], shape[1]]
-    if len(numpy_array.shape)==4 :
-        number_of_components = numpy_array.shape[3]
-        shape = shape[:3]
+    if data_type == "scalar" :
+        ndim = array.ndim
+    elif data_type == "vector" :
+        ndim = array.ndim-1
     
-    vtk_array_type = get_vtk_array_type(numpy_array.dtype)
+    if ndim > 3 :
+        raise medipy.base.Exception(
+            "Cannot convert a {0} array of dimension {1}".format(data_type, 
+                                                                 array.ndim))
     
-    # Adjust the number of components for complex types
-    if numpy_array.dtype in [numpy.complex64, numpy.complex128] :
-        number_of_components = number_of_components*2
+    importer = vtkImageImport()
+    
+    if numpy.iscomplexobj(array) :
+        # Get the first element of the array
+        element = array.flat.next()
+        scalar_type = vtk.util.numpy_support.get_vtk_array_type(element.real.dtype)
+    else :
+        scalar_type = vtk.util.numpy_support.get_vtk_array_type(array.dtype)
+    importer.SetDataScalarType(scalar_type)
+    
+    if data_type == "scalar" :
+        number_of_components = 1
+    elif data_type == "vector" :
+        number_of_components = array.shape[ndim]
+    if numpy.iscomplexobj(array) :
+        number_of_components *= 2
+    importer.SetNumberOfScalarComponents(number_of_components)
+    
+    extent = 6*[0]
+    extent[1] = array.shape[ndim-1]-1
+    if ndim >= 2 :
+        extent[3] = array.shape[ndim-2]-1
+    if ndim >= 3 :
+        extent[5] = array.shape[ndim-3]-1
+    importer.SetDataExtent(extent)
+    importer.SetWholeExtent(extent)
+    
+    size = array.itemsize*reduce(operator.mul, array.shape, 1)
+    if copy_data :
+        importer.CopyImportVoidPointer(array, size)
+    else :
+        importer.SetImportVoidPointer(array, size)
+    
+    importer.Update()
 
-    if vtk_image is None :
-        vtk_image = vtkImageData()
+    return importer.GetOutput()
+
+def vtk_image_to_array(vtk_image) :
+    """ Create an numpy.ndarray matching the contents and type of given image. 
+        If the number of scalars components in the image is greater than 1, then
+        the ndarray will be 4D, otherwise it will be 3D. 
+    """
     
-    size = reduce(lambda x,y:x*y, shape)
-    extent = (0, shape[2]-1,
-              0, shape[1]-1,
-              0, shape[0]-1)
+    exporter = vtkImageExport()
+    exporter.SetInput(vtk_image)
     
-    vtk_image.SetScalarType(vtk_array_type)
-    vtk_image.SetNumberOfScalarComponents(number_of_components)
-    vtk_image.SetDimensions(shape[2], shape[1], shape[0])
+    # Create the destination array
+    extent = vtk_image.GetWholeExtent()
+    shape = [extent[5]-extent[4]+1,
+             extent[3]-extent[2]+1,
+             extent[1]-extent[0]+1]
+    if vtk_image.GetNumberOfScalarComponents() > 1:
+        shape += [vtk_image.GetNumberOfScalarComponents()]
+    dtype = vtk.util.numpy_support.get_numpy_array_type(vtk_image.GetScalarType())
+    array = numpy.zeros(shape, dtype=dtype)
     
-    scalars = vtkDataArray.CreateDataArray(vtk_array_type)
-    scalars.SetNumberOfComponents(1)
-    scalars.SetVoidArray(numpy_array, size, save)
-    vtk_image.GetPointData().SetScalars(scalars) 
+    exporter.Export(array)
     
-    vtk_image.SetWholeExtent(extent)
-    vtk_image.SetUpdateExtentToWholeExtent()
-    vtk_image.SetExtent(extent)
+    return array
+
+def vtk_image_to_medipy_image(vtk_image, medipy_image):
+    if medipy_image is None :
+        medipy_image = medipy.base.Image(
+            (0,0,0), 
+            vtk.util.numpy_support.get_numpy_array_type(vtk_image.GetScalarType()))
     
-    # If we have an image, use its origin and spacing
-    if hasattr(array, "spacing") :
-        spacing = list(reversed(array.spacing))
-        if len(spacing) == 2 :
-            spacing.append(1)
-        vtk_image.SetSpacing(spacing)
-    # 
-    if hasattr(array, "origin") :
-        origin = list(reversed(array.origin))
-        if len(origin) == 2 :
-            origin.append(0)
-        vtk_image.SetOrigin(origin)
+    medipy_image.data = vtk_image_to_array(vtk_image)
+    if vtk_image.GetNumberOfScalarComponents() > 1 :
+        medipy_image.data_type = "vector"
+    else :
+        medipy_image.data_type = "scalar"
+    medipy_image.origin = [x for x in reversed(vtk_image.GetOrigin())]
+    medipy_image.spacing = [x for x in reversed(vtk_image.GetSpacing())]
+    # VTK images are not oriented, assume identity
+    medipy_image.direction = numpy.identity(3)
     
-    return vtk_image
+    return medipy_image
 
 def build_vtk_colormap(colormap, vtk_colormap=None) :
     """ Build either a vtkLookupTable or a vtkColorTransferFunctionWithAlpha 
@@ -111,7 +128,7 @@ def build_vtk_colormap(colormap, vtk_colormap=None) :
     
     if type(colormap) not in [list, tuple] :
         colormap_type = str(type(colormap))
-        raise medipy.base.Exception(_("Cannot process colormap of type %s")%(colormap_type))
+        raise medipy.base.Exception("Cannot process colormap of type %s"%(colormap_type))
     
     if type(colormap[0][0]) in [list, tuple] :
         # Stage colormap

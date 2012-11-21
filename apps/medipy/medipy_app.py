@@ -15,11 +15,8 @@ from vtk import (vtkDataReader, vtkPolyDataReader, vtkPolyDataWriter,
     vtkUnstructuredGridReader, vtkVRMLImporter,)
 import wx
 
+import medipy.base
 import medipy.gui.base
-from medipy.gui.image.cine_dialog import CineDialog
-from medipy.gui.function_gui_builder import FunctionGUIBuilder
-
-from medipy.base import ObservableList, Object3D
 
 from main_frame import MainFrame
 import menu_builder
@@ -32,10 +29,9 @@ class MediPyApp(medipy.gui.base.Application) :
     def __init__(self, *args, **kwargs):
         
         # Public interface
-        self.viewer_3ds = ObservableList()
+        self.frame = None
+        self.viewer_3ds = medipy.base.ObservableList()
         
-        # Private interface
-        self._frame = None
         self._full_screen = False
         
         super(MediPyApp, self).__init__(*args, **kwargs)
@@ -61,10 +57,6 @@ class MediPyApp(medipy.gui.base.Application) :
     
     def execute_script(self, filename):
         execfile(filename, globals(), locals())
-    
-    def quit(self):
-        for viewer in self.viewer_3ds :
-            viewer.Close()
     
     def load_object_3d(self, path, viewer_3d):
         generic_reader = vtkDataReader()
@@ -117,6 +109,14 @@ class MediPyApp(medipy.gui.base.Application) :
         writer.Update()
     
 
+    ##############
+    # Properties #
+    ##############
+    
+    def _get_images(self):
+        return self.frame.images
+    
+    images = property(_get_images)
     
     ##################
     # Event handlers #
@@ -137,11 +137,17 @@ class MediPyApp(medipy.gui.base.Application) :
             for directory in medipy.Importer().plugins_path :
                 menu.extend(menu_builder.from_api.build_menu(directory))
         
-        self._frame = MainFrame(menu, None, title=self._application_name, size=(1000,800))
-        self._frame.Show()
-        self.SetTopWindow(self._frame)
+        self.frame = MainFrame(menu, None, title=self._application_name, size=(1000,800))
+        self.frame.Show()
+        self.frame.Bind(wx.EVT_CLOSE, self.OnMainFrameClose)
+        self.SetTopWindow(self.frame)
         
         return True
+
+    def OnMainFrameClose(self, event):
+        for viewer in self.viewer_3ds :
+            viewer.Close()
+        event.Skip()
 
     def _on_viewer_3d_close(self, event):
         viewer = event.object
