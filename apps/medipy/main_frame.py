@@ -494,7 +494,7 @@ class MainFrame(medipy.gui.base.Frame):
                 image.set_layer_visibility(index, False)
     
     def OnSaveImageAs(self, dummy):
-        image = self.images[self.ui.image_grid.active][0]["image"]
+        image = self.images[self.ui.image_grid.active]
         medipy.gui.io.save(image)
 
     def OnSaveImageSerieAs(self, dummy):
