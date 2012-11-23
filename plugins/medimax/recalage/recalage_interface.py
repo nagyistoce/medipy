@@ -267,3 +267,22 @@ def findSymmetryPlane(im, imres, filename) :
         </gui>
     """ 
     medipy.medimax.recalage.LinearRegistration(im,im, imres,0,24,1,1,0,1,str(filename),0,2,0)
+
+
+#-------------------------------------------------------------
+#  Atrophy Simulation
+#-------------------------------------------------------------
+
+def AtrophySimulation(imref, mask, nomfichres, resolf, lambda_reg) :
+    """
+    Estimate a deformation field that simulates a give atrophy
+        <gui>
+            <item name="imref" type="Image" label="Desired level of atrophy" />
+            <item name="mask" type="Image" initializer="value=None" label="Mask of invariant point" />
+            <item name="nomfichres" type="String" label="Name of saved .trf file"/>
+            <item name="resolf" type="Int" initializer="value=1, range=(1,7)" label="final resolution"/>
+            <item name="lambda_reg" type="Float" initializer="value=1" label="regularization weighting factor"/>
+            
+        </gui>
+    """ 
+    medipy.medimax.recalage.simulationAtrophie(imref, mask, str(nomfichres), resolf, lambda_reg)
