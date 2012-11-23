@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'MediPy'
-copyright = u'2011, Université de Strasbourg'
+copyright = u'Université de Strasbourg'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

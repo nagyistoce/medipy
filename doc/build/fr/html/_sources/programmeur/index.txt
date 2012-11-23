@@ -10,3 +10,4 @@ Table des matières :
     menu
     function_gui
     dicom
+    network/index
