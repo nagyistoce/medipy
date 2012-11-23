@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>1. Fonctionnalités réseau de DICOM &mdash; MediPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/translations.js"></script>
+    <link rel="top" title="MediPy 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Fonctionnalités réseau" href="index.html" />
+    <link rel="prev" title="Fonctionnalités réseau" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Fonctionnalités réseau"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Guide du programmeur</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Fonctionnalités réseau</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table des matières</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">1. Fonctionnalités réseau de DICOM</a><ul>
+<li><a class="reference internal" href="#informations-de-connexion">1.1. Informations de connexion</a></li>
+<li><a class="reference internal" href="#scu-clients-des-services-dicom">1.2. SCU : clients des services DICOM</a><ul>
+<li><a class="reference internal" href="#echo">1.2.1. Echo</a></li>
+<li><a class="reference internal" href="#find">1.2.2. Find</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#requetes-de-haut-niveau">1.3. Requêtes de haut niveau</a><ul>
+<li><a class="reference internal" href="#requete-relationnelle">1.3.1. Requête relationnelle</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#acces-web-aux-objets-dicom-wado">1.4. Accès web aux objets DICOM (WADO)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Sujet précédent</h4>
+  <p class="topless"><a href="index.html"
+                        title="Chapitre précédent">Fonctionnalités réseau</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Recherche rapide</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Saisissez un mot clef ou un nom de module, classe ou fonction.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="fonctionnalites-reseau-de-dicom">
+<h1>1. Fonctionnalités réseau de DICOM<a class="headerlink" href="#fonctionnalites-reseau-de-dicom" title="Lien permanent vers ce titre">¶</a></h1>
+<p>Afin d&#8217;exploiter les fonctionnalités réseau de DICOM, MediPy s&#8217;appuie sur <a class="reference external" href="http://dicom.offis.de/dcmtk.php.en">DCMTK</a>.
+Des paquets sont disponibles dans les distributions Linux supportées par MediPy,
+et des binaires Windows sont disponibles sur le site du projet.</p>
+<div class="section" id="informations-de-connexion">
+<h2>1.1. Informations de connexion<a class="headerlink" href="#informations-de-connexion" title="Lien permanent vers ce titre">¶</a></h2>
+<p>La classe <tt class="docutils literal"><span class="pre">medipy.network.dicom.scu.Connection</span></tt> contient les différentes
+informations pour se connecter à un nœud DICOM sur le réseau. Il s&#8217;agit pour la
+couche TCP/IP de l&#8217;adresse de la machine et du port, et, pour la couche DICOM,
+des noms des deux entités applicatives (Application Entity title) concernées
+par la connexion.</p>
+<p>Exemple :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">connection</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">scu</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span>
+    <span class="s">&quot;pacs.example.com&quot;</span><span class="p">,</span> <span class="mi">11112</span><span class="p">,</span>
+    <span class="s">&quot;MY_MACHINE&quot;</span><span class="p">,</span> <span class="s">&quot;REMOTE_PACS&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scu-clients-des-services-dicom">
+<h2>1.2. SCU : clients des services DICOM<a class="headerlink" href="#scu-clients-des-services-dicom" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Le package <tt class="docutils literal"><span class="pre">medipy.network.dicom.scu</span></tt> contient, outre la classe <tt class="docutils literal"><span class="pre">Connection</span></tt>
+des classes encapsulant les différents SCU (Service Class User, équivalents au
+terme « client » dans le sens réseau du terme). Ces classes sont toutes des
+objets-fonction.</p>
+<div class="section" id="echo">
+<h3>1.2.1. Echo<a class="headerlink" href="#echo" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Le SCU le plus simple est Echo, équivalent du niveau DICOM d&#8217;un ping. Aucun
+paramètre n&#8217;est à fournir, puisque les AE concernés sont déjà spécifiés dans la
+connexion. Ce SCU n&#8217;a pas de valeur de retour, mais lance une exception si la
+connexion n&#8217;a pas pu être établie.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">echo</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">scu</span><span class="o">.</span><span class="n">Echo</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+<span class="k">try</span> <span class="p">:</span>
+    <span class="n">echo</span><span class="p">()</span>
+<span class="k">except</span> <span class="n">medipy</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;Service injoignable : {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="k">else</span> <span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;OK&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="find">
+<h3>1.2.2. Find<a class="headerlink" href="#find" title="Lien permanent vers ce titre">¶</a></h3>
+<p>Le SCU Find permet de faire des requêtes simples sur un nœud DICOM. Ce SCU a
+trois paramètres : l&#8217;objet de plus haut niveau (<tt class="docutils literal"><span class="pre">patient</span></tt> ou <tt class="docutils literal"><span class="pre">study</span></tt>), le
+niveau auquel se fait la requête (<tt class="docutils literal"><span class="pre">patient</span></tt>, <tt class="docutils literal"><span class="pre">study</span></tt>, <tt class="docutils literal"><span class="pre">series</span></tt> ou <tt class="docutils literal"><span class="pre">image</span></tt>)
+et les critères de recherche, contenus dans un DataSet. Les attributs présents
+dans ce DataSet peuvent contenir les valeurs suivantes :</p>
+<ul class="simple">
+<li>une valeur simple (pas de joker) : ce critère sélectionne les DataSet ayant
+un attribut avec <em>exactement</em> cette valeur. Pour les chaînes de caractères,
+la recherche dépend de la casse, à l&#8217;exception du type PN.</li>
+<li>une liste d&#8217;UID : il s&#8217;agit d&#8217;une chaîne de caractères contenant les
+différents UID, séparés par un backslash (<tt class="docutils literal"><span class="pre">\</span></tt>). Ce critère sélectionne les
+DataSet ayant un attribut dont la valeur est <em>contenue</em> dans la liste.</li>
+<li>une valeur vide (<tt class="docutils literal"><span class="pre">None</span></tt> ou <tt class="docutils literal"><span class="pre">&quot;&quot;</span></tt>). Ce critère sélectionne <em>tous</em> les
+DataSet, il est utilisé afin de spécifier un attribut qu&#8217;on souhaite récupérer.</li>
+<li>une chaîne de caractères avec des jokers (<tt class="docutils literal"><span class="pre">*</span></tt> et <tt class="docutils literal"><span class="pre">?</span></tt>). Ces deux caractères
+gardent leur signification habituelle (<tt class="docutils literal"><span class="pre">*</span></tt> pour signifier « n&#8217;importe quelle
+chaîne » et <tt class="docutils literal"><span class="pre">?</span></tt> pour signifier « n&#8217;importe quel caractère »).</li>
+<li>une séquence : la séquence devra contenir un seul élément, et les critères
+seront appliqué à cet élément selon les règles ci-dessus.</li>
+</ul>
+<p>L&#8217;exemple d&#8217;utilisation suivant retourne un DataSet pour chaque patient dont le
+nom commence par L. Chaque DataSet résultat contiendra l&#8217;attribut Patient Id.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
+<span class="n">query</span><span class="o">.</span><span class="n">patients_name</span> <span class="o">=</span> <span class="s">&quot;L*&quot;</span>
+<span class="n">query</span><span class="o">.</span><span class="n">patient_id</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">find</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">scu</span><span class="o">.</span><span class="n">Find</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="s">&quot;patient&quot;</span><span class="p">,</span> <span class="s">&quot;patient&quot;</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">find</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Ce type de requête n&#8217;est pas récursif : on ne peut pas faire de requète sur
+l&#8217;attribut Study Description au niveau <tt class="docutils literal"><span class="pre">patient</span></tt>. De plus, les attributs-clés
+des niveaux supérieurs doivent être renseignés :</p>
+<ul class="simple">
+<li>Patient ID (0010,0020) pour le niveau <tt class="docutils literal"><span class="pre">patient</span></tt></li>
+<li>Study Instance UID (0020,000D) pour le niveau <tt class="docutils literal"><span class="pre">study</span></tt></li>
+<li>Study Instance UID (0020,000E) pour le niveau <tt class="docutils literal"><span class="pre">series</span></tt></li>
+<li>SOP Instance UID (0008,0018) pour le niveau <tt class="docutils literal"><span class="pre">image</span></tt></li>
+</ul>
+</div>
+</div>
+<div class="section" id="requetes-de-haut-niveau">
+<h2>1.3. Requêtes de haut niveau<a class="headerlink" href="#requetes-de-haut-niveau" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Les fonctions contenues dans le module <tt class="docutils literal"><span class="pre">medipy.network.dicom.query</span></tt> permettent
+de faire des requêtes de façon plus simple qu&#8217;en passant par le SCU Find.
+Cependant, ces fonctions sont potentiellement plus lentes.</p>
+<div class="section" id="requete-relationnelle">
+<h3>1.3.1. Requête relationnelle<a class="headerlink" href="#requete-relationnelle" title="Lien permanent vers ce titre">¶</a></h3>
+<p>La fonction <tt class="docutils literal"><span class="pre">medipy.network.dicom.query.relational</span></tt> permet de faire une
+requête relationnelle, selon la définition de DICOM (PS 3.4-2011, C.4.1.2.2.1 et
+C.4.1.3.2.2). Cette fonction permet donc de faire une recherche à un niveau de
+départ, et d&#8217;étendre la recherche aux niveaux inférieurs jusqu&#8217;à que tous les
+critères soient remplis. Si des critères ne sont pas remplis au niveau le plus
+bas, une liste vide est retournée.</p>
+<p>Dans l&#8217;exemple suivant, les résultats de la requête auront un attribut
+Query/Retrieve Level (0008,0052) valant &#8220;STUDY&#8221;, puisqu&#8217;un des attributs de la
+requête porte sur l&#8217;entité Study. Les attributs-clés du niveau STUDY et des
+niveaux supérieurs (Study Instance UID (0020,000D) et Patient ID (0010,0020))
+seront présents dans les résultats.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">query</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
+<span class="n">query</span><span class="o">.</span><span class="n">study_description</span> <span class="o">=</span> <span class="s">&quot;PROTOCOLES^MON_PROTOCOLE&quot;</span>
+
+<span class="n">datasets</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">relational</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="s">&quot;patient&quot;</span><span class="p">,</span> <span class="s">&quot;patient&quot;</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="acces-web-aux-objets-dicom-wado">
+<h2>1.4. Accès web aux objets DICOM (WADO)<a class="headerlink" href="#acces-web-aux-objets-dicom-wado" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Hors des services permettant de copier des données (Get et Move), DICOM propose
+aussi un accès aux données par HTTP : WADO pour <em>Web Access to DICOM Objects</em>
+(PS 3.18-2011).
+Ce service permet de récupérer des données, au format DICOM, par une requète
+HTTP de type GET qui spécifie la clé de l&#8217;objet à récupérer. Cette clé est formée
+par les mêmes attributs pour ceux utilisés par le SCU Find. Le module
+<tt class="docutils literal"><span class="pre">medipy.network.dicom.wado</span></tt> encapsule ce service :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">wado_url</span> <span class="o">=</span> <span class="s">&quot;http://pacs.example.com/wado&quot;</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
+<span class="n">query</span><span class="o">.</span><span class="n">patient_id</span> <span class="o">=</span> <span class="s">&quot;12345&quot;</span>
+<span class="n">query</span><span class="o">.</span><span class="n">study_instance_uid</span> <span class="o">=</span> <span class="s">&quot;...&quot;</span>
+<span class="n">query</span><span class="o">.</span><span class="n">series_instance_uid</span> <span class="o">=</span> <span class="s">&quot;...&quot;</span>
+<span class="n">query</span><span class="o">.</span><span class="n">sop_instance_uid</span> <span class="o">=</span> <span class="s">&quot;...&quot;</span>
+
+<span class="c"># Stockage du résultat dans un fichier</span>
+<span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">wado</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wado_url</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="s">&quot;result.dcm&quot;</span><span class="p">)</span>
+
+<span class="c"># Retour du DataSet résultat</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">wado</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">wado_url</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="index.html" title="Fonctionnalités réseau"
+             >précédent</a> |</li>
+        <li><a href="../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Guide du programmeur</a> &raquo;</li>
+          <li><a href="index.html" >Fonctionnalités réseau</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
