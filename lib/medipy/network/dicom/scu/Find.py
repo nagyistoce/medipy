@@ -73,7 +73,7 @@ class Find(SCU) :
                                "series" : "SERIES", "image" : "IMAGE" }
         command.extend([
             "-k", 
-            "(0008,0052)={0}".format(query_level_option[self.query_level])
+            "0008,0052={0}".format(query_level_option[self.query_level])
         ])
         
         keys = [(tag, value) for tag, value in self.query_parameters.items()
@@ -84,10 +84,10 @@ class Find(SCU) :
         for tag, value in keys :
             if isinstance(value, list) and isinstance(value[0], medipy.io.dicom.DataSet):
                 for item_tag, item_value in value[0].items() :
-                    command.extend(["-k", "({0:04x},{1:04x})[0].{2}={3}".format(
+                    command.extend(["-k", "{0:04x},{1:04x}[0].{2}={3}".format(
                         tag.group, tag.element, item_tag, str(item_value))])
             else :
-                command.extend(["-k", "({0:04x},{1:04x})={2}".format(
+                command.extend(["-k", "{0:04x},{1:04x}={2}".format(
                     tag.group, tag.element, str(value))])
         
         command.append("-X")
