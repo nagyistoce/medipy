@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -13,10 +13,13 @@ import urlparse
 
 import medipy.io.dicom
 
-def get(url, dataset):
+def get(url, dataset, filename=None):
     """ Perform a WADO request using a root URL and a dataset to provide the
         necessary information (Study Instance UID, Series Instance UID and
         SOP Instance UID).
+        
+        If filename is None, then the resulting dataset will be returned, otherwise
+        it will be stored in the given filename.
     """
     
     query = {
@@ -33,13 +36,21 @@ def get(url, dataset):
     if dicom_fd.getcode() != 200 :
         return None
     
-    temp_fd, temp_name = tempfile.mkstemp()
-    os.write(temp_fd, dicom_fd.read())
+    if filename is None :
+        fd, temp_name = tempfile.mkstemp()
+        fd = os.fdopen(fd, "wb")
+    else :
+        fd = open(filename, "wb")
+    
+    fd.write(dicom_fd.read())
     
     dicom_fd.close()
-    os.close(temp_fd)
+    fd.close()
     
-    dataset = medipy.io.dicom.parse(temp_name)
-    os.remove(temp_name)
+    if filename is None :
+        dataset = medipy.io.dicom.parse(temp_name)
+        os.remove(temp_name)
     
-    return dataset
+        return dataset
+    else :
+        return None
