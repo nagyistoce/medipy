@@ -752,3 +752,43 @@ free_field3d(champ);
 free_transf3d(transfo);
  
 }
+
+/*******************************************************************************
+**  Simulation d'atrophie                              
+*******************************************************************************/
+void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda)
+{
+    /*type de fonction*/
+    int func_type=1;
+    
+    /*interpolation*/
+    int inter_type=4;
+
+    /*minimisation*/
+    int min_type=1;
+    
+    /* regularisation */
+    int reg_type = 2;
+    
+    /* borne jacobien */
+    double Jmin=0.0;
+    double Jmax=100000.0;
+    
+    /* distance */
+    int dist_type = 1;
+    
+    /*sauvegarde du champ*/
+    int save_type=1;
+    int adaptatif=1;
+    
+    /* precision de la methode de simulation (1:precis / 2:tres precis) */ 
+    PRECISION_SIMULATION=2;
+    
+    /* coeff de ponderation de la regularisation */
+    TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=lambda;
+    
+    
+    imx_simul_atrophie_topo_3d_p(imref,mask, func_type, dist_type, reg_type, inter_type, min_type, save_type, nomfichres, resolf, adaptatif, Jmin, Jmax);
+
+
+}
