@@ -205,6 +205,16 @@ class ITK(IOBase) :
             gradients = [[], [], []]
             b_values = []
             for diffusion in image.metadata["mr_diffusion_sequence"] :
+                # Make sure we have all the required elements
+                if "diffusion_gradient_direction_sequence" not in diffusion :
+                    continue
+                elif not diffusion.diffusion_gradient_direction_sequence :
+                    continue
+                elif "diffusion_gradient_orientation" not in diffusion.diffusion_gradient_direction_sequence[0] :
+                    continue
+                elif "diffusion_bvalue" not in diffusion :
+                    continue
+                
                 gradient = diffusion.diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
                 b_value = diffusion.diffusion_bvalue
                 
@@ -212,20 +222,21 @@ class ITK(IOBase) :
                     gradients[index].append(str(value))
                 b_values.append(str(b_value))
             
-            gradients = "\n".join([" ".join(direction) for direction in gradients])
-            b_values = " ".join(b_values)
-            
-            base_name = os.path.splitext(self._filename)[0]
-            if base_name.endswith(".nii") :
-                base_name = os.path.splitext(base_name)[0]
-            
-            gradients_file = open("{0}.bvec".format(base_name), "w")
-            gradients_file.write(gradients)
-            gradients_file.close()
-            
-            bvalues_file = open("{0}.bval".format(base_name), "w")
-            bvalues_file.write(b_values)
-            bvalues_file.close()
+            if gradients[0] and b_values :
+                gradients = "\n".join([" ".join(direction) for direction in gradients])
+                b_values = " ".join(b_values)
+                
+                base_name = os.path.splitext(self._filename)[0]
+                if base_name.endswith(".nii") :
+                    base_name = os.path.splitext(base_name)[0]
+                
+                gradients_file = open("{0}.bvec".format(base_name), "w")
+                gradients_file.write(gradients)
+                gradients_file.close()
+                
+                bvalues_file = open("{0}.bval".format(base_name), "w")
+                bvalues_file.write(b_values)
+                bvalues_file.close()
     
     ##############
     # Properties #
