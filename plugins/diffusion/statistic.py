@@ -168,6 +168,7 @@ def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
     # Test statistics
     if test_flag=='unrestricted':
         T = N1*N2/N * np.sum( ((M1 - M2)**2),3 ) # chi2(q)
+        sign = np.sign( np.sum( (M1 - M2),3 ) )
         df.insert(0,q)
         df.insert(1,q*(N-2))
     elif test_flag=='eigenvalues':
@@ -176,6 +177,7 @@ def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
         L1 = L1.data
         L2 = L2.data
         T = N1*N2/N * np.sum( (L1 - L2)**2,3 ) # chi2(p)
+        sign = np.sign( np.sum( (L1 - L2),3 ) )
         df.insert(0,p)
         df.insert(1,q*(N-2))
     else:
@@ -196,6 +198,6 @@ def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
     T[np.isnan(T)] = -1
     T[np.isinf(T)] = -1
 
-    return Image(data=T,spacing=spacing,origin=origin,direction=direction),Image(data=s,spacing=spacing,origin=origin,direction=direction),df
+    return Image(data=sign*T,spacing=spacing,origin=origin,direction=direction),Image(data=s,spacing=spacing,origin=origin,direction=direction),df
 
 
