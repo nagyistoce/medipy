@@ -498,7 +498,7 @@ class MainFrame(medipy.gui.base.Frame):
         medipy.gui.io.save(image)
 
     def OnSaveImageSerieAs(self, dummy):
-        images = [layer["image"] for layer in self.images[self.ui.image_grid.active]]
+        images = self.images[self.ui.image_grid.active]
         medipy.gui.io.save(images)
     
     def OnCloseImage(self, dummy):
