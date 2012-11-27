@@ -982,11 +982,11 @@ if (nomfichres!=NULL)
         imx_undo_mri_pow2_centered_p(imref,wdth_old,hght_old,dpth_old);
         imx_undo_mri_pow2_centered_p(imreca,wdth_old,hght_old,dpth_old);
         
-		if ((imres != imreca) && (imres != imref))
-			{imx_undo_mri_pow2_centered_p(imres,wdth_old,hght_old,dpth_old);
-    		if (imres->mask!=NULL)
-        		imx_undo_mri_pow2_centered_p(imres->mask,wdth_old,hght_old,dpth_old);
-        	}
+        if ((imres != imreca) && (imres != imref))
+            {imx_undo_mri_pow2_centered_p(imres,wdth_old,hght_old,dpth_old);
+            if (imres->mask!=NULL)
+                imx_undo_mri_pow2_centered_p(imres->mask,wdth_old,hght_old,dpth_old);
+            }
     
         if (imreca->mask!=NULL)
         imx_undo_mri_pow2_centered_p(imreca->mask,wdth_old,hght_old,dpth_old);
@@ -2801,7 +2801,6 @@ int imx_simul_atrophie_topo_3d_p(grphic3d *imref,grphic3d *mask, int func_type, 
         
     
         wdth=imref->width;hght=imref->height;dpth=imref->depth;
-        
         }
     
     tdebut=time(NULL);
@@ -3592,10 +3591,10 @@ if (dist_type==12)
            
                transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb; 
                 int l;
-       			double *param_tmp;
-				
-				/*liberation de la base*/
-				end_base_3d();
+                double *param_tmp;
+                
+                /*liberation de la base*/
+                end_base_3d();
 
                 // transfo direct
                 transfo=cr_transf3d(wdth,hght,dpth,NULL);
