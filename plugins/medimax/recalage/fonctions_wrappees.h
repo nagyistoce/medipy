@@ -24,7 +24,7 @@ DllExport int ApplyTransfo3d(grphic3d *imdeb, char *nomfichier, grphic3d *imres,
 DllExport double SimilarityMeasure3d(grphic3d *im1, grphic3d *im2, int err_type);
 
 
-DllExport int BsplineRegistration3d(grphic3d *imref, grphic3d *imreca, grphic3d *imres,int dist_type,int reg_type,double reg_factor,int min_type,int save_type,char *nomfichres,int resolf,	double Jmin,double Jmax,int normalisation_type,	int nb_classe,int biais, int symetrique);
+DllExport int BsplineRegistration3d(grphic3d *imref, grphic3d *imreca, grphic3d *imres,int dist_type,int reg_type,double reg_factor,int min_type,int save_type,char *nomfichres,int resolf, double Jmin,double Jmax,int normalisation_type, int nb_classe,int biais, int symetrique);
 
 
 DllExport int CombineTransfo3d(char *nomfichier1, char *nomfichier2, char *nomfichierres, int interpolation);
@@ -36,6 +36,8 @@ DllExport int SaveTrfFile(char *nomfichier, grphic3d *ux, grphic3d *uy,grphic3d 
 
 DllExport void MriInfo3D(grphic3d *p);
 DllExport void VisuTrfFile(char *nomfichier, grphic3d *output, int type);
+
+DllExport void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda);
 
 #ifdef __cplusplus
 }

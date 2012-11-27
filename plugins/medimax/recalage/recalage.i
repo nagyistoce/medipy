@@ -35,6 +35,8 @@ Multiresolution rigid registration
                     8 : IM NORM MAES2
                     9 : Entropie conjointe
                     10 : Correlation ratio
+                    11 : ICP
+                    12 : ICP sym
     
     inter_type : interpolation method
                     0 : nearest
@@ -340,4 +342,19 @@ MEDIMAX_FUNCTION_MACRO(VisuTrfFile,
                     3 : y displacement field
                     4 : z displacement field
 """,,nomfichier, output, type)
+
+#-------------------------------------------------------------
+#   Atrophy simulation
+#-------------------------------------------------------------
+
+void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda_reg);
+MEDIMAX_FUNCTION_MACRO(simulationAtrophie,
+""" Atrophhy simulation
+
+    imref  : image of desired atrophy rate
+    mask   : mask of invariant points
+    nomfichres  : trf filename
+    resolf : final resolution 
+    lambda : regularisation weighting factor               
+""",,imref, mask, nomfichres, resolf, lambda_reg)
 
