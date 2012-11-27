@@ -111,6 +111,15 @@ switch(precision)
    switch(registration_type)
     {
     case 0: // rigid
+        
+        if ((dist_type==11) || (dist_type==12)) 
+            {
+            aff_log("\n RECALAGE RIGIDE ICP");
+            dist_type=dist_type-11;
+            imx_matching_rigide_ICP_3d_p(imref, imreca, imres, dist_type, inter_type, min_type, save_type, transfres,inittrf, FieldOfResearch, matchPrecision);
+            break;
+            }
+        
         if (multistart==1)
         {
          aff_log("\n RECALAGE RIGIDE EN MULTIRESOLUTION AVEC MULTISTART (methode Jenkison&Smith) ");
@@ -123,6 +132,15 @@ switch(precision)
         }       
         break;
     case 1: // rigid + zoom
+         if ((dist_type==11) || (dist_type==12)) 
+            {
+            aff_log("\n RECALAGE RIGIDE ICP");
+            dist_type=dist_type-11;
+            imx_matching_rigide_zoom_ICP_3d_p(imref, imreca, imres, dist_type, inter_type, min_type, save_type, transfres,inittrf, FieldOfResearch, matchPrecision);
+            break;
+            }
+ 
+        
         if (multistart==1)
         {
         aff_log("\n RECALAGE RIGIDE+ZOOM EN MULTIRESOLUTION AVEC MULTISTART (methode Jenkison&Smith) ");
@@ -135,6 +153,15 @@ switch(precision)
         }       
         break;
     case 2: // affine
+        if ((dist_type==11) || (dist_type==12)) 
+            {
+            aff_log("\n RECALAGE RIGIDE ICP");
+            dist_type=dist_type-11;
+            imx_matching_affine_ICP_3d_p(imref, imreca, imres, dist_type, inter_type, min_type, save_type, transfres,inittrf, FieldOfResearch, matchPrecision);
+            break;
+            }
+ 
+        
         if (multistart==1)
         {
         aff_log("\n RECALAGE AFFINE EN MULTIRESOLUTION AVEC MULTISTART (methode Jenkison&Smith) ");
@@ -189,7 +216,7 @@ int ApplyTransfo3d(grphic3d *imdeb, char *nomfichier, grphic3d *imres, int inter
     int err=0;
       
     SetGrphic3dDxDyDzPositive(imdeb);
-	put_file_extension(nomfichier,".trf",tmp);
+    put_file_extension(nomfichier,".trf",tmp);
   
     /*chargement de la transformation*/
     transfo = load_transf_3d(tmp);
@@ -724,4 +751,44 @@ switch (type)
 free_field3d(champ);
 free_transf3d(transfo);
  
+}
+
+/*******************************************************************************
+**  Simulation d'atrophie                              
+*******************************************************************************/
+void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda)
+{
+    /*type de fonction*/
+    int func_type=1;
+    
+    /*interpolation*/
+    int inter_type=4;
+
+    /*minimisation*/
+    int min_type=1;
+    
+    /* regularisation */
+    int reg_type = 2;
+    
+    /* borne jacobien */
+    double Jmin=0.0;
+    double Jmax=100000.0;
+    
+    /* distance */
+    int dist_type = 1;
+    
+    /*sauvegarde du champ*/
+    int save_type=1;
+    int adaptatif=1;
+    
+    /* precision de la methode de simulation (1:precis / 2:tres precis) */ 
+    PRECISION_SIMULATION=2;
+    
+    /* coeff de ponderation de la regularisation */
+    TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=lambda;
+    
+    
+    imx_simul_atrophie_topo_3d_p(imref,mask, func_type, dist_type, reg_type, inter_type, min_type, save_type, nomfichres, resolf, adaptatif, Jmin, Jmax);
+
+
 }
