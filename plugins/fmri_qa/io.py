@@ -237,8 +237,8 @@ def save_report(date, sfnr, snr, drift, fluctuation, rdc, directory):
     report_file = open(os.path.join(directory, "report.html"), "w")
     report_file.write(data)
 
-def save_longitudinal(snr, sfnr, fluctuation, drift, directory) :
-    for name in ["snr", "sfnr", "fluctuation", "drift"] :
+def save_longitudinal(snr, sfnr, fluctuation, drift, rdc, directory) :
+    for name in ["snr", "sfnr", "fluctuation", "drift", "rdc"] :
         data = locals()[name]
         writer = csv.writer(open(os.path.join(directory, "%s.csv"%name), "w"))
         for date, value in sorted(data, key=lambda x:x[0]) :
