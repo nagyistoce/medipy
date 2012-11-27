@@ -758,6 +758,7 @@ free_transf3d(transfo);
 *******************************************************************************/
 void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda)
 {
+    int continu,l;
     /*type de fonction*/
     int func_type=1;
     
@@ -786,6 +787,53 @@ void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int re
     
     /* coeff de ponderation de la regularisation */
     TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=lambda;
+    
+    
+    /* qq tests pour verifier qu'on peut lancer la fontion */
+    if ((imref->dx==0.0)||(imref->dy==0)||(imref->dz==0))
+     {PUT_WARN("Les dx,dy et dz sont nuls");
+          printf("Les dx,dy et dz sont nuls\n");
+            return ;
+    }
+
+
+
+
+    if (mask!=NULL)
+    if ((imref->dx!=mask->dx)||(imref->dy!=mask->dy)||(imref->dz!=mask->dz))
+    {
+      PUT_WARN("La carte de jacobien et le mask de points invariants n'ont pas les memes dx,dy,dz !");
+      printf("La carte de jacobien et le mask de points invariants n'ont pas les memes dx,dy,dz !\n");
+      
+            return;
+    }
+
+    if (mask!=NULL)
+    if ((imref->width!=mask->width)||(imref->height!=mask->height)||(imref->depth!=mask->depth))
+    {
+      PUT_WARN("La carte de jacobien et le mask de points invariants n'ont pas la meme taille !");
+      printf("La carte de jacobien et le mask de points invariants n'ont pas la meme taille !\n");
+      return;
+    }
+
+
+
+
+    continu=0;
+    for (l=0;l<10;l++)
+    {
+    if (imref->width==pow(2.0,l)) continu++;
+    if (imref->height==pow(2.0,l)) continu++;
+    if (imref->depth==pow(2.0,l)) continu++;
+}
+
+    if (continu!=3)
+    {
+      PUT_WARN("Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp");
+          printf("Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp\n");
+            //return(-1) ;
+            save_type=3;
+    }
     
     
     imx_simul_atrophie_topo_3d_p(imref,mask, func_type, dist_type, reg_type, inter_type, min_type, save_type, nomfichres, resolf, adaptatif, Jmin, Jmax);
