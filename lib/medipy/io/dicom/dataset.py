@@ -32,7 +32,7 @@ class DataSet(dict):
     """
     
     @staticmethod
-    def from_dict(dictionary, tags = "all", private_tags = "all", process_header=True):
+    def from_dict(dictionary, tags = "all", private_tags = "all", process_header="first_run"):
         """ Create an Data Set from a dictionary. tags can be either a
             sequence of tags (numerical or named) from the dictionary to be
             included in the Data Set or the string "all". In the
@@ -43,15 +43,17 @@ class DataSet(dict):
         
         dataset = DataSet()
         
-        if process_header :
+        if process_header == "first_run" :
             header_dict = dict([(key,value) 
                                 for key, value in dictionary.items() 
                                 if key[0]==0x0002])
             if header_dict :
-                header = DataSet.from_dict(header_dict, tags, private_tags, False)
+                header = DataSet.from_dict(header_dict, tags, private_tags, "header_only")
                 dataset.header = header
         
         for tag, element in dictionary.items() :
+            if process_header != "header_only" and tag[0] == 0x0002 :
+                continue
             if tag[1] == 0 :
                 # group length
                 continue
