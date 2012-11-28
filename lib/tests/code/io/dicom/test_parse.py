@@ -16,7 +16,7 @@ class testParse(unittest.TestCase):
         self.assertTrue(isinstance(self.dataset, medipy.io.dicom.DataSet))
     
     def test_single_value(self):
-        self.assertEqual(self.dataset.media_storage_sop_instance_uid, 
+        self.assertEqual(self.dataset.header.media_storage_sop_instance_uid, 
                          "1.3.12.2.1107.5.2.32.35389.2010072309084257478998732")
     
     def test_multiple_value(self):
