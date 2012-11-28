@@ -44,9 +44,9 @@ class DataSet(dict):
         dataset = DataSet()
         
         if process_header == "first_run" :
-            header_dict = dict([(key,value) 
-                                for key, value in dictionary.items() 
-                                if key[0]==0x0002])
+            header_dict = dict([(tag, element) 
+                                for tag, element in dictionary.items() 
+                                if tag[0]==0x0002])
             if header_dict :
                 header = DataSet.from_dict(header_dict, tags, private_tags, "header_only")
                 dataset.header = header
@@ -70,7 +70,7 @@ class DataSet(dict):
                 if isinstance(element, list) and element and isinstance(element[0], dict) :
                     value = []
                     for item in element :
-                        sub_dataset = DataSet.from_dict(item, tags, private_tags, False)
+                        sub_dataset = DataSet.from_dict(item, tags, private_tags, "no_header")
                         value.append(sub_dataset)
                 else :
                     value = element
@@ -79,7 +79,7 @@ class DataSet(dict):
         return dataset
     
     def __init__(self):
-        dict.__init__({})
+        dict.__init__(self, {})
         self.header = {}
         self.normalized = False
     
@@ -120,7 +120,8 @@ class DataSet(dict):
             
             self._pixel_array = numpy.fromstring(self.pixel_data, dtype).reshape(shape)
             
-            dataset_is_little_endian = (self.transfer_syntax_uid != "1.2.840.10008.1.2.2")
+            dataset_is_little_endian = (
+                self.header.get("transfer_syntax_uid", "") != "1.2.840.10008.1.2.2")
             sys_is_little_endian = (sys.byteorder == 'little')
             
             if sys_is_little_endian != dataset_is_little_endian :
