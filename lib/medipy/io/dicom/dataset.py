@@ -14,6 +14,7 @@ import numpy
 from tag import Tag
 from dictionary import data_dictionary, name_dictionary
 from private_dictionaries import private_dictionaries
+from medipy.io.dicom import dictionary
 
 class DataSet(dict):
     """ An Data Set is a collection (dictionary) of Data Elements values.
@@ -31,7 +32,7 @@ class DataSet(dict):
     """
     
     @staticmethod
-    def from_dict(dictionary, tags = "all", private_tags = "all"):
+    def from_dict(dictionary, tags = "all", private_tags = "all", process_header=True):
         """ Create an Data Set from a dictionary. tags can be either a
             sequence of tags (numerical or named) from the dictionary to be
             included in the Data Set or the string "all". In the
@@ -41,6 +42,14 @@ class DataSet(dict):
         """
         
         dataset = DataSet()
+        
+        if process_header :
+            header_dict = dict([(key,value) 
+                                for key, value in dictionary.items() 
+                                if key[0]==0x0002])
+            if header_dict :
+                header = DataSet.from_dict(header_dict, tags, private_tags, False)
+                dataset.header = header
         
         for tag, element in dictionary.items() :
             if tag[1] == 0 :
@@ -59,7 +68,7 @@ class DataSet(dict):
                 if isinstance(element, list) and element and isinstance(element[0], dict) :
                     value = []
                     for item in element :
-                        sub_dataset = DataSet.from_dict(item)
+                        sub_dataset = DataSet.from_dict(item, tags, private_tags, False)
                         value.append(sub_dataset)
                 else :
                     value = element
@@ -69,6 +78,7 @@ class DataSet(dict):
     
     def __init__(self):
         dict.__init__({})
+        self.header = {}
         self.normalized = False
     
     def tags(self):
@@ -298,6 +308,9 @@ class DataSet(dict):
                 value = "\n"+"\n".join(value)
             elif vr in ["OB", "OW", "OB/OW", "OF", "UN"] :
                 value = "<array of %i bytes>"%(len(value),)
+            elif vr == "UI" and value in dictionary.uid_dictionary :
+                value = "{0} ({1})".format(dictionary.uid_dictionary[value][0],
+                                           value)
             else :
                 value = self[tag]
 
