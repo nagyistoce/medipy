@@ -718,10 +718,12 @@ void VisuTrfFile(char *nomfichier, grphic3d *output, int type)
 {
 transf3d *transfo;
 field3d *champ;
+int i, j, k;
 
 transfo=load_transf_3d(nomfichier);
 champ=transf_to_field_3d(transfo,NULL,NULL);
 
+                 
 resize_grphic3d_buffer(output, transfo->width,transfo->height,transfo->depth);
 
 
@@ -731,6 +733,17 @@ switch (type)
         module_field_to_image_3d(champ,output);
         break;
     case 1 : /*jacobien*/
+        // Attention pour le calcul du jacobien, il faut un champ en voxel
+        for(i=0;i<transfo->width;i++)
+        for(j=0;j<transfo->height;j++)
+        for(k=0;k<transfo->depth;k++)
+                 {
+                 champ->raw[i][j][k].x=champ->raw[i][j][k].x/transfo->dx;
+                 champ->raw[i][j][k].y=champ->raw[i][j][k].y/transfo->dy;
+                 champ->raw[i][j][k].z=champ->raw[i][j][k].z/transfo->dz;    
+                 }
+
+        
         jacobien_field_to_image_3d(champ,output);
         break;
     case 2 : /* composante suivant x*/
