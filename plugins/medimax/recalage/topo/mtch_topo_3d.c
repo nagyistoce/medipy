@@ -3020,6 +3020,7 @@ int imx_simul_atrophie_topo_3d_p(grphic3d *imref,grphic3d *mask, int func_type, 
             } 
     }
     save_transf_3d(transfo,nomfichres);
+    
     free_transf3d(transfo);
    } 
  }
