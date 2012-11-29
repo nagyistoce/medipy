@@ -28,7 +28,7 @@ class Image(Observable):
         The data has two kinds of interpretation :
           * data_type : whether the data is scalar, vector or matrix
           * image_type : how the image should be interpreted, can be unspecified
-           (normal), "tensor_2", or spectroscopy 
+           (normal), "rgb", "tensor_2", or spectroscopy 
         
         If data_type == "vector" or data_type == "matrix", an array of
         dimension N will have a spacing of size N-1 (resp. N-2)
