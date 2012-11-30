@@ -75,7 +75,7 @@ public :
     /// @brief Convert a GDCM Data Element to a Python Data Element.
     PyObject* to_python(gdcm::ValEntry * data_element) const;
 
-    // TODO : gdcm::DataSet const & to_gdcm();
+    void to_gdcm(gdcm::DocEntrySet & document);
 private :
     /// @brief GDCM version of the Data Set.
     gdcm::Document * _gdcm_dataset;
@@ -89,6 +89,9 @@ private :
     /// @brief Convert a DICOM Value Field of known VR to a Python object.
     PyObject* _parse_single_valued(std::string const & value, std::string const & vr) const;
     PyObject* _parse_multi_valued(std::string const & value, std::string const & vr) const;
+
+    void _to_gdcm(PyObject* dictionary, gdcm::DocEntrySet & document);
+    void _to_gdcm(PyObject* object, gdcm::DictEntry * dictEntry, gdcm::DocEntrySet & document);
 };
 
 #endif // _eab6ea72_375e_4eb8_afbc_ef22e0eddbfa
