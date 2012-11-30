@@ -12,11 +12,17 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <iterator>
+#include <limits>
+#include <locale>
 #include <sstream>
 #include <stdint.h>
+#include <vector>
 
 #include <gdcmBinEntry.h>
+#include <gdcmDictSet.h>
 #include <gdcmDocEntry.h>
+#include <gdcmGlobal.h>
 #include <gdcmSeqEntry.h>
 #include <gdcmSQItem.h>
 #include <gdcmValEntry.h>
@@ -44,20 +50,21 @@ static const bool initialized=initialize();
 
 DataSetBridge
 ::DataSetBridge()
-: _python_dataset(NULL)
+: _gdcm_dataset(NULL), _python_dataset(NULL)
 {
     // Nothing else.
 }
 
 DataSetBridge
 ::DataSetBridge(gdcm::Document * dataset)
-: _python_dataset(NULL)
+: _gdcm_dataset(NULL), _python_dataset(NULL)
 {
     this->set_gdcm(dataset);
 }
 
 DataSetBridge
 ::DataSetBridge(PyObject* dataset)
+: _gdcm_dataset(NULL), _python_dataset(NULL)
 {
     this->set_python(dataset);
 }
@@ -87,12 +94,7 @@ void
 DataSetBridge
 ::set_python(PyObject* dataset)
 {
-    if(this->_python_dataset != NULL)
-    {
-        Py_DECREF(this->_python_dataset);
-    }
     this->_python_dataset = dataset;
-    Py_INCREF(this->_python_dataset);
 }
 
 std::string const &
@@ -363,6 +365,13 @@ DataSetBridge
     }
 }
 
+void
+DataSetBridge
+::to_gdcm(gdcm::DocEntrySet & document)
+{
+    return this->_to_gdcm(this->_python_dataset, document);
+}
+
 PyObject*
 DataSetBridge
 ::_parse_multi_valued(std::string const & value, std::string const & vr) const
@@ -396,3 +405,380 @@ DataSetBridge
     return list;
 }
 
+std::vector<uint8_t> stringVR(PyObject* object, bool encodeAsUTF8, char padding)
+{
+    std::vector<uint8_t> result;
+
+    if(PyList_Check(object))
+    {
+        int const itemsCount = PyList_Size(object);
+        for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+        {
+            PyObject* pythonItem = PyList_GetItem(object, itemIndex);
+            std::vector<uint8_t> const itemData =
+                stringVR(pythonItem, encodeAsUTF8, padding);
+            std::copy(itemData.begin(), itemData.end(),
+                      std::back_inserter(result));
+            if(itemIndex!=itemsCount-1)
+            {
+                result.push_back('\\');
+            }
+        }
+    }
+    else
+    {
+        bool object_is_unicode = PyUnicode_Check(object);
+
+        PyObject* string;
+        if(object_is_unicode)
+        {
+            if(encodeAsUTF8)
+            {
+                string = PyUnicode_AsUTF8String(object);
+            }
+            else
+            {
+                string = PyUnicode_AsASCIIString(object);
+            }
+        }
+        else
+        {
+            string = object;
+        }
+
+        char* buffer = PyString_AsString(string);
+        result.resize(PyString_Size(string));
+        std::copy(buffer, buffer+result.size(), result.begin());
+
+        if(object_is_unicode)
+        {
+            Py_DECREF(string);
+        }
+    }
+
+    if(result.size()%2==1)
+    {
+        result.push_back(padding);
+    }
+
+    return result;
+}
+
+template<typename T>
+std::vector<uint8_t> intVR(PyObject* object)
+{
+    std::vector<uint8_t> result;
+
+    if(PyList_Check(object))
+    {
+        int const itemsCount = PyList_Size(object);
+        for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+        {
+            PyObject* pythonItem = PyList_GetItem(object, itemIndex);
+            std::vector<uint8_t> const itemData = intVR<T>(pythonItem);
+            std::copy(itemData.begin(), itemData.end(),
+                      std::back_inserter(result));
+        }
+    }
+    else
+    {
+        T const value = T(PyInt_AsLong(object));
+        uint8_t const * buffer = reinterpret_cast<uint8_t const *>(&value);
+        result.resize(sizeof(T));
+        std::copy(buffer, buffer+result.size(), result.begin());
+    }
+
+    return result;
+}
+
+template<typename T>
+std::vector<uint8_t> floatVR(PyObject* object)
+{
+    std::vector<uint8_t> result;
+
+    if(PyList_Check(object))
+    {
+        int const itemsCount = PyList_Size(object);
+        for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+        {
+            PyObject* pythonItem = PyList_GetItem(object, itemIndex);
+            std::vector<uint8_t> const itemData = floatVR<T>(pythonItem);
+            std::copy(itemData.begin(), itemData.end(),
+                      std::back_inserter(result));
+        }
+    }
+    else
+    {
+        T const value = T(PyFloat_AsDouble(object));
+        uint8_t const * buffer = reinterpret_cast<uint8_t const *>(&value);
+        result.resize(sizeof(T));
+        std::copy(buffer, buffer+result.size(), result.begin());
+    }
+
+    return result;
+}
+
+std::vector<uint8_t> bufferVR(PyObject* object)
+{
+    std::vector<uint8_t> result(PyString_Size(object));
+    std::copy(PyString_AsString(object), PyString_AsString(object)+result.size(),
+              result.begin());
+
+    if(result.size()%2==1)
+    {
+        result.push_back('\0');
+    }
+
+    return result;
+}
+
+std::vector<uint8_t> AE(PyObject* object) { return stringVR(object, false, ' '); }
+std::vector<uint8_t> AS(PyObject* object) { return stringVR(object, false, ' '); }
+
+std::vector<uint8_t> AT(PyObject* object)
+{
+    std::vector<uint8_t> result;
+
+    if(PyList_Check(object))
+    {
+        int const itemsCount = PyList_Size(object);
+        for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+        {
+            PyObject* pythonItem = PyList_GetItem(object, itemIndex);
+            std::vector<uint8_t> itemData = AT(pythonItem);
+            std::copy(itemData.begin(), itemData.end(),
+                      std::back_inserter(result));
+        }
+    }
+    else
+    {
+        PyObject* first = PyTuple_GetItem(object, 0);
+        uint16_t first_value = uint16_t(PyInt_AsLong(first));
+        PyObject* second = PyTuple_GetItem(object, 1);
+        uint16_t second_value = uint16_t(PyInt_AsLong(second));
+
+        result.resize(2*sizeof(uint16_t));
+        std::copy(reinterpret_cast<uint8_t*>(&first_value),
+            reinterpret_cast<uint8_t*>(&first_value)+result.size(),
+            result.begin());
+        std::copy(reinterpret_cast<uint8_t*>(&second_value),
+            reinterpret_cast<uint8_t*>(&second_value)+result.size(),
+            result.begin()+sizeof(uint16_t));
+    }
+
+    return result;
+}
+
+std::vector<uint8_t> CS(PyObject* object) { return stringVR(object, false, ' '); }
+std::vector<uint8_t> DA(PyObject* object) { return stringVR(object, false, ' '); }
+
+std::vector<uint8_t> DS(PyObject* object)
+{
+    std::vector<uint8_t> result;
+
+    if(PyList_Check(object))
+    {
+        int const itemsCount = PyList_Size(object);
+        for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+        {
+            PyObject* pythonItem = PyList_GetItem(object, itemIndex);
+            std::vector<uint8_t> itemData = DS(pythonItem);
+            std::copy(itemData.begin(), itemData.end(),
+                      std::back_inserter(result));
+            if(itemIndex!=itemsCount-1)
+            {
+                result.push_back('\\');
+            }
+        }
+    }
+    else
+    {
+        double value = PyFloat_AsDouble(object);
+        std::ostringstream stream;
+        stream.imbue(std::locale("C"));
+        stream.precision(std::numeric_limits<double>::digits10);
+        stream << value;
+        std::string const string = stream.str();
+        result.resize(string.size());
+        std::copy(string.begin(), string.end(), result.begin());
+    }
+
+    if(result.size()%2==1)
+    {
+        result.push_back(' ');
+    }
+
+    return result;
+}
+
+std::vector<uint8_t> DT(PyObject* object) { return stringVR(object, false, ' '); }
+// FIXME : check that double is 64 bits
+std::vector<uint8_t> FD(PyObject* object) { return floatVR<double>(object); }
+// FIXME : check that float is 32 bits
+std::vector<uint8_t> FL(PyObject* object) { return floatVR<float>(object); }
+
+std::vector<uint8_t> IS(PyObject* object)
+{
+    std::vector<uint8_t> result;
+
+    if(PyList_Check(object))
+    {
+        int const itemsCount = PyList_Size(object);
+        for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+        {
+            PyObject* pythonItem = PyList_GetItem(object, itemIndex);
+            std::vector<uint8_t> itemData = IS(pythonItem);
+            std::copy(itemData.begin(), itemData.end(),
+                      std::back_inserter(result));
+            if(itemIndex!=itemsCount-1)
+            {
+                result.push_back('\\');
+            }
+        }
+    }
+    else
+    {
+        long value = PyInt_AsLong(object);
+        std::ostringstream stream;
+        stream.imbue(std::locale("C"));
+        stream << value;
+        std::string const string = stream.str();
+        result.resize(string.size());
+        std::copy(string.begin(), string.end(), result.begin());
+    }
+
+    if(result.size()%2==1)
+    {
+        result.push_back(' ');
+    }
+
+    return result;
+}
+
+std::vector<uint8_t> LO(PyObject* object) { return stringVR(object, true, ' '); }
+// LT should not have VM > 1, but better safe than sorry.
+std::vector<uint8_t> LT(PyObject* object) { return stringVR(object, true, ' '); }
+std::vector<uint8_t> OB(PyObject* object) { return bufferVR(object); }
+std::vector<uint8_t> OF(PyObject* object) { return bufferVR(object); }
+std::vector<uint8_t> OW(PyObject* object) { return bufferVR(object); }
+std::vector<uint8_t> PN(PyObject* object) { return stringVR(object, true, ' '); }
+std::vector<uint8_t> SH(PyObject* object) { return stringVR(object, true, ' '); }
+std::vector<uint8_t> SL(PyObject* object) { return intVR<int32_t>(object); }
+std::vector<uint8_t> SS(PyObject* object) { return intVR<int16_t>(object); }
+// ST should not have VM > 1, but better safe than sorry.
+std::vector<uint8_t> ST(PyObject* object) { return stringVR(object, true, ' '); }
+std::vector<uint8_t> TM(PyObject* object) { return stringVR(object, false, ' '); }
+std::vector<uint8_t> UI(PyObject* object) { return stringVR(object, false, '\0'); }
+std::vector<uint8_t> UL(PyObject* object) { return intVR<uint32_t>(object); }
+std::vector<uint8_t> UN(PyObject* object) { return bufferVR(object); }
+std::vector<uint8_t> US(PyObject* object) { return intVR<uint16_t>(object); }
+// UT should not have VM > 1, but better safe than sorry.
+std::vector<uint8_t> UT(PyObject* object) { return stringVR(object, true, ' '); }
+
+void
+DataSetBridge
+::_to_gdcm(PyObject* dictionary, gdcm::DocEntrySet & document)
+{
+    PyObject *key, *value;
+    Py_ssize_t pos = 0;
+
+    while(PyDict_Next(dictionary, &pos, &key, &value))
+    {
+        long const tag = PyLong_AsLong(key);
+
+        gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
+        gdcm::DictEntry * dictEntry = dict->GetEntry(tag>>16, tag&0xffff);
+
+        if(dictEntry == NULL)
+        {
+            // TODO : private tags
+
+            // Should do the following : get the private creator, load the
+            // correponding dict, and get the VR from there
+            // PyObject * privateCreatorTag = PyInt_FromLong(tag&0xffff0000+0x0010);
+            // if(PyDict_Contains(dictionary, privateCreatorTag))
+            // {
+                // PyObject * privateCreator = PyDict_GetItem(dictionary, privateCreatorTag);
+                // PyObject * privateCreatorString = PyUnicode_AsASCIIString(privateCreator);
+                // std::cout << PyString_AsString(privateCreatorString) << std::endl;
+            // }
+            // Py_DECREF(privateCreatorTag);
+            continue;
+        }
+
+        if(dictEntry->GetGroup() == 0x0008 && dictEntry->GetElement() == 0x0005)
+        {
+            // We encode everything to UTF-8, so we overwrite the
+            // Specific Character Set
+            std::string const value = "ISO_IR 192";
+            document.InsertValEntry((value.size()%2==0)?value:(value+" "),
+                dictEntry->GetGroup(), dictEntry->GetElement(), dictEntry->GetVR());
+            continue;
+        }
+
+        gdcm::VRKey const vr = dictEntry->GetVR();
+        if(vr == "SQ")
+        {
+            gdcm::SeqEntry * seqEntry = document.InsertSeqEntry(
+                dictEntry->GetGroup(), dictEntry->GetElement());
+
+            int const itemsCount = PyList_Size(value);
+            for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
+            {
+                PyObject* pythonItem = PyList_GetItem(value, itemIndex);
+                // Depth level is only for printing, so we set it to a default
+                // value
+                gdcm::SQItem * gdcmItem = new gdcm::SQItem(0);
+                this->_to_gdcm(pythonItem, *gdcmItem);
+                seqEntry->AddSQItem(gdcmItem, itemIndex);
+            }
+        }
+        else
+        {
+            this->_to_gdcm(value, dictEntry, document);
+        }
+    }
+}
+
+void
+DataSetBridge
+::_to_gdcm(PyObject* object, gdcm::DictEntry * dictEntry, gdcm::DocEntrySet & document)
+{
+#define MEDIPY_VR_ACTION(vr_value) \
+    if(dictEntry->GetVR() == #vr_value) \
+    { \
+        std::vector<uint8_t> data = vr_value(object); \
+        document.InsertBinEntry(&data[0], data.size(), \
+            dictEntry->GetGroup(), dictEntry->GetElement(), dictEntry->GetVR()); \
+    }
+
+    MEDIPY_VR_ACTION(AE)
+    MEDIPY_VR_ACTION(AS)
+    MEDIPY_VR_ACTION(AT)
+    MEDIPY_VR_ACTION(CS)
+    MEDIPY_VR_ACTION(DA)
+    MEDIPY_VR_ACTION(DT)
+    MEDIPY_VR_ACTION(DS)
+    MEDIPY_VR_ACTION(FD)
+    MEDIPY_VR_ACTION(FL)
+    MEDIPY_VR_ACTION(IS)
+    MEDIPY_VR_ACTION(LO)
+    MEDIPY_VR_ACTION(LT)
+    MEDIPY_VR_ACTION(OB)
+    MEDIPY_VR_ACTION(OF)
+    MEDIPY_VR_ACTION(OW)
+    MEDIPY_VR_ACTION(PN)
+    MEDIPY_VR_ACTION(SH)
+    MEDIPY_VR_ACTION(SL)
+    // SQ is not processed here !
+    MEDIPY_VR_ACTION(SS)
+    MEDIPY_VR_ACTION(ST)
+    MEDIPY_VR_ACTION(TM)
+    MEDIPY_VR_ACTION(UI)
+    MEDIPY_VR_ACTION(UL)
+    MEDIPY_VR_ACTION(UN)
+    MEDIPY_VR_ACTION(US)
+    MEDIPY_VR_ACTION(UT)
+
+#undef MEDIPY_VR_ACTION
+}
