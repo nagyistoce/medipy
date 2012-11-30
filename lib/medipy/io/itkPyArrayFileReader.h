@@ -1,5 +1,5 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2012
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -88,6 +88,10 @@ protected:
 	/** Return a NumPy array type from a C type. */
 	template<typename T>
 	static PyArrayType GetPyType(void);
+
+	/** Generate the array, origin, spacing, and direction. */
+	template<typename TImage>
+	void GenerateData();
 
 	/** Set the image data from an ITK image. */
 	template<typename TImage>
