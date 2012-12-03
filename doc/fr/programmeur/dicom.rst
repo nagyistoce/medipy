@@ -12,7 +12,7 @@ sait qu'ils ne contiennent qu'une seule série.
     import medipy.io.dicom
     
     # Chargement des fichiers
-    datasets = [medipy.io.dicom.parse(f) for f in filenames]
+    datasets = [medipy.io.dicom.read(f) for f in filenames]
     # Création de l'image
     image = medipy.io.dicom.image(datasets)
 
@@ -27,7 +27,7 @@ séries, puis choisir l'une d'entre elles.
 
     import medipy.io.dicom
     
-    datasets = [medipy.io.dicom.parse(f) for f in filenames]
+    datasets = [medipy.io.dicom.read(f) for f in filenames]
     # Division des DataSets en séries
     series = medipy.io.dicom.series(datasets)
     for serie in series :
@@ -56,7 +56,7 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s'agit de :
     
     import medipy.io.dicom
 
-    datasets = [medipy.io.dicom.parse(f) for f in filenames]
+    datasets = [medipy.io.dicom.read(f) for f in filenames]
     series = medipy.io.dicom.series(datasets)
     for serie in series :
         # Récupération des valeurs des attributs Series Instance UID et 
@@ -78,7 +78,7 @@ localisateur en IRM. La fonction ``stacks`` permet de diviser une série en pile
     
     import medipy.io.dicom
 
-    datasets = [medipy.io.dicom.parse(f) for f in filenames]
+    datasets = [medipy.io.dicom.read(f) for f in filenames]
     series = medipy.io.dicom.series(datasets)
     serie = medipy.io.dicom.load_dicomdir_records(series[0])
     # Division de la série en piles

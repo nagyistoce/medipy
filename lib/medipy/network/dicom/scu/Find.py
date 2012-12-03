@@ -108,7 +108,7 @@ class Find(SCU) :
         # Process results
         datasets = []
         for filename in glob.glob(os.path.join(temporary_directory, "rsp*.dcm")) :
-            dataset = medipy.io.dicom.parse(filename)
+            dataset = medipy.io.dicom.read(filename)
             datasets.append(dataset)
         
         # Remove temporary directory

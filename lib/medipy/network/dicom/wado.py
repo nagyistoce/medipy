@@ -48,7 +48,7 @@ def get(url, dataset, filename=None):
     fd.close()
     
     if filename is None :
-        dataset = medipy.io.dicom.parse(temp_name)
+        dataset = medipy.io.dicom.read(temp_name)
         os.remove(temp_name)
     
         return dataset

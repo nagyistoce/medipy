@@ -9,7 +9,7 @@ class testParse(unittest.TestCase):
         data_directory = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", "..", "..", "data"))
         
-        self.dataset = medipy.io.dicom.parse(
+        self.dataset = medipy.io.dicom.read(
             os.path.join(data_directory, "input", "siemens_mosaic.dcm"))
         
     def test_type(self) :

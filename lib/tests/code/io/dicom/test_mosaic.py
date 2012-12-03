@@ -14,7 +14,7 @@ class testMosaic(unittest.TestCase):
         self.data_directory = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", "..", "..", "data"))
         
-        dataset = medipy.io.dicom.parse(
+        dataset = medipy.io.dicom.read(
             os.path.join(self.data_directory, "input", "siemens_mosaic.dcm"))
         self.assertTrue(0x00291010 in dataset)
         image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
