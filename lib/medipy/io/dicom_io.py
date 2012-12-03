@@ -25,7 +25,7 @@ class Dicom(IOBase) :
     def can_load(self):
         if self._filename is not None and self._stacks is None :
             try :
-                dataset = medipy.io.dicom.parse(self._filename)
+                dataset = medipy.io.dicom.read(self._filename)
             except medipy.base.Exception :
                 return False
             else :
