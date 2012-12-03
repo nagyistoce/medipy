@@ -1,8 +1,11 @@
+Lecture et écriture DICOM
+=========================
+
 Lecture DICOM
-=============
+-------------
 
 Lecture de fichiers contenant une seule série
----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Dans le cas le plus simple, on souhaite charger un ensemble de fichiers dont on
 sait qu'ils ne contiennent qu'une seule série.
@@ -17,7 +20,7 @@ sait qu'ils ne contiennent qu'une seule série.
     image = medipy.io.dicom.image(datasets)
 
 Lecture de fichiers contenant plusieurs séries
-----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Si on souhaite charger un ensemble de fichiers qui contiennent potentiellement
 plusieurs séries, il faut d'abord diviser l'ensemble des Data Sets chargés en
@@ -39,7 +42,7 @@ séries, puis choisir l'une d'entre elles.
 
 
 Lecture d'un DICOMDIR
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 Toutes les fonctions décrites précédemment acceptent aussi des Data Sets chargés
 depuis des DICOMDIRs. La fonction ``load_dicomdir_records`` se charge ensuite
@@ -68,7 +71,7 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s'agit de :
     image = medipy.io.dicom.image(serie)
 
 Cas général
------------
+^^^^^^^^^^^
 
 Dans le cas le plus général, chaque série peut être composée de plusieurs piles
 (ensemble de coupes ayant la même orientation), par exemple dans le cas du
@@ -84,3 +87,22 @@ localisateur en IRM. La fonction ``stacks`` permet de diviser une série en pile
     # Division de la série en piles
     stack = medipy.io.dicom.stacks(serie)[0]
     image = medipy.io.dicom.image(stack)
+
+Écriture DICOM
+--------------
+
+Un DataSet peut être sauvé dans un fichier en utilisant la fonction 
+``medipy.io.dicom.write``. Deux particularités sont à prendre en compte :
+
+* Toutes les chaînes de caractères sont sauvées en UTF-8 ; l'élément Specific 
+  Character Set (0008,0005) est donc fixé à "ISO_IR 192".
+* Seuls les éléments publics sont sauvés.
+
+::
+
+    import medipy.io.dicom
+    
+    dataset = medipy.io.dicom.DataSet()
+    # Modification du DataSet ...
+    
+    medipy.io.dicom.write(dataset, "foo.dcm")
