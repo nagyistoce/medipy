@@ -66,7 +66,7 @@ class Find(SCU) :
         command.extend(["--aetitle", self.connection.calling_ae_title])
         command.extend(["--call", self.connection.called_ae_title])
         
-        root_option = { "patient" : "-P", "study" : "-S", "psonly" : "-O" }
+        root_option = { "patient" : "-P", "study" : "-S" }
         command.append(root_option[self.root])
         
         query_level_option = { "patient" : "PATIENT", "study" : "STUDY", 
@@ -76,26 +76,12 @@ class Find(SCU) :
             "0008,0052={0}".format(query_level_option[self.query_level])
         ])
         
-        keys = [(tag, value) for tag, value in self.query_parameters.items()
-                if value is not None]
-        query = [tag for tag, value in self.query_parameters.items()
-                 if value is None]
-
-        for tag, value in keys :
-            if isinstance(value, list) and isinstance(value[0], medipy.io.dicom.DataSet):
-                for item_tag, item_value in value[0].items() :
-                    command.extend(["-k", "{0:04x},{1:04x}[0].{2}={3}".format(
-                        tag.group, tag.element, item_tag, str(item_value))])
-            else :
-                command.extend(["-k", "{0:04x},{1:04x}={2}".format(
-                    tag.group, tag.element, str(value))])
-        
-        command.append("-X")
+        command.append("--extract")
         
         command.append(self.connection.host)
         command.append(str(self.connection.port))
         
-        query_file = self._create_query_file(query, temporary_directory)
+        query_file = self._create_query_file(self.query_parameters, temporary_directory)
         command.append(query_file)
                 
         process = subprocess.Popen(command, 
@@ -163,21 +149,11 @@ class Find(SCU) :
     #####################
     
     def _create_query_file(self, query, temporary_directory) :
-        f, query_file_txt = tempfile.mkstemp(dir=temporary_directory)
-        for tag in query :
-            vr = medipy.io.dicom.dictionary.data_dictionary[tag][0]
-            os.write(f, "{0} {1} []\n".format(tag, vr))
+        f, query_file = tempfile.mkstemp(dir=temporary_directory)
         os.close(f)
+        medipy.io.dicom.write(query, query_file)
         
-        f, query_file_dcm = tempfile.mkstemp(dir=temporary_directory)
-        os.close(f)
-        
-        command = ["dump2dcm", query_file_txt, query_file_dcm]
-        process = subprocess.Popen(command, 
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        
-        return query_file_dcm
+        return query_file
     
     def _check_root_and_level_compatibility(self, root, level):
         if root == "study" and level == "patient" :
