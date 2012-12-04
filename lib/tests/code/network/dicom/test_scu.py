@@ -21,7 +21,7 @@ class TestSCU(unittest.TestCase):
     def test_find(self):
         query_parameters = medipy.io.dicom.DataSet()
         query_parameters.patients_name = "*"
-        query_parameters.patient_id = None
+        query_parameters.patient_id = ""
     
         patient_find = medipy.network.dicom.scu.Find(
             self.connection, "patient", "patient", query_parameters)
