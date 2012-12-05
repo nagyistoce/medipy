@@ -10,10 +10,7 @@ wrap_library("MediPyLogic" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
     set(WRAPPER_SWIG_LIBRARY_FILES ${WRAPPER_SWIG_LIBRARY_FILES}
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkBETImageFilter.swg" 
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkChangeDetectionClusteringImageFilter.swg"
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkClustersToAnnotationsCalculator.swg"
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkMonoModalStatisticalChangeDetectionImageFilter.swg"
+        "${CMAKE_CURRENT_SOURCE_DIR}/itkMaskWithValueImageFilter.swg"
     )
     auto_include_modules()
 end_wrap_library()
