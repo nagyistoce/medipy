@@ -6,7 +6,7 @@ set(CMAKE_CXX_COMPILER g++-4.4)
 
 set(WRAP_ITK_DOC OFF)
 
-wrap_library("MediPyITK" python)
+wrap_library("MediPyBridge" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
     set(WRAPPER_SWIG_LIBRARY_FILES ${WRAPPER_SWIG_LIBRARY_FILES} 
@@ -15,4 +15,4 @@ wrap_library("MediPyITK" python)
     auto_include_modules()
 end_wrap_library()
 
-wrap_ikt_post_install("MediPyITK")
+wrap_ikt_post_install("MediPyBridge")
