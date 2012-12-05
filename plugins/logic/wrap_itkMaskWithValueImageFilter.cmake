@@ -1,0 +1,4 @@
+WRAP_CLASS("itk::MaskWithValueImageFilter" "POINTER")
+    WRAP_IMAGE_FILTER("${WRAP_ITK_SCALAR}" 3)
+END_WRAP_CLASS()
+
