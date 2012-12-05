@@ -18,6 +18,8 @@ macro(swig_python_module name)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     
     swig_add_module(${name} python ${ARGV})
+    
+    swig_link_libraries(${name} ${PYTHON_LIBRARIES})
 endmacro(swig_python_module name)
 
 macro(install_swig_python_module name)
@@ -29,7 +31,7 @@ macro(install_swig_python_module name)
     set(files ${CMAKE_CURRENT_BINARY_DIR}/${name}.py ${lib_location})
     
     # Destination : mirror current location
-    file(RELATIVE_PATH destination ${CMAKE_BINARY_DIR} ${lib_location})
+    file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
     get_filename_component(destination ${destination} PATH)
     
     install(FILES ${files} DESTINATION ${destination})
