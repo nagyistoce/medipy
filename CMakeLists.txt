@@ -4,4 +4,4 @@ project("MediPy")
 include("cmake/medipy.cmake")
 
 add_subdirectory("lib")
-#add_subdirectory("plugins")
+add_subdirectory("plugins")
