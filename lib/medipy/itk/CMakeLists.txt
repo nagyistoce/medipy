@@ -5,7 +5,6 @@ install_py_files(${files})
 set(CMAKE_CXX_COMPILER g++-4.4)
 
 set(WRAP_ITK_DOC OFF)
-#set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
 
 wrap_library("MediPyITK" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
