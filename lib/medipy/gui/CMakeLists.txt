@@ -1,5 +1,6 @@
 add_subdirectory("annotations")
 add_subdirectory("base")
+add_subdirectory("brushes")
 add_subdirectory("control")
 add_subdirectory("dicom")
 add_subdirectory("function_gui_builder")
