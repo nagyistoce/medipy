@@ -17,7 +17,7 @@ macro(swig_python_module name)
     
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
     
-    swig_add_module(${name} python ${ARGV})
+    swig_add_module(${name} python ${ARGN})
     
     swig_link_libraries(${name} ${PYTHON_LIBRARIES})
 endmacro(swig_python_module name)
