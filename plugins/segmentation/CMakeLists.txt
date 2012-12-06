@@ -1,17 +1,15 @@
 file(GLOB_RECURSE files "*.py")
 install_py_files(${files})
 
-file(GLOB_RECURSE files ${CMAKE_CURRENT_SOURCE_DIR} "*")
+file(GLOB_RECURSE files "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 foreach(file ${files})
-    
     get_filename_component(leaf ${file} NAME)
     if(NOT ((${leaf} STREQUAL "CMakeLists.txt") OR (${leaf} STREQUAL "SConstruct")))
-        #message("${file} -> ${leaf}")
         file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${file})
         get_filename_component(destination ${destination} PATH)
         install(FILES ${file} DESTINATION ${destination})
     endif()
-endforeach(file)
+endforeach()
 
 # Old WrapITK does not work with g++-4.6
 set(CMAKE_CXX_COMPILER g++-4.4)
