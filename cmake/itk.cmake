@@ -5,9 +5,17 @@ macro(WRAP_ITK_INSTALL path)
     # Overload the WrapITK macro so that we install the files in the same
     # directory as the regular Python modules
     foreach(_file ${ARGN})
-        file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
-        get_filename_component(destination ${destination} PATH)
-        install(FILES ${_file} DESTINATION ${destination})
+        # Install only Python-related files
+        if(NOT (("${_file}" MATCHES ".*\\.i$") OR
+                ("${_file}" MATCHES ".*\\.idx$") OR
+                ("${_file}" MATCHES ".*\\.includes$") OR
+                ("${_file}" MATCHES ".*\\.mdx$") OR
+                ("${_file}" MATCHES ".*\\.swg$")
+          )) 
+            file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
+            get_filename_component(destination ${destination} PATH)
+            install(FILES ${_file} DESTINATION ${destination})
+        endif()
     endforeach(_file ${ARGN})
 endmacro(WRAP_ITK_INSTALL)
 
