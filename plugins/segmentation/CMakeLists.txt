@@ -24,13 +24,32 @@ set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${include_directories}"
 wrap_library("MediPySegmentation" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
-    set(WRAPPER_SWIG_LIBRARY_FILES ${WRAPPER_SWIG_LIBRARY_FILES}
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkBETImageFilter.swg" 
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkChangeDetectionClusteringImageFilter.swg"
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkClustersToAnnotationsCalculator.swg"
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkMonoModalStatisticalChangeDetectionImageFilter.swg"
-    )
-    auto_include_modules()
+    
+    wrap_module("itkBETImageFilter")
+        wrap_class("itk::BETImageFilter" "POINTER")
+            # Wrap only for 3D images
+            wrap_image_filter("${WRAP_ITK_SCALAR}" 2 3)
+        end_wrap_class()
+    end_wrap_module()
+    
+    wrap_module("itkChangeDetectionClusteringImageFilter")
+        wrap_class("itk::ChangeDetectionClusteringImageFilter" "POINTER")
+            wrap_image_filter("${WRAP_ITK_REAL}" 3)
+        end_wrap_class()
+    end_wrap_module()
+    
+    wrap_module("itkClustersToAnnotationsCalculator")
+        wrap_class("itk::ClustersToAnnotationsCalculator" "POINTER")
+            wrap_image_filter("${WRAP_ITK_REAL}" 1)
+        end_wrap_class()
+    end_wrap_module()
+    
+    wrap_module("itkMonoModalStatisticalChangeDetectionImageFilter")
+        wrap_class("itk::MonoModalStatisticalChangeDetectionImageFilter" "POINTER")
+            wrap_image_filter("${WRAP_ITK_REAL}" 3)
+        end_wrap_class()
+    end_wrap_module()
+    
 end_wrap_library()
 wrap_ikt_post_install("MediPySegmentation")
 

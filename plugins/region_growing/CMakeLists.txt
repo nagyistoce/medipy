@@ -9,9 +9,12 @@ set(WRAP_ITK_DOC OFF)
 wrap_library("MediPyRegionGrowing" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
-    set(WRAPPER_SWIG_LIBRARY_FILES ${WRAPPER_SWIG_LIBRARY_FILES}
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkConnectedThresholdWithRadiusImageFilter.swg"
-    )
-    auto_include_modules()
+    
+    wrap_module("itkConnectedThresholdWithRadiusImageFilter")
+        wrap_class("itk::ConnectedThresholdWithRadiusImageFilter" "POINTER")
+            wrap_image_filter("${WRAP_ITK_SCALAR}" 2)
+        end_wrap_class()
+    end_wrap_module()
+    
 end_wrap_library()
 wrap_ikt_post_install("MediPyRegionGrowing")
