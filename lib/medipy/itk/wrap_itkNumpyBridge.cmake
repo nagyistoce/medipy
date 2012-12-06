@@ -1,4 +1,0 @@
-WRAP_CLASS("itk::NumpyBridge")
-    WRAP_IMAGE_FILTER("${WRAP_ITK_SCALAR}" 1)
-END_WRAP_CLASS()
-
