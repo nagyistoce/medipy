@@ -12,3 +12,4 @@ from dialog import Dialog
 from frame import Frame
 from history_panel import HistoryPanel
 from panel import Panel
+from preferences import Preferences

@@ -1,9 +1,6 @@
 import numpy as np
 from openopt import QP
-#from sklearn import svm
-#import pylab
-from scipy.spatial.distance import pdist, squareform
-import scipy
+
 def svdd(X, K, C):
 	n = K.shape[0] 	# num. of samples
 	

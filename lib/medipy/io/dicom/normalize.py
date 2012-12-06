@@ -13,35 +13,137 @@
 import copy
 import math
 import operator
+import string
 
 import numpy
 
 import medipy.base
 import csa2
 from dataset import DataSet
+from medipy.io.dicom import Tag
+
 
 def normalize(dataset_or_datasets):
     """ Normalize a dataset or a sequence of datasets.
     """
-    
+ 
     if isinstance(dataset_or_datasets, DataSet) :
+        normalized_dataset = None
         if dataset_or_datasets.normalized :
-            return dataset_or_datasets
-        if "perframe_functional_groups_sequence" in dataset_or_datasets :
+            normalized_dataset = dataset_or_datasets
+        elif "perframe_functional_groups_sequence" in dataset_or_datasets :
             single_frames = multi_frame(dataset_or_datasets)
-            return [single_frame(x) for x in single_frames]
+            normalized_dataset = [single_frame(x) for x in single_frames]
         elif "frame_increment_pointer" in dataset_or_datasets :
             single_frames = nuclear_medicine(dataset_or_datasets)
-            return [single_frame(x) for x in single_frames]
+            normalized_dataset = [single_frame(x) for x in single_frames]
         elif "MOSAIC" in dataset_or_datasets.get("image_type", []) :
             single_frames = mosaic(dataset_or_datasets)
-            return [single_frame(x) for x in single_frames]
+            normalized_dataset = [single_frame(x) for x in single_frames]
         else :
-            return single_frame(dataset_or_datasets)
+            normalized_dataset = single_frame(dataset_or_datasets)
+        return dwi_normalize(normalized_dataset)
     else :
         single_frames = []
         for dataset in dataset_or_datasets :
             result = normalize(dataset)
+            if isinstance(result, DataSet) :
+                single_frames.append([result])
+            else :
+                single_frames.append(result)
+        return reduce(operator.concat, single_frames, [])
+
+def dwi_normalize(dataset_or_datasets):
+    """ Normalize the diffusion information (if present) of the dataset or
+        sequence of datasets.
+    """
+
+    # Functions specific to each manufacturer
+    
+    def dwi_siemens(dataset):
+        dwi_dataset = DataSet()
+        if (0x0029,0x1010) in dataset :
+            image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
+            if 'B_value' in image_csa.keys() :
+                if len(image_csa['B_value'])!=0 :
+                    dwi_dataset.diffusion_bvalue = image_csa['B_value'][0]
+            if 'DiffusionDirectionality' in image_csa.keys() :
+                if len(image_csa['DiffusionDirectionality'])!=0 :
+                    directionality = image_csa['DiffusionDirectionality'][0].strip(string.whitespace+"\0")
+                    dwi_dataset.diffusion_directionality = directionality
+            if 'DiffusionGradientDirection' in image_csa.keys() :
+                gradient_dataset = DataSet()
+                gradient_dataset.diffusion_gradient_orientation = image_csa['DiffusionGradientDirection']
+                dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+        return dwi_dataset
+
+    def dwi_philips(dataset):
+        tag_bval = Tag(0x2001,0x1003)
+        tag_bvec = Tag(0x2001,0x1004)
+        tag_bvec_rl = Tag(0x2005,0x10b0)
+        tag_bvec_ap = Tag(0x2005,0x10b1)
+        tag_bvec_fh = Tag(0x2005,0x10b2)
+        dwi_dataset = DataSet()
+        dwi_dataset.diffusion_directionality = ""
+        if tag_bval in dataset.keys() :
+            if len(dataset[tag_bval])!=0 :
+                dwi_dataset.diffusion_bvalue = dataset[tag_bval][0]
+        if tag_bvec in dataset.keys() :
+            gradient_dataset = DataSet()
+            gradient_dataset.diffusion_gradient_orientation = dataset[tag_bvec]
+            dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+            dwi_dataset.diffusion_directionality = "DIRECTIONAL"
+        return dwi_dataset
+
+    def dwi_ge(dataset):
+        tag_bval = Tag(0x0043,0x1039)
+        tag_bvec_x = Tag(0x0019,0x10bb)
+        tag_bvec_y = Tag(0x0019,0x10bc)
+        tag_bvec_z = Tag(0x0019,0x10bd)
+        dwi_dataset = DataSet()
+        dwi_dataset.diffusion_directionality = ""
+        if tag_bval in dataset.keys() :
+            if len(dataset[tag_bval])!=0 :
+                dwi_dataset.diffusion_bvalue = dataset[tag_bval][0]
+        bvec = []
+        if tag_bvec_x in dataset.keys() :
+            bvec.append(dataset[tag_bvec_x])
+        if tag_bvec_y in dataset.keys() :
+            bvec.append(dataset[tag_bvec_y])
+        if tag_bvec_z in dataset.keys() :
+            bvec.append(dataset[tag_bvec_z])
+        gradient_dataset = DataSet()
+        gradient_dataset.diffusion_gradient_orientation = bvec
+        dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+        if len(bvec)==3 :
+            dwi_dataset.diffusion_directionality = "DIRECTIONAL"
+        return dwi_dataset
+
+    if isinstance(dataset_or_datasets, DataSet) :
+        key = "dwi_{0}".format(
+            dataset_or_datasets.manufacturer.lower().split(' ')[0])
+        if key in locals() :
+            dwi_function = locals()[key]
+            dwi_dataset = dwi_function(dataset_or_datasets)
+            
+            # Normalize gradient direction
+            if "diffusion_gradient_direction_sequence" in dwi_dataset :
+                gradient_direction = dwi_dataset.\
+                    diffusion_gradient_direction_sequence[0].\
+                        diffusion_gradient_orientation
+                if not gradient_direction :
+                    gradient_direction = [0.,0.,0.]
+                    dwi_dataset.diffusion_gradient_direction_sequence[0].\
+                        diffusion_gradient_orientation = gradient_direction
+            
+            dataset_or_datasets.mr_diffusion_sequence = [dwi_dataset]
+        # Do nothing if the diffusion informations for the current manufacturer
+        # are unknown
+        return dataset_or_datasets      
+    else : 
+        single_frames = []
+        for dataset in dataset_or_datasets :
+            result = dwi_normalize(dataset)
             if isinstance(result, DataSet) :
                 single_frames.append([result])
             else :

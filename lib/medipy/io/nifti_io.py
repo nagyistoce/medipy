@@ -8,9 +8,12 @@
 
 import fnmatch
 import logging
+import os
 
 import nifti
 import numpy
+
+import medipy.io.dicom
 
 # The following two tests ease the translation from earlier versions of PyNifti
 # (i.e. with modules nifti.niftiimage and nifti.niftiformat) to newer 
@@ -94,6 +97,60 @@ class Nifti(IOBase) :
         metadata["header"] = format.asDict()
         metadata["annotations"] = ObservableList()
         
+        #########################
+        # Diffusion information #
+        #########################
+        
+        # Load gradient direction file
+        base_name = os.path.splitext(self._filename)[0]
+        if base_name.endswith(".nii") :
+            base_name = os.path.splitext(base_name)[0]
+        gradient_candidates = [
+            base_name+".bvecs", # /foo/bar/image.bvecs
+            base_name+".bvec", # /foo/bar/image.bvec
+            os.path.join(os.path.dirname(self._filename), "bvecs"), # /foo/bar/bvecs
+            os.path.join(os.path.dirname(self._filename), "bvec") # /foo/bar/bvec
+        ]
+        gradient_file = None
+        for candidate in gradient_candidates :
+            if os.path.isfile(candidate) :
+                gradient_file = candidate
+                break
+        
+        # Load b-values file
+        bvalue_candidates = [
+            base_name+".bvals", # /foo/bar/image.bvals
+            base_name+".bval", # /foo/bar/image.bval
+            os.path.join(os.path.dirname(self._filename), "bval"), # /foo/bar/bvals
+            os.path.join(os.path.dirname(self._filename), "bvals") # /foo/bar/bval
+        ]
+        bvalue_file = None
+        for candidate in bvalue_candidates :
+            if os.path.isfile(candidate) :
+                bvalue_file = candidate
+                break
+        
+        if None not in [gradient_file, bvalue_file] :
+            gradients = numpy.loadtxt(gradient_file, dtype=numpy.single)
+            bvalues = numpy.loadtxt(bvalue_file, dtype=numpy.single)
+            
+            gradients = gradients.T
+            
+            mr_diffusion_sequence = []
+            for index, gradient in enumerate(gradients) :
+                dataset = medipy.io.dicom.DataSet()
+                dataset.diffusion_directionality = "DIRECTIONAL"
+                
+                dataset.diffusion_bvalue = bvalues[index]
+                
+                gradient_dataset = medipy.io.dicom.DataSet()
+                gradient_dataset.diffusion_gradient_orientation = gradient
+                dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+                
+                mr_diffusion_sequence.append(dataset)
+            
+            metadata["mr_diffusion_sequence"] = mr_diffusion_sequence
+        
         return metadata
     
     def can_save(self, image) :
@@ -111,6 +168,33 @@ class Nifti(IOBase) :
         nifti_image.pixdim = spacing 
 #        logging.warning("Image direction and origin will not be saved")
         nifti_image.save(self._filename)
+        
+        # Save gradient direction file if saving NIfTI
+        if "mr_diffusion_sequence" in image.metadata :
+            gradients = [[], [], []]
+            b_values = []
+            for diffusion in image.metadata["mr_diffusion_sequence"] :
+                gradient = diffusion.diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
+                b_value = diffusion.diffusion_bvalue
+                
+                for index, value in enumerate(gradient) :
+                    gradients[index].append(str(value))
+                b_values.append(str(b_value))
+            
+            gradients = "\n".join([" ".join(direction) for direction in gradients])
+            b_values = " ".join(b_values)
+            
+            base_name = os.path.splitext(self._filename)[0]
+            if base_name.endswith(".nii") :
+                base_name = os.path.splitext(base_name)[0]
+            
+            gradients_file = open("{0}.bvec".format(base_name), "w")
+            gradients_file.write(gradients)
+            gradients_file.close()
+            
+            bvalues_file = open("{0}.bval".format(base_name), "w")
+            bvalues_file.write(b_values)
+            bvalues_file.close()
 
 if __name__ == "__main__" :
     import sys

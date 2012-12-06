@@ -65,7 +65,7 @@ def configuration_variables() :
     
     result = {}
     # Result of cmake -P is on stderr
-    for line in stderr.split("\n") :
+    for line in stderr.splitlines() :
         if not line or "=" not in line :
             continue
         key, value = line.split("=", 1)
@@ -104,17 +104,20 @@ def datafile_emitter(target, source, env):
 def class_wrapper_command(target, source, env) :
     command = [env["VTK"]["vtk_wrap_python"]]
     
-    vtk_later_5_2 = (
+    vtk_later_5_6 = (
         env["VTK"]["VTK_MAJOR_VERSION"] > 5 or
-        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] > 2)
+        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] > 6)
     )
-    if vtk_later_5_2 :
+    if vtk_later_5_6 :
         command.extend(["--concrete", "--vtkobject"])
-        if "HINT_FILE" in env :
+        if env.get("HINT_FILE", None) :
             command.extend(["--hints", env["HINT_FILE"]])
         command.extend([source[0].abspath, target[0].abspath])
     else :
-        command.extend([source[0].abspath, env["HINT_FILE"], "true", target[0].abspath])
+        command.append(source[0].abspath)
+        if env.get("HINT_FILE", None) :
+            command.append(env["HINT_FILE"])
+        command.extend(["true", target[0].abspath])
     subprocess.call(command)
 
 def module_init_command(target, source, env):
@@ -122,10 +125,10 @@ def module_init_command(target, source, env):
                     source[0].abspath, target[0].abspath])
     
     module_name = env["MODULE_NAME"].split(".")[-1]
-    # Fix function names if VTK <= 5.2 and not on Windows
+    # Fix function names if VTK <= 5.6 and not on Windows
     vtk_version_needs_fix = (
         env["VTK"]["VTK_MAJOR_VERSION"] < 5 or
-        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] <= 2)
+        (env["VTK"]["VTK_MAJOR_VERSION"] == 5 and env["VTK"]["VTK_MINOR_VERSION"] <= 6)
     )
     if sys.platform != "win32" and vtk_version_needs_fix :
         path = target[0].abspath

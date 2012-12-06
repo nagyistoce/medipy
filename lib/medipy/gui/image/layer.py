@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -38,6 +38,21 @@ class Layer(medipy.base.Observable) :
         coordinates : it is up to the client to do this if needed.
     """
     
+    derived_classes = []
+    
+    @staticmethod
+    def can_create(image):
+        raise NotImplementedError()
+    
+    @staticmethod
+    def get_derived_class(image):
+        derived_class = None
+        for class_ in Layer.derived_classes :
+            if class_.can_create(image) :
+                derived_class = class_
+                break
+        return derived_class
+    
     def __init__(self, world_to_slice, image, display_coordinates="physical",
                  colormap=None, opacity = 1.0) :
         
@@ -58,13 +73,14 @@ class Layer(medipy.base.Observable) :
         self._colormap = None
         
         self._opacity = None
+
         
         ###################
         # Private members #
         ###################
         
         medipy.base.Observable.__init__(self, ["world_to_slice", "image", 
-            "display_coordinates", "colormap", "opacity"])
+            "display_coordinates", "position", "colormap", "opacity"])
         
         # VTK image with the same content as self._image
         self._vtk_image = None
@@ -223,7 +239,8 @@ class Layer(medipy.base.Observable) :
             
         self._image = image
         
-        self._vtk_image = medipy.vtk.build_vtk_image(self._image, self._vtk_image)
+        self._vtk_image = medipy.vtk.bridge.array_to_vtk_image(
+            self._image.data, False, self._image.data_type)
         
         self._image.add_observer("modified", self._on_image_modified)
         
@@ -234,7 +251,6 @@ class Layer(medipy.base.Observable) :
         # Update the pipeline
         self._update_reslicer_matrix()
         self._update_change_information()
-        
         self._reslicer.SetInput(self._vtk_image)
         
         self.notify_observers("image")
@@ -260,6 +276,8 @@ class Layer(medipy.base.Observable) :
         self._reslicer.SetResliceAxesOrigin(index_position[::-1])
         vtkMatrix4x4.Invert(
             self._reslicer.GetResliceAxes(), self._reslicer_axes_inverse)
+        
+        self.notify_observers("position")
     
     def _get_index_position(self) :
         "Index position through which the slicing plane passes."
@@ -418,7 +436,7 @@ class Layer(medipy.base.Observable) :
             # Add ones on the diagonal when necessary
             for rank in range(self._image.ndim) :
                 if numpy.less_equal(self.world_to_slice.shape, rank).all() : 
-                    world_to_slice_3d[self._image.ndim-rank-1, self._image.ndim-rank-1] = 1.
+                    world_to_slice[self._image.ndim-rank-1, self._image.ndim-rank-1] = 1.
             
             corners = itertools.product(
                 *[(0, x-1) for x in self._image.shape])

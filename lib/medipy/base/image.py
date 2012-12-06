@@ -27,7 +27,8 @@ class Image(Observable):
         
         The data has two kinds of interpretation :
           * data_type : whether the data is scalar, vector or matrix
-          * image_type : where the image comes from, can be unspecified (normal) or spectroscopy 
+          * image_type : how the image should be interpreted, can be unspecified
+           (normal), "rgb", "tensor_2", or spectroscopy 
         
         If data_type == "vector" or data_type == "matrix", an array of
         dimension N will have a spacing of size N-1 (resp. N-2)
@@ -103,6 +104,7 @@ class Image(Observable):
         if "dti" in kwargs :
             self.data_type = "vector"
             if kwargs["dti"] == "tensor_2" :
+                self.image_type = "tensor_2"
                 shape = list(shape)
                 shape.append(6)
 #            elif kwargs["dti"] == "tensor_4" :
@@ -216,13 +218,23 @@ class Image(Observable):
         self._compute_index_to_physical_matrix()
     
     def _get_shape(self):
-        return self.data.shape
+        if self.data_type == "scalar" :
+            return self.data.shape
+        elif self.data_type == "vector" :
+            return self.data.shape[:-1]
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
     
     def _get_dtype(self):
         return self.data.dtype
     
     def _get_ndim(self):
-        return self.data.ndim
+        if self.data_type == "scalar" :
+            return self.data.ndim
+        elif self.data_type == "vector" :
+            return self.data.ndim-1
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
     
     def _get_computed_ndim(self):
         """ Return the dimensionality of the image, neglecting the first values
@@ -237,6 +249,18 @@ class Image(Observable):
         
         return len(shape)
     
+    def _get_number_of_components(self):
+        """ Return the number of scalar components per voxel.
+        """
+        
+        if self.data_type == "scalar" :
+            return 1
+        elif self.data_type == "vector" :
+            return self.data.shape[-1]
+        else :
+            raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
+        
+    
     spacing = property(_get_spacing, _set_spacing)
     origin = property(_get_origin, _set_origin)
     direction = property(_get_direction, _set_direction)
@@ -244,6 +268,7 @@ class Image(Observable):
     dtype = property(_get_dtype)
     ndim = property(_get_ndim)
     computed_ndim = property(_get_computed_ndim)
+    number_of_components = property(_get_number_of_components)
     
     #####################    
     # Private interface #
@@ -255,8 +280,11 @@ class Image(Observable):
                 self._index_to_physical_matrix = numpy.dot(
                     self._direction, numpy.diag(self._spacing))
             except ValueError,e :
-                logging.warning("Could not compute index to physical matrix : {0}".format(e))
-            self._physical_to_index_matrix = numpy.linalg.inv(self._index_to_physical_matrix)
+                self._index_to_physical_matrix = None
+                self._physical_to_index_matrix = None
+                #logging.warning("Could not compute index to physical matrix : {0}".format(e))
+            else :
+                self._physical_to_index_matrix = numpy.linalg.inv(self._index_to_physical_matrix)
     
     def _default_spacing(self):
         """ Return the default image spacing, according to the data type.

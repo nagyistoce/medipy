@@ -8,7 +8,7 @@
 
 from tag import Tag
 from dataset import DataSet
-from parse import parse
+from dataset_io import read, write
 from split import series, stacks
 from reconstruction import image
 from misc import load_dicomdir_records, uid_and_description

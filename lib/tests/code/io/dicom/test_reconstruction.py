@@ -46,7 +46,7 @@ class TestReconstruction(unittest.TestCase):
     
     def test_nema_mf_mr_mammo(self):
         tempdir = self.extract("nemamfmr.imagesDG.tar.bz2")
-        dataset = medipy.io.dicom.parse(os.path.join(tempdir, "DISCIMG/IMAGES/DYNMAMMO"))
+        dataset = medipy.io.dicom.read(os.path.join(tempdir, "DISCIMG/IMAGES/DYNMAMMO"))
         self.cleanup(tempdir)
         
         self.assertEqual(dataset.number_of_frames, 168)

@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 2.6)
+
 macro(follow_dependency lib_name)
     list(APPEND all_libraries ${lib_name})
     set(dependencies_name ${lib_name}_LIB_DEPENDS)
@@ -12,7 +14,7 @@ endmacro(follow_dependency)
 find_package(VTK REQUIRED)
 message("CPPPATH=${VTK_INCLUDE_DIRS}")
 message("LIBPATH=${VTK_LIBRARY_DIRS}")
-if(${VTK_MAJOR_VERSION} GREATER 5 OR (${VTK_MAJOR_VERSION} EQUAL 5 AND ${VTK_MAJOR_VERSION} GREATER 2))
+if("${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}" GREATER "5.2")
     message("LIBS=${VTK_LIBRARIES}")
     
     set(python_libs )
@@ -20,7 +22,7 @@ if(${VTK_MAJOR_VERSION} GREATER 5 OR (${VTK_MAJOR_VERSION} EQUAL 5 AND ${VTK_MAJ
         set(python_libs ${python_libs} ${lib}PythonD)
     endforeach(lib ${VTK_LIBRARIES})
     message("PYTHON_LIBS=${python_libs}")
-else(${VTK_MAJOR_VERSION} GREATER 5 OR (${VTK_MAJOR_VERSION} EQUAL 5 AND ${VTK_MAJOR_VERSION} GREATER 2))
+else("${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}" GREATER "5.2")
     # vtkHybrid is the catch-all VTK library
     SET(all_libraries )
     follow_dependency("vtkHybrid")
@@ -28,7 +30,7 @@ else(${VTK_MAJOR_VERSION} GREATER 5 OR (${VTK_MAJOR_VERSION} EQUAL 5 AND ${VTK_M
     SET(all_libraries )
     follow_dependency("vtkHybridPythonD")
     message("PYTHON_LIBS=${all_libraries}")
-endif(${VTK_MAJOR_VERSION} GREATER 5 OR (${VTK_MAJOR_VERSION} EQUAL 5 AND ${VTK_MAJOR_VERSION} GREATER 2))
+endif("${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}" GREATER "5.2")
 
 message("vtk_wrap_python=${VTK_WRAP_PYTHON_EXE}")
 message("vtk_wrap_python_init=${VTK_WRAP_PYTHON_INIT_EXE}")

@@ -1,13 +1,15 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
+import xml.etree.ElementTree
 
+from exception import Exception
 from observable import Observable
 
 class ImageAnnotation(Observable):
@@ -28,6 +30,14 @@ class ImageAnnotation(Observable):
         cube = 1
         cross = 2
         point = 3
+        
+        @staticmethod
+        def to_name(value):
+            dictionary = dict([(getattr(ImageAnnotation.Shape, name), name) 
+                               for name in dir(ImageAnnotation.Shape) 
+                               if isinstance(getattr(ImageAnnotation.Shape, name), int)])
+            return dictionary[value]
+            
     
     def __init__(self, position = None, label = None, shape = None, size = None,
         color = None, filled = None, comment = None) :

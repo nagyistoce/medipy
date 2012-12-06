@@ -8,7 +8,8 @@
 
 import sys
 import wx
-from medipy.io.dicom import dictionary
+from medipy.io.dicom import Tag, dictionary
+from medipy.io.dicom.private_dictionaries import private_dictionaries
 
 class DataSetList(wx.ListCtrl) :
     """ List of DICOM attributes from a Data Set.
@@ -65,29 +66,62 @@ class DataSetList(wx.ListCtrl) :
             self.SetColumnWidth(i, width)
         
     def _add_dataset(self, dataset, indent=""):
-        for tag in sorted(dataset) :
+        
+        for tag in sorted(dataset.keys()):
+            value = dataset[tag]
+            
             if tag.private :
-                continue
-            if tag == 0x7fe00010 : # Pixel Data
-                continue
-            if tag == 0x52009230 : # Per-frame Functional Groups Sequence
-                continue
+                if tag.element == 0x0010 :
+                    name = "Private Creator"
+                    vr = None
+                else :
+                    private_creator = dataset.get(Tag(tag.group, 0x0010), None)
+                    if private_creator not in private_dictionaries :
+                        private_creator = None
+                    
+                    private_tag = "{0:04x}xx{1:02x}".format(tag.group, 
+                                                            tag.element & 0x00ff)
+                    if (private_creator is not None and 
+                        private_creator in private_dictionaries and
+                        private_tag in private_dictionaries[private_creator]) :
+                        
+                        name = private_dictionaries[private_creator][private_tag][2]
+                        vr = private_dictionaries[private_creator][private_tag][0]
+                    else :
+                        name = unicode(tag)
+                        vr = None
+            else :
+                if tag.group/0x100 in [0x50, 0x60] :
+                    # Repeating group element, cf. PS 3.5-2011, 7.6
+                    tag_in_dictionary = "{0:02x}xx{1:04x}".format(
+                        tag.group/0x100, tag.element)
+                else :
+                    tag_in_dictionary = tag
+                name = dictionary.data_dictionary.setdefault(
+                    tag_in_dictionary, ("UN", "1", unicode(tag_in_dictionary)))[2]
+                vr = dictionary.data_dictionary[tag_in_dictionary][0]
             
-            entry = dictionary.data_dictionary.get(tag, ("UN", "1", str(tag), False, str(tag)))
+            if vr in ["OB", "OW", "OB/OW", "OF", "UN"] :
+                value = "<array of %i bytes>"%(len(value),)
+            else :
+                value = dataset[tag]
+
+            if tag.private :
+                try :
+                    value = unicode(value)
+                except UnicodeDecodeError :
+                    value = "<array of %i bytes>"%(len(value),)
             
-            description = indent+entry[2]
+            description = indent+name
             item = self.InsertStringItem(sys.maxint, description)
             self.SetStringItem(item, 1, "({0:04x},{1:04x})".format(tag.group, tag.element))
             
-            value = dataset[tag]
-            vr = indent+entry[0]
-            
             if vr != "SQ" :
-                value = self._string_representation(value, vr)
-                self.SetStringItem(item, 2, value)
+                self.SetStringItem(item, 2, unicode(value))
             else :
-                self.SetStringItem(item, 2, "{0} items".format(len(value)))
-                self._add_sequence(value, "    "+indent)
+                self.SetStringItem(item, 2, "{0} item{1}".format(
+                    len(value), "s" if len(value)>1 else ""))
+                self._add_sequence(dataset[tag], "    "+indent)
         
     def _add_sequence(self, sequence, indent):
         for index, item in enumerate(sequence) :

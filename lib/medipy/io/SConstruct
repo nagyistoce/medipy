@@ -1,4 +1,8 @@
+import itertools
 import os
+
+from deployement.scons.itk import wrapitk_root
+from deployement.scons.wrapitk import (get_scalar_types, get_dimensions)
 
 modules = ["dicom"]
 for module in modules :
@@ -8,3 +12,12 @@ Import("env")
 env = env.Clone()
 
 env.Glob("*.py")
+
+types = get_scalar_types(wrapitk_root())
+dimensions = [2,3,4]
+instantiations = list(itertools.product(types, dimensions))
+classes_template_info = [
+    ("itk::PyArrayFileReader", instantiations, "pointer", ["Base", "IO"]),
+    ("itk::PyArrayFileWriter", instantiations, "pointer", ["Base", "IO"])
+]
+env.WrapITKPythonModule("PyArrayIO", classes_template_info)

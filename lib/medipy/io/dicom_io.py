@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -25,7 +25,7 @@ class Dicom(IOBase) :
     def can_load(self):
         if self._filename is not None and self._stacks is None :
             try :
-                dataset = medipy.io.dicom.parse(self._filename)
+                dataset = medipy.io.dicom.read(self._filename)
             except medipy.base.Exception :
                 return False
             else :
@@ -63,14 +63,8 @@ class Dicom(IOBase) :
     # Properties #
     ##############
     
-    def _get_filename(self):
-        return self._filename
-    
     def _set_filename(self, filename):
         self._filename = filename
         self._stacks = None
         self._image = None
         self._index = None
-    
-    filename = property(_get_filename, _set_filename)
-    

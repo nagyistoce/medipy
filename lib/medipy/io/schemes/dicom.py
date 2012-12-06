@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -30,11 +30,31 @@
 import os
 import re
 import urlparse
+import numpy as np
 
 import medipy.base
 import medipy.io.dicom
 
 import dicomdir
+
+def load_serie(path, fragment=None) :
+    """ Load a serie of images
+    """
+
+    datasets = _get_matching_datasets(path, fragment)
+
+    if not datasets :
+        return None
+    else :
+        datasets = medipy.io.dicom.split.images(datasets)
+        datasets = medipy.io.dicom.normalize.normalize(datasets)
+        stacks = medipy.io.dicom.split.stacks(datasets)
+        limages = [medipy.io.dicom.image(stack) for stack in stacks]
+        
+        # Make sure the images are in their acquisition order 
+        limages.sort(key = lambda x:x.metadata.get("acquisition_time", ""))
+
+        return limages
 
 def load(path, fragment=None) :
     """ Load an image.
@@ -105,7 +125,7 @@ def _get_matching_datasets(path, fragment) :
     
     for filename in filenames :
         try :
-            dataset = medipy.io.dicom.parse(filename)
+            dataset = medipy.io.dicom.read(filename)
         except :
             # Not a DICOM file
             continue

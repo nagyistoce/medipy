@@ -39,7 +39,9 @@ def load_xrc(xrc_file, handlers, class_name, parent, window_name):
     resource = wx.xrc.EmptyXmlResource()
     for handler in handlers :
         resource.InsertHandler(handler)
-    resource.LoadFromString(str(xml_document.toxml()))
+    # Don't use LoadFromString so that the internal wxFileSystem is set to
+    # the directory holding xrc_file
+    resource.Load(xrc_file)
     
     # Build frame
     loader = getattr(resource, "Load%s"%class_name)

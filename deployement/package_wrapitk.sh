@@ -71,6 +71,16 @@ WRAP_vector_double:BOOL=OFF
 WRAP_vector_float:BOOL=ON
 EOF
 
+# Problem with libuuid detection on Ubuntu 12.04
+if test -e /lib/x86_64-linux-gnu/libuuid.so.1 -a ! -e /usr/lib/x86_64-linux-gnu/libuuid.so
+then
+    ln -s /lib/x86_64-linux-gnu/libuuid.so.1 /usr/lib/x86_64-linux-gnu/libuuid.so
+fi
+if test -e /lib/i386-linux-gnu/libuuid.so.1 -a ! -e /usr/lib/i386-linux-gnu/libuuid.so
+then
+    ln -s /lib/i386-linux-gnu/libuuid.so.1 /usr/lib/i386-linux-gnu/libuuid.so
+fi
+
 # Run cmake
 cmake ../wrapitk-0.3.0
 
@@ -88,10 +98,12 @@ cmake -D CMAKE_INSTALL_PREFIX=local_install/usr -P cmake_install.cmake
 sed -e "s/^#FILE/FILE/" -i install_wrapitk_compatibility.cmake
 
 # Install additional files
-mkdir -p local_install/usr/lib/python2.6/dist-packages
-mkdir -p local_install/usr/share/cmake-2.6/Modules
-cp Languages/Python/InstallOnly/WrapITK.pth local_install/usr/lib/python2.6/dist-packages
-cp InstallOnly/FindWrapITK.cmake local_install/usr/share/cmake-2.6/Modules
+PYTHON_VERSION=`python -c "import sys; print '{0}.{1}'.format(*sys.version_info[:2])"`
+CMAKE_ROOT=`echo 'message(${CMAKE_ROOT})' | cmake -P /dev/stdin 2>&1`
+mkdir -p local_install/usr/lib/python${PYTHON_VERSION}/dist-packages
+mkdir -p local_install/${CMAKE_ROOT}/Modules
+cp Languages/Python/InstallOnly/WrapITK.pth local_install/usr/lib/python${PYTHON_VERSION}/dist-packages
+cp InstallOnly/FindWrapITK.cmake local_install/${CMAKE_ROOT}/Modules
 
 # Create binary package control file
 mkdir -p local_install/DEBIAN

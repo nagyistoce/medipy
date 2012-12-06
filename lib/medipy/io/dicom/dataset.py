@@ -14,6 +14,7 @@ import numpy
 from tag import Tag
 from dictionary import data_dictionary, name_dictionary
 from private_dictionaries import private_dictionaries
+from medipy.io.dicom import dictionary
 
 class DataSet(dict):
     """ An Data Set is a collection (dictionary) of Data Elements values.
@@ -31,7 +32,7 @@ class DataSet(dict):
     """
     
     @staticmethod
-    def from_dict(dictionary, tags = "all", private_tags = "all"):
+    def from_dict(dictionary, tags = "all", private_tags = "all", process_header="first_run"):
         """ Create an Data Set from a dictionary. tags can be either a
             sequence of tags (numerical or named) from the dictionary to be
             included in the Data Set or the string "all". In the
@@ -42,7 +43,17 @@ class DataSet(dict):
         
         dataset = DataSet()
         
+        if process_header == "first_run" :
+            header_dict = dict([(tag, element) 
+                                for tag, element in dictionary.items() 
+                                if tag[0]==0x0002])
+            if header_dict :
+                header = DataSet.from_dict(header_dict, tags, private_tags, "header_only")
+                dataset.header = header
+        
         for tag, element in dictionary.items() :
+            if process_header != "header_only" and tag[0] == 0x0002 :
+                continue
             if tag[1] == 0 :
                 # group length
                 continue
@@ -59,7 +70,7 @@ class DataSet(dict):
                 if isinstance(element, list) and element and isinstance(element[0], dict) :
                     value = []
                     for item in element :
-                        sub_dataset = DataSet.from_dict(item)
+                        sub_dataset = DataSet.from_dict(item, tags, private_tags, "no_header")
                         value.append(sub_dataset)
                 else :
                     value = element
@@ -68,7 +79,8 @@ class DataSet(dict):
         return dataset
     
     def __init__(self):
-        dict.__init__({})
+        dict.__init__(self, {})
+        self.header = {}
         self.normalized = False
     
     def tags(self):
@@ -108,7 +120,8 @@ class DataSet(dict):
             
             self._pixel_array = numpy.fromstring(self.pixel_data, dtype).reshape(shape)
             
-            dataset_is_little_endian = (self.transfer_syntax_uid != "1.2.840.10008.1.2.2")
+            dataset_is_little_endian = (
+                self.header.get("transfer_syntax_uid", "") != "1.2.840.10008.1.2.2")
             sys_is_little_endian = (sys.byteorder == 'little')
             
             if sys_is_little_endian != dataset_is_little_endian :
@@ -279,8 +292,15 @@ class DataSet(dict):
                         name = tag
                         vr = None
             else :
-                name = data_dictionary.setdefault(tag, ("UN", "1", unicode(tag)))[2]
-                vr = data_dictionary[tag][0]
+                if tag.group/0x100 in [0x50, 0x60] :
+                    # Repeating group element, cf. PS 3.5-2011, 7.6
+                    tag_in_dictionary = "{0:02x}xx{1:04x}".format(
+                        tag.group/0x100, tag.element)
+                else :
+                    tag_in_dictionary = tag
+                name = data_dictionary.setdefault(
+                    tag_in_dictionary, ("UN", "1", unicode(tag_in_dictionary)))[2]
+                vr = data_dictionary[tag_in_dictionary][0]
             
             if vr == "SQ" :
                 elements = [unicode(item) for item in value]
@@ -291,6 +311,9 @@ class DataSet(dict):
                 value = "\n"+"\n".join(value)
             elif vr in ["OB", "OW", "OB/OW", "OF", "UN"] :
                 value = "<array of %i bytes>"%(len(value),)
+            elif vr == "UI" and value in dictionary.uid_dictionary :
+                value = "{0} ({1})".format(dictionary.uid_dictionary[value][0],
+                                           value)
             else :
                 value = self[tag]
 
@@ -300,7 +323,7 @@ class DataSet(dict):
                 except UnicodeDecodeError :
                     value = "<array of %i bytes>"%(len(value),)
             
-            result.append("%s : %s"%(name, value))
+            result.append("%s %s: %s"%(name, tag, value))
         return "\n".join(result)
     
     def __str__(self):

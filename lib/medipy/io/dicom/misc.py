@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -11,12 +11,16 @@ import os.path
 
 import medipy.base
 
-from medipy.io.dicom import parse 
+import dataset_io 
 
 def find_dicomdir_file(base_directory, referenced_file_id):
     """ Search the filesystem for upper-case and lower case version of a
         Referenced File ID in a DICOMDIR
     """
+    
+    if isinstance(referenced_file_id, basestring) :
+        # Only one path component, normalize to a list with one element
+        referenced_file_id = [referenced_file_id]
     
     filenames = [
         os.path.join(base_directory, *referenced_file_id),
@@ -49,7 +53,7 @@ def uid_and_description(datasets, base_directory=None,
             for child in dataset.children :
                 filename = find_dicomdir_file(os.path.dirname(child.path),
                                               child.referenced_file_id)
-                child_dataset = parse(filename)
+                child_dataset = dataset_io.read(filename)
                 if "series_description" in child_dataset :
                     series_description = child_dataset.series_description
                     found_in_child = True
@@ -90,6 +94,9 @@ def load_dicomdir_records(datasets, base_directory=None):
             while queue :
                 d = queue.pop()
                 if "referenced_file_id" in d :
+                    if isinstance(d.referenced_file_id, basestring) :
+                        # Normalize to a list with one element
+                        d.referenced_file_id = [d.referenced_file_id]
                     file_ids.add((d.path, tuple(d.referenced_file_id)))
                 queue.extend(d.children)
         else :
@@ -97,7 +104,7 @@ def load_dicomdir_records(datasets, base_directory=None):
 
     for path, file_id in file_ids :
         filename = find_dicomdir_file(os.path.dirname(path), file_id)
-        result.append(parse(filename))
+        result.append(dataset_io.read(filename))
     
     return result
 
