@@ -11,7 +11,7 @@ class TestSCU(unittest.TestCase):
         caller_ae_title = "CALLER"
         called_ae_title = "REMOTE"
         
-        self.connection = medipy.network.dicom.scu.Connection(
+        self.connection = medipy.network.dicom.Connection(
             host, port, caller_ae_title, called_ae_title)
     
     def test_echo(self):
