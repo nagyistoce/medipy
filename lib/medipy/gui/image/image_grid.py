@@ -25,7 +25,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
                  interpolation=False,
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
-                 convention="radiological", *args, **kwargs):
+                 convention="radiological", crosshair="full", *args, **kwargs):
         
         # Display settings
         self._slice_mode = None
@@ -35,6 +35,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
         self._orientation_visibility = None
         self._corner_annotations_visibility = None
         self._convention = None
+        self._crosshair = None
         
         # Images on the grid
         self._images = []
@@ -64,6 +65,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
         self._set_orientation_visibility(orientation_visibility)
         self._set_corner_annotations_visibility(corner_annotations_visibility)
         self._set_convention(convention)
+        self._set_crosshair(crosshair)
         
     def append(self, layers):
         """ Append an image (described by its layers' attributes) to the grid.
@@ -84,7 +86,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
             self.interpolation,
             self.display_coordinates, self.scalar_bar_visibility, 
             self.orientation_visibility, self.corner_annotations_visibility,
-            self.convention
+            self.convention, self.crosshair
         )
         image.Bind(wx.EVT_LEFT_DOWN, self.OnImageClicked)
         image.Bind(wx.EVT_MIDDLE_DOWN, self.OnImageClicked)
@@ -260,6 +262,19 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
             image.convention = value
             image.render()
     
+    def _get_crosshair(self) :
+        return self._crosshair
+
+    def _set_crosshair(self, value) :
+        if value not in ["full", "none"] :
+            raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
+        
+        self._crosshair = value
+        
+        for image in self._images :
+            image.crosshair = value
+            image.render()
+    
     def _get_active(self):
         return self._active
     
@@ -286,6 +301,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
     corner_annotations_visibility = property(_get_corner_annotations_visibility, 
                                              _set_corner_annotations_visibility)
     convention = property(_get_convention, _set_convention)
+    crosshair = property(_get_crosshair, _set_crosshair)
 
     ##################
     # Event handlers #
