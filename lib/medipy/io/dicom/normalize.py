@@ -121,7 +121,7 @@ def dwi_normalize(dataset_or_datasets):
 
     if isinstance(dataset_or_datasets, DataSet) :
         key = "dwi_{0}".format(
-            dataset_or_datasets.manufacturer.lower().split(' ')[0])
+            dataset_or_datasets.get("manufacturer", "").lower().split(" ")[0])
         if key in locals() :
             dwi_function = locals()[key]
             dwi_dataset = dwi_function(dataset_or_datasets)
