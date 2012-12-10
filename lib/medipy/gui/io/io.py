@@ -288,7 +288,7 @@ def _separate_dicomdirs(paths):
         except :
             is_dicomdir = False
         else :
-            is_dicomdir = (dataset.get("media_storage_sop_class_uid", None) == 
+            is_dicomdir = (dataset.header.get("media_storage_sop_class_uid", None) == 
                            "1.2.840.10008.1.3.10") # Media Storage Directory Storage
         
         if is_dicomdir :
