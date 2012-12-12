@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -162,15 +162,6 @@ class DataSet(dict):
         """
         
         tag = self._get_tag(item)
-            
-        if tag.private :
-            pass
-#            # See PS 3.5-2008 section 7.8.1 (p. 44) for how blocks are reserved
-#            logging.debug("Setting private tag %r" % tag)
-#            private_block = tag.elem >> 8
-#            private_creator_tag = Tag(tag.group, private_block)
-#            if private_creator_tag in self and tag != private_creator_tag:
-#                data_element.private_creator = self[private_creator_tag]
         dict.__setitem__(self, tag, value)
     
     def __delitem__(self, item) :
@@ -272,11 +263,16 @@ class DataSet(dict):
             value = self[tag]
             
             if tag.private :
-                if tag.element == 0x0010 :
+                if tag.element < 0x0100 :
                     name = "Private Creator"
                     vr = None
                 else :
-                    private_creator = self.get(Tag(tag.group, 0x0010), None)
+                    # The private block for private tag (gggg,xxyy) (where gggg
+                    # is odd and yy is in [00,ff] is xx. The private creator is
+                    # then given in (gggg,00xx)
+                    block = tag.element/0x100
+                    private_creator = self.get(Tag(tag.group, block), None)
+                    
                     if private_creator not in private_dictionaries :
                         private_creator = None
                     
