@@ -91,7 +91,9 @@ private :
     PyObject* _parse_multi_valued(std::string const & value, std::string const & vr) const;
 
     void _to_gdcm(PyObject* dictionary, gdcm::DocEntrySet & document);
-    void _to_gdcm(PyObject* object, gdcm::DictEntry * dictEntry, gdcm::DocEntrySet & document);
+    void _to_gdcm(PyObject* object,
+                  unsigned long group, unsigned long element, std::string vr,
+                  gdcm::DocEntrySet & document);
 };
 
 #endif // _eab6ea72_375e_4eb8_afbc_ef22e0eddbfa
