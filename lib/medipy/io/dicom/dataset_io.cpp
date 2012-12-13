@@ -82,19 +82,19 @@ unsigned int ComputeGroup0002Length(gdcm::DocEntrySet & document)
     return groupLength;
 }
 
-void write(PyObject* dictionary, std::string const & filename)
+void write(PyObject* dataset, std::string const & filename)
 {
-    DataSetBridge data_set_bridge(dictionary);
     gdcm::Document document;
-    data_set_bridge.to_gdcm(document);
+    {
+        DataSetBridge data_set_bridge(PyObject_GetAttrString(dataset, "header"));
+        data_set_bridge.to_gdcm(document);
+    }
+    {
+        DataSetBridge data_set_bridge(dataset);
+        data_set_bridge.to_gdcm(document);
+    }
 
     // Set the File Meta Information
-
-    // File Meta Information Group Length
-    uint32_t groupLength = ComputeGroup0002Length(document);
-    document.InsertBinEntry(
-        reinterpret_cast<uint8_t*>(&groupLength), sizeof(groupLength),
-        0x0002, 0x0000, "UL");
 
     // File Meta Information Version
     uint8_t file_meta_information_version[2] = {0, 1};
@@ -113,6 +113,12 @@ void write(PyObject* dictionary, std::string const & filename)
     std::string implementation_version_name = "ITK/GDCM ";
     implementation_version_name += gdcm::Util::GetVersion();
     document.InsertValEntry(implementation_version_name, 0x0002, 0x0013, "SH");
+
+    // File Meta Information Group Length
+    uint32_t groupLength = ComputeGroup0002Length(document);
+    document.InsertBinEntry(
+        reinterpret_cast<uint8_t*>(&groupLength), sizeof(groupLength),
+        0x0002, 0x0000, "UL");
 
     std::ofstream stream(filename.c_str());
     document.WriteContent(&stream, gdcm::ExplicitVR);
