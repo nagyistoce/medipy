@@ -122,7 +122,33 @@ PyObject*
 DataSetBridge
 ::to_python(gdcm::DocEntrySet * doc_entry_set) const
 {
-    PyObject* result = PyDict_New();
+    PyObject* modules = PyImport_GetModuleDict(); // Borrowed reference
+    PyObject* medipy = PyMapping_GetItemString(modules, "medipy"); // New reference
+    PyObject* medipy_io = PyObject_GetAttrString(medipy, "io"); // New reference
+    PyObject* medipy_io_dicom = PyObject_GetAttrString(medipy_io, "dicom"); // New reference
+
+    PyObject* Tag = PyObject_GetAttrString(medipy_io_dicom, "Tag"); // New reference
+
+    if(Tag == NULL)
+    {
+        return NULL;
+    }
+
+    PyObject* DataSet = PyObject_GetAttrString(medipy_io_dicom, "DataSet"); // New reference
+
+    if(DataSet == NULL)
+    {
+        return NULL;
+    }
+
+    PyObject* args = PyTuple_New(0);
+    PyObject* result = PyObject_CallObject(DataSet, args);
+    Py_DECREF(args);
+
+    if(result == NULL)
+    {
+        return NULL;
+    }
 
     gdcm::DocEntry* entry = doc_entry_set->GetFirstEntry();
     while(entry != NULL)
@@ -133,10 +159,10 @@ DataSetBridge
         }
         else if(entry->GetGroup() == 0xFFFE && (entry->GetElement() == 0xE000 ||
                 entry->GetElement() == 0xE00D || entry->GetElement() == 0xE0DD))
-         {
-             // Item, Item Delimitation Item and Sequence Delimitation Item
-             // Skip them
-         }
+        {
+            // Item, Item Delimitation Item and Sequence Delimitation Item
+            // Skip them
+        }
         else
         {
             if(entry->GetGroup() == 0x0008 && entry->GetElement() == 0x0005)
@@ -177,7 +203,12 @@ DataSetBridge
                 else if(charset->GetValue() == "GB18030") this->_encoding = "gb18030";
             }
 
+            // Build the tag
             PyObject* key = Py_BuildValue("(II)", entry->GetGroup(), entry->GetElement());
+            PyObject* tag_args = Py_BuildValue("(O)", key);
+            PyObject* tag = PyObject_CallObject(Tag, tag_args);
+            Py_DECREF(tag_args);
+            Py_DECREF(key);
 
             PyObject* value = NULL;
             if(dynamic_cast<gdcm::BinEntry*>(entry))
@@ -218,13 +249,34 @@ DataSetBridge
                 return NULL;
             }
 
-            PyDict_SetItem(result, key, value);
-            Py_DECREF(key);
+            std::string vr = entry->GetVR();
+
+            PyObject* MediPyVR = PyObject_GetAttrString(medipy_io_dicom, &(vr[0]));
+            if(MediPyVR==NULL)
+            {
+                return NULL;
+            }
+
+            PyObject* args = Py_BuildValue("(O)", value);
+            PyObject* typed_value = PyObject_CallObject(MediPyVR, args);
+
+            Py_DECREF(args);
+            Py_DECREF(MediPyVR);
             Py_DECREF(value);
+
+            PyDict_SetItem(result, tag, typed_value);
+            Py_DECREF(tag);
+            Py_DECREF(typed_value);
         }
 
         entry = doc_entry_set->GetNextEntry();
     }
+
+    Py_DECREF(Tag);
+    Py_DECREF(DataSet);
+    Py_DECREF(medipy_io_dicom);
+    Py_DECREF(medipy_io);
+    Py_DECREF(medipy);
 
     return result;
 }

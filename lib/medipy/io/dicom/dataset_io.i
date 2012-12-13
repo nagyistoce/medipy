@@ -47,11 +47,14 @@ unwrapped_read = read
 
 def read(filename) :
     try :
-        dictionary = unwrapped_read(str(filename))
+        dataset = unwrapped_read(str(filename))
     except Exception, e :
         raise medipy.base.Exception(e)
-    if dictionary is not None :
-        dataset = DataSet.from_dict(dictionary)
+    if dataset is not None :
+        header_tags = [x for x in dataset if x.group == 0x0002]
+        for tag in header_tags :
+            dataset.header[tag] = dataset[tag]
+            del dataset[tag]
         if "directory_record_sequence" in dataset :
             _get_dicomdir_records_hierarchy(dataset)
             for record in dataset.directory_record_sequence :

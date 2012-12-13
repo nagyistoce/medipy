@@ -18,19 +18,19 @@ class testDataSetIO(unittest.TestCase):
         self.assertTrue(isinstance(self.dataset, medipy.io.dicom.DataSet))
     
     def test_single_value(self):
-        self.assertEqual(self.dataset.header.media_storage_sop_instance_uid, 
+        self.assertEqual(self.dataset.header.media_storage_sop_instance_uid.value, 
                          "1.3.12.2.1107.5.2.32.35389.2010072309084257478998732")
     
     def test_multiple_value(self):
-        self.assertEqual(self.dataset.pixel_spacing, [2., 2.])
+        self.assertEqual(self.dataset.pixel_spacing.value, [2., 2.])
     
     def test_sequence(self):
-        self.assertTrue(isinstance(self.dataset.referenced_image_sequence, list))
-        self.assertEqual(len(self.dataset.referenced_image_sequence), 3)
-        self.assertTrue(isinstance(self.dataset.referenced_image_sequence[0],
+        self.assertTrue(isinstance(self.dataset.referenced_image_sequence.value, list))
+        self.assertEqual(len(self.dataset.referenced_image_sequence.value), 3)
+        self.assertTrue(isinstance(self.dataset.referenced_image_sequence.value[0],
                                    medipy.io.dicom.DataSet))
         self.assertEqual(
-             self.dataset.referenced_image_sequence[0].referenced_sop_instance_uid,
+             self.dataset.referenced_image_sequence.value[0].referenced_sop_instance_uid.value,
              "1.3.12.2.1107.5.2.32.35389.201007230834425475364627")
     
     def test_write(self):
