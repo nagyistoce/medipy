@@ -24,6 +24,9 @@ class VR(object):
     def __getitem__(self, key):
         return self.value.__getitem__(key)
     
+    def __getattr__(self, key):
+        return getattr(self.value, key)
+    
     def __iter__(self) :
         return self.value.__iter__()
     
