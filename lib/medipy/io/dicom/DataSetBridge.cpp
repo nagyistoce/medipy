@@ -250,7 +250,25 @@ DataSetBridge
                 return NULL;
             }
 
-            std::string vr = entry->GetVR();
+            std::string vr;
+            if(entry->IsImplicitVR())
+            {
+                gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
+                gdcm::DictEntry * dictEntry = dict->GetEntry(entry->GetGroup(), entry->GetElement());
+                if(dictEntry == NULL)
+                {
+                    vr = "UN";
+                }
+                else
+                {
+                    vr = dictEntry->GetVR();
+                }
+
+            }
+            else
+            {
+                vr = entry->GetVR();
+            }
 
             PyObject* MediPyVR = PyObject_GetAttrString(medipy_io_dicom, &(vr[0]));
             if(MediPyVR==NULL)
