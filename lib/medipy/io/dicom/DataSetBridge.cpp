@@ -16,6 +16,7 @@
 #include <limits>
 #include <locale>
 #include <sstream>
+#include <stdexcept>
 #include <stdint.h>
 #include <vector>
 
@@ -493,9 +494,13 @@ std::vector<uint8_t> stringVR(PyObject* object, bool encodeAsUTF8, char padding)
                 string = PyUnicode_AsASCIIString(object);
             }
         }
-        else
+        else if(PyString_Check(object))
         {
             string = object;
+        }
+        else
+        {
+            throw std::runtime_error("Object is not an string");
         }
 
         char* buffer = PyString_AsString(string);
@@ -532,12 +537,16 @@ std::vector<uint8_t> intVR(PyObject* object)
                       std::back_inserter(result));
         }
     }
-    else
+    else if(PyInt_Check(object))
     {
         T const value = T(PyInt_AsLong(object));
         uint8_t const * buffer = reinterpret_cast<uint8_t const *>(&value);
         result.resize(sizeof(T));
         std::copy(buffer, buffer+result.size(), result.begin());
+    }
+    else
+    {
+        throw std::runtime_error("Object is not an int");
     }
 
     return result;
@@ -559,12 +568,16 @@ std::vector<uint8_t> floatVR(PyObject* object)
                       std::back_inserter(result));
         }
     }
-    else
+    else if(PyFloat_Check(object))
     {
         T const value = T(PyFloat_AsDouble(object));
         uint8_t const * buffer = reinterpret_cast<uint8_t const *>(&value);
         result.resize(sizeof(T));
         std::copy(buffer, buffer+result.size(), result.begin());
+    }
+    else
+    {
+        throw std::runtime_error("Object is not an float");
     }
 
     return result;
@@ -572,6 +585,10 @@ std::vector<uint8_t> floatVR(PyObject* object)
 
 std::vector<uint8_t> bufferVR(PyObject* object)
 {
+    if(!PyString_Check(object))
+    {
+        throw std::runtime_error("Object is not an buffer string");
+    }
     std::vector<uint8_t> result(PyString_Size(object));
     std::copy(PyString_AsString(object), PyString_AsString(object)+result.size(),
               result.begin());
@@ -737,47 +754,36 @@ DataSetBridge
     while(PyDict_Next(dictionary, &pos, &key, &value))
     {
         long const tag = PyLong_AsLong(key);
+        long const tagGroup = tag>>16;
+        long const tagElement = tag&0xffff;
 
-        gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
-        gdcm::DictEntry * dictEntry = dict->GetEntry(tag>>16, tag&0xffff);
+        PyObject* value_type = PyObject_GetAttrString(value, "__class__"); // New reference
+        PyObject* vr_python = PyObject_GetAttrString(value_type, "__name__"); // New reference
+        std::string const vr = PyString_AsString(vr_python);
+        Py_DECREF(vr_python);
+        Py_DECREF(value_type);
 
-        if(dictEntry == NULL)
-        {
-            // TODO : private tags
-
-            // Should do the following : get the private creator, load the
-            // correponding dict, and get the VR from there
-            // PyObject * privateCreatorTag = PyInt_FromLong(tag&0xffff0000+0x0010);
-            // if(PyDict_Contains(dictionary, privateCreatorTag))
-            // {
-                // PyObject * privateCreator = PyDict_GetItem(dictionary, privateCreatorTag);
-                // PyObject * privateCreatorString = PyUnicode_AsASCIIString(privateCreator);
-                // std::cout << PyString_AsString(privateCreatorString) << std::endl;
-            // }
-            // Py_DECREF(privateCreatorTag);
-            continue;
-        }
-
-        if(dictEntry->GetGroup() == 0x0008 && dictEntry->GetElement() == 0x0005)
+        if(tag == 0x00080005)
         {
             // We encode everything to UTF-8, so we overwrite the
             // Specific Character Set
             std::string const value = "ISO_IR 192";
             document.InsertValEntry((value.size()%2==0)?value:(value+" "),
-                dictEntry->GetGroup(), dictEntry->GetElement(), dictEntry->GetVR());
+                tagGroup, tagElement, vr);
             continue;
         }
 
-        gdcm::VRKey const vr = dictEntry->GetVR();
+        PyObject* nested_value = PyObject_GetAttrString(value, "value"); // New reference
+
         if(vr == "SQ")
         {
             gdcm::SeqEntry * seqEntry = document.InsertSeqEntry(
-                dictEntry->GetGroup(), dictEntry->GetElement());
+                tagGroup, tagElement);
 
-            int const itemsCount = PyList_Size(value);
+            int const itemsCount = PyList_Size(nested_value);
             for(int itemIndex=0; itemIndex<itemsCount; ++itemIndex)
             {
-                PyObject* pythonItem = PyList_GetItem(value, itemIndex);
+                PyObject* pythonItem = PyList_GetItem(nested_value, itemIndex);
                 // Depth level is only for printing, so we set it to a default
                 // value
                 gdcm::SQItem * gdcmItem = new gdcm::SQItem(0);
@@ -787,21 +793,24 @@ DataSetBridge
         }
         else
         {
-            this->_to_gdcm(value, dictEntry, document);
+            this->_to_gdcm(nested_value, tagGroup, tagElement, vr, document);
         }
+
+        Py_DECREF(nested_value);
     }
 }
 
 void
 DataSetBridge
-::_to_gdcm(PyObject* object, gdcm::DictEntry * dictEntry, gdcm::DocEntrySet & document)
+::_to_gdcm(PyObject* object,
+           unsigned long group, unsigned long element, std::string vr,
+           gdcm::DocEntrySet & document)
 {
 #define MEDIPY_VR_ACTION(vr_value) \
-    if(dictEntry->GetVR() == #vr_value) \
+    if(vr == #vr_value) \
     { \
         std::vector<uint8_t> data = vr_value(object); \
-        document.InsertBinEntry(&data[0], data.size(), \
-            dictEntry->GetGroup(), dictEntry->GetElement(), dictEntry->GetVR()); \
+        document.InsertBinEntry(&data[0], data.size(), group, element, vr); \
     }
 
     MEDIPY_VR_ACTION(AE)
