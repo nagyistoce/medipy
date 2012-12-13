@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -11,6 +11,7 @@ import logging
 
 import numpy
 
+from vr import *
 from medipy.io.dicom import DataSet, Tag
 
 def images(datasets):
@@ -89,29 +90,35 @@ def stacks_dictionary(datasets):
         else :
             return (numpy.linalg.norm(numpy.subtract(o1,o2), numpy.inf) <= 0.05)
     
+    def simple_getter(tag, vr, default_value=None):
+        return lambda x: x.get(tag, vr(default_value)).value
+    
+    def sequence_getter(sequence_tag, item_tag, vr, default_value=None):
+        return lambda x: x.get(sequence_tag, SQ([{}]))[0].get(item_tag, vr(default_value)).value
+    
     getters = {
         # Image Orientation (Patient) (0020,0037)
-        Tag(0x0020,0x0037) : lambda x:tuple(x.get("image_orientation_patient", ())),
+        Tag(0x0020,0x0037) : lambda x:tuple(simple_getter(Tag(0x0020,0x0037), DS, ())(x)),
         # Echo Number(s) (0018,0086)
-        Tag(0x0018,0x0086) : lambda x:x.get("echo_numbers", None),
+        Tag(0x0018,0x0086) : simple_getter(Tag(0x0018,0x0086), IS),
         # Acquisition Number (0020,0012)
-        Tag(0x0020,0x0012) : lambda x:x.get("acquisition_number", None) if x.get("modality", None) != "CT" else None,
+        Tag(0x0020,0x0012) : lambda x:simple_getter(Tag(0x0020,0x0012), IS)(x) 
+                                      if x.get("modality", None) != "CT" 
+                                      else None,
         # Frame Type (0008,9007)
-        Tag(0x0008,0x9007) : lambda x:tuple(
-            x.get("mr_image_frame_type_sequence", [{}])[0].
-                get("frame_type", ())),
+        Tag(0x0008,0x9007) : sequence_getter("mr_image_frame_type_sequence", 
+                                             "frame_type", CS, ()),
         # Temporal Position Index (0020,9128)
-        Tag(0x0020,0x9128) : lambda x:x.get("frame_content_sequence", [{}])[0].
-            get("temporal_position_index", None),
+        Tag(0x0020,0x9128) : sequence_getter("frame_content_sequence", 
+                                             "temporal_position_index", UL),
         # Diffusion Gradient Orientation (0018,9089)
         Tag(0x0018,0x9089) : lambda x:tuple(
-            x.get("mr_diffusion_sequence", [{}])[0].
-                get("diffusion_gradient_direction_sequence", [{}])[0].
-                    get("diffusion_gradient_orientation", ())),
+            x.get("mr_diffusion_sequence", SQ([{}]))[0].
+                get("diffusion_gradient_direction_sequence", SQ([{}]))[0].
+                    get("diffusion_gradient_orientation", FD(())).value),
         # Diffusion b-value (0018,9087)
-        Tag(0x0018,0x9087) : lambda x:x.
-            get("mr_diffusion_sequence", [{}])[0].
-                get("diffusion_bvalue", None)
+        Tag(0x0018,0x9087) : sequence_getter("mr_diffusion_sequence", 
+                                             "diffusion_bvalue", FD),
     }
     
     dictionary = {}
