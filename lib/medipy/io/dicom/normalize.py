@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -21,7 +21,7 @@ import medipy.base
 import csa2
 from dataset import DataSet
 from medipy.io.dicom import Tag
-
+from vr import *
 
 def normalize(dataset_or_datasets):
     """ Normalize a dataset or a sequence of datasets.
@@ -64,17 +64,18 @@ def dwi_normalize(dataset_or_datasets):
         dwi_dataset = DataSet()
         if (0x0029,0x1010) in dataset :
             image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
-            if 'B_value' in image_csa.keys() :
-                if len(image_csa['B_value'])!=0 :
-                    dwi_dataset.diffusion_bvalue = image_csa['B_value'][0]
-            if 'DiffusionDirectionality' in image_csa.keys() :
-                if len(image_csa['DiffusionDirectionality'])!=0 :
-                    directionality = image_csa['DiffusionDirectionality'][0].strip(string.whitespace+"\0")
-                    dwi_dataset.diffusion_directionality = directionality
-            if 'DiffusionGradientDirection' in image_csa.keys() :
+            if image_csa.get("B_value", "") :
+                dwi_dataset.diffusion_bvalue = FD(image_csa['B_value'][0])
+            if image_csa.get("DiffusionDirectionality", "") :
+                directionality = image_csa['DiffusionDirectionality'][0].strip(
+                    string.whitespace+"\0")
+                dwi_dataset.diffusion_directionality = CS(directionality)
+            if image_csa.get("DiffusionGradientDirection", "") :
                 gradient_dataset = DataSet()
-                gradient_dataset.diffusion_gradient_orientation = image_csa['DiffusionGradientDirection']
-                dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+                gradient_dataset.diffusion_gradient_orientation = \
+                    FD(medipy.image_csa['DiffusionGradientDirection'])
+                dwi_dataset.diffusion_gradient_direction_sequence = \
+                    SQ([gradient_dataset])
         return dwi_dataset
 
     def dwi_philips(dataset):
@@ -84,15 +85,15 @@ def dwi_normalize(dataset_or_datasets):
         tag_bvec_ap = Tag(0x2005,0x10b1)
         tag_bvec_fh = Tag(0x2005,0x10b2)
         dwi_dataset = DataSet()
-        dwi_dataset.diffusion_directionality = ""
+        dwi_dataset.diffusion_directionality = CS("")
         if tag_bval in dataset.keys() :
             if len(dataset[tag_bval])!=0 :
-                dwi_dataset.diffusion_bvalue = dataset[tag_bval][0]
+                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval][0])
         if tag_bvec in dataset.keys() :
             gradient_dataset = DataSet()
-            gradient_dataset.diffusion_gradient_orientation = dataset[tag_bvec]
-            dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
-            dwi_dataset.diffusion_directionality = "DIRECTIONAL"
+            gradient_dataset.diffusion_gradient_orientation = FD(dataset[tag_bvec])
+            dwi_dataset.diffusion_gradient_direction_sequence = SQ([gradient_dataset])
+            dwi_dataset.diffusion_directionality = CS("DIRECTIONAL")
         return dwi_dataset
 
     def dwi_ge(dataset):
@@ -101,10 +102,10 @@ def dwi_normalize(dataset_or_datasets):
         tag_bvec_y = Tag(0x0019,0x10bc)
         tag_bvec_z = Tag(0x0019,0x10bd)
         dwi_dataset = DataSet()
-        dwi_dataset.diffusion_directionality = ""
+        dwi_dataset.diffusion_directionality = CS("")
         if tag_bval in dataset.keys() :
             if len(dataset[tag_bval])!=0 :
-                dwi_dataset.diffusion_bvalue = dataset[tag_bval][0]
+                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval][0])
         bvec = []
         if tag_bvec_x in dataset.keys() :
             bvec.append(dataset[tag_bvec_x])
@@ -113,10 +114,10 @@ def dwi_normalize(dataset_or_datasets):
         if tag_bvec_z in dataset.keys() :
             bvec.append(dataset[tag_bvec_z])
         gradient_dataset = DataSet()
-        gradient_dataset.diffusion_gradient_orientation = bvec
-        dwi_dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+        gradient_dataset.diffusion_gradient_orientation = FD(bvec)
+        dwi_dataset.diffusion_gradient_direction_sequence = SQ([gradient_dataset])
         if len(bvec)==3 :
-            dwi_dataset.diffusion_directionality = "DIRECTIONAL"
+            dwi_dataset.diffusion_directionality = CS("DIRECTIONAL")
         return dwi_dataset
 
     if isinstance(dataset_or_datasets, DataSet) :
@@ -132,11 +133,11 @@ def dwi_normalize(dataset_or_datasets):
                     diffusion_gradient_direction_sequence[0].\
                         diffusion_gradient_orientation
                 if not gradient_direction :
-                    gradient_direction = [0.,0.,0.]
+                    gradient_direction = FD([0.,0.,0.])
                     dwi_dataset.diffusion_gradient_direction_sequence[0].\
                         diffusion_gradient_orientation = gradient_direction
             
-            dataset_or_datasets.mr_diffusion_sequence = [dwi_dataset]
+            dataset_or_datasets.mr_diffusion_sequence = SQ([dwi_dataset])
         # Do nothing if the diffusion informations for the current manufacturer
         # are unknown
         return dataset_or_datasets      
@@ -335,12 +336,12 @@ def nuclear_medicine(dataset):
     z_spacing = dataset.get("slice_thickness", dataset.get("spacing_between_slices", 1.))
     for normal in normals :
         slice_vector = normal.copy()
-        slice_vector[2] = z_spacing
+        slice_vector[2] = z_spacing.value
         slice_vectors.append(slice_vector)
     
     for frame_number in range(dataset.number_of_frames) :
         detector = 0
-        if (isinstance(dataset.frame_increment_pointer, list) and 
+        if (isinstance(dataset.frame_increment_pointer, SQ) and 
             (0x0054,0x0020) in dataset.frame_increment_pointer) :
             detector = dataset.detector_vector[frame_number]
         origin = dataset.detector_information_sequence[detector].image_position_patient
@@ -351,17 +352,17 @@ def nuclear_medicine(dataset):
         
         # Instance Number : use the frame_number so we can extract information
         # from the elements referenced in Frame Increment Pointer
-        frame.instance_number = frame_number
+        frame.instance_number = IS(frame_number)
         
         # Image Orientation (Patient) : use the one from Detector Information Sequence (0054,0022)
         frame.image_orientation_patient = orientations[detector]
         
         # Image Position (Patient) : derive from dataset origin, frame normal and Z spacing
-        frame.image_position_patient = origin+frame_number*slice_vectors[detector]
+        frame.image_position_patient = DS(origin+frame_number*slice_vectors[detector])
         
         # Pixel Data (7fe0,0010) : extract slice from 3D dataset
         offset = frame_size*frame_number
-        frame.pixel_data = dataset.pixel_data[offset:offset+frame_size]
+        frame.pixel_data = OB(dataset.pixel_data[offset:offset+frame_size])
         
         result.append(frame)
     
@@ -378,13 +379,13 @@ def mosaic(dataset):
     slice_normal_vector = numpy.asarray(csa_header["SliceNormalVector"])
     
     z_spacing = dataset.get("spacing_between_slices", 
-                            dataset.get("slice_thickness", 1.0))
+                            dataset.get("slice_thickness", DS(1.0))).value
     slice_normal_vector[2] *= z_spacing
     
     number_of_tiles = int(math.ceil(math.sqrt(number_of_images_in_mosaic)))
     
-    rows = dataset.rows/number_of_tiles
-    columns = dataset.columns/number_of_tiles
+    rows = dataset.rows.value/number_of_tiles
+    columns = dataset.columns.value/number_of_tiles
     
     # Re-arrange array so that tiles are contiguous
     array = dataset.pixel_array.reshape(number_of_tiles, rows,
@@ -401,10 +402,10 @@ def mosaic(dataset):
         del image_type[image_type.index("MOSAIC")]
         frame.image_type = image_type
         
-        frame.rows = rows
-        frame.columns = columns
+        frame.rows = US(rows)
+        frame.columns = US(columns)
         
-        frame.image_position_patient = dataset.image_position_patient+i*slice_normal_vector
+        frame.image_position_patient = DS(dataset.image_position_patient+i*slice_normal_vector)
         
         # Pixel Data
         row_begin = i*rows
