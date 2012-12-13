@@ -13,6 +13,6 @@
 #include <string>
 
 PyObject* read(std::string const & filename);
-void write(PyObject* dictionary, std::string const & filename);
+void write(PyObject* dataset, std::string const & filename);
 
 #endif // _caf64ad4_c17c_4be4_8d6d_035e31ac3b10
