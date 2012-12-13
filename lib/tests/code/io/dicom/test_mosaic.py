@@ -22,8 +22,8 @@ class testMosaic(unittest.TestCase):
         self.number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
         
         mosaic_size = math.ceil(math.sqrt(self.number_of_tiles))
-        self.tile_size = (int(dataset.columns/mosaic_size),
-                          int(dataset.rows/mosaic_size))
+        self.tile_size = (int(dataset.columns.value/mosaic_size),
+                          int(dataset.rows.value/mosaic_size))
         
     def testAssembleTilesImageFilter(self):
         
