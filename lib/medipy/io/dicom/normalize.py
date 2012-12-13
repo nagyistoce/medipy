@@ -70,10 +70,10 @@ def dwi_normalize(dataset_or_datasets):
                 directionality = image_csa['DiffusionDirectionality'][0].strip(
                     string.whitespace+"\0")
                 dwi_dataset.diffusion_directionality = CS(directionality)
-            if image_csa.get("DiffusionGradientDirection", "") :
+            if "DiffusionGradientDirection" in image_csa :
                 gradient_dataset = DataSet()
                 gradient_dataset.diffusion_gradient_orientation = \
-                    FD(medipy.image_csa['DiffusionGradientDirection'])
+                    FD(image_csa['DiffusionGradientDirection'])
                 dwi_dataset.diffusion_gradient_direction_sequence = \
                     SQ([gradient_dataset])
         return dwi_dataset
@@ -267,9 +267,9 @@ def multi_frame(dataset):
     ]
     
     # Size in bytes of a frame
-    frame_size = dataset.bits_allocated/8*dataset.rows*dataset.columns
+    frame_size = dataset.bits_allocated.value/8*dataset.rows.value*dataset.columns.value
     
-    for frame_number in range(dataset.number_of_frames) :
+    for frame_number in range(dataset.number_of_frames.value) :
         frame = DataSet()
         
         for key, value in dataset.items() :
@@ -303,7 +303,7 @@ def multi_frame(dataset):
             elif key == (0x7fe0, 0x0010) :
                 # Pixel Data
                 offset = frame_size*frame_number
-                frame[key] = dataset.pixel_data[offset:offset+frame_size]
+                frame[key] = dataset.pixel_data.__class__(dataset.pixel_data[offset:offset+frame_size])
             else :
                 # Otherwise add the element to the frame dataset as is
                 frame[key] = value
@@ -319,7 +319,7 @@ def nuclear_medicine(dataset):
     result = []
     
     # Size in bytes of a frame
-    frame_size = dataset.bits_allocated/8*dataset.rows*dataset.columns
+    frame_size = dataset.bits_allocated.value/8*dataset.rows.value*dataset.columns.value
     
     # Orientation and normal of the frames, one per detector
     orientations = []
@@ -339,7 +339,7 @@ def nuclear_medicine(dataset):
         slice_vector[2] = z_spacing.value
         slice_vectors.append(slice_vector)
     
-    for frame_number in range(dataset.number_of_frames) :
+    for frame_number in range(dataset.number_of_frames.value) :
         detector = 0
         if (isinstance(dataset.frame_increment_pointer, SQ) and 
             (0x0054,0x0020) in dataset.frame_increment_pointer) :
@@ -398,8 +398,8 @@ def mosaic(dataset):
         frame = medipy.io.dicom.DataSet()
         frame.update(dataset)
         
-        image_type = copy.copy(dataset.image_type)
-        del image_type[image_type.index("MOSAIC")]
+        image_type = copy.deepcopy(dataset.image_type)
+        del image_type.value[image_type.value.index("MOSAIC")]
         frame.image_type = image_type
         
         frame.rows = US(rows)
@@ -414,7 +414,7 @@ def mosaic(dataset):
         column_begin = i*columns
         column_end = column_begin+columns
         
-        frame.pixel_data = array[...,i].tostring()
+        frame.pixel_data = dataset.pixel_data.__class__(array[...,i].tostring())
 
         result.append(frame)
     
