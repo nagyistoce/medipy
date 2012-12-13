@@ -28,15 +28,12 @@ def main():
     
     uid_dictionary = {}
     
-    for table_element in input.getElementsByTagName("dict")[0].childNodes :
-        if table_element.nodeType != xml.dom.Node.ELEMENT_NODE or table_element.nodeName != "table":
-            continue
-        
-        if table_element.getAttribute("ref") != "Table A-1" :
+    for table_element in input.getElementsByTagName("table") :
+        if table_element.getAttribute("name") != "UID VALUES" :
             continue
         
         for uid_element in table_element.childNodes :
-            if uid_element.nodeType != xml.dom.Node.ELEMENT_NODE or uid_element.nodeName != "uid":
+            if uid_element.nodeName != "uid":
                 continue
             uid = uid_element.getAttribute("value")
             # Typo in the table ...
