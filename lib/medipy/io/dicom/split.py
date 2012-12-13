@@ -106,8 +106,8 @@ def stacks_dictionary(datasets):
                                       if x.get("modality", None) != "CT" 
                                       else None,
         # Frame Type (0008,9007)
-        Tag(0x0008,0x9007) : sequence_getter("mr_image_frame_type_sequence", 
-                                             "frame_type", CS, ()),
+        Tag(0x0008,0x9007) : lambda x:tuple(sequence_getter("mr_image_frame_type_sequence", 
+                                             "frame_type", CS, ())(x)),
         # Temporal Position Index (0020,9128)
         Tag(0x0020,0x9128) : sequence_getter("frame_content_sequence", 
                                              "temporal_position_index", UL),
@@ -135,6 +135,7 @@ def stacks_dictionary(datasets):
                 dataset_key[Tag(0x0020,0x0037)] = o2
                 break
         
+        print dataset_key
         dictionary.setdefault(tuple(dataset_key.items()), []).append(dataset)
 
     
