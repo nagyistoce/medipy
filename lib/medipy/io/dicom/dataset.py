@@ -11,9 +11,12 @@ import sys
 
 import numpy
 
+import medipy.base
+
 from tag import Tag
 from dictionary import data_dictionary, name_dictionary
 from private_dictionaries import private_dictionaries
+from vr import *
 from medipy.io.dicom import dictionary
 
 class DataSet(dict):
@@ -30,53 +33,6 @@ class DataSet(dict):
         DicomDictionary descriptive string, the corresponding tag is used
         to look up or set the Data Element's value.
     """
-    
-    @staticmethod
-    def from_dict(dictionary, tags = "all", private_tags = "all", process_header="first_run"):
-        """ Create an Data Set from a dictionary. tags can be either a
-            sequence of tags (numerical or named) from the dictionary to be
-            included in the Data Set or the string "all". In the
-            latter case, all tags from the dictionary will be included in the
-            Data Set. private_tags has a similar effect for private
-            tags.
-        """
-        
-        dataset = DataSet()
-        
-        if process_header == "first_run" :
-            header_dict = dict([(tag, element) 
-                                for tag, element in dictionary.items() 
-                                if tag[0]==0x0002])
-            if header_dict :
-                header = DataSet.from_dict(header_dict, tags, private_tags, "header_only")
-                dataset.header = header
-        
-        for tag, element in dictionary.items() :
-            if process_header != "header_only" and tag[0] == 0x0002 :
-                continue
-            if tag[1] == 0 :
-                # group length
-                continue
-            
-            # Find VR and whether to include the element
-            if tag[0]%2==1 :
-                include_tag = (private_tags == "all" or
-                               (private_tags and tag in private_tags))
-            else :
-                include_tag = (tags == "all" or
-                               tag in tags or tag_to_underscored_name(tag) in tags)
-            
-            if include_tag :
-                if isinstance(element, list) and element and isinstance(element[0], dict) :
-                    value = []
-                    for item in element :
-                        sub_dataset = DataSet.from_dict(item, tags, private_tags, "no_header")
-                        value.append(sub_dataset)
-                else :
-                    value = element
-                dict.__setitem__(dataset, Tag(tag), value)
-        
-        return dataset
     
     def __init__(self, include_header=True):
         dict.__init__(self, {})
@@ -110,16 +66,16 @@ class DataSet(dict):
         
         if "_pixel_array" not in self.__dict__ :
             
-            shape = (self.rows, self.columns)
+            shape = (self.rows.value, self.columns.value)
             if "number_of_frames" in self :
-                shape = (self.number_of_frames,)+shape
+                shape = (self.number_of_frames.value,)+shape
             
-            dtype = "int%d"%(self.bits_allocated)
+            dtype = "int%d"%(self.bits_allocated.value)
             if self.get("pixel_representation", 0) == 0 :
                 dtype = "u"+dtype
             dtype = numpy.dtype(dtype)
             
-            self._pixel_array = numpy.fromstring(self.pixel_data, dtype).reshape(shape)
+            self._pixel_array = numpy.fromstring(self.pixel_data.value, dtype).reshape(shape)
             
             dataset_is_little_endian = (
                 self.header.get("transfer_syntax_uid", "") != "1.2.840.10008.1.2.2")
@@ -129,7 +85,6 @@ class DataSet(dict):
                 self._pixel_array.byteswap(True)
             
         return self._pixel_array
-        
         
     pixel_array = property(_get_pixel_array)
     
@@ -161,6 +116,9 @@ class DataSet(dict):
     def __setitem__(self, item, value):
         """ Access to an item using a numerical or named tag.
         """
+        
+        if not isinstance(value, VR) :
+            raise medipy.base.Exception("value is not a VR") 
         
         tag = self._get_tag(item)
         dict.__setitem__(self, tag, value)
@@ -197,6 +155,8 @@ class DataSet(dict):
         tag = name_dictionary.get(name, None)
         
         if tag : 
+            if not isinstance(value, VR) :
+                raise medipy.base.Exception("value is not a VR")
             self[tag] = value
         else:  
             # name is not in DICOM dictionary : set an instance member
@@ -263,10 +223,11 @@ class DataSet(dict):
         for tag in sorted(self.keys()):
             value = self[tag]
             
+            vr = value.__class__.__name__
+            
             if tag.private :
                 if tag.element < 0x0100 :
                     name = "Private Creator"
-                    vr = None
                 else :
                     # The private block for private tag (gggg,xxyy) (where gggg
                     # is odd and yy is in [00,ff] is xx. The private creator is
@@ -284,10 +245,8 @@ class DataSet(dict):
                         private_tag in private_dictionaries[private_creator]) :
                         
                         name = private_dictionaries[private_creator][private_tag][2]
-                        vr = private_dictionaries[private_creator][private_tag][0]
                     else :
                         name = tag
-                        vr = None
             else :
                 if tag.group/0x100 in [0x50, 0x60] :
                     # Repeating group element, cf. PS 3.5-2011, 7.6
@@ -295,9 +254,8 @@ class DataSet(dict):
                         tag.group/0x100, tag.element)
                 else :
                     tag_in_dictionary = tag
-                name = data_dictionary.setdefault(
-                    tag_in_dictionary, ("UN", "1", unicode(tag_in_dictionary)))[2]
-                vr = data_dictionary[tag_in_dictionary][0]
+                name = data_dictionary.get(tag_in_dictionary,
+                    ("UN", "1", unicode(tag_in_dictionary)))[2]
             
             if vr == "SQ" :
                 elements = [unicode(item) for item in value]
@@ -320,7 +278,7 @@ class DataSet(dict):
                 except UnicodeDecodeError :
                     value = "<array of %i bytes>"%(len(value),)
             
-            result.append("%s %s: %s"%(name, tag, value))
+            result.append("%s %s [%s]: %s"%(name, tag, vr, value))
         return "\n".join(result)
     
     def __str__(self):
