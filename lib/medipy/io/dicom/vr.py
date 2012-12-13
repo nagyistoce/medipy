@@ -14,11 +14,54 @@ class VR(object):
     
     def __init__(self, value):
         self.value = value
+    
+    def __contains__(self, item) :
+        return self.value.__contains__(item)
+    
+    def __getitem__(self, key):
+        return self.value.__getitem__(key)
+    
+    def __iter__(self) :
+        return self.value.__iter__()
+    
+    def __len__(self):
+        return self.value.__len__()
+    
+    def __str__(self):
+        return str(self.value)
+    
+    def __unicode__(self):
+        return unicode(self.value)
+    
+    def __repr__(self) :
+        return self.value.__repr__()
 
-# Dynamically define all the VR classes
-vrs = ["AE", "AS", "AT", "CS", "DA", "DS", "DT", "FL", "FD", "IS", 
-       "LO", "LT", "OB", "OF", "OW", "PN", "SH", "SL", "SQ", "SS", 
-       "ST", "TM", "UI", "UL" "UN", "US", "UT"]
-for vr in vrs :
-    # globals() is the dictionary of the current module.
-    globals()[vr] = type(vr, (VR,), dict())
+class AE(VR): pass
+class AS(VR): pass
+class AT(VR): pass
+class CS(VR): pass
+class DA(VR): pass
+class DS(VR): pass
+class DT(VR): pass
+class FL(VR): pass
+class FD(VR): pass
+class IS(VR): pass
+
+class LO(VR): pass
+class LT(VR): pass
+class OB(VR): pass
+class OF(VR): pass
+class OW(VR): pass
+class PN(VR): pass
+class SH(VR): pass
+class SL(VR): pass
+class SQ(VR): pass
+class SS(VR): pass
+
+class UI(VR): pass
+class TM(VR): pass
+class ST(VR): pass
+class UL(VR): pass
+class UN(VR): pass
+class US(VR): pass
+class UT(VR): pass
