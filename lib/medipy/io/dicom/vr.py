@@ -18,6 +18,9 @@ class VR(object):
     def __contains__(self, item) :
         return self.value.__contains__(item)
     
+    def __eq__(self, other):
+        return self.value == other
+    
     def __getitem__(self, key):
         return self.value.__getitem__(key)
     
@@ -26,6 +29,9 @@ class VR(object):
     
     def __len__(self):
         return self.value.__len__()
+    
+    def __ne__(self, other):
+        return self.value != other
     
     def __str__(self):
         return str(self.value)
