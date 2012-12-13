@@ -135,9 +135,7 @@ def stacks_dictionary(datasets):
                 dataset_key[Tag(0x0020,0x0037)] = o2
                 break
         
-        print dataset_key
         dictionary.setdefault(tuple(dataset_key.items()), []).append(dataset)
-
     
     return dictionary
 
