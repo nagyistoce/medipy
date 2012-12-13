@@ -78,9 +78,10 @@ class DataSet(dict):
         
         return dataset
     
-    def __init__(self):
+    def __init__(self, include_header=True):
         dict.__init__(self, {})
-        self.header = {}
+        if include_header :
+            self.header = DataSet(include_header=False)
         self.normalized = False
     
     def tags(self):
