@@ -26,8 +26,8 @@ def _get_dicomdir_records_hierarchy(dataset):
     
     offsets = set()
     for record in dataset.directory_record_sequence :
-        offsets.add(record.offset_of_the_next_directory_record)
-        offsets.add(record.offset_of_referenced_lowerlevel_directory_entity)
+        offsets.add(record.offset_of_the_next_directory_record.value)
+        offsets.add(record.offset_of_referenced_lowerlevel_directory_entity.value)
     offsets.add(0)
     if len(offsets) != len(dataset.directory_record_sequence) :
         raise medipy.base.Exception("Some records are not referenced")
