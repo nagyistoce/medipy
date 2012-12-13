@@ -12,6 +12,7 @@ import itk
 import numpy
 
 import medipy.io # add PyArrayIO to itk
+import medipy.io.dicom
 from medipy.io.io_base import IOBase
 import medipy.itk
 from medipy.itk import itk_image_to_array, medipy_image_to_itk_image, dtype_to_itk
@@ -177,13 +178,13 @@ class ITK(IOBase) :
                 mr_diffusion_sequence = []
                 for index, gradient in enumerate(gradients) :
                     dataset = medipy.io.dicom.DataSet()
-                    dataset.diffusion_directionality = "DIRECTIONAL"
+                    dataset.diffusion_directionality = medipy.io.dicom.CS("DIRECTIONAL")
                     
-                    dataset.diffusion_bvalue = bvalues[index]
+                    dataset.diffusion_bvalue = medipy.io.dicom.FD(bvalues[index])
                     
                     gradient_dataset = medipy.io.dicom.DataSet()
-                    gradient_dataset.diffusion_gradient_orientation = gradient
-                    dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+                    gradient_dataset.diffusion_gradient_orientation = medipy.io.dicom.FD(gradient)
+                    dataset.diffusion_gradient_direction_sequence = medipy.io.dicom.SQ([gradient_dataset])
                     
                     mr_diffusion_sequence.append(dataset)
                 
