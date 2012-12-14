@@ -63,10 +63,10 @@ def series(datasets, keep_only_images = True):
                         result[record.series_instance_uid] = []
                     result[record.series_instance_uid].append(record)
         else :
-            if dataset.series_instance_uid not in result :
-                result[dataset.series_instance_uid] = []
+            series_datasets = result.setdefault(
+                dataset.get("series_instance_uid", UI(None)).value, [])
     
-            result[dataset.series_instance_uid].append(dataset)
+            series_datasets.append(dataset)
     
     return result.values()
 
