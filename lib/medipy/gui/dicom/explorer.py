@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -9,11 +9,10 @@
 import wx
 
 import medipy.gui.image
-from medipy.gui.dicom.hierarchy_tree import HierarchyTree
-from medipy.gui.dicom.dataset_list import DataSetList
-
 from medipy.io.dicom.misc import load_dicomdir_records
 from medipy.io.dicom import split, sort
+from hierarchy_tree import HierarchyTree
+from dataset_list import DataSetList
 
 class Explorer(wx.Panel):
     
@@ -78,7 +77,7 @@ class Explorer(wx.Panel):
             self._setup_slider(datasets)
             self._slider.Enable()
             
-            slider_value = self._series_position.get(datasets[0].series_instance_uid, 0)
+            slider_value = self._series_position.get(datasets[0].series_instance_uid.value, 0)
             self._slider.SetValue(slider_value)
             self.OnSlider(None)
         else :
@@ -90,7 +89,7 @@ class Explorer(wx.Panel):
         self.Freeze()
         
         datasets = self._hierarchy_tree.selected_datasets
-        series_uid = datasets[0].series_instance_uid
+        series_uid = datasets[0].series_instance_uid.value
         
         loaded_datasets = self._loaded_datasets[series_uid]
         if "number_of_frames" in loaded_datasets[0] :
@@ -132,7 +131,7 @@ class Explorer(wx.Panel):
         """ Setup the image slider.
         """
         
-        series_uid = datasets[0].series_instance_uid
+        series_uid = datasets[0].series_instance_uid.value
         
         if series_uid not in self._loaded_datasets :
             loaded_datasets = [x for x in datasets if "directory_record_type" not in x]
@@ -157,7 +156,7 @@ class Explorer(wx.Panel):
         slider_max = 0
         for dataset in loaded_datasets :
             if "number_of_frames" in dataset :
-                slider_max += dataset.number_of_frames
+                slider_max += dataset.number_of_frames.value
             else :
                 slider_max += 1
         
