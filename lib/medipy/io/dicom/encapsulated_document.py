@@ -19,19 +19,20 @@ def encapsulate(filename, mime_type=None):
         the MIME type will be guessed from the content of the file.
         
         The Data Set only contains the following elements :
+          * Document Title: contains the leaf of the filename.
           * Document Class Code Sequence: this sequence has only one element,
             identifying whether the length of the file is odd or even. This is
             necessary since the OB VR must be padded to be of even length, and
             the expose function must be able to determine the length of the
             original file.
-          * MIME Type of Encapsulated Document
-          * Encapsulated Document
+          * MIME Type of Encapsulated Document.
+          * Encapsulated Document.
     """
     
     dataset = DataSet()
     
     # Use the original filename as the document title
-    dataset.document_title = ST(filename)
+    dataset.document_title = ST(os.path.basename(filename))
     
     # Save the length parity information, since OB values must be padded by 0
     # if they are of odd length. Use the Document Class Code Sequence for this.
