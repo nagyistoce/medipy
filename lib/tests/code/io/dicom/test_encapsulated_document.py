@@ -70,6 +70,14 @@ class TestEncapsulatedDocument(unittest.TestCase):
         shutil.rmtree(temporary_directory)
 
     def _test_encapsulate(self, dataset, mime_type, parity):
+        
+        # Document Title
+        self.assertTrue("document_title" in dataset)
+        document_title = dataset.document_title
+        self.assertTrue(isinstance(document_title, medipy.io.dicom.ST))
+        self.assertTrue(isinstance(document_title.value, str))
+        self.assertEqual(document_title, "input")
+        
         # MIME type
         self.assertTrue("mime_type_of_encapsulated_document" in dataset)
         mime_type_of_encapsulated_document = dataset.mime_type_of_encapsulated_document
