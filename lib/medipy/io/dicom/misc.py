@@ -11,7 +11,8 @@ import os.path
 
 import medipy.base
 
-import dataset_io 
+import dataset_io
+from vr import * 
 
 def find_dicomdir_file(base_directory, referenced_file_id):
     """ Search the filesystem for upper-case and lower case version of a
@@ -111,8 +112,11 @@ def load_dicomdir_records(datasets, base_directory=None):
 def parse_da(value):
     """ Return a datetime object from a DA value.
     """
+
+    if isinstance(value, VR) :
+        value = value.value
     
-    if value == "" :
+    if not value :
         return None
     
     return datetime.datetime.strptime(value, "%Y%m%d")
@@ -121,7 +125,10 @@ def parse_tm(value):
     """ Return a time object from a TM value.
     """
     
-    if value == "" :
+    if isinstance(value, VR) :
+        value = value.value
+    
+    if not value :
         return None
     
     format = ""
