@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -117,7 +117,11 @@ def load(path, fragment=None, loader=None) :
     }
     
     args = {}
-    names = ["direction", "origin", "spacing", "data_type", "annotations"]
+    names = [
+        "direction", "origin", "spacing", 
+        "data_type", "image_type", 
+        "annotations"
+    ]
     if not isinstance(loader, Dicom) :
         names.append("image_type")
     for name in names :

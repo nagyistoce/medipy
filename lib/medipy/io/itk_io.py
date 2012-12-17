@@ -12,6 +12,7 @@ import itk
 import numpy
 
 import medipy.io # add PyArrayIO to itk
+import medipy.io.dicom
 from medipy.io.io_base import IOBase
 import medipy.itk
 from medipy.itk import itk_image_to_array, medipy_image_to_itk_image, dtype_to_itk
@@ -34,8 +35,12 @@ class ITK(IOBase) :
         self._filter = None
         self._loader = None
         self._saver = None
+
+        # Loader informations        
+        self._data_type = None
+        self._image_type = None
+        self._pixel_type_up_to_date = False
         self._image_informations_read = False
-        self._saver = None
         
         IOBase.__init__(self, filename, report_progress)
         
@@ -48,20 +53,45 @@ class ITK(IOBase) :
     def number_of_images(self) :
         return 1
     
-    def load_data(self, index=0) :
+    def _update_pixel_type(self):
+        if self._pixel_type_up_to_date :
+            # Nothing to do
+            return
+        
+        # Update the loader
         if not self._image_informations_read :
             self._loader.SetFileName(self._filename)
             self._loader.ReadImageInformation()
             self._image_informations_read = True
         
-        # TODO : NumberOfComponents != 1
+        # Get the component type
+        ComponentType = medipy.itk.types.io_component_type_to_type[
+            self._loader.GetComponentType()]
+        # Get the pixel type
+        pixel_type = self._loader.GetPixelTypeAsString(self._loader.GetPixelType())
+        if pixel_type == "scalar" :
+            self._data_type = "scalar"
+            self._image_type = "normal"
+        elif pixel_type == "rgb" :
+            self._data_type = "vector"
+            self._image_type = "rgb"
+        else :
+            raise NotImplementedError(pixel_type)
+        
+        self._pixel_type_up_to_date = True
+    
+    def load_data(self, index=0) :
+        self._update_pixel_type()
+        
+        pixel_type = self._loader.GetPixelTypeAsString(self._loader.GetPixelType())
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
         PixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
         while PixelType not in InstantiatedTypes :
             PixelType = medipy.itk.types.larger_type[PixelType]
+
         Dimension = self._loader.GetNumberOfDimensions()
-        
+
         if self._filter == itk.ImageFileReader :
             ImageType = itk.Image[PixelType, Dimension]
             reader = itk.ImageFileReader[ImageType].New()
@@ -81,12 +111,12 @@ class ITK(IOBase) :
     
     def load_metadata(self, index=0) :
         
-        metadata = {}
+        self._update_pixel_type()
         
-        if not self._image_informations_read :
-            self._loader.SetFileName(self._filename)
-            self._loader.ReadImageInformation()
-            self._image_informations_read = True
+        metadata = {}
+
+        metadata["data_type"] = self._data_type
+        metadata["image_type"] = self._image_type
     
         ndim = self._loader.GetNumberOfDimensions()
         # GetDirection returns columns of the direction matrix 
@@ -148,13 +178,13 @@ class ITK(IOBase) :
                 mr_diffusion_sequence = []
                 for index, gradient in enumerate(gradients) :
                     dataset = medipy.io.dicom.DataSet()
-                    dataset.diffusion_directionality = "DIRECTIONAL"
+                    dataset.diffusion_directionality = medipy.io.dicom.CS("DIRECTIONAL")
                     
-                    dataset.diffusion_bvalue = bvalues[index]
+                    dataset.diffusion_bvalue = medipy.io.dicom.FD(bvalues[index])
                     
                     gradient_dataset = medipy.io.dicom.DataSet()
-                    gradient_dataset.diffusion_gradient_orientation = gradient
-                    dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+                    gradient_dataset.diffusion_gradient_orientation = medipy.io.dicom.FD(gradient)
+                    dataset.diffusion_gradient_direction_sequence = medipy.io.dicom.SQ([gradient_dataset])
                     
                     mr_diffusion_sequence.append(dataset)
                 
@@ -245,6 +275,7 @@ class ITK(IOBase) :
     def _set_filename(self, filename):
         self._filename = str(filename)
         if os.path.isfile(self._filename) :
+            self._pixel_type_up_to_date = False
             self._filter, self._loader = self._find_loader()
         self._saver = self._find_saver()
     
@@ -265,20 +296,19 @@ class ITK(IOBase) :
                 l.SetFileName(self._filename)
                 l.ReadImageInformation()
                 
-                # Check if we can use itk::ImageFileReader, i.e. check if 
-                # itk.Image is wrapped for the dimension as stored in the file
-                use_image_file_reader = (l.GetNumberOfDimensions() in 
-                                        [x[1] for x in itk.Image.__template__])
-                # Check if we can use PyArrayImageReader
-                use_py_array_file_reader = (l.GetNumberOfDimensions() in 
-                                            [x[1] for x in itk.PyArrayFileReader.__template__])
+                filter = None
                 
-                if use_image_file_reader :
-                    filter = itk.ImageFileReader
-                elif use_py_array_file_reader :
-                    filter = itk.PyArrayFileReader
+                if l.GetPixelTypeAsString(l.GetPixelType()) in ["vector", "rgb"] :
+                    if 1+l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
+                        filter = itk.PyArrayFileReader
+                else :
+                    if l.GetNumberOfDimensions() in [x[1] for x in itk.Image] :
+                        filter = itk.ImageFileReader
+                    elif l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
+                        filter = itk.PyArrayFileReader
+                    # Otherwise no filter can load this data
                     
-                if use_image_file_reader or use_py_array_file_reader :
+                if filter is not None :
                     self._image_informations_read = True
                     loader = l
                     break

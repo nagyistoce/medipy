@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg             
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import datetime
@@ -110,42 +110,41 @@ class HierarchyTree(wx.TreeCtrl):
                 dataset = medipy.io.dicom.load_dicomdir_records([dataset.children[0]])[0]
             
             # Fill patient information : name or ID
-            patient = dataset.get("patients_name", dataset.get("patient_id", "(no name)")) 
+            patient = dataset.get("patients_name", 
+                  dataset.get("patient_id", medipy.io.dicom.LO("(no name)"))).value 
             if patient not in patients :
                 patients[patient] = {}
             
             # Fill study information : UID, description and date
-            if dataset.study_instance_uid not in patients[patient] :
-                patients[patient][dataset.study_instance_uid] = {
+            study = patients[patient].setdefault(
+                dataset.get("study_instance_uid", medipy.io.dicom.UI(None)).value, {
                     "description" : "(no description)",
                     "date" : None,
                     "series" : {}
                 }
-            
-            study = patients[patient][dataset.study_instance_uid] 
+            )
             
             if "study_description" in dataset : 
-                study["description"] = dataset.study_description
-            if "study_date" in dataset and dataset.study_date :
+                study["description"] = dataset.study_description.value
+            if "study_date" in dataset and dataset.study_date.value :
                 study["date"] = medipy.io.dicom.misc.parse_da(dataset.study_date) 
-                if "study_time" in dataset and dataset.study_time :
+                if "study_time" in dataset and dataset.study_time.value :
                     time = medipy.io.dicom.misc.parse_tm(dataset.study_time)
                     study["date"] = datetime.datetime.combine(study["date"], time)
             
             # Fill series information : UID, description and date
-            study["series"][dataset.series_instance_uid] = {
-                "description" : "(no description)",
-                "date" : None,
-                "datasets" : serie
-            }
-            
-            series = study["series"][dataset.series_instance_uid] 
+            series = study["series"].setdefault(
+                dataset.get("series_instance_uid", medipy.io.dicom.UI(None)), {
+                    "description" : "(no description)",
+                    "date" : None,
+                    "datasets" : serie
+            })
             
             if "series_description" in dataset : 
-                series["description"] = dataset.series_description
-            if "series_date" in dataset and dataset.series_date :
+                series["description"] = dataset.series_description.value
+            if "series_date" in dataset and dataset.series_date.value :
                 series["date"] = medipy.io.dicom.misc.parse_da(dataset.series_date)
-                if "series_time" in dataset and dataset.series_time :
+                if "series_time" in dataset and dataset.series_time.value :
                     time = medipy.io.dicom.misc.parse_tm(dataset.series_time)
                     series["date"] = datetime.datetime.combine(series["date"], time)
         

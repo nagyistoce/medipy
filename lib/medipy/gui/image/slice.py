@@ -68,7 +68,7 @@ class Slice(PropertySynchronized) :
     def __init__(self, world_to_slice, layers=None, annotations=None,
                  interpolation=False, display_coordinates="physical", 
                  scalar_bar_visibility = False, orientation_visibility=True,
-                 corner_annotations_visibility=False,) :
+                 corner_annotations_visibility=False, crosshair="full") :
         
         layers = layers or []
         annotations = annotations or ObservableList()
@@ -82,6 +82,7 @@ class Slice(PropertySynchronized) :
         self._scalar_bar_visibility = None
         self._orientation_visibility = None
         self._corner_annotations_visibility = None
+        self._crosshair = None
         
         self._world_to_slice = None
         
@@ -138,7 +139,7 @@ class Slice(PropertySynchronized) :
         super(Slice, self).__init__([
             "world_to_slice", "interpolation", "display_coordinates", 
             "scalar_bar_visibility", "orientation_visibility", 
-            "corner_annotations_visibility", "zoom"
+            "corner_annotations_visibility", "crosshair", "zoom"
         ])
         self.add_allowed_event("cursor_position")
         self.add_allowed_event("image_position")
@@ -190,6 +191,7 @@ class Slice(PropertySynchronized) :
         self._set_scalar_bar_visibility(scalar_bar_visibility)
         self._set_orientation_visibility(orientation_visibility)
         self._set_corner_annotations_visibility(corner_annotations_visibility)
+        self._set_crosshair(crosshair)
         
         self._set_world_to_slice(world_to_slice)
         
@@ -584,6 +586,24 @@ class Slice(PropertySynchronized) :
         self._corner_annotation.SetVisibility(corner_annotations_visibility)
         self.notify_observers("corner_annotations_visibility")
     
+    def _get_crosshair(self):
+        return self._crosshair
+    
+    def _set_crosshair(self, value):
+        if value not in ["full", "none"] :
+            raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
+        
+        self._crosshair = value
+        
+        if self._crosshair == "full" :
+            self._horizontal_line_actor.VisibilityOn()
+            self._vertical_line_actor.VisibilityOn()
+        else :
+            self._horizontal_line_actor.VisibilityOff()
+            self._vertical_line_actor.VisibilityOff()
+        
+        self.notify_observers("crosshair")
+    
     def _get_world_to_slice(self) :
         """ Transformation matrix for this slice.
         """
@@ -775,6 +795,7 @@ class Slice(PropertySynchronized) :
                                       _set_orientation_visibility)
     corner_annotations_visibility = property(_get_corner_annotations_visibility,
                                              _set_corner_annotations_visibility)
+    crosshair = property(_get_crosshair, _set_crosshair)
     world_to_slice = property(_get_world_to_slice, _set_world_to_slice)
     slice_to_world = property(_get_slice_to_world)
     layers = property(_get_layers)

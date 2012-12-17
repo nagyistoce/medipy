@@ -13,9 +13,59 @@
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
+#include <itkImageIOFactory.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkRGBPixel.h>
 
 namespace itk
 {
+
+/**
+ * @brief Component type of a pixel.
+ *
+ * Generic class, will be specialized for non-scalar pixels.
+ */
+template<typename TPixel>
+struct ComponentTrait { typedef TPixel Type; };
+
+/**
+ * @brief Component type of a pixel.
+ *
+ * Specialization for itk::RGBPixel
+ */
+template<typename TComponentType>
+struct ComponentTrait<itk::RGBPixel<TComponentType> > { typedef TComponentType Type; };
+
+/**
+ * @brief Functor copying data from an itk pixel to an array.
+ *
+ * Generic class, will be specialized for non-scalar pixels.
+ */
+template<typename TPixel>
+class CopyFunctor
+{
+public :
+    static void action(TPixel const & source, TPixel * & destination)
+    {
+        *destination = source;
+        ++destination;
+    }
+};
+
+/**
+ * @brief Functor copying data from an itk pixel to an array.
+ *
+ * Specialization for itk::RGBPixel
+ */
+template<typename TComponent>
+struct CopyFunctor<itk::RGBPixel<TComponent> >
+{
+public :
+    static void action(itk::RGBPixel<TComponent> const & source, TComponent * & destination)
+    {
+        destination = std::copy(source.Begin(), source.End(), destination);
+    }
+};
 
 template<typename TPixel, unsigned int VImageDimension>
 void
@@ -36,31 +86,30 @@ void
 PyArrayFileReader<TPixel, VImageDimension>
 ::Update()
 {
-	typedef Image<TPixel, VImageDimension> ImageType;
-	typedef ImageFileReader<ImageType> ReaderType;
+    if(!this->m_UserSpecifiedImageIO)
+    {
+        this->m_ImageIO = itk::ImageIOFactory::CreateImageIO(
+            this->GetFileName(), itk::ImageIOFactory::ReadMode);
+    }
 
-	typename ReaderType::Pointer reader = ReaderType::New();
-	reader->SetFileName(this->GetFileName());
-	if(this->m_UserSpecifiedImageIO)
-	{
-		reader->SetImageIO(this->GetImageIO());
-	}
+    this->m_ImageIO->SetFileName(this->GetFileName());
+    this->m_ImageIO->ReadImageInformation();
 
-	reader->Update();
-
-	this->m_ImageIO = reader->GetImageIO();
-
-	typename ImageType::Pointer image = reader->GetOutput();
-
-	// Get geometric informations from image
-	this->template SetOrigin(image.GetPointer());
-	this->template SetSpacing(image.GetPointer());
-	this->template SetDirection(image.GetPointer());
-
-	// Get data from image, transfer data ownership
-	this->template SetArray(image.GetPointer());
-	reinterpret_cast<PyArrayObject*>(this->m_Array)->flags |= NPY_OWNDATA;
-	image->GetPixelContainer()->ContainerManageMemoryOff();
+    if(this->m_ImageIO->GetPixelType() == ImageIOBase::SCALAR)
+    {
+        typedef Image<TPixel, VImageDimension> ImageType;
+        this->template GenerateData<ImageType>();
+    }
+    else if(this->m_ImageIO->GetPixelType() == ImageIOBase::RGB)
+    {
+        typedef Image<RGBPixel<TPixel>, VImageDimension> ImageType;
+        this->template GenerateData<ImageType>();
+    }
+    else
+    {
+        throw std::logic_error("Cannot process images with PixelType=="+
+            this->m_ImageIO->GetComponentTypeAsString(this->m_ImageIO->GetComponentType()));
+    }
 }
 
 template<typename TPixel, unsigned int VImageDimension>
@@ -165,19 +214,77 @@ template<typename TPixel, unsigned int VImageDimension>
 template<typename TImage>
 void
 PyArrayFileReader<TPixel, VImageDimension>
+::GenerateData()
+{
+    typedef ImageFileReader<TImage> ReaderType;
+
+    typename ReaderType::Pointer reader = ReaderType::New();
+    reader->SetImageIO(this->m_ImageIO);
+    reader->SetFileName(this->m_ImageIO->GetFileName());
+    reader->Update();
+
+    typename TImage::Pointer image = reader->GetOutput();
+
+    // Get geometric informations from image
+    this->template SetOrigin<TImage>(image.GetPointer());
+    this->template SetSpacing<TImage>(image.GetPointer());
+    this->template SetDirection<TImage>(image.GetPointer());
+
+    this->template SetArray<TImage>(image.GetPointer());
+    reinterpret_cast<PyArrayObject*>(this->m_Array)->flags |= NPY_OWNDATA;
+    image->GetPixelContainer()->ContainerManageMemoryOff();
+}
+
+template<typename TPixel, unsigned int VImageDimension>
+template<typename TImage>
+void
+PyArrayFileReader<TPixel, VImageDimension>
 ::SetArray(TImage * image)
 {
-	// Get the array size in NumPy order
-	typename TImage::SizeType const region_size =
-		image->GetRequestedRegion().GetSize();
-	npy_intp array_size[VImageDimension];
-	std::reverse_copy(region_size.m_Size, region_size.m_Size+VImageDimension,
-					  array_size);
+    // Get the number of dimensions
+    unsigned int ndim;
+    if(this->m_ImageIO->GetPixelType() == ImageIOBase::SCALAR)
+    {
+        ndim = VImageDimension;
+    }
+    else if(this->m_ImageIO->GetPixelType() == ImageIOBase::RGB)
+    {
+        ndim = 1+VImageDimension;
+    }
+    else
+    {
+        throw std::logic_error("Cannot assign array with PixelType=="+
+            this->m_ImageIO->GetComponentTypeAsString(this->m_ImageIO->GetComponentType()));
+    }
+
+    // Get the array size in NumPy order
+    npy_intp * array_size = new npy_intp[ndim];
+    typename TImage::SizeValueType const * source =
+        image->GetRequestedRegion().GetSize().m_Size;
+    std::reverse_copy(source, source+VImageDimension, array_size);
+    if(this->m_ImageIO->GetPixelType() == ImageIOBase::RGB)
+    {
+        array_size[VImageDimension]=3;
+    }
 
 	// Create the array
-	this->m_Array = PyArray_SimpleNewFromData(VImageDimension, array_size,
-		Self::template GetPyType<typename TImage::PixelType>(),
-		reinterpret_cast<void*>(image->GetBufferPointer()));
+    typedef typename TImage::PixelType PixelType;
+	typedef typename ComponentTrait<PixelType>::Type ComponentType;
+	PyArrayType const pyArrayType = Self::template GetPyType<ComponentType>();
+
+    this->m_Array = PyArray_SimpleNew(ndim, array_size, pyArrayType);
+
+    delete[] array_size;
+
+    ComponentType* destination = reinterpret_cast<ComponentType*>(PyArray_DATA(this->m_Array));
+    if(this->m_ImageIO->GetPixelType() == ImageIOBase::SCALAR)
+    {
+        for(ImageRegionConstIterator<TImage> source(image, image->GetRequestedRegion());
+            !source.IsAtEnd(); ++source)
+        {
+            CopyFunctor<PixelType>::action(source.Get(), destination);
+        }
+    }
 }
 
 template<typename TPixel, unsigned int VImageDimension>

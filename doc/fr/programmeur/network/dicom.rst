@@ -71,8 +71,8 @@ L'exemple d'utilisation suivant retourne un DataSet pour chaque patient dont le
 nom commence par L. Chaque DataSet résultat contiendra l'attribut Patient Id. ::
 
     query = medipy.io.dicom.DataSet()
-    query.patients_name = "L*"
-    query.patient_id = None
+    query.patients_name = medipy.io.dicom.PN("L*")
+    query.patient_id = medipy.io.dicom.LO(None)
     find = medipy.network.dicom.scu.Find(connection, "patient", "patient", query)
     results = find()   
 
@@ -85,7 +85,20 @@ des niveaux supérieurs doivent être renseignés :
 * Study Instance UID (0020,000D) pour le niveau ``study``
 * Study Instance UID (0020,000E) pour le niveau ``series``
 * SOP Instance UID (0008,0018) pour le niveau ``image``
+
+Store
+^^^^^
+
+Le SCU Store permet de stocker des Data Sets sur un nœud DICOM. Ce SCU n'a qu'un
+seul paramètre, le Data Set à stocker. L'exemple suivant montre l'utilisation de
+``Store`` : ::
+
+    dataset = medipy.io.dicom.DataSet()
+    # Modification du DataSet ...
     
+    store = medipy.network.dicom.scu.Store(connection, dataset)
+    store()
+
 
 Requêtes de haut niveau
 -----------------------

@@ -6,14 +6,14 @@
  * for details.
  ************************************************************************/
 
-%module parse
+%module dataset_io
 %{
-#include "parse.h"
+#include "dataset_io.h"
 %}
 
 %include "std_string.i"
 
-%include "parse.h"
+%include "dataset_io.h"
 
 %pythoncode
 %{
@@ -26,8 +26,8 @@ def _get_dicomdir_records_hierarchy(dataset):
     
     offsets = set()
     for record in dataset.directory_record_sequence :
-        offsets.add(record.offset_of_the_next_directory_record)
-        offsets.add(record.offset_of_referenced_lowerlevel_directory_entity)
+        offsets.add(record.offset_of_the_next_directory_record.value)
+        offsets.add(record.offset_of_referenced_lowerlevel_directory_entity.value)
     offsets.add(0)
     if len(offsets) != len(dataset.directory_record_sequence) :
         raise medipy.base.Exception("Some records are not referenced")
@@ -43,13 +43,18 @@ def _get_dicomdir_records_hierarchy(dataset):
             child_offset = child.offset_of_the_next_directory_record
         record.children = children
 
-def parse(filename) :
+unwrapped_read = read
+
+def read(filename) :
     try :
-        dictionary = parse_file(str(filename))
+        dataset = unwrapped_read(str(filename))
     except Exception, e :
         raise medipy.base.Exception(e)
-    if dictionary is not None :
-        dataset = DataSet.from_dict(dictionary)
+    if dataset is not None :
+        header_tags = [x for x in dataset if x.group == 0x0002]
+        for tag in header_tags :
+            dataset.header[tag] = dataset[tag]
+            del dataset[tag]
         if "directory_record_sequence" in dataset :
             _get_dicomdir_records_hierarchy(dataset)
             for record in dataset.directory_record_sequence :
