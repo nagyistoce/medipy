@@ -177,12 +177,9 @@ localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">
 <div class="section" id="ecriture-dicom">
 <h2>Écriture DICOM<a class="headerlink" href="#ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
 <p>Un DataSet peut être sauvé dans un fichier en utilisant la fonction
-<tt class="docutils literal"><span class="pre">medipy.io.dicom.write</span></tt>. Deux particularités sont à prendre en compte :</p>
-<ul class="simple">
-<li>Toutes les chaînes de caractères sont sauvées en UTF-8 ; l&#8217;élément Specific
-Character Set (0008,0005) est donc fixé à &#8220;ISO_IR 192&#8221;.</li>
-<li>Seuls les éléments publics sont sauvés.</li>
-</ul>
+<tt class="docutils literal"><span class="pre">medipy.io.dicom.write</span></tt>. Une particularité est à prendre en compte : toutes
+les chaînes de caractères sont sauvées en UTF-8 ; l&#8217;élément Specific Character
+Set (0008,0005) est donc fixé à &#8220;ISO_IR 192&#8221;.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
 <span class="n">dataset</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
