@@ -92,11 +92,9 @@ localisateur en IRM. La fonction ``stacks`` permet de diviser une série en pile
 --------------
 
 Un DataSet peut être sauvé dans un fichier en utilisant la fonction 
-``medipy.io.dicom.write``. Deux particularités sont à prendre en compte :
-
-* Toutes les chaînes de caractères sont sauvées en UTF-8 ; l'élément Specific 
-  Character Set (0008,0005) est donc fixé à "ISO_IR 192".
-* Seuls les éléments publics sont sauvés.
+``medipy.io.dicom.write``. Une particularité est à prendre en compte : toutes 
+les chaînes de caractères sont sauvées en UTF-8 ; l'élément Specific Character 
+Set (0008,0005) est donc fixé à "ISO_IR 192".
 
 ::
 
