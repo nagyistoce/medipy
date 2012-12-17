@@ -9,5 +9,5 @@ Table des matières :
     image
     menu
     function_gui
-    dicom
+    io/index
     network/index

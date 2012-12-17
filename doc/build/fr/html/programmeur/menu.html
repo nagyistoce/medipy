@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>1. Menu &mdash; MediPy 1.0 documentation</title>
+    <title>Menu &mdash; MediPy 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../_static/translations.js"></script>
     <link rel="top" title="MediPy 1.0 documentation" href="../index.html" />
     <link rel="up" title="Guide du programmeur" href="index.html" />
-    <link rel="next" title="2. Description de l’interface graphique d’une fonction" href="function_gui.html" />
+    <link rel="next" title="Description de l’interface graphique d’une fonction" href="function_gui.html" />
     <link rel="prev" title="Guide du programmeur" href="index.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="Index général"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="function_gui.html" title="2. Description de l’interface graphique d’une fonction"
+          <a href="function_gui.html" title="Description de l’interface graphique d’une fonction"
              accesskey="N">suivant</a> |</li>
         <li class="right" >
           <a href="index.html" title="Guide du programmeur"
@@ -52,10 +52,10 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="../index.html">Table des matières</a></h3>
   <ul>
-<li><a class="reference internal" href="#">1. Menu</a><ul>
-<li><a class="reference internal" href="#generation-automatique">1.1. Génération automatique</a></li>
-<li><a class="reference internal" href="#generation-manuelle">1.2. Génération manuelle</a></li>
-<li><a class="reference internal" href="#structure-de-donnees">1.3. Structure de données</a></li>
+<li><a class="reference internal" href="#">Menu</a><ul>
+<li><a class="reference internal" href="#generation-automatique">Génération automatique</a></li>
+<li><a class="reference internal" href="#generation-manuelle">Génération manuelle</a></li>
+<li><a class="reference internal" href="#structure-de-donnees">Structure de données</a></li>
 </ul>
 </li>
 </ul>
@@ -65,7 +65,7 @@
                         title="Chapitre précédent">Guide du programmeur</a></p>
   <h4>Sujet suivant</h4>
   <p class="topless"><a href="function_gui.html"
-                        title="Chapitre suivant">2. Description de l&#8217;interface graphique d&#8217;une fonction</a></p>
+                        title="Chapitre suivant">Description de l&#8217;interface graphique d&#8217;une fonction</a></p>
 <div id="searchbox" style="display: none">
   <h3>Recherche rapide</h3>
     <form class="search" action="../search.html" method="get">
@@ -88,7 +88,7 @@
           <div class="body">
             
   <div class="section" id="menu">
-<h1>1. Menu<a class="headerlink" href="#menu" title="Lien permanent vers ce titre">¶</a></h1>
+<h1>Menu<a class="headerlink" href="#menu" title="Lien permanent vers ce titre">¶</a></h1>
 <p>Deux méthodes de génération du menu sont possibles, l&#8217;une automatique, l&#8217;autre
 manuelle :</p>
 <ul class="simple">
@@ -100,7 +100,7 @@ menu ; cette méthode est plus flexible, mais nécessite plus d&#8217;interventi
 la part de l&#8217;utilisateur</li>
 </ul>
 <div class="section" id="generation-automatique">
-<h2>1.1. Génération automatique<a class="headerlink" href="#generation-automatique" title="Lien permanent vers ce titre">¶</a></h2>
+<h2>Génération automatique<a class="headerlink" href="#generation-automatique" title="Lien permanent vers ce titre">¶</a></h2>
 <p>La méthode automatique de génération du menu se base sur des fichiers nommés
 <tt class="docutils literal"><span class="pre">api.py</span></tt>. Ces fichiers, présents dans chaque paquet (i.e. à chaque niveau de
 l&#8217;arborescence), fonctionnent à la manière des fichiers <tt class="docutils literal"><span class="pre">__init__.py</span></tt> en
@@ -133,7 +133,7 @@ aura dans le menu. L&#8217;exemple suivant fera apparaître <em>Addition</em> et
 <cite>medipy.gui.menu_builder.from_api.build_menu</cite></p>
 </div>
 <div class="section" id="generation-manuelle">
-<h2>1.2. Génération manuelle<a class="headerlink" href="#generation-manuelle" title="Lien permanent vers ce titre">¶</a></h2>
+<h2>Génération manuelle<a class="headerlink" href="#generation-manuelle" title="Lien permanent vers ce titre">¶</a></h2>
 <p>La génération manuelle passe par un fichier texte décrivant le menu. Chaque
 ligne du fichier décrit une entrée du menu par la syntaxe suivante :</p>
 <div class="highlight-python"><pre>[indentation]&lt;nom_python&gt;[nom_à_afficher]</pre>
@@ -169,7 +169,7 @@ none --- (work in progress) ---
 <img alt="../_images/menu.png" src="../_images/menu.png" />
 </div>
 <div class="section" id="structure-de-donnees">
-<h2>1.3. Structure de données<a class="headerlink" href="#structure-de-donnees" title="Lien permanent vers ce titre">¶</a></h2>
+<h2>Structure de données<a class="headerlink" href="#structure-de-donnees" title="Lien permanent vers ce titre">¶</a></h2>
 <p>Chaque item de l&#8217;arbre est représenté par un triplet (nom, fonction, enfants) :</p>
 <ul class="simple">
 <li>nom : nom à afficher</li>
@@ -193,7 +193,7 @@ docstring une <a class="reference internal" href="function_gui.html"><em>descrip
           <a href="../genindex.html" title="Index général"
              >index</a></li>
         <li class="right" >
-          <a href="function_gui.html" title="2. Description de l’interface graphique d’une fonction"
+          <a href="function_gui.html" title="Description de l’interface graphique d’une fonction"
              >suivant</a> |</li>
         <li class="right" >
           <a href="index.html" title="Guide du programmeur"
