@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2. Description de l’interface graphique d’une fonction &mdash; MediPy 1.0 documentation</title>
+    <title>Description de l’interface graphique d’une fonction &mdash; MediPy 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,8 +28,8 @@
     <script type="text/javascript" src="../_static/translations.js"></script>
     <link rel="top" title="MediPy 1.0 documentation" href="../index.html" />
     <link rel="up" title="Guide du programmeur" href="index.html" />
-    <link rel="next" title="3. Lecture DICOM" href="dicom.html" />
-    <link rel="prev" title="1. Menu" href="menu.html" /> 
+    <link rel="next" title="Lecture et écriture de fichiers" href="io/index.html" />
+    <link rel="prev" title="Menu" href="menu.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,10 +39,10 @@
           <a href="../genindex.html" title="Index général"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="dicom.html" title="3. Lecture DICOM"
+          <a href="io/index.html" title="Lecture et écriture de fichiers"
              accesskey="N">suivant</a> |</li>
         <li class="right" >
-          <a href="menu.html" title="1. Menu"
+          <a href="menu.html" title="Menu"
              accesskey="P">précédent</a> |</li>
         <li><a href="../index.html">MediPy 1.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Guide du programmeur</a> &raquo;</li> 
@@ -52,9 +52,9 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="../index.html">Table des matières</a></h3>
   <ul>
-<li><a class="reference internal" href="#">2. Description de l&#8217;interface graphique d&#8217;une fonction</a><ul>
-<li><a class="reference internal" href="#syntaxe">2.1. Syntaxe</a><ul>
-<li><a class="reference internal" href="#exemples">2.1.1. Exemples</a></li>
+<li><a class="reference internal" href="#">Description de l&#8217;interface graphique d&#8217;une fonction</a><ul>
+<li><a class="reference internal" href="#syntaxe">Syntaxe</a><ul>
+<li><a class="reference internal" href="#exemples">Exemples</a></li>
 </ul>
 </li>
 </ul>
@@ -63,10 +63,10 @@
 
   <h4>Sujet précédent</h4>
   <p class="topless"><a href="menu.html"
-                        title="Chapitre précédent">1. Menu</a></p>
+                        title="Chapitre précédent">Menu</a></p>
   <h4>Sujet suivant</h4>
-  <p class="topless"><a href="dicom.html"
-                        title="Chapitre suivant">3. Lecture DICOM</a></p>
+  <p class="topless"><a href="io/index.html"
+                        title="Chapitre suivant">Lecture et écriture de fichiers</a></p>
 <div id="searchbox" style="display: none">
   <h3>Recherche rapide</h3>
     <form class="search" action="../search.html" method="get">
@@ -89,7 +89,7 @@
           <div class="body">
             
   <div class="section" id="description-de-l-interface-graphique-d-une-fonction">
-<h1>2. Description de l&#8217;interface graphique d&#8217;une fonction<a class="headerlink" href="#description-de-l-interface-graphique-d-une-fonction" title="Lien permanent vers ce titre">¶</a></h1>
+<h1>Description de l&#8217;interface graphique d&#8217;une fonction<a class="headerlink" href="#description-de-l-interface-graphique-d-une-fonction" title="Lien permanent vers ce titre">¶</a></h1>
 <p>Les fonctions présentes dans le menu de MediPy vont avoir une interface
 graphique associée. L&#8217;ensemble des boîtes de dialogue de Medimax 3 (créees par
 les macros GET_INT, GET_FLOAT, GET_QCM, ...) sont ici remplacées par une unique
@@ -100,7 +100,7 @@ paramètres une image d&#8217;entrée, les bornes du seuillage et une image de s
 on obtiendra l&#8217;interface suivante :</p>
 <img alt="../_images/threshold2_gui.png" src="../_images/threshold2_gui.png" />
 <div class="section" id="syntaxe">
-<h2>2.1. Syntaxe<a class="headerlink" href="#syntaxe" title="Lien permanent vers ce titre">¶</a></h2>
+<h2>Syntaxe<a class="headerlink" href="#syntaxe" title="Lien permanent vers ce titre">¶</a></h2>
 <p>La syntaxe à utiliser dans la docstring de la fonction une syntax XML simple.
 L&#8217;interface graphique est contenue dans un élément <tt class="docutils literal"><span class="pre">gui</span></tt>, et chaque élément
 de l&#8217;interface est décrit par un élément <tt class="docutils literal"><span class="pre">item</span></tt> avec les attributs suivants</p>
@@ -117,7 +117,7 @@ la fonction. Il vaudra <tt class="docutils literal"><span class="pre">output</sp
 un paramètre de sortie) ; il vaudra enfin <tt class="docutils literal"><span class="pre">return</span></tt> s&#8217;il s&#8217;agit d&#8217;une des
 valeurs de retour de la fonction.</p>
 <div class="section" id="exemples">
-<h3>2.1.1. Exemples<a class="headerlink" href="#exemples" title="Lien permanent vers ce titre">¶</a></h3>
+<h3>Exemples<a class="headerlink" href="#exemples" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Des exemples valant mieux qu&#8217;un long discours, voici l&#8217;exemple d&#8217;une fonction de
 seuillage :</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">binary_threshold</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">inside</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">outside</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="p">:</span>
@@ -214,10 +214,10 @@ l&#8217;interface graphique comme dans l&#8217;exemple ci dessous :</p>
           <a href="../genindex.html" title="Index général"
              >index</a></li>
         <li class="right" >
-          <a href="dicom.html" title="3. Lecture DICOM"
+          <a href="io/index.html" title="Lecture et écriture de fichiers"
              >suivant</a> |</li>
         <li class="right" >
-          <a href="menu.html" title="1. Menu"
+          <a href="menu.html" title="Menu"
              >précédent</a> |</li>
         <li><a href="../index.html">MediPy 1.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Guide du programmeur</a> &raquo;</li> 
