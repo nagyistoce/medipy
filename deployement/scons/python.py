@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 """ Builders for Python.
@@ -40,7 +40,7 @@ def configuration_variables() :
     version_with_dots = ".".join([str(x) for x in sys.version_info[:2]])
     version_without_dots = "".join([str(x) for x in sys.version_info[:2]])
     if sys.platform == "linux2" :
-        result["LIBS"] = ["python%s"%version_with_dots, "boost_python-mt-py%s"%version_without_dots]
+        result["LIBS"] = ["python%s"%version_with_dots]
     elif sys.platform == "win32" :
         # No dot in the library on windows
         result["LIBS"] = ["python%s"%version_without_dots]
