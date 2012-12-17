@@ -1,15 +1,14 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import wx
-
-from medipy.gui.dicom import Explorer
 from medipy.gui import wxVTKRenderWindowInteractor
+import explorer
 
 class ExplorerDialog(wx.Dialog):
     def __init__(self, *args, **kwargs):
@@ -19,7 +18,7 @@ class ExplorerDialog(wx.Dialog):
         self.SetSizer(sizer)
         sizer.SetSizeHints(self)
         
-        self._explorer = Explorer(self)
+        self._explorer = explorer.Explorer(self)
         sizer.Add(self._explorer, 1, wx.EXPAND)
         
         buttons_sizer = wx.BoxSizer(wx.HORIZONTAL)

@@ -11,7 +11,7 @@ class TestSCU(unittest.TestCase):
         caller_ae_title = "CALLER"
         called_ae_title = "REMOTE"
         
-        self.connection = medipy.network.dicom.scu.Connection(
+        self.connection = medipy.network.dicom.Connection(
             host, port, caller_ae_title, called_ae_title)
     
     def test_echo(self):
@@ -20,8 +20,8 @@ class TestSCU(unittest.TestCase):
     
     def test_find(self):
         query_parameters = medipy.io.dicom.DataSet()
-        query_parameters.patients_name = "*"
-        query_parameters.patient_id = None
+        query_parameters.patients_name = medipy.io.dicom.PN("*")
+        query_parameters.patient_id = medipy.io.dicom.LO("")
     
         patient_find = medipy.network.dicom.scu.Find(
             self.connection, "patient", "patient", query_parameters)

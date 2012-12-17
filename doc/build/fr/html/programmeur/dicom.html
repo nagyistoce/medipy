@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>3. Lecture DICOM &mdash; MediPy 1.0 documentation</title>
+    <title>Lecture et écriture DICOM &mdash; MediPy 1.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -28,7 +28,7 @@
     <script type="text/javascript" src="../_static/translations.js"></script>
     <link rel="top" title="MediPy 1.0 documentation" href="../index.html" />
     <link rel="up" title="Guide du programmeur" href="index.html" />
-    <link rel="next" title="4. Fonctionalités réseau" href="network/index.html" />
+    <link rel="next" title="Fonctionnalités réseau" href="network/index.html" />
     <link rel="prev" title="2. Description de l’interface graphique d’une fonction" href="function_gui.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
           <a href="../genindex.html" title="Index général"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="network/index.html" title="4. Fonctionalités réseau"
+          <a href="network/index.html" title="Fonctionnalités réseau"
              accesskey="N">suivant</a> |</li>
         <li class="right" >
           <a href="function_gui.html" title="2. Description de l’interface graphique d’une fonction"
@@ -52,11 +52,15 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="../index.html">Table des matières</a></h3>
   <ul>
-<li><a class="reference internal" href="#">3. Lecture DICOM</a><ul>
-<li><a class="reference internal" href="#lecture-de-fichiers-contenant-une-seule-serie">3.1. Lecture de fichiers contenant une seule série</a></li>
-<li><a class="reference internal" href="#lecture-de-fichiers-contenant-plusieurs-series">3.2. Lecture de fichiers contenant plusieurs séries</a></li>
-<li><a class="reference internal" href="#lecture-d-un-dicomdir">3.3. Lecture d&#8217;un DICOMDIR</a></li>
-<li><a class="reference internal" href="#cas-general">3.4. Cas général</a></li>
+<li><a class="reference internal" href="#">Lecture et écriture DICOM</a><ul>
+<li><a class="reference internal" href="#lecture-dicom">Lecture DICOM</a><ul>
+<li><a class="reference internal" href="#lecture-de-fichiers-contenant-une-seule-serie">Lecture de fichiers contenant une seule série</a></li>
+<li><a class="reference internal" href="#lecture-de-fichiers-contenant-plusieurs-series">Lecture de fichiers contenant plusieurs séries</a></li>
+<li><a class="reference internal" href="#lecture-d-un-dicomdir">Lecture d&#8217;un DICOMDIR</a></li>
+<li><a class="reference internal" href="#cas-general">Cas général</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ecriture-dicom">Écriture DICOM</a></li>
 </ul>
 </li>
 </ul>
@@ -66,7 +70,7 @@
                         title="Chapitre précédent">2. Description de l&#8217;interface graphique d&#8217;une fonction</a></p>
   <h4>Sujet suivant</h4>
   <p class="topless"><a href="network/index.html"
-                        title="Chapitre suivant">4. Fonctionalités réseau</a></p>
+                        title="Chapitre suivant">Fonctionnalités réseau</a></p>
 <div id="searchbox" style="display: none">
   <h3>Recherche rapide</h3>
     <form class="search" action="../search.html" method="get">
@@ -88,29 +92,31 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="lecture-dicom">
-<h1>3. Lecture DICOM<a class="headerlink" href="#lecture-dicom" title="Lien permanent vers ce titre">¶</a></h1>
+  <div class="section" id="lecture-et-ecriture-dicom">
+<h1>Lecture et écriture DICOM<a class="headerlink" href="#lecture-et-ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h1>
+<div class="section" id="lecture-dicom">
+<h2>Lecture DICOM<a class="headerlink" href="#lecture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
 <div class="section" id="lecture-de-fichiers-contenant-une-seule-serie">
-<h2>3.1. Lecture de fichiers contenant une seule série<a class="headerlink" href="#lecture-de-fichiers-contenant-une-seule-serie" title="Lien permanent vers ce titre">¶</a></h2>
+<h3>Lecture de fichiers contenant une seule série<a class="headerlink" href="#lecture-de-fichiers-contenant-une-seule-serie" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Dans le cas le plus simple, on souhaite charger un ensemble de fichiers dont on
 sait qu&#8217;ils ne contiennent qu&#8217;une seule série.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
 <span class="c"># Chargement des fichiers</span>
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 <span class="c"># Création de l&#39;image</span>
 <span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="lecture-de-fichiers-contenant-plusieurs-series">
-<h2>3.2. Lecture de fichiers contenant plusieurs séries<a class="headerlink" href="#lecture-de-fichiers-contenant-plusieurs-series" title="Lien permanent vers ce titre">¶</a></h2>
+<h3>Lecture de fichiers contenant plusieurs séries<a class="headerlink" href="#lecture-de-fichiers-contenant-plusieurs-series" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Si on souhaite charger un ensemble de fichiers qui contiennent potentiellement
 plusieurs séries, il faut d&#8217;abord diviser l&#8217;ensemble des Data Sets chargés en
 séries, puis choisir l&#8217;une d&#8217;entre elles.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 <span class="c"># Division des DataSets en séries</span>
 <span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">serie</span> <span class="ow">in</span> <span class="n">series</span> <span class="p">:</span>
@@ -123,7 +129,7 @@ séries, puis choisir l&#8217;une d&#8217;entre elles.</p>
 </div>
 </div>
 <div class="section" id="lecture-d-un-dicomdir">
-<h2>3.3. Lecture d&#8217;un DICOMDIR<a class="headerlink" href="#lecture-d-un-dicomdir" title="Lien permanent vers ce titre">¶</a></h2>
+<h3>Lecture d&#8217;un DICOMDIR<a class="headerlink" href="#lecture-d-un-dicomdir" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Toutes les fonctions décrites précédemment acceptent aussi des Data Sets chargés
 depuis des DICOMDIRs. La fonction <tt class="docutils literal"><span class="pre">load_dicomdir_records</span></tt> se charge ensuite
 de charger les fichiers référencés depuis les informations du DICOMDIR. Cette
@@ -138,7 +144,7 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s&#8217;agit d
 </div></blockquote>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 <span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">serie</span> <span class="ow">in</span> <span class="n">series</span> <span class="p">:</span>
     <span class="c"># Récupération des valeurs des attributs Series Instance UID et</span>
@@ -152,18 +158,34 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s&#8217;agit d
 </div>
 </div>
 <div class="section" id="cas-general">
-<h2>3.4. Cas général<a class="headerlink" href="#cas-general" title="Lien permanent vers ce titre">¶</a></h2>
+<h3>Cas général<a class="headerlink" href="#cas-general" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Dans le cas le plus général, chaque série peut être composée de plusieurs piles
 (ensemble de coupes ayant la même orientation), par exemple dans le cas du
 localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">stacks</span></tt> permet de diviser une série en piles.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
-<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
+<span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">filenames</span><span class="p">]</span>
 <span class="n">series</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">series</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
 <span class="n">serie</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">load_dicomdir_records</span><span class="p">(</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="c"># Division de la série en piles</span>
 <span class="n">stack</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">stacks</span><span class="p">(</span><span class="n">serie</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">image</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="ecriture-dicom">
+<h2>Écriture DICOM<a class="headerlink" href="#ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
+<p>Un DataSet peut être sauvé dans un fichier en utilisant la fonction
+<tt class="docutils literal"><span class="pre">medipy.io.dicom.write</span></tt>. Une particularité est à prendre en compte : toutes
+les chaînes de caractères sont sauvées en UTF-8 ; l&#8217;élément Specific Character
+Set (0008,0005) est donc fixé à &#8220;ISO_IR 192&#8221;.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
+
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
+<span class="c"># Modification du DataSet ...</span>
+
+<span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s">&quot;foo.dcm&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -182,7 +204,7 @@ localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">
           <a href="../genindex.html" title="Index général"
              >index</a></li>
         <li class="right" >
-          <a href="network/index.html" title="4. Fonctionalités réseau"
+          <a href="network/index.html" title="Fonctionnalités réseau"
              >suivant</a> |</li>
         <li class="right" >
           <a href="function_gui.html" title="2. Description de l’interface graphique d’une fonction"

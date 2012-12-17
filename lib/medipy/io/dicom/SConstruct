@@ -8,7 +8,7 @@ env = env.Clone()
 
 env.Glob("*.py")
 env.Use("itk")
-env.PythonModule("_parse", ["parse.i", "parse.cpp"])
+env.PythonModule("_dataset_io", ["dataset_io.i", "dataset_io.cpp", "DataSetBridge.cpp"])
 
 types = get_scalar_types(wrapitk_root())
 dimensions = [2]

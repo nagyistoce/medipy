@@ -15,7 +15,7 @@ class TestDiffusion(unittest.TestCase):
         """ Normalization of a DWI Siemens image with a b-value of 0.
         """
         
-        dataset = medipy.io.dicom.parse(
+        dataset = medipy.io.dicom.read(
             os.path.join(self.data_directory, "input", "siemens_dwi_0.dcm"))
         
         normalized = medipy.io.dicom.normalize.normalize(dataset)
@@ -34,7 +34,7 @@ class TestDiffusion(unittest.TestCase):
         """ Normalization of a DWI Siemens image with a b-value of 1000.
         """
         
-        dataset = medipy.io.dicom.parse(
+        dataset = medipy.io.dicom.read(
             os.path.join(self.data_directory, "input", "siemens_dwi_1000.dcm"))
         
         normalized = medipy.io.dicom.normalize.normalize(dataset)

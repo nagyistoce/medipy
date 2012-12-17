@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -11,9 +11,13 @@ import sys
 
 import numpy
 
+import medipy.base
+
 from tag import Tag
 from dictionary import data_dictionary, name_dictionary
 from private_dictionaries import private_dictionaries
+from vr import *
+from medipy.io.dicom import dictionary
 
 class DataSet(dict):
     """ An Data Set is a collection (dictionary) of Data Elements values.
@@ -30,45 +34,10 @@ class DataSet(dict):
         to look up or set the Data Element's value.
     """
     
-    @staticmethod
-    def from_dict(dictionary, tags = "all", private_tags = "all"):
-        """ Create an Data Set from a dictionary. tags can be either a
-            sequence of tags (numerical or named) from the dictionary to be
-            included in the Data Set or the string "all". In the
-            latter case, all tags from the dictionary will be included in the
-            Data Set. private_tags has a similar effect for private
-            tags.
-        """
-        
-        dataset = DataSet()
-        
-        for tag, element in dictionary.items() :
-            if tag[1] == 0 :
-                # group length
-                continue
-            
-            # Find VR and whether to include the element
-            if tag[0]%2==1 :
-                include_tag = (private_tags == "all" or
-                               (private_tags and tag in private_tags))
-            else :
-                include_tag = (tags == "all" or
-                               tag in tags or tag_to_underscored_name(tag) in tags)
-            
-            if include_tag :
-                if isinstance(element, list) and element and isinstance(element[0], dict) :
-                    value = []
-                    for item in element :
-                        sub_dataset = DataSet.from_dict(item)
-                        value.append(sub_dataset)
-                else :
-                    value = element
-                dict.__setitem__(dataset, Tag(tag), value)
-        
-        return dataset
-    
-    def __init__(self):
-        dict.__init__({})
+    def __init__(self, include_header=True):
+        dict.__init__(self, {})
+        if include_header :
+            self.header = DataSet(include_header=False)
         self.normalized = False
     
     def tags(self):
@@ -97,25 +66,25 @@ class DataSet(dict):
         
         if "_pixel_array" not in self.__dict__ :
             
-            shape = (self.rows, self.columns)
+            shape = (self.rows.value, self.columns.value)
             if "number_of_frames" in self :
-                shape = (self.number_of_frames,)+shape
+                shape = (self.number_of_frames.value,)+shape
             
-            dtype = "int%d"%(self.bits_allocated)
+            dtype = "int%d"%(self.bits_allocated.value)
             if self.get("pixel_representation", 0) == 0 :
                 dtype = "u"+dtype
             dtype = numpy.dtype(dtype)
             
-            self._pixel_array = numpy.fromstring(self.pixel_data, dtype).reshape(shape)
+            self._pixel_array = numpy.fromstring(self.pixel_data.value, dtype).reshape(shape)
             
-            dataset_is_little_endian = (self.transfer_syntax_uid != "1.2.840.10008.1.2.2")
+            dataset_is_little_endian = (
+                self.header.get("transfer_syntax_uid", "") != "1.2.840.10008.1.2.2")
             sys_is_little_endian = (sys.byteorder == 'little')
             
             if sys_is_little_endian != dataset_is_little_endian :
                 self._pixel_array.byteswap(True)
             
         return self._pixel_array
-        
         
     pixel_array = property(_get_pixel_array)
     
@@ -148,16 +117,10 @@ class DataSet(dict):
         """ Access to an item using a numerical or named tag.
         """
         
+        if not isinstance(value, VR) :
+            raise medipy.base.Exception("value is not a VR") 
+        
         tag = self._get_tag(item)
-            
-        if tag.private :
-            pass
-#            # See PS 3.5-2008 section 7.8.1 (p. 44) for how blocks are reserved
-#            logging.debug("Setting private tag %r" % tag)
-#            private_block = tag.elem >> 8
-#            private_creator_tag = Tag(tag.group, private_block)
-#            if private_creator_tag in self and tag != private_creator_tag:
-#                data_element.private_creator = self[private_creator_tag]
         dict.__setitem__(self, tag, value)
     
     def __delitem__(self, item) :
@@ -192,6 +155,8 @@ class DataSet(dict):
         tag = name_dictionary.get(name, None)
         
         if tag : 
+            if not isinstance(value, VR) :
+                raise medipy.base.Exception("value is not a VR")
             self[tag] = value
         else:  
             # name is not in DICOM dictionary : set an instance member
@@ -258,12 +223,18 @@ class DataSet(dict):
         for tag in sorted(self.keys()):
             value = self[tag]
             
+            vr = value.__class__.__name__
+            
             if tag.private :
-                if tag.element == 0x0010 :
+                if tag.element < 0x0100 :
                     name = "Private Creator"
-                    vr = None
                 else :
-                    private_creator = self.get(Tag(tag.group, 0x0010), None)
+                    # The private block for private tag (gggg,xxyy) (where gggg
+                    # is odd and yy is in [00,ff] is xx. The private creator is
+                    # then given in (gggg,00xx)
+                    block = tag.element/0x100
+                    private_creator = self.get(Tag(tag.group, block), None)
+                    
                     if private_creator not in private_dictionaries :
                         private_creator = None
                     
@@ -274,10 +245,8 @@ class DataSet(dict):
                         private_tag in private_dictionaries[private_creator]) :
                         
                         name = private_dictionaries[private_creator][private_tag][2]
-                        vr = private_dictionaries[private_creator][private_tag][0]
                     else :
                         name = tag
-                        vr = None
             else :
                 if tag.group/0x100 in [0x50, 0x60] :
                     # Repeating group element, cf. PS 3.5-2011, 7.6
@@ -285,9 +254,8 @@ class DataSet(dict):
                         tag.group/0x100, tag.element)
                 else :
                     tag_in_dictionary = tag
-                name = data_dictionary.setdefault(
-                    tag_in_dictionary, ("UN", "1", unicode(tag_in_dictionary)))[2]
-                vr = data_dictionary[tag_in_dictionary][0]
+                name = data_dictionary.get(tag_in_dictionary,
+                    ("UN", "1", unicode(tag_in_dictionary)))[2]
             
             if vr == "SQ" :
                 elements = [unicode(item) for item in value]
@@ -298,6 +266,9 @@ class DataSet(dict):
                 value = "\n"+"\n".join(value)
             elif vr in ["OB", "OW", "OB/OW", "OF", "UN"] :
                 value = "<array of %i bytes>"%(len(value),)
+            elif vr == "UI" and value in dictionary.uid_dictionary :
+                value = "{0} ({1})".format(dictionary.uid_dictionary[value][0],
+                                           value)
             else :
                 value = self[tag]
 
@@ -307,7 +278,7 @@ class DataSet(dict):
                 except UnicodeDecodeError :
                     value = "<array of %i bytes>"%(len(value),)
             
-            result.append("%s %s: %s"%(name, tag, value))
+            result.append("%s %s [%s]: %s"%(name, tag, vr, value))
         return "\n".join(result)
     
     def __str__(self):
