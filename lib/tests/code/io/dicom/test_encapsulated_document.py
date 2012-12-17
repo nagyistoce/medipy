@@ -25,7 +25,8 @@ class TestEncapsulatedDocument(unittest.TestCase):
         input = os.path.join(temporary_directory, "input")
         self.generate_file(input, 40000)
         
-        dataset = medipy.io.dicom.encapsulated_document.encapsulate(input, "foo/bar")
+        dataset = medipy.io.dicom.encapsulated_document.encapsulate(input, 
+            mime_type_of_encapsulated_document="foo/bar")
         self._test_encapsulate(dataset, "foo/bar", "EVEN")
         
         shutil.rmtree(temporary_directory)
@@ -36,7 +37,8 @@ class TestEncapsulatedDocument(unittest.TestCase):
         input = os.path.join(temporary_directory, "input")
         self.generate_file(input, 40001)
         
-        dataset = medipy.io.dicom.encapsulated_document.encapsulate(input, "foo/bar")
+        dataset = medipy.io.dicom.encapsulated_document.encapsulate(input, 
+            mime_type_of_encapsulated_document="foo/bar")
         self._test_encapsulate(dataset, "foo/bar", "ODD")
     
         shutil.rmtree(temporary_directory)
