@@ -148,7 +148,7 @@ def recalage_Bspline_topo(imreca, imref, imres, resolf, symetrique, filename) :
         </gui>
     """ 
     dicoConverter = {"Non Symmetric" : 0,"Symmetric" : 1}
-    medipy.medimax.recalage.BsplineRegistration3d(imref, imreca, imres,0,2,1.0,4,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)])
+    medipy.medimax.recalage.BsplineRegistration3d(imref, imreca, imres,0,2,1.0,4,1,str(filename),resolf, 0.0,100000.0,12, 10,0, dicoConverter[str(symetrique)], 0.5)
 
 
 #-------------------------------------------------------------
