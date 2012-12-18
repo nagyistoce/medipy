@@ -49,23 +49,25 @@ def series(datasets, keep_only_images = True):
             for record in dataset.directory_record_sequence :
                 if record.directory_record_type != "SERIES" :
                     continue
+                
+                series_instance_uid = record.series_instance_uid.value
+                
                 if keep_only_images :
                     modified_record = copy.deepcopy(record)
-                    modified_record.children = [x for x in record.children if x.directory_record_type == "IMAGE"]
+                    modified_record.children = [
+                        x for x in record.children 
+                        if x.directory_record_type == "IMAGE"]
                     
                     if modified_record.children :
-                        if modified_record.series_instance_uid not in result :
-                            result[modified_record.series_instance_uid] = []
-                        
-                        result[modified_record.series_instance_uid].append(modified_record)
+                        result.setdefault(series_instance_uid, [])
+                        result[series_instance_uid].append(modified_record)
                 else :
-                    if record.series_instance_uid not in result :
-                        result[record.series_instance_uid] = []
-                    result[record.series_instance_uid].append(record)
+                    result.setdefault(series_instance_uid, [])
+                    result[series_instance_uid].append(record)
         else :
-            series_datasets = result.setdefault(
-                dataset.get("series_instance_uid", UI(None)).value, [])
-    
+            series_instance_uid = dataset.get(
+                "series_instance_uid", UI(None)).value
+            series_datasets = result.setdefault(series_instance_uid, [])
             series_datasets.append(dataset)
     
     return result.values()
