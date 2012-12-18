@@ -157,7 +157,7 @@ def generate_uid(convert_to_vr=True) :
         http://www.dclunie.com/medical-image-faq/html/part2.html#UID
     """
     
-    uid = "2.25.{0}".format(uuid.uuid1().int)
+    uid = "2.25.{0}".format(uuid.uuid4().int)
     # Make sure the generated UID is not larger than the 64 characters specified
     # by the DICOM standard
     uid = uid[:64]
