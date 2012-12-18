@@ -58,9 +58,10 @@ if sys.platform == "linux2" and "DISPLAY" in os.environ :
                       "T1/3D/FFE/C"]
             
             for index, node in enumerate(traverse(self.hierarchy_tree)) :
-                self.assertEqual(self.hierarchy_tree.GetItemText(node), labels[index])
+                label = self.hierarchy_tree.GetItemText(node)
+                self.assertTrue(label in labels)
                 
-                if labels[index] not in ["BRAINIX", u"IRM cérébrale, neuro-crâne"] : 
+                if label not in ["BRAINIX", u"IRM cérébrale, neuro-crâne"] : 
                     py_data = self.hierarchy_tree.GetItemPyData(node)
                     self.assertTrue(isinstance(py_data, list))
                     self.assertEqual(len(py_data), 1)
