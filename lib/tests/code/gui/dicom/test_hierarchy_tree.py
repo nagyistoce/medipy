@@ -49,10 +49,12 @@ if sys.platform == "linux2" and "DISPLAY" in os.environ :
             
             self.hierarchy_tree.set_datasets([dicomdir])
             
+            self.assertEqual(self.hierarchy_tree.GetCount(), 9)
+            
             labels = ["BRAINIX", 
                       u"IRM cérébrale, neuro-crâne", 
                       "sT2/TSE/T", "sT2W/FLAIR", "T2W/FE-EPI", 
-                      "T1/SE/extrp", "T1/SE/extrp", "SOUS", 
+                      "T1/SE/extrp", "SOUS", "T1/SE/extrp", 
                       "T1/3D/FFE/C"]
             
             for index, node in enumerate(traverse(self.hierarchy_tree)) :
@@ -87,3 +89,4 @@ def traverse(treectrl, root=None):
 
 if __name__ == "__main__" :
     unittest.main()
+
