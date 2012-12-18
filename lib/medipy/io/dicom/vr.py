@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import copy
 import operator
 
 class VR(object):
@@ -17,6 +18,11 @@ class VR(object):
     
     def __contains__(self, item) :
         return self.value.__contains__(item)
+    
+    def __deepcopy__(self, memento) :
+        new_value = copy.deepcopy(self.value, memento)
+        new_object = type(self)(new_value)
+        return new_object
     
     def __eq__(self, other):
         return self.value == other
