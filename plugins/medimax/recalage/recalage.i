@@ -150,7 +150,7 @@ MEDIMAX_FUNCTION_MACRO(SimilarityMeasure3d,
 **  Bspline Registration
 *******************************************************************************/
 
-int BsplineRegistration3d(grphic3d *imref, grphic3d *imreca, grphic3d *imres,int dist_type,int reg_type,double reg_factor,int min_type,int save_type,char *nomfichres,int resolf, double Jmin,double Jmax,int normalisation_type, int nb_classe,int biais, int symetrique);
+int BsplineRegistration3d(grphic3d *imref, grphic3d *imreca, grphic3d *imres,int dist_type,int reg_type,double reg_factor,int min_type,int save_type,char *nomfichres,int resolf, double Jmin,double Jmax,int normalisation_type, int nb_classe,int biais, int symetrique, float ponderation);
 
 MEDIMAX_FUNCTION_MACRO(BsplineRegistration3d,
 """ Bspline-based topology preserving registration method
@@ -240,8 +240,10 @@ MEDIMAX_FUNCTION_MACRO(BsplineRegistration3d,
     symetrique : Use symmetric pairwise registration ?
                     0 : No
                     1 : Yes
+    
+    ponderation : weighting factor used during symmetric registration
                     
-""", imres.data=numpy.ndarray(shape=imref.shape, dtype=imref.dtype);imres.copy_information(imref), imref, imreca, imres, dist_type, reg_type, reg_factor, min_type, save_type, nomfichres, resolf, Jmin, Jmax, normalisation_type, nb_classe, biais, symetrique)
+""", imres.data=numpy.ndarray(shape=imref.shape, dtype=imref.dtype);imres.copy_information(imref), imref, imreca, imres, dist_type, reg_type, reg_factor, min_type, save_type, nomfichres, resolf, Jmin, Jmax, normalisation_type, nb_classe, biais, symetrique, ponderation)
 
 #-------------------------------------------------------------
 #   Combine two transf_3d

@@ -278,7 +278,8 @@ int BsplineRegistration3d(  grphic3d *imref,
                             int normalisation_type,
                             int nb_classe,
                             int biais,
-                            int symetrique)
+                            int symetrique,
+                            float ponderation)
 {
 
 
@@ -413,7 +414,7 @@ imx_inimaxminpixel_3d_p(imreca);
         
 if (symetrique > 0)
     {
-    TOPO_PONDERATION_RECALAGE_SYMETRIQUE=0.5;
+    TOPO_PONDERATION_RECALAGE_SYMETRIQUE=ponderation;
     normalisation_type=2; //il y a encore un pb avec le melange de gaussienne
     imx_matching_Bspline_topo_symetrique_3d_p(imref,imreca,imres,func_type,dist_type, reg_type, inter_type,min_type,save_type,nomfichres,resolf, Jmin, Jmax,normalisation_type, nb_classe,adaptatif);
     }
