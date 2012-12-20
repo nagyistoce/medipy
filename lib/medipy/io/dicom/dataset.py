@@ -117,10 +117,16 @@ class DataSet(dict):
         """ Access to an item using a numerical or named tag.
         """
         
-        if not isinstance(value, VR) :
-            raise medipy.base.Exception("value is not a VR") 
-        
         tag = self._get_tag(item)
+        if tag is None :
+            raise AttributeError("No such element: {0!r}".format(item))
+        
+        if not isinstance(value, VR) :
+            if tag not in data_dictionary :
+                raise medipy.base.Exception("value is not a VR")
+            vr = data_dictionary[tag][0]
+            value = globals()[vr](value)
+        
         dict.__setitem__(self, tag, value)
     
     def __delitem__(self, item) :
@@ -156,7 +162,10 @@ class DataSet(dict):
         
         if tag : 
             if not isinstance(value, VR) :
-                raise medipy.base.Exception("value is not a VR")
+                if tag not in data_dictionary :
+                    raise medipy.base.Exception("value is not a VR")
+                vr = data_dictionary[tag][0]
+                value = globals()[vr](value)
             self[tag] = value
         else:  
             # name is not in DICOM dictionary : set an instance member
