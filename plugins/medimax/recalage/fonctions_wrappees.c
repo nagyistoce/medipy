@@ -599,10 +599,11 @@ imRes.dz=transfo->dz;
 
 
     
+if (imSource)    
+    champ=transf_to_field_3d(transfo,&imRes,imSource);
+else 
+    champ=transf_to_field_3d(transfo,NULL,NULL);
     
-champ=transf_to_field_3d(transfo,&imRes,imSource);
-
-
 // allocation des images
 resize_grphic3d_buffer(ux, transfo->width,transfo->height,transfo->depth);
 resize_grphic3d_buffer(uy, transfo->width,transfo->height,transfo->depth);
