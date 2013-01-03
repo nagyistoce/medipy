@@ -13,6 +13,7 @@ from dicom_series import DicomSeries
 import encapsulated_document
 from misc import generate_uid, load_dicomdir_records, uid_and_description
 from reconstruction import image
+import routing
 from split import series, stacks
 from vr import *
 
