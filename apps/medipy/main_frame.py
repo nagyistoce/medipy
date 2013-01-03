@@ -319,7 +319,7 @@ class MainFrame(medipy.gui.base.Frame):
         return self._image_from_window(image)
     
     def all_images_screenshot(self):
-        return self._image_from_window(self.ui.images_grid)
+        return self._image_from_window(self.ui.image_grid)
     
     def whole_window_screenshot(self):
         return self._image_from_window(self)
