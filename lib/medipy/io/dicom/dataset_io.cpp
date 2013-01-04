@@ -9,6 +9,7 @@
 #include "dataset_io.h"
 
 #include <fstream>
+#include <stdexcept>
 #include <string>
 
 #include <gdcmBinEntry.h>
@@ -104,6 +105,20 @@ void write(PyObject* dataset, std::string const & filename)
     std::string sop = gdcm::Util::CreateUniqueUID();
     document.InsertValEntry(sop, 0x0002, 0x0003, "UI");
 
+    // Transfer Syntax UID
+    if(document.GetDocEntry(0x0002, 0x0010) == NULL)
+    {
+        std::string transferSyntax = "1.2.840.10008.1.2";
+        std::vector<uint8_t> paddedTransferSyntax(
+            (transferSyntax.size()%2==0)?transferSyntax.size():1+transferSyntax.size(),
+            0);
+        std::copy(transferSyntax.begin(), transferSyntax.end(), paddedTransferSyntax.begin());
+
+        document.InsertBinEntry(
+            &paddedTransferSyntax[0], paddedTransferSyntax.size(),
+            0x0002, 0x0010, "UI");
+    }
+
     // Media Storage Implementation Class UID
     document.InsertValEntry(
         gdcm::Util::GetRootUID() + ".147.144.143.155." GDCM_VERSION,
@@ -121,6 +136,37 @@ void write(PyObject* dataset, std::string const & filename)
         0x0002, 0x0000, "UL");
 
     std::ofstream stream(filename.c_str());
-    document.WriteContent(&stream, gdcm::ExplicitVR);
+
+    std::string transferSyntax((char*)(document.GetBinEntry(0x0002, 0x0010)->GetBinArea()),
+                               document.GetBinEntry(0x0002, 0x0010)->GetLength());
+    // Remove the padding
+    static std::string const whitespace(" \0", 2);
+    std::string::size_type const last = transferSyntax.find_last_not_of(whitespace);
+    std::string::size_type first = 0;
+    if(last != std::string::npos)
+    {
+        first = transferSyntax.find_first_not_of(whitespace);
+
+        if(first == std::string::npos)
+        {
+            first = 0;
+        }
+    }
+    transferSyntax = transferSyntax.substr(first, last-first+1);
+
+    if(transferSyntax == "1.2.840.10008.1.2.1")
+    {
+        document.WriteContent(&stream, gdcm::ExplicitVR);
+    }
+    else if(transferSyntax == "1.2.840.10008.1.2")
+    {
+        document.WriteContent(&stream, gdcm::ImplicitVR);
+    }
+    else
+    {
+        std::string message = "Cannot write with a transfer syntax of '";
+        message += transferSyntax+"'";
+        throw std::runtime_error(message);
+    }
     stream.close();
 }
