@@ -253,17 +253,24 @@ DataSetBridge
             std::string vr;
             if(entry->IsImplicitVR())
             {
-                gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
-                gdcm::DictEntry * dictEntry = dict->GetEntry(entry->GetGroup(), entry->GetElement());
-                if(dictEntry == NULL)
+                // In some cases, we can get the VR anyway
+                if(gdcm::VR().IsValidVR(entry->GetVR()))
                 {
-                    vr = "UN";
+                    vr = entry->GetVR();
                 }
                 else
                 {
-                    vr = dictEntry->GetVR();
+                    gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
+                    gdcm::DictEntry * dictEntry = dict->GetEntry(entry->GetGroup(), entry->GetElement());
+                    if(dictEntry == NULL)
+                    {
+                        vr = "UN";
+                    }
+                    else
+                    {
+                        vr = dictEntry->GetVR();
+                    }
                 }
-
             }
             else
             {
@@ -609,7 +616,9 @@ std::vector<uint8_t> bufferVR(PyObject* object)
 {
     if(!PyString_Check(object))
     {
-        throw std::runtime_error("Object is not an buffer string");
+        std::string message = "Object is not a buffer string, but a ";
+        message += object->ob_type->tp_name;
+        throw std::runtime_error(message);
     }
     std::vector<uint8_t> result(PyString_Size(object));
     std::copy(PyString_AsString(object), PyString_AsString(object)+result.size(),
