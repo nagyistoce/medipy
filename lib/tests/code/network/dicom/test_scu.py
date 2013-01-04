@@ -81,5 +81,22 @@ AETable END
         self.assertTrue("patient_id" in dataset)
         self.assertEqual(dataset.patient_id, "Rorden Lab")
     
+    def test_store(self):
+        dataset = medipy.io.dicom.read(os.path.join(
+            os.path.dirname(__file__), "..", "..", "..", "data", 
+            "input", "siemens_dwi_0.dcm"))
+
+        store = medipy.network.dicom.scu.Store(self.connection, dataset)
+        store()
+        
+        query = medipy.io.dicom.DataSet()
+        query.study_instance_uid = dataset.study_instance_uid
+        
+        find = medipy.network.dicom.scu.Find(self.connection, "study", "study", query)
+        result = find()
+        
+        self.assertTrue(len(result)==1)
+        self.assertTrue(isinstance(result[0], medipy.io.dicom.DataSet))
+    
 if __name__ == "__main__" :
     unittest.main()
