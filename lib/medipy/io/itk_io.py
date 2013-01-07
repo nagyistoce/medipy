@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import logging
 import os
 
 import itk
@@ -83,12 +84,28 @@ class ITK(IOBase) :
     def load_data(self, index=0) :
         self._update_pixel_type()
         
-        pixel_type = self._loader.GetPixelTypeAsString(self._loader.GetPixelType())
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
+        OriginalPixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
+        PixelType = OriginalPixelType
+        try_smaller_types = False
         while PixelType not in InstantiatedTypes :
+            if PixelType not in medipy.itk.types.larger_type :
+                # No instantiated pixel type larger that the pixel type in the
+                # file ; try smaller types
+                try_smaller_types = True
+                break
             PixelType = medipy.itk.types.larger_type[PixelType]
+        if try_smaller_types :
+            PixelType = OriginalPixelType
+            while PixelType not in InstantiatedTypes :
+                if PixelType not in medipy.itk.types.smaller_type :
+                    raise medipy.base.Exception(
+                        "Cannot find an instantiated pixel type for {0}".format(
+                            OriginalPixelType))
+                PixelType = medipy.itk.types.smaller_type[PixelType]
+            logging.warn("No instantiated type larger than {0}, using {1}".format(
+                OriginalPixelType, PixelType))
 
         Dimension = self._loader.GetNumberOfDimensions()
 
@@ -312,6 +329,7 @@ class ITK(IOBase) :
                     self._image_informations_read = True
                     loader = l
                     break
+        
         return filter, loader
     
     def _find_saver(self) :

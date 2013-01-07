@@ -36,11 +36,11 @@ def relational(connection, root, level, query) :
         everywhere = True
         for dataset in result :
             value = dataset.get(attribute, None)
-            if isinstance(value, list) and isinstance(value[0], medipy.io.dicom.DataSet) :
+            if isinstance(value, medipy.io.dicom.SQ) :
                 query_item = query[attribute][0]
                 for item in value :
                     for query_item_attribute in query_item :
-                        if not item.get(query_item_attribute, None) :
+                        if not item.get(query_item_attribute, None).value :
                             everywhere = False
                             break
             elif not value :
@@ -63,7 +63,7 @@ def relational(connection, root, level, query) :
     # Set the key for the current level using the current level result
     keys = medipy.network.dicom.scu.Find.keys[root][level]
     for key in keys :
-        value = "\\".join(x[key] for x in result)
+        value = "\\".join(x[key].value for x in result)
         sub_query[key] = value
     # Only keep the non-matched, non-key attributes
     for attribute, value in query.items() : 
@@ -72,7 +72,7 @@ def relational(connection, root, level, query) :
         else :
             keys = medipy.network.dicom.scu.Find.keys[root].values()
             if attribute in itertools.chain(*keys) and attribute not in sub_query:
-                sub_query[attribute] = "\\".join(x[attribute] for x in result)
+                sub_query[attribute] = "\\".join(x[attribute].value for x in result)
     # Add the key for the lower-level if not already specified
     sub_level = {
         "patient" : "study",
@@ -87,14 +87,13 @@ def relational(connection, root, level, query) :
     sub_result = relational(connection, root, sub_level, sub_query)
     
     # Index the result of the current level with the key of the current level
-    result_index = {
-    }
+    result_index = {}
     keys = medipy.network.dicom.scu.Find.keys[root][level]
     for dataset in result :
-        result_index[tuple([dataset[key] for key in keys])] = dataset
+        result_index[tuple([dataset[key].value for key in keys])] = dataset
     # Update the sub_result with the matched attributes of the current level
     for sub_dataset in sub_result :
-        dataset = result_index[tuple([sub_dataset[key] for key in keys])]
+        dataset = result_index[tuple([sub_dataset[key].value for key in keys])]
         for attribute, attribute_matched in matched.items() :
             if attribute_matched :
                 sub_dataset[attribute] = dataset[attribute]

@@ -9,8 +9,7 @@ env.Glob("*.py")
 env.Use("itk")
 
 env.PythonModule("_spectral_analysis", 
-                 ["spectral_analysis.i", "spectral_analysis.cpp"], 
-                 CXX="g++-4.4")
+                 ["spectral_analysis.i", "spectral_analysis.cpp"])
 
 # Only wrap for real types
 types = get_real_types(wrapitk_root())

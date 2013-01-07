@@ -14,54 +14,109 @@ import medipy.base
 from dataset import DataSet
 from vr import *
 
-def encapsulate(filename, mime_type=None):
-    """ Create a DataSet encapsulating the content of a file. If not provided,
-        the MIME type will be guessed from the content of the file.
+def encapsulate(filename, **kwargs):
+    """ Create a Data Set encapsulating the content of a file. The generated
+        Data Set only contains the Encapsulated Document modules, i.e.
+        Encapsulated Document Series (PS 3.3-2011, C.24.1, p. 1328) and
+        Encapsulated Document (PS 3.3-2011, C.24.2, p. 1329).
         
-        The Data Set only contains the following elements :
-          * Document Title: contains the leaf of the filename.
-          * Document Class Code Sequence: this sequence has only one element,
-            identifying whether the length of the file is odd or even. This is
-            necessary since the OB VR must be padded to be of even length, and
-            the expose function must be able to determine the length of the
-            original file.
-          * MIME Type of Encapsulated Document.
-          * Encapsulated Document.
+        The following elements get a default value if not specified in kwargs :
+          * modality: defaults to OT
+          * series_instance_uid: defaults to a new UID
+          * series_number: defaults to 1
+          * instance_number: defaults to 1
+          * content_date: defaults to ""
+          * acquisition_date_time: defaults to ""
+          * burned_in_annotation: defaults to YES (assume that the encapsulated
+            document *can* identify the patient)
+          * document_title: defaults to the basename of the ``filename``
+          * concept_name_code_sequence: defaults to []
+          * document_class_code_sequence: defaults to a sequence containing the
+            length parity information (see below).
+          * mime_type_of_encapsulated document: defaults to a guessed MIME type
+            using the contents of the file.
+        
+        Since the OB VR must be padded to be of even length, we need to be able
+        to determine whether the original file has an even or odd length. This 
+        is done by adding an item in Document Class Code Sequence (0040,e008). 
+        The item has a Code Value (0008,0100) and Code Meaning (0008,0104) of
+        "LENGTH_PARITY:EVEN" or "LENGTH_PARITY:ODD", and a Coding Scheme 
+        Designator (0008,0102) of "MEDIPY".
+         
     """
     
-    dataset = DataSet()
+    # Encapsulated Document Series (PS 3.3-2011, C.24.1, p. 1328)
+    kwargs.setdefault("modality", "OT")
+    kwargs.setdefault("series_instance_uid", medipy.io.dicom.generate_uid())
+    kwargs.setdefault("series_number", 1)
     
-    # Use the original filename as the document title
-    dataset.document_title = ST(os.path.basename(filename))
+    # Encapsulated Document (PS 3.3-2011, C.24.2, p. 1329)
+    kwargs.setdefault("instance_number", 1)
+    kwargs.setdefault("content_date", "")
+    kwargs.setdefault("acquisition_date_time", "")
+    kwargs.setdefault("burned_in_annotation", "YES") 
+    kwargs.setdefault("document_title", os.path.basename(filename))
+    kwargs.setdefault("concept_name_code_sequence", [])
     
-    # Save the length parity information, since OB values must be padded by 0
-    # if they are of odd length. Use the Document Class Code Sequence for this.
+    kwargs.setdefault("document_class_code_sequence", [])
     length_parity = os.stat(filename).st_size%2
     length_parity = "LENGTH_PARITY:{0}".format({0:"EVEN", 1:"ODD"}[length_parity])
-    dataset.document_class_code_sequence = SQ([DataSet()])
-    dataset.document_class_code_sequence[0].code_value = SH(length_parity)
-    dataset.document_class_code_sequence[0].coding_scheme_designator = SH("MEDIPY")
-    dataset.document_class_code_sequence[0].code_meaning = LO(length_parity)
+    length_parity_ds = medipy.io.dicom.DataSet()
+    length_parity_ds.code_value = SH(length_parity)
+    length_parity_ds.coding_scheme_designator = SH("MEDIPY")
+    length_parity_ds.code_meaning = LO(length_parity)
+    kwargs["document_class_code_sequence"].append(length_parity_ds)
     
-    # Try to find the MIME type if not provided
-    if mime_type is None :
+    if not kwargs.setdefault("mime_type_of_encapsulated_document", None) :
         process = subprocess.Popen(["file", "--mime-type", "--brief", filename],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         if process.returncode != 0 :
             raise medipy.base.Exception("Cannot determine MIME type: {0!r}".format(stderr))
-        mime_type = stdout
-    dataset.mime_type_of_encapsulated_document = LO(mime_type)
+        kwargs["mime_type_of_encapsulated_document"] = stdout
     
-    # Add the file data to the dataset
     fd = open(filename, "rb")
-    dataset.encapsulated_document = OB(fd.read())
-    fd.close()
+    data = fd.read()
+    fd.close()    
+    
+    dataset = DataSet()
+    
+    # Encapsulated Document Series (PS 3.3-2011, C.24.1, p. 1328)
+    _set_element(kwargs, "modality", 1, medipy.io.dicom.CS, dataset)
+    _set_element(kwargs, "series_instance_uid", 1, medipy.io.dicom.UI, dataset)
+    _set_element(kwargs, "series_number", 1, medipy.io.dicom.IS, dataset)
+    _set_element(kwargs, "referenced_performed_procedure_step_sequence", 
+                 3, medipy.io.dicom.SQ, dataset)
+    _set_element(kwargs, "series_description", 3, medipy.io.dicom.LO, dataset)
+    _set_element(kwargs, "series_description_code_sequence", 
+                 3, medipy.io.dicom.SQ, dataset)
+    _set_element(kwargs, "requested_attributes_sequence", 
+                 3, medipy.io.dicom.SQ, dataset)
+    # TODO : Performed Procedure Step Summary
+    
+    # Encapsulated Document (PS 3.3-2011, C.24.2, p. 1329)
+    _set_element(kwargs, "instance_number", 1, medipy.io.dicom.IS, dataset)
+    _set_element(kwargs, "content_date", 2, medipy.io.dicom.DA, dataset)
+    _set_element(kwargs, "acquisition_date_time", 2, medipy.io.dicom.DT, dataset)
+    _set_element(kwargs, "image_laterality", 3, medipy.io.dicom.CS, dataset)
+    _set_element(kwargs, "burned_in_annotation", 1, medipy.io.dicom.CS, dataset)
+    _set_element(kwargs, "recognizable_visual_features", 3, medipy.io.dicom.CS, dataset)
+    _set_element(kwargs, "source_instance_sequence", "1C", medipy.io.dicom.SQ, dataset)
+    _set_element(kwargs, "document_title", 2, medipy.io.dicom.ST, dataset)
+    _set_element(kwargs, "concept_name_code_sequence", 2, medipy.io.dicom.SQ, dataset)
+    _set_element(kwargs, "document_class_code_sequence", 3, medipy.io.dicom.SQ, dataset)
+    _set_element(kwargs, "verification_flag", 3, medipy.io.dicom.CS, dataset)
+    _set_element(kwargs, "hl7_instance_identifier", "1C", medipy.io.dicom.ST, dataset)
+    _set_element(kwargs, "mime_type_of_encapsulated_document", 1, medipy.io.dicom.LO, dataset)
+    _set_element(kwargs, "list_of_mime_types", "1C", medipy.io.dicom.LO, dataset)
+    dataset.encapsulated_document = OB(data)
     
     return dataset
 
 def expose(dataset, filename):
-    """ Save the Encapsulated Document in the dataset to a file. 
+    """ Save the Encapsulated Document in the dataset to a file. See the remark
+        in ``medipy.io.dicom.encapsulated_document.encapsulate`` concerning
+        the parity of the file size.
     """
     
     parity = None
@@ -77,3 +132,20 @@ def expose(dataset, filename):
     else :
         fd.write(dataset.encapsulated_document.value)
     fd.close()
+
+def _set_element(kwargs, name, type, vr, dataset):
+    if type in [1, 2] and name not in kwargs :
+        raise medipy.base.Exception("{0} must be specified".format(name))
+    if name not in kwargs :
+        # Type 3 or 1C : it's up to the user to specify those. Since he didn't
+        # specify any value, do nothing.
+        return
+    
+    # Encapsulate the value in a VR if not already done
+    value = kwargs[name]
+    if isinstance(value, medipy.io.dicom.VR) and not isinstance(value, vr) :
+        raise medipy.base.Exception("{0} must be of VR {1}".format(name, vr.__name__))
+    elif not isinstance(value, medipy.io.dicom.VR) :
+        value = vr(value)
+    
+    dataset[name] = value

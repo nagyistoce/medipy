@@ -22,6 +22,17 @@ io_component_type_to_type = {
     itk.ImageIOBase.DOUBLE : itk.D,
 }
 
+# Map an ITK type to its immediately smaller ITK type
+smaller_type = {
+    itk.US : itk.UC,
+    itk.UL : itk.US,
+    itk.UI : itk.US,
+    itk.SS : itk.SC,
+    itk.SL : itk.SS,
+    itk.SI : itk.SS,
+    itk.D : itk.F
+}
+
 # Map an ITK type to its immediately larger ITK type
 larger_type = {
     itk.UC : itk.US,
