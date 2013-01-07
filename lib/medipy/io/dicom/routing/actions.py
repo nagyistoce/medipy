@@ -96,7 +96,7 @@ class SaveDataSet(Action):
         self._lock.acquire(True)
         
         if self.mode == "flat" :
-            filename = os.path.join(self.root, "{0:08}.dcm".format(self._next_file))
+            filename = os.path.join(self.root, "{0:08}".format(self._next_file))
             self._next_file += 1
         elif self.mode == "hierarchical" :
             patient_key = dataset.get("patient_id", None).value
@@ -115,7 +115,7 @@ class SaveDataSet(Action):
                 os.makedirs(dirname)
             
             filename = os.path.join(dirname, 
-                "{0:08}.dcm".format(self._next_series_file.setdefault(series, 0)))
+                "{0:08}".format(self._next_series_file.setdefault(series, 0)))
             
             self._next_series_file[series] += 1
         
