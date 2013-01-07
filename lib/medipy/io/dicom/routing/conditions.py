@@ -71,4 +71,4 @@ class ElementMatch(Condition):
         if self.tag not in dataset :
             return False
         else :
-            return dataset[self.tag] == self.value
+            return dataset[self.tag].value == self.value

@@ -120,14 +120,14 @@ def expose(dataset, filename):
     """
     
     parity = None
-    for item in dataset.get("document_class_code_sequence", SQ([])) :
+    for item in dataset.get("document_class_code_sequence", SQ([])).value :
         if item.get("coding_scheme_designator", "") == "MEDIPY" :
             match = re.match(r"LENGTH_PARITY:(EVEN|ODD)", item.code_value.value)
             if match :
                 parity = match.group(1)
     
     fd = open(filename, "wb")
-    if parity == "ODD" and len(dataset.encapsulated_document)%2==0 :
+    if parity == "ODD" and len(dataset.encapsulated_document.value)%2==0 :
         fd.write(dataset.encapsulated_document.value[:-1])
     else :
         fd.write(dataset.encapsulated_document.value)

@@ -52,8 +52,8 @@ def _sort_by_image_position_patient(datasets) :
             return False
     
     # Compute normal from image_orientation_patient
-    v1 = datasets[0].image_orientation_patient[:3]
-    v2 = datasets[0].image_orientation_patient[3:]
+    v1 = datasets[0].image_orientation_patient.value[:3]
+    v2 = datasets[0].image_orientation_patient.value[3:]
     normal = numpy.cross(v1, v2)
     
     def distance(dataset):

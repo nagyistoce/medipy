@@ -267,7 +267,7 @@ class DataSet(dict):
                     ("UN", "1", unicode(tag_in_dictionary)))[2]
             
             if vr == "SQ" :
-                elements = [unicode(item) for item in value]
+                elements = [unicode(item) for item in value.value]
                 value = []
                 for index, element in enumerate(elements) :
                     value.append(4*" "+"Item %i"%index)
@@ -279,7 +279,7 @@ class DataSet(dict):
                 value = "{0} ({1})".format(dictionary.uid_dictionary[value][0],
                                            value)
             else :
-                value = self[tag]
+                value = value.value
 
             if tag.private :
                 try :
