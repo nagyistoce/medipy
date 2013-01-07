@@ -8,6 +8,7 @@
 
 import datetime
 import os.path
+import uuid
 
 import medipy.base
 
@@ -149,3 +150,19 @@ def parse_tm(value):
         
     time = datetime.datetime.strptime(value[:length], format)
     return datetime.time(time.hour, time.minute, time.second, microseconds)
+
+def generate_uid(convert_to_vr=True) :
+    """ Generate a DICOM Unique Identifier using the method 
+        described on David Clunie's website
+        http://www.dclunie.com/medical-image-faq/html/part2.html#UID
+    """
+    
+    uid = "2.25.{0}".format(uuid.uuid4().int)
+    # Make sure the generated UID is not larger than the 64 characters specified
+    # by the DICOM standard
+    uid = uid[:64]
+    
+    if convert_to_vr :
+        uid = UI(uid)
+    
+    return uid

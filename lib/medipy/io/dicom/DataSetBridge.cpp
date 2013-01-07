@@ -1,5 +1,5 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2012
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -253,17 +253,24 @@ DataSetBridge
             std::string vr;
             if(entry->IsImplicitVR())
             {
-                gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
-                gdcm::DictEntry * dictEntry = dict->GetEntry(entry->GetGroup(), entry->GetElement());
-                if(dictEntry == NULL)
+                // In some cases, we can get the VR anyway
+                if(gdcm::VR().IsValidVR(entry->GetVR()))
                 {
-                    vr = "UN";
+                    vr = entry->GetVR();
                 }
                 else
                 {
-                    vr = dictEntry->GetVR();
+                    gdcm::Dict* dict = gdcm::Global::GetDicts()->GetDefaultPubDict();
+                    gdcm::DictEntry * dictEntry = dict->GetEntry(entry->GetGroup(), entry->GetElement());
+                    if(dictEntry == NULL)
+                    {
+                        vr = "UN";
+                    }
+                    else
+                    {
+                        vr = dictEntry->GetVR();
+                    }
                 }
-
             }
             else
             {
@@ -496,6 +503,10 @@ std::vector<uint8_t> stringVR(PyObject* object, bool encodeAsUTF8, char padding)
             }
         }
     }
+    else if(object == Py_None)
+    {
+        // Nothing to do : we need an empty result.
+    }
     else
     {
         bool object_is_unicode = PyUnicode_Check(object);
@@ -605,7 +616,9 @@ std::vector<uint8_t> bufferVR(PyObject* object)
 {
     if(!PyString_Check(object))
     {
-        throw std::runtime_error("Object is not an buffer string");
+        std::string message = "Object is not a buffer string, but a ";
+        message += object->ob_type->tp_name;
+        throw std::runtime_error(message);
     }
     std::vector<uint8_t> result(PyString_Size(object));
     std::copy(PyString_AsString(object), PyString_AsString(object)+result.size(),
@@ -680,14 +693,45 @@ std::vector<uint8_t> DS(PyObject* object)
     }
     else
     {
-        double value = PyFloat_AsDouble(object);
-        std::ostringstream stream;
-        stream.imbue(std::locale("C"));
-        stream.precision(std::numeric_limits<double>::digits10);
-        stream << value;
-        std::string const string = stream.str();
-        result.resize(string.size());
-        std::copy(string.begin(), string.end(), result.begin());
+        if(object == Py_None)
+        {
+            // Nothing to do : we need an empty result.
+        }
+        else if(PyUnicode_Check(object))
+        {
+            if(PyUnicode_GetSize(object)!=0)
+            {
+                throw std::runtime_error("Cannot convert to DS: "
+                                         "unicode objects must be empty");
+            }
+            // Otherwise do nothing : we need an empty result
+        }
+        else if(PyString_Check(object))
+        {
+            if(PyString_Size(object)!=0)
+            {
+                throw std::runtime_error("Cannot convert to DS: "
+                                         "str objects must be empty");
+            }
+            // Otherwise do nothing : we need an empty result
+        }
+        else if(PyFloat_Check(object))
+        {
+            double value = PyFloat_AsDouble(object);
+            std::ostringstream stream;
+            stream.imbue(std::locale("C"));
+            stream.precision(std::numeric_limits<double>::digits10);
+            stream << value;
+            std::string const string = stream.str();
+            result.resize(string.size());
+            std::copy(string.begin(), string.end(), result.begin());
+        }
+        else
+        {
+            throw std::runtime_error("Cannot convert to DS: "
+                                     "Python object is neither a float "
+                                     "nor an empty string/unicode");
+        }
     }
 
     if(result.size()%2==1)
@@ -725,13 +769,44 @@ std::vector<uint8_t> IS(PyObject* object)
     }
     else
     {
-        long value = PyInt_AsLong(object);
-        std::ostringstream stream;
-        stream.imbue(std::locale("C"));
-        stream << value;
-        std::string const string = stream.str();
-        result.resize(string.size());
-        std::copy(string.begin(), string.end(), result.begin());
+        if(object == Py_None)
+        {
+            // Nothing to do : we need an empty result.
+        }
+        else if(PyUnicode_Check(object))
+        {
+            if(PyUnicode_GetSize(object)!=0)
+            {
+                throw std::runtime_error("Cannot convert to IS: "
+                                         "unicode objects must be empty");
+            }
+            // Otherwise do nothing : we need an empty result
+        }
+        else if(PyString_Check(object))
+        {
+            if(PyString_Size(object)!=0)
+            {
+                throw std::runtime_error("Cannot convert to IS: "
+                                         "str objects must be empty");
+            }
+            // Otherwise do nothing : we need an empty result
+        }
+        else if(PyInt_Check(object))
+        {
+            long value = PyInt_AsLong(object);
+            std::ostringstream stream;
+            stream.imbue(std::locale("C"));
+            stream << value;
+            std::string const string = stream.str();
+            result.resize(string.size());
+            std::copy(string.begin(), string.end(), result.begin());
+        }
+        else
+        {
+            throw std::runtime_error("Cannot convert to IS: "
+                                     "Python object is neither an int "
+                                     "nor an empty string/unicode");
+        }
     }
 
     if(result.size()%2==1)

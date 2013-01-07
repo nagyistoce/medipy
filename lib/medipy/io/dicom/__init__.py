@@ -11,8 +11,9 @@ from dataset import DataSet
 from dataset_io import read, write
 from dicom_series import DicomSeries
 import encapsulated_document
-from misc import load_dicomdir_records, uid_and_description
+from misc import generate_uid, load_dicomdir_records, uid_and_description
 from reconstruction import image
+import routing
 from split import series, stacks
 from vr import *
 

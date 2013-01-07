@@ -1,6 +1,7 @@
 import datetime
 import unittest
 
+import medipy.io.dicom
 import medipy.io.dicom.misc
 
 class TestMisc(unittest.TestCase):
@@ -27,6 +28,19 @@ class TestMisc(unittest.TestCase):
         parsed = medipy.io.dicom.misc.parse_tm("173325.1234")
         expected = datetime.time(17, 33, 25, 123400)
         self.assertEqual(parsed, expected)
+    
+    def test_generate_uid(self):
+        
+        uid_vr = medipy.io.dicom.generate_uid()
+        self.assertTrue(isinstance(uid_vr, medipy.io.dicom.UI))
+        self.assertTrue(isinstance(uid_vr.value, str))
+        
+        uid_str = medipy.io.dicom.generate_uid(False)
+        self.assertTrue(isinstance(uid_str, str))
+        
+        uid1 = medipy.io.dicom.generate_uid()
+        uid2 = medipy.io.dicom.generate_uid()
+        self.assertNotEqual(uid1.value, uid2.value)
 
 if __name__ == '__main__':
     unittest.main()
