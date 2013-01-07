@@ -302,3 +302,4 @@ if __name__ == "__main__" :
     #groupwiseAffineRegistration("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/data/MNI_20patients_IPB_128/subject54.ipb", "/home/miv/noblet/tmp/groupwise/listeAff.txt")
     #createSeriesOfWarpedImages("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/tmp/groupwise/listeGroupwise.txt", "/home/miv/noblet/tmp/groupwise/serie.nii.gz")
     #verifSumOfDeformationFields("/home/miv/noblet/tmp/groupwise/listeGroupwise.txt")
+    pass
