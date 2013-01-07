@@ -76,10 +76,10 @@ AETable END
         dataset = result[0]
         
         self.assertTrue("patients_name" in dataset)
-        self.assertEqual(dataset.patients_name, "Upgrade Test^Rorden")
+        self.assertEqual(dataset.patients_name.value, "Upgrade Test^Rorden")
         
         self.assertTrue("patient_id" in dataset)
-        self.assertEqual(dataset.patient_id, "Rorden Lab")
+        self.assertEqual(dataset.patient_id.value, "Rorden Lab")
     
     def test_store(self):
         dataset = medipy.io.dicom.read(os.path.join(

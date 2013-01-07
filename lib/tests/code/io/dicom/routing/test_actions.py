@@ -11,7 +11,7 @@ class TestActions(unittest.TestCase):
         action(self.dataset)
         
         self.assertTrue("patients_name" in self.dataset)
-        self.assertEqual(self.dataset.patients_name, "Doe^John")
+        self.assertEqual(self.dataset.patients_name.value, "Doe^John")
     
     def test_set_element_present(self):
         self.dataset.patients_name = "Brouchard^Georges"
@@ -20,7 +20,7 @@ class TestActions(unittest.TestCase):
         action(self.dataset)
         
         self.assertTrue("patients_name" in self.dataset)
-        self.assertEqual(self.dataset.patients_name, "Doe^John")
+        self.assertEqual(self.dataset.patients_name.value, "Doe^John")
     
     def test_delete_element_absent(self):
         action = medipy.io.dicom.routing.DeleteElement("patients_name")
@@ -41,13 +41,13 @@ class TestActions(unittest.TestCase):
         action(self.dataset)
         
         self.assertTrue("patients_name" in self.dataset)
-        self.assertEqual(self.dataset.patients_name, "")
+        self.assertEqual(self.dataset.patients_name.value, "")
         
         action = medipy.io.dicom.routing.EmptyElement("language_code_sequence")
         action(self.dataset)
         
         self.assertTrue("language_code_sequence" in self.dataset)
-        self.assertEqual(self.dataset.language_code_sequence, [])
+        self.assertEqual(self.dataset.language_code_sequence.value, [])
 
 if __name__ == "__main__" :
     unittest.main()

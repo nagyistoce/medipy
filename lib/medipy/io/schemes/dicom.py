@@ -132,7 +132,7 @@ def _get_matching_datasets(path, fragment) :
         
         match = True
         for tag, value in filters :
-            if tag not in dataset or dataset[tag] != value :
+            if tag not in dataset or dataset[tag].value != value :
                 match = False
                 break
         
