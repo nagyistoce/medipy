@@ -35,15 +35,15 @@ def relational(connection, root, level, query) :
     for attribute in query :
         everywhere = True
         for dataset in result :
-            value = dataset.get(attribute, None)
+            value = dataset.get(attribute, medipy.io.dicom.UN(None))
             if isinstance(value, medipy.io.dicom.SQ) :
-                query_item = query[attribute][0]
+                query_item = query[attribute].value[0]
                 for item in value :
                     for query_item_attribute in query_item :
                         if not item.get(query_item_attribute, None).value :
                             everywhere = False
                             break
-            elif not value :
+            elif not value.value :
                 everywhere = False
                 break
         matched[attribute] = everywhere
