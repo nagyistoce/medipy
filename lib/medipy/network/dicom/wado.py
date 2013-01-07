@@ -24,9 +24,9 @@ def get(url, dataset, filename=None):
     
     query = {
         "requestType" : "WADO", # Required, cf. 3.18-2011, 8.1.1,
-        "studyUID" : dataset.study_instance_uid,
-        "seriesUID" : dataset.series_instance_uid,
-        "objectUID" : dataset.sop_instance_uid,
+        "studyUID" : dataset.study_instance_uid.value,
+        "seriesUID" : dataset.series_instance_uid.value,
+        "objectUID" : dataset.sop_instance_uid.value,
         "contentType" : "application/dicom"
     }
     
