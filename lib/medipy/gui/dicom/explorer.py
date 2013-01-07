@@ -6,11 +6,18 @@
 # for details.
 ##########################################################################
 
+import multiprocessing
+import os
+import sys
+
 import wx
 
 import medipy.gui.image
-from medipy.io.dicom.misc import load_dicomdir_records
-from medipy.io.dicom import split, sort
+import medipy.io.dicom
+import medipy.io.dicom.misc
+import medipy.io.dicom.split
+import medipy.io.dicom.sort
+
 from hierarchy_tree import HierarchyTree
 from dataset_list import DataSetList
 
@@ -134,22 +141,45 @@ class Explorer(wx.Panel):
         series_uid = datasets[0].series_instance_uid.value
         
         if series_uid not in self._loaded_datasets :
-            loaded_datasets = [x for x in datasets if "directory_record_type" not in x]
-            
+            # Get loadable directory records from the datasets
             records = [x for x in datasets if "directory_record_type" in x]
-            dialog_max = len(records)
+            file_records = []
+            for dataset in datasets :
+                if "directory_record_type" not in dataset :
+                    continue
+                file_records.extend(medipy.io.dicom.misc.get_child_file_records(dataset))
+            
             progress_dialog = wx.ProgressDialog(
-                "Loading files ...", "Loading files ...", dialog_max)
-            for index, record in enumerate(records) :
-                loaded_datasets.extend(load_dicomdir_records([record]))
-                progress_dialog.Update(index)
+                "Loading files ...", "Loading files ...", len(file_records))
+            
+            # Spawn the tasks. Since the loading task is mostly I/O bound, use
+            # more tasks than available CPUs.
+            pool = multiprocessing.Pool(2*multiprocessing.cpu_count())
+            manager = multiprocessing.Manager()
+            queue = manager.Queue()
+            tasks_count = 0
+            for record in file_records :
+                pool.apply_async(_load_directory_record, (record, queue))
+            
+            # Wait for the results...
+            loaded_datasets = []
+            while len(loaded_datasets) != len(file_records) :
+                loaded_datasets.append(queue.get())
+                # GUI updates must happen in the main thread 
+                progress_dialog.Update(len(loaded_datasets))
+            
+            # Clean-up pool and progress dialog
+            pool.close()
+            pool.join()
             progress_dialog.Destroy()
             
-            images = split.images(loaded_datasets)
-            sort.sort(images)
+            # Add already-loaded datasets (i.e. non-Directory Record)
+            loaded_datasets.extend([x for x in datasets if "directory_record_type" not in x])
+            
+            images = medipy.io.dicom.split.images(loaded_datasets)
+            medipy.io.dicom.sort.sort(images)
             
             self._loaded_datasets[series_uid] = images 
-            
         
         loaded_datasets = self._loaded_datasets[series_uid]
         
@@ -161,3 +191,22 @@ class Explorer(wx.Panel):
                 slider_max += 1
         
         self._slider.SetRange(0, slider_max-1)
+
+def _load_directory_record(record, queue):
+    """ Worker function used in Explorer._setup_slider. This function returns
+        either the loaded dataset or the traceback of any exception that 
+        happened.
+    
+        A "regular" (vs. class)
+        function must be use, since bound methods are not pickle-able.
+    """
+    
+    try :
+        path = medipy.io.dicom.misc.find_dicomdir_file(
+           os.path.dirname(record.path), tuple(record.referenced_file_id.value))
+        dataset = medipy.io.dicom.read(path)
+    except :
+        result = sys.exc_info()
+    else :
+        result = dataset
+    queue.put(result)
