@@ -145,7 +145,7 @@ def verifSumOfDeformationFields(TransfoTxtFile,FilenameImref=None) :
 ###  Groupwise registration ###   
 def groupwiseRegistrationFromTxtfile(ImageTxtFile, TransfoIniTxtFile=None, TransfoResTxtFile=None, resolution=6, regularisation=1,
 wdth_template=256,hght_template=256, dpth_template=256,
-dx_template=1, dy_template=1, dz_template=1) :
+dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None) :
     
     ImageList=fileToListe(ImageTxtFile)
     nb_image=len(ImageList)
@@ -210,6 +210,10 @@ dx_template=1, dy_template=1, dz_template=1) :
 
     f.close()
 
+    if serieOfTemplate  :
+        im4D=[] 
+   
+
     #------------------------------------------------
     #---- Initialisation du cerveau moyen -----------
     #------------------------------------------------
@@ -225,6 +229,9 @@ dx_template=1, dy_template=1, dz_template=1) :
     meanImage = medipy.base.Image(dtype=imfirst.dtype)
     medipy.medimax.recalage.CombineTransfo3d(TransfoIniList[0],resample, TransfoResList[0], 5)
     medipy.medimax.recalage.ApplyTransfo3d(imfirst,TransfoResList[0],meanImage,8)
+
+    if serieOfTemplate :
+        im4D.append(meanImage)
 
     bsplineTmp=tempfile.mkstemp(".trf")[1]
     
@@ -277,11 +284,17 @@ dx_template=1, dy_template=1, dz_template=1) :
         for j in range(1,i+1) :
             im=medipy.io.load(ImageList[j])
             imres=medipy.base.Image(dtype=im.dtype)       
-            medipy.medimax.recalage.ApplyTransfo3d(im,TransfoResList[i],imres,8)
+            medipy.medimax.recalage.ApplyTransfo3d(im,TransfoResList[j],imres,8)
             meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, imres).data
    
-        meanImage.data=meanImage.data/float(i)
+        meanImage.data=meanImage.data/float(i+1)
+        
+        if serieOfTemplate :
+            im4D.append(meanImage)
     
+    
+    if serieOfTemplate :
+        medipy.io.save_serie(im4D, serieOfTemplate) 
     
     # suppression fichiers temporaires
     os.remove(resample)
@@ -294,8 +307,6 @@ dx_template=1, dy_template=1, dz_template=1) :
     
     
     
-    
-
 
 if __name__ == "__main__" :
     #groupwiseRegistrationFromTxtfile("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/tmp/groupwise/listeAffID.txt", "/home/miv/noblet/tmp/groupwise/listeGroupwise.txt",resolution=4,regularisation=0,wdth_template=64,hght_template=64, dpth_template=64, dx_template=4, dy_template=4, dz_template=4)
