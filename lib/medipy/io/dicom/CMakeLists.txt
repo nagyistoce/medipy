@@ -14,15 +14,13 @@ else(${ITK_FOUND})
     find_package(GDCM REQUIRED)
 endif(${ITK_FOUND})
 
-set_source_files_properties(dataset_io.i PROPERTIES CPLUSPLUS ON)
 swig_python_module(dataset_io dataset_io.i dataset_io.cpp DataSetBridge.cpp)
+message("${foo}")
 swig_link_libraries(dataset_io "itkgdcm")
 install_swig_python_module(dataset_io)
 
 # Old WrapITK does not work with g++-4.6
 set(CMAKE_CXX_COMPILER g++-4.4)
-
-set(WRAP_ITK_DOC OFF)
 
 wrap_library("AssembleTilesImageFilter" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)

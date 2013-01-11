@@ -12,6 +12,22 @@ macro(swig_python_module name)
     find_package(SWIG REQUIRED)
     include(${SWIG_USE_FILE})
 
+    set(cplusplus "OFF")
+
+    foreach(it ${ARGN})
+        if(${it} MATCHES ".*\\.i$")
+            set(swig_dot_i_sources ${swig_dot_i_sources} "${it}")
+        elseif(${it} MATCHES ".*\\.cpp$")
+            set(cplusplus "ON")
+        elseif(${it} MATCHES ".*\\.cxx$")
+            set(cplusplus "ON")
+        endif()
+    endforeach()
+    
+    foreach(it ${swig_dot_i_sources})
+        set_source_files_properties(${it} PROPERTIES CPLUSPLUS ${cplusplus})
+    endforeach()
+    
     find_package(PythonLibs)
     include_directories(${PYTHON_INCLUDE_PATH})
     

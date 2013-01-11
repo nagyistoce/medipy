@@ -4,7 +4,6 @@ install_py_files(${files})
 # Old WrapITK does not work with g++-4.6
 set(CMAKE_CXX_COMPILER g++-4.4)
 
-set_source_files_properties(spectral_analysis.i PROPERTIES CPLUSPLUS ON)
 swig_python_module(spectral_analysis spectral_analysis.i spectral_analysis.cpp)
 swig_link_libraries(spectral_analysis ${ITK_LIBS})
 install_swig_python_module(spectral_analysis)
