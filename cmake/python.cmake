@@ -25,7 +25,10 @@ macro(swig_python_module name)
     endforeach()
     
     foreach(it ${swig_dot_i_sources})
-        set_source_files_properties(${it} PROPERTIES CPLUSPLUS ${cplusplus})
+        get_source_file_property(value ${it} CPLUSPLUS)
+        if(${value} STREQUAL "NOTFOUND")
+            set_source_files_properties(${it} PROPERTIES CPLUSPLUS ${cplusplus})
+        endif()
     endforeach()
     
     find_package(PythonLibs)
