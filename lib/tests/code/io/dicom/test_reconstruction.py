@@ -49,7 +49,7 @@ class TestReconstruction(unittest.TestCase):
         dataset = medipy.io.dicom.read(os.path.join(tempdir, "DISCIMG/IMAGES/DYNMAMMO"))
         self.cleanup(tempdir)
         
-        self.assertEqual(dataset.number_of_frames, 168)
+        self.assertEqual(dataset.number_of_frames.value, 168)
         
         normalized = medipy.io.dicom.normalize.normalize(dataset)
         self.assertEqual(len(normalized), 168)

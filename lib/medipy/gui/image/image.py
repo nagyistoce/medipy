@@ -83,7 +83,7 @@ class Image(wx.Panel, PropertySynchronized):
                  annotations=None, interpolation=False,
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
-                 convention="radiological", *args, **kwargs):
+                 convention="radiological", crosshair="full", *args, **kwargs):
         
         if annotations is None :
             annotations = ObservableList()
@@ -99,6 +99,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._scalar_bar_visibility = None
         self._orientation_visibility = None
         self._convention = None
+        self._crosshair = None
         
         self._annotations = None
         
@@ -159,6 +160,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._set_scalar_bar_visibility(scalar_bar_visibility)
         self._set_orientation_visibility(orientation_visibility)
         self._set_convention(convention)
+        self._set_crosshair(crosshair)
         for layer in layers or [] :
             self.append_layer(**layer)
         self._set_slice_mode(slice_mode)
@@ -367,7 +369,8 @@ class Image(wx.Panel, PropertySynchronized):
             slice = Slice(world_to_slice, self._layers, 
                 self._annotations, self._interpolation, 
                 self._display_coordinates,self._scalar_bar_visibility, 
-                self._orientation_visibility, slice_mode != "multiplanar"
+                self._orientation_visibility, slice_mode != "multiplanar", 
+                self.crosshair
             )
         
             if slice_mode == "multiplanar" :
@@ -483,6 +486,15 @@ class Image(wx.Panel, PropertySynchronized):
             world_to_slice = medipy.base.coordinate_system.slices[convention][name]
             slice.world_to_slice = world_to_slice
     
+    def _get_crosshair(self):
+        return self._crosshair
+    
+    def _set_crosshair(self, value):
+        if value not in ["full", "none"] :
+            raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
+        
+        self._set_slice_property("crosshair", value)
+    
     def _get_annotations(self):
         return self._annotations
     
@@ -584,6 +596,7 @@ class Image(wx.Panel, PropertySynchronized):
     scalar_bar_visibility = property(_get_scalar_bar_visibility, _set_scalar_bar_visibility)
     orientation_visibility = property(_get_orientation_visibility, _set_orientation_visibility)
     convention = property(_get_convention, _set_convention)
+    crosshair = property(_get_crosshair, _set_crosshair)
     annotations = property(_get_annotations, _set_annotations)
     cursor_physical_position = property(_get_cursor_physical_position, _set_cursor_physical_position)
     cursor_index_position = property(_get_cursor_index_position, _set_cursor_index_position)

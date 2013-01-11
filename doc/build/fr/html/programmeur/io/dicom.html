@@ -8,72 +8,73 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Lecture et écriture DICOM &mdash; MediPy 1.0 documentation</title>
+    <title>1. Lecture et écriture DICOM &mdash; MediPy 1.0 documentation</title>
     
-    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
+        URL_ROOT:    '../../',
         VERSION:     '1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/translations.js"></script>
-    <link rel="top" title="MediPy 1.0 documentation" href="../index.html" />
-    <link rel="up" title="Guide du programmeur" href="index.html" />
-    <link rel="next" title="Fonctionnalités réseau" href="network/index.html" />
-    <link rel="prev" title="2. Description de l’interface graphique d’une fonction" href="function_gui.html" /> 
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/translations.js"></script>
+    <link rel="top" title="MediPy 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Lecture et écriture de fichiers" href="index.html" />
+    <link rel="next" title="2. Encapsulation d’un document au format DICOM" href="dicom_encapsulated_document.html" />
+    <link rel="prev" title="Lecture et écriture de fichiers" href="index.html" /> 
   </head>
   <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="Index général"
+          <a href="../../genindex.html" title="Index général"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="network/index.html" title="Fonctionnalités réseau"
+          <a href="dicom_encapsulated_document.html" title="2. Encapsulation d’un document au format DICOM"
              accesskey="N">suivant</a> |</li>
         <li class="right" >
-          <a href="function_gui.html" title="2. Description de l’interface graphique d’une fonction"
+          <a href="index.html" title="Lecture et écriture de fichiers"
              accesskey="P">précédent</a> |</li>
-        <li><a href="../index.html">MediPy 1.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Guide du programmeur</a> &raquo;</li> 
+        <li><a href="../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Guide du programmeur</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Lecture et écriture de fichiers</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table des matières</a></h3>
+  <h3><a href="../../index.html">Table des matières</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Lecture et écriture DICOM</a><ul>
-<li><a class="reference internal" href="#lecture-dicom">Lecture DICOM</a><ul>
-<li><a class="reference internal" href="#lecture-de-fichiers-contenant-une-seule-serie">Lecture de fichiers contenant une seule série</a></li>
-<li><a class="reference internal" href="#lecture-de-fichiers-contenant-plusieurs-series">Lecture de fichiers contenant plusieurs séries</a></li>
-<li><a class="reference internal" href="#lecture-d-un-dicomdir">Lecture d&#8217;un DICOMDIR</a></li>
-<li><a class="reference internal" href="#cas-general">Cas général</a></li>
+<li><a class="reference internal" href="#">1. Lecture et écriture DICOM</a><ul>
+<li><a class="reference internal" href="#lecture-dicom">1.1. Lecture DICOM</a><ul>
+<li><a class="reference internal" href="#lecture-de-fichiers-contenant-une-seule-serie">1.1.1. Lecture de fichiers contenant une seule série</a></li>
+<li><a class="reference internal" href="#lecture-de-fichiers-contenant-plusieurs-series">1.1.2. Lecture de fichiers contenant plusieurs séries</a></li>
+<li><a class="reference internal" href="#lecture-d-un-dicomdir">1.1.3. Lecture d&#8217;un DICOMDIR</a></li>
+<li><a class="reference internal" href="#cas-general">1.1.4. Cas général</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#ecriture-dicom">Écriture DICOM</a></li>
+<li><a class="reference internal" href="#ecriture-dicom">1.2. Écriture DICOM</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Sujet précédent</h4>
-  <p class="topless"><a href="function_gui.html"
-                        title="Chapitre précédent">2. Description de l&#8217;interface graphique d&#8217;une fonction</a></p>
+  <p class="topless"><a href="index.html"
+                        title="Chapitre précédent">Lecture et écriture de fichiers</a></p>
   <h4>Sujet suivant</h4>
-  <p class="topless"><a href="network/index.html"
-                        title="Chapitre suivant">Fonctionnalités réseau</a></p>
+  <p class="topless"><a href="dicom_encapsulated_document.html"
+                        title="Chapitre suivant">2. Encapsulation d&#8217;un document au format DICOM</a></p>
 <div id="searchbox" style="display: none">
   <h3>Recherche rapide</h3>
-    <form class="search" action="../search.html" method="get">
+    <form class="search" action="../../search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
@@ -93,11 +94,11 @@
           <div class="body">
             
   <div class="section" id="lecture-et-ecriture-dicom">
-<h1>Lecture et écriture DICOM<a class="headerlink" href="#lecture-et-ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h1>
+<h1>1. Lecture et écriture DICOM<a class="headerlink" href="#lecture-et-ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h1>
 <div class="section" id="lecture-dicom">
-<h2>Lecture DICOM<a class="headerlink" href="#lecture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
+<h2>1.1. Lecture DICOM<a class="headerlink" href="#lecture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
 <div class="section" id="lecture-de-fichiers-contenant-une-seule-serie">
-<h3>Lecture de fichiers contenant une seule série<a class="headerlink" href="#lecture-de-fichiers-contenant-une-seule-serie" title="Lien permanent vers ce titre">¶</a></h3>
+<h3>1.1.1. Lecture de fichiers contenant une seule série<a class="headerlink" href="#lecture-de-fichiers-contenant-une-seule-serie" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Dans le cas le plus simple, on souhaite charger un ensemble de fichiers dont on
 sait qu&#8217;ils ne contiennent qu&#8217;une seule série.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
@@ -110,7 +111,7 @@ sait qu&#8217;ils ne contiennent qu&#8217;une seule série.</p>
 </div>
 </div>
 <div class="section" id="lecture-de-fichiers-contenant-plusieurs-series">
-<h3>Lecture de fichiers contenant plusieurs séries<a class="headerlink" href="#lecture-de-fichiers-contenant-plusieurs-series" title="Lien permanent vers ce titre">¶</a></h3>
+<h3>1.1.2. Lecture de fichiers contenant plusieurs séries<a class="headerlink" href="#lecture-de-fichiers-contenant-plusieurs-series" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Si on souhaite charger un ensemble de fichiers qui contiennent potentiellement
 plusieurs séries, il faut d&#8217;abord diviser l&#8217;ensemble des Data Sets chargés en
 séries, puis choisir l&#8217;une d&#8217;entre elles.</p>
@@ -129,7 +130,7 @@ séries, puis choisir l&#8217;une d&#8217;entre elles.</p>
 </div>
 </div>
 <div class="section" id="lecture-d-un-dicomdir">
-<h3>Lecture d&#8217;un DICOMDIR<a class="headerlink" href="#lecture-d-un-dicomdir" title="Lien permanent vers ce titre">¶</a></h3>
+<h3>1.1.3. Lecture d&#8217;un DICOMDIR<a class="headerlink" href="#lecture-d-un-dicomdir" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Toutes les fonctions décrites précédemment acceptent aussi des Data Sets chargés
 depuis des DICOMDIRs. La fonction <tt class="docutils literal"><span class="pre">load_dicomdir_records</span></tt> se charge ensuite
 de charger les fichiers référencés depuis les informations du DICOMDIR. Cette
@@ -158,7 +159,7 @@ supplémentaire : le nom du répertoire contenant le DICOMDIR. Il s&#8217;agit d
 </div>
 </div>
 <div class="section" id="cas-general">
-<h3>Cas général<a class="headerlink" href="#cas-general" title="Lien permanent vers ce titre">¶</a></h3>
+<h3>1.1.4. Cas général<a class="headerlink" href="#cas-general" title="Lien permanent vers ce titre">¶</a></h3>
 <p>Dans le cas le plus général, chaque série peut être composée de plusieurs piles
 (ensemble de coupes ayant la même orientation), par exemple dans le cas du
 localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">stacks</span></tt> permet de diviser une série en piles.</p>
@@ -175,14 +176,11 @@ localisateur en IRM. La fonction <tt class="docutils literal"><span class="pre">
 </div>
 </div>
 <div class="section" id="ecriture-dicom">
-<h2>Écriture DICOM<a class="headerlink" href="#ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
+<h2>1.2. Écriture DICOM<a class="headerlink" href="#ecriture-dicom" title="Lien permanent vers ce titre">¶</a></h2>
 <p>Un DataSet peut être sauvé dans un fichier en utilisant la fonction
-<tt class="docutils literal"><span class="pre">medipy.io.dicom.write</span></tt>. Deux particularités sont à prendre en compte :</p>
-<ul class="simple">
-<li>Toutes les chaînes de caractères sont sauvées en UTF-8 ; l&#8217;élément Specific
-Character Set (0008,0005) est donc fixé à &#8220;ISO_IR 192&#8221;.</li>
-<li>Seuls les éléments publics sont sauvés.</li>
-</ul>
+<tt class="docutils literal"><span class="pre">medipy.io.dicom.write</span></tt>. Une particularité est à prendre en compte : toutes
+les chaînes de caractères sont sauvées en UTF-8 ; l&#8217;élément Specific Character
+Set (0008,0005) est donc fixé à &#8220;ISO_IR 192&#8221;.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">medipy.io.dicom</span>
 
 <span class="n">dataset</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
@@ -204,16 +202,17 @@ Character Set (0008,0005) est donc fixé à &#8220;ISO_IR 192&#8221;.</li>
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="Index général"
+          <a href="../../genindex.html" title="Index général"
              >index</a></li>
         <li class="right" >
-          <a href="network/index.html" title="Fonctionnalités réseau"
+          <a href="dicom_encapsulated_document.html" title="2. Encapsulation d’un document au format DICOM"
              >suivant</a> |</li>
         <li class="right" >
-          <a href="function_gui.html" title="2. Description de l’interface graphique d’une fonction"
+          <a href="index.html" title="Lecture et écriture de fichiers"
              >précédent</a> |</li>
-        <li><a href="../index.html">MediPy 1.0 documentation</a> &raquo;</li>
-          <li><a href="index.html" >Guide du programmeur</a> &raquo;</li> 
+        <li><a href="../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Guide du programmeur</a> &raquo;</li>
+          <li><a href="index.html" >Lecture et écriture de fichiers</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

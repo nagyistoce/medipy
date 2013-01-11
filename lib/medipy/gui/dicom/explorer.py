@@ -1,19 +1,25 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
 # for details.
 ##########################################################################
 
+import multiprocessing
+import os
+import sys
+
 import wx
 
 import medipy.gui.image
-from medipy.gui.dicom.hierarchy_tree import HierarchyTree
-from medipy.gui.dicom.dataset_list import DataSetList
+import medipy.io.dicom
+import medipy.io.dicom.misc
+import medipy.io.dicom.split
+import medipy.io.dicom.sort
 
-from medipy.io.dicom.misc import load_dicomdir_records
-from medipy.io.dicom import split, sort
+from hierarchy_tree import HierarchyTree
+from dataset_list import DataSetList
 
 class Explorer(wx.Panel):
     
@@ -78,7 +84,7 @@ class Explorer(wx.Panel):
             self._setup_slider(datasets)
             self._slider.Enable()
             
-            slider_value = self._series_position.get(datasets[0].series_instance_uid, 0)
+            slider_value = self._series_position.get(datasets[0].series_instance_uid.value, 0)
             self._slider.SetValue(slider_value)
             self.OnSlider(None)
         else :
@@ -90,7 +96,7 @@ class Explorer(wx.Panel):
         self.Freeze()
         
         datasets = self._hierarchy_tree.selected_datasets
-        series_uid = datasets[0].series_instance_uid
+        series_uid = datasets[0].series_instance_uid.value
         
         loaded_datasets = self._loaded_datasets[series_uid]
         if "number_of_frames" in loaded_datasets[0] :
@@ -132,33 +138,75 @@ class Explorer(wx.Panel):
         """ Setup the image slider.
         """
         
-        series_uid = datasets[0].series_instance_uid
+        series_uid = datasets[0].series_instance_uid.value
         
         if series_uid not in self._loaded_datasets :
-            loaded_datasets = [x for x in datasets if "directory_record_type" not in x]
-            
+            # Get loadable directory records from the datasets
             records = [x for x in datasets if "directory_record_type" in x]
-            dialog_max = len(records)
+            file_records = []
+            for dataset in datasets :
+                if "directory_record_type" not in dataset :
+                    continue
+                file_records.extend(medipy.io.dicom.misc.get_child_file_records(dataset))
+            
             progress_dialog = wx.ProgressDialog(
-                "Loading files ...", "Loading files ...", dialog_max)
-            for index, record in enumerate(records) :
-                loaded_datasets.extend(load_dicomdir_records([record]))
-                progress_dialog.Update(index)
+                "Loading files ...", "Loading files ...", len(file_records))
+            
+            # Spawn the tasks. Since the loading task is mostly I/O bound, use
+            # more tasks than available CPUs.
+            pool = multiprocessing.Pool(2*multiprocessing.cpu_count())
+            manager = multiprocessing.Manager()
+            queue = manager.Queue()
+            tasks_count = 0
+            for record in file_records :
+                pool.apply_async(_load_directory_record, (record, queue))
+            
+            # Wait for the results...
+            loaded_datasets = []
+            while len(loaded_datasets) != len(file_records) :
+                loaded_datasets.append(queue.get())
+                # GUI updates must happen in the main thread 
+                progress_dialog.Update(len(loaded_datasets))
+            
+            # Clean-up pool and progress dialog
+            pool.close()
+            pool.join()
             progress_dialog.Destroy()
             
-            images = split.images(loaded_datasets)
-            sort.sort(images)
+            # Add already-loaded datasets (i.e. non-Directory Record)
+            loaded_datasets.extend([x for x in datasets if "directory_record_type" not in x])
+            
+            images = medipy.io.dicom.split.images(loaded_datasets)
+            medipy.io.dicom.sort.sort(images)
             
             self._loaded_datasets[series_uid] = images 
-            
         
         loaded_datasets = self._loaded_datasets[series_uid]
         
         slider_max = 0
         for dataset in loaded_datasets :
             if "number_of_frames" in dataset :
-                slider_max += dataset.number_of_frames
+                slider_max += dataset.number_of_frames.value
             else :
                 slider_max += 1
         
         self._slider.SetRange(0, slider_max-1)
+
+def _load_directory_record(record, queue):
+    """ Worker function used in Explorer._setup_slider. This function returns
+        either the loaded dataset or the traceback of any exception that 
+        happened.
+    
+        A "regular" (vs. class)
+        function must be use, since bound methods are not pickle-able.
+    """
+    
+    try :
+        path = medipy.io.dicom.misc.find_dicomdir_file(
+           os.path.dirname(record.path), tuple(record.referenced_file_id.value))
+        dataset = medipy.io.dicom.read(path)
+    except :
+        result = sys.exc_info()
+    else :
+        result = dataset
+    queue.put(result)

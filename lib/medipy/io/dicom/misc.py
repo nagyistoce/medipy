@@ -8,10 +8,12 @@
 
 import datetime
 import os.path
+import uuid
 
 import medipy.base
 
-import dataset_io 
+import dataset_io
+from vr import * 
 
 def find_dicomdir_file(base_directory, referenced_file_id):
     """ Search the filesystem for upper-case and lower case version of a
@@ -78,7 +80,26 @@ def get_series_datetime(dataset):
     
     return series_datetime
 
-def load_dicomdir_records(datasets, base_directory=None):
+def get_child_file_records(record):
+    """ Return children of given DICOMDIR Record which contain 
+        Referenced File ID (0004,1500).
+    """
+    
+    result = []
+    
+    queue = [record]
+    while queue :
+        dataset = queue.pop()
+        if "referenced_file_id" in dataset :
+            if isinstance(dataset.referenced_file_id.value, basestring) :
+                # Normalize to a list with one element
+                dataset.referenced_file_id = [dataset.referenced_file_id.value]
+            result.append(dataset)
+        queue.extend(dataset.children)
+    
+    return result
+
+def load_dicomdir_records(datasets):
     """ If a Data Set is a DICOMDIR Record, replace it by the file it 
         (or its children) references.
     """
@@ -89,16 +110,9 @@ def load_dicomdir_records(datasets, base_directory=None):
     
     for dataset in datasets :
         if "directory_record_type" in dataset : # Directory Record Type
-            # Find all children with Referenced File ID (0x0004,0x1500)
-            queue = [dataset]
-            while queue :
-                d = queue.pop()
-                if "referenced_file_id" in d :
-                    if isinstance(d.referenced_file_id, basestring) :
-                        # Normalize to a list with one element
-                        d.referenced_file_id = [d.referenced_file_id]
-                    file_ids.add((d.path, tuple(d.referenced_file_id)))
-                queue.extend(d.children)
+            children = get_child_file_records(dataset)
+            file_ids.update([(child.path, tuple(child.referenced_file_id.value))
+                              for child in children])
         else :
             result.append(dataset)
 
@@ -111,8 +125,11 @@ def load_dicomdir_records(datasets, base_directory=None):
 def parse_da(value):
     """ Return a datetime object from a DA value.
     """
+
+    if isinstance(value, VR) :
+        value = value.value
     
-    if value == "" :
+    if not value :
         return None
     
     return datetime.datetime.strptime(value, "%Y%m%d")
@@ -121,7 +138,10 @@ def parse_tm(value):
     """ Return a time object from a TM value.
     """
     
-    if value == "" :
+    if isinstance(value, VR) :
+        value = value.value
+    
+    if not value :
         return None
     
     format = ""
@@ -142,3 +162,19 @@ def parse_tm(value):
         
     time = datetime.datetime.strptime(value[:length], format)
     return datetime.time(time.hour, time.minute, time.second, microseconds)
+
+def generate_uid(convert_to_vr=True) :
+    """ Generate a DICOM Unique Identifier using the method 
+        described on David Clunie's website
+        http://www.dclunie.com/medical-image-faq/html/part2.html#UID
+    """
+    
+    uid = "2.25.{0}".format(uuid.uuid4().int)
+    # Make sure the generated UID is not larger than the 64 characters specified
+    # by the DICOM standard
+    uid = uid[:64]
+    
+    if convert_to_vr :
+        uid = UI(uid)
+    
+    return uid

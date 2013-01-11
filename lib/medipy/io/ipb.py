@@ -253,7 +253,6 @@ class IPB(IOBase) :
         MatrixType = itk.Matrix[itk.D, 3, 3]
         MatrixBridge = itk.MatrixBridge[MatrixType]
         direction = coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
-        direction = numpy.dot(coordinate_system.RAS, direction)
         itk_direction = numpy.fliplr(numpy.flipud(direction))
         itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
         

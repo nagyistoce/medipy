@@ -118,6 +118,7 @@ class MainFrame(medipy.gui.base.Frame):
         self._display_coordinates = None
         self._display_convention = None
         self._slices = None
+        self._crosshair = None
         
         self._synchronization = {
             "cursor_position" : False,
@@ -153,6 +154,7 @@ class MainFrame(medipy.gui.base.Frame):
         self.display_convention = self._preferences.get("Display/convention", "radiological")
         self.tensor2_display_mode = self._preferences.get("Display/tensor2", "principal_direction_voxel")
         self.slices = self._preferences.get("Display/slices", "axial")
+        self.crosshair = self._preferences.get("Display/crosshair", "full")
         for attribute in self._synchronization :
             value = self._preferences.get(
                 "Display/Synchronization/{0}".format(attribute), False)
@@ -317,7 +319,7 @@ class MainFrame(medipy.gui.base.Frame):
         return self._image_from_window(image)
     
     def all_images_screenshot(self):
-        return self._image_from_window(self.ui.images_grid)
+        return self._image_from_window(self.ui.image_grid)
     
     def whole_window_screenshot(self):
         return self._image_from_window(self)
@@ -427,6 +429,23 @@ class MainFrame(medipy.gui.base.Frame):
         # Update preferences
         self._preferences.set("Display/slices", value)
     
+    def _get_crosshair(self) :
+        return self._crosshair
+
+    def _set_crosshair(self, value) :
+        if value not in ["full", "none"] :
+            raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
+        
+        self._crosshair = value
+        self.ui.image_grid.crosshair = value
+        
+        # Update GUI
+        item_id = wx.xrc.XRCID("crosshair_" + value)
+        item = self.GetMenuBar().FindItemById(item_id)
+        item.Check()
+        # Update preferences
+        self._preferences.set("Display/crosshair", value)
+    
     def _get_current_ui(self):
         return self._current_ui
     
@@ -436,6 +455,7 @@ class MainFrame(medipy.gui.base.Frame):
                                   _set_display_convention)
     tensor2_display_mode = property(_get_tensor2_display_mode, _set_tensor2_display_mode)
     slices = property(_get_slices, _set_slices)
+    crosshair = property(_get_crosshair, _set_crosshair)
     current_ui = property(_get_current_ui)
     
     ##################
@@ -601,6 +621,15 @@ class MainFrame(medipy.gui.base.Frame):
                 self.ui.function_ui_sizer.Layout()
         else : 
             self._current_ui = None
+    
+    def OnCrosshairFull(self, dummy):
+        self.crosshair = "full"
+    
+#    def OnCrosshairPartial(self, dummy):
+#        pass
+    
+    def OnCrosshairNone(self, dummy):
+        self.crosshair = "none"
     
     def OnViewAxial(self, dummy):
         self.slices = "axial"

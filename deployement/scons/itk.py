@@ -504,6 +504,22 @@ def exists(env):
 def generate(env):
     env["ITK"] = configuration_variables()
     
+    # Overwrite compiler value : compiling WrapITK modules with g++ > 4.6 will fail
+    # Note : cannot do this in _itk() since we need env
+    process = subprocess.Popen([env["CXX"], "-dumpversion"], stdout=subprocess.PIPE)
+    stdout, _ = process.communicate()
+    
+    if sys.platform != "win32" :
+        command = ["gcc", "-dumpversion"]
+        process = subprocess.Popen(command, stdout=subprocess.PIPE)
+        stdout, _ = process.communicate()
+        elements = stdout.split(".")
+        major = int(elements[0])
+        minor = int(elements[1])
+        if major > 4 or (major == 4 and minor > 4) :
+            env["ITK"]["CC"]="gcc-4.4"
+            env["ITK"]["CXX"]="g++-4.4"
+    
     # Patch the Swig emitter for old versions of SCons. cf. release notes
     # of 1.2.0.d20100117
     version = SCons.__version__.split(".")

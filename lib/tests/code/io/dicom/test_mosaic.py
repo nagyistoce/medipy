@@ -17,13 +17,13 @@ class testMosaic(unittest.TestCase):
         dataset = medipy.io.dicom.read(
             os.path.join(self.data_directory, "input", "siemens_mosaic.dcm"))
         self.assertTrue(0x00291010 in dataset)
-        image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
+        image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010].value)
         
         self.number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
         
         mosaic_size = math.ceil(math.sqrt(self.number_of_tiles))
-        self.tile_size = (int(dataset.columns/mosaic_size),
-                          int(dataset.rows/mosaic_size))
+        self.tile_size = (int(dataset.columns.value/mosaic_size),
+                          int(dataset.rows.value/mosaic_size))
         
     def testAssembleTilesImageFilter(self):
         

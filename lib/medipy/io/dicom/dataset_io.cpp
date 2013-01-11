@@ -9,6 +9,7 @@
 #include "dataset_io.h"
 
 #include <fstream>
+#include <stdexcept>
 #include <string>
 
 #include <gdcmBinEntry.h>
@@ -82,19 +83,19 @@ unsigned int ComputeGroup0002Length(gdcm::DocEntrySet & document)
     return groupLength;
 }
 
-void write(PyObject* dictionary, std::string const & filename)
+void write(PyObject* dataset, std::string const & filename)
 {
-    DataSetBridge data_set_bridge(dictionary);
     gdcm::Document document;
-    data_set_bridge.to_gdcm(document);
+    {
+        DataSetBridge data_set_bridge(PyObject_GetAttrString(dataset, "header"));
+        data_set_bridge.to_gdcm(document);
+    }
+    {
+        DataSetBridge data_set_bridge(dataset);
+        data_set_bridge.to_gdcm(document);
+    }
 
     // Set the File Meta Information
-
-    // File Meta Information Group Length
-    uint32_t groupLength = ComputeGroup0002Length(document);
-    document.InsertBinEntry(
-        reinterpret_cast<uint8_t*>(&groupLength), sizeof(groupLength),
-        0x0002, 0x0000, "UL");
 
     // File Meta Information Version
     uint8_t file_meta_information_version[2] = {0, 1};
@@ -103,6 +104,20 @@ void write(PyObject* dictionary, std::string const & filename)
     // Media Storage SOP Instance UID
     std::string sop = gdcm::Util::CreateUniqueUID();
     document.InsertValEntry(sop, 0x0002, 0x0003, "UI");
+
+    // Transfer Syntax UID
+    if(document.GetDocEntry(0x0002, 0x0010) == NULL)
+    {
+        std::string transferSyntax = "1.2.840.10008.1.2";
+        std::vector<uint8_t> paddedTransferSyntax(
+            (transferSyntax.size()%2==0)?transferSyntax.size():1+transferSyntax.size(),
+            0);
+        std::copy(transferSyntax.begin(), transferSyntax.end(), paddedTransferSyntax.begin());
+
+        document.InsertBinEntry(
+            &paddedTransferSyntax[0], paddedTransferSyntax.size(),
+            0x0002, 0x0010, "UI");
+    }
 
     // Media Storage Implementation Class UID
     document.InsertValEntry(
@@ -114,7 +129,44 @@ void write(PyObject* dictionary, std::string const & filename)
     implementation_version_name += gdcm::Util::GetVersion();
     document.InsertValEntry(implementation_version_name, 0x0002, 0x0013, "SH");
 
+    // File Meta Information Group Length
+    uint32_t groupLength = ComputeGroup0002Length(document);
+    document.InsertBinEntry(
+        reinterpret_cast<uint8_t*>(&groupLength), sizeof(groupLength),
+        0x0002, 0x0000, "UL");
+
     std::ofstream stream(filename.c_str());
-    document.WriteContent(&stream, gdcm::ExplicitVR);
+
+    std::string transferSyntax((char*)(document.GetBinEntry(0x0002, 0x0010)->GetBinArea()),
+                               document.GetBinEntry(0x0002, 0x0010)->GetLength());
+    // Remove the padding
+    static std::string const whitespace(" \0", 2);
+    std::string::size_type const last = transferSyntax.find_last_not_of(whitespace);
+    std::string::size_type first = 0;
+    if(last != std::string::npos)
+    {
+        first = transferSyntax.find_first_not_of(whitespace);
+
+        if(first == std::string::npos)
+        {
+            first = 0;
+        }
+    }
+    transferSyntax = transferSyntax.substr(first, last-first+1);
+
+    if(transferSyntax == "1.2.840.10008.1.2.1")
+    {
+        document.WriteContent(&stream, gdcm::ExplicitVR);
+    }
+    else if(transferSyntax == "1.2.840.10008.1.2")
+    {
+        document.WriteContent(&stream, gdcm::ImplicitVR);
+    }
+    else
+    {
+        std::string message = "Cannot write with a transfer syntax of '";
+        message += transferSyntax+"'";
+        throw std::runtime_error(message);
+    }
     stream.close();
 }

@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -52,12 +52,12 @@ def _sort_by_image_position_patient(datasets) :
             return False
     
     # Compute normal from image_orientation_patient
-    v1 = datasets[0].image_orientation_patient[:3]
-    v2 = datasets[0].image_orientation_patient[3:]
+    v1 = datasets[0].image_orientation_patient.value[:3]
+    v2 = datasets[0].image_orientation_patient.value[3:]
     normal = numpy.cross(v1, v2)
     
     def distance(dataset):
-        position = dataset.image_position_patient
+        position = dataset.image_position_patient.value
         return numpy.dot(position, normal)
     
     distances = [distance(d) for d in datasets]
@@ -92,5 +92,5 @@ def _sort_by_image_number(datasets) :
                             "Data Set. Cannot sort using instance number")
             return False
     
-    datasets.sort(lambda x,y : x.instance_number-y.instance_number)
+    datasets.sort(lambda x,y : x.instance_number.value-y.instance_number.value)
     return True

@@ -6,12 +6,14 @@
 # for details.
 ##########################################################################
 
+import logging
 import os
 
 import itk
 import numpy
 
 import medipy.io # add PyArrayIO to itk
+import medipy.io.dicom
 from medipy.io.io_base import IOBase
 import medipy.itk
 from medipy.itk import itk_image_to_array, medipy_image_to_itk_image, dtype_to_itk
@@ -82,12 +84,28 @@ class ITK(IOBase) :
     def load_data(self, index=0) :
         self._update_pixel_type()
         
-        pixel_type = self._loader.GetPixelTypeAsString(self._loader.GetPixelType())
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
+        OriginalPixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
+        PixelType = OriginalPixelType
+        try_smaller_types = False
         while PixelType not in InstantiatedTypes :
+            if PixelType not in medipy.itk.types.larger_type :
+                # No instantiated pixel type larger that the pixel type in the
+                # file ; try smaller types
+                try_smaller_types = True
+                break
             PixelType = medipy.itk.types.larger_type[PixelType]
+        if try_smaller_types :
+            PixelType = OriginalPixelType
+            while PixelType not in InstantiatedTypes :
+                if PixelType not in medipy.itk.types.smaller_type :
+                    raise medipy.base.Exception(
+                        "Cannot find an instantiated pixel type for {0}".format(
+                            OriginalPixelType))
+                PixelType = medipy.itk.types.smaller_type[PixelType]
+            logging.warn("No instantiated type larger than {0}, using {1}".format(
+                OriginalPixelType, PixelType))
 
         Dimension = self._loader.GetNumberOfDimensions()
 
@@ -177,13 +195,13 @@ class ITK(IOBase) :
                 mr_diffusion_sequence = []
                 for index, gradient in enumerate(gradients) :
                     dataset = medipy.io.dicom.DataSet()
-                    dataset.diffusion_directionality = "DIRECTIONAL"
+                    dataset.diffusion_directionality = medipy.io.dicom.CS("DIRECTIONAL")
                     
-                    dataset.diffusion_bvalue = bvalues[index]
+                    dataset.diffusion_bvalue = medipy.io.dicom.FD(bvalues[index])
                     
                     gradient_dataset = medipy.io.dicom.DataSet()
-                    gradient_dataset.diffusion_gradient_orientation = gradient
-                    dataset.diffusion_gradient_direction_sequence = [gradient_dataset]
+                    gradient_dataset.diffusion_gradient_orientation = medipy.io.dicom.FD(gradient)
+                    dataset.diffusion_gradient_direction_sequence = medipy.io.dicom.SQ([gradient_dataset])
                     
                     mr_diffusion_sequence.append(dataset)
                 
@@ -237,17 +255,17 @@ class ITK(IOBase) :
                 # Make sure we have all the required elements
                 if "diffusion_gradient_direction_sequence" not in diffusion :
                     continue
-                elif not diffusion.diffusion_gradient_direction_sequence :
+                elif not diffusion.diffusion_gradient_direction_sequence.value :
                     continue
-                elif "diffusion_gradient_orientation" not in diffusion.diffusion_gradient_direction_sequence[0] :
+                elif "diffusion_gradient_orientation" not in diffusion.diffusion_gradient_direction_sequence.value[0] :
                     continue
                 elif "diffusion_bvalue" not in diffusion :
                     continue
                 
-                gradient = diffusion.diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
-                b_value = diffusion.diffusion_bvalue
+                gradient = diffusion.diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation
+                b_value = diffusion.diffusion_bvalue.value
                 
-                for index, value in enumerate(gradient) :
+                for index, value in enumerate(gradient.value) :
                     gradients[index].append(str(value))
                 b_values.append(str(b_value))
             
@@ -311,6 +329,7 @@ class ITK(IOBase) :
                     self._image_informations_read = True
                     loader = l
                     break
+        
         return filter, loader
     
     def _find_saver(self) :

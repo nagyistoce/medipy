@@ -6,6 +6,11 @@
 # for details.
 ##########################################################################
 
+# If uuid module is loaded too late, TLS might be uninitialized and calls to
+# uuid functions will cause a segfault on some Linux versions. See
+# http://www.sourceware.org/bugzilla/show_bug.cgi?id=12453
+import uuid
+
 import ConfigParser
 import imp
 import new

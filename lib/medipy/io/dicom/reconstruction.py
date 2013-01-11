@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -24,6 +24,7 @@ import medipy.io.dicom.csa2
 import medipy.io.dicom.normalize
 import medipy.io.dicom.sort
 import medipy.io.dicom.split
+from vr import *
 
 default_skipped_tags = set([
     Tag(0x0002,0x0003), # Media Storage SOP Instance UID
@@ -91,23 +92,23 @@ def data(datasets):
     
     sample_dataset = datasets[0]
     
-    if "MOSAIC" in sample_dataset.get("image_type", []) :
+    if "MOSAIC" in sample_dataset.get("image_type", CS([])).value :
         image_csa = medipy.io.dicom.csa2.parse_csa(sample_dataset[0x0029,0x1010])
         number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
         mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
         shape = (len(datasets), number_of_tiles, 
-                 sample_dataset.rows/mosaic_size, sample_dataset.columns/mosaic_size)
+                 sample_dataset.rows.value/mosaic_size, sample_dataset.columns.value/mosaic_size)
     else :
         shape = (len(datasets),) + sample_dataset.pixel_array.shape[-2:]
     array = numpy.ndarray(shape, dtype=sample_dataset.pixel_array.dtype)
     
     for index, dataset in enumerate(datasets) :
         # Get data
-        if "MOSAIC" in dataset.get("image_type", []) :
+        if "MOSAIC" in dataset.get("image_type", CS([])).value :
             image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010])
             number_of_tiles = image_csa["NumberOfImagesInMosaic"][0]
             mosaic_size = int(math.ceil(math.sqrt(number_of_tiles)))
-            tile_size = (dataset.rows/mosaic_size, dataset.columns/mosaic_size)
+            tile_size = (dataset.rows.value/mosaic_size, dataset.columns.value/mosaic_size)
             
             itk_pixel_array = medipy.itk.array_to_itk_image(dataset.pixel_array, False)
             
@@ -142,6 +143,7 @@ def metadata(datasets, skipped_tags="default"):
     result = {}
     for dataset in datasets :
         for key, value in dataset.items() :
+            value = value.value
             
             if key in skipped_tags or key in special_processing :
                 continue
@@ -184,16 +186,16 @@ def metadata(datasets, skipped_tags="default"):
     result = named_result
     
     # Origin
-    origin = datasets[0].get("image_position_patient", (0,0,0))
+    origin = datasets[0].get("image_position_patient", FD((0,0,0))).value
     result["origin"] = tuple(reversed(origin))
 
     # Spacing
-    spacing = datasets[0].get("pixel_spacing", (1.,1.))
+    spacing = datasets[0].get("pixel_spacing", FD((1.,1.))).value
         
     if len(datasets) >= 2 :
         slice_spacing = numpy.linalg.norm(numpy.subtract(
-            datasets[0].get("image_position_patient", (0,0,0)), 
-            datasets[1].get("image_position_patient", (0,0,0))))
+            datasets[0].get("image_position_patient", FD((0,0,0))).value, 
+            datasets[1].get("image_position_patient", FD((0,0,0))).value))
     else :
         # Sane default
         slice_spacing = 1.0
@@ -203,8 +205,8 @@ def metadata(datasets, skipped_tags="default"):
     result["spacing"] = (slice_spacing,)+tuple(reversed(spacing))
     
     # Orientation
-    orientation = datasets[0].get("image_orientation_patient", (1., 0., 0., 
-                                                                0., 1., 0))
+    orientation = datasets[0].get("image_orientation_patient", FD((1., 0., 0., 
+                                                                0., 1., 0))).value
     # Use column vectors, cf. PS 3.3, C.7.6.2.1.1
     v1 = orientation[:3]
     v2 = orientation[3:]

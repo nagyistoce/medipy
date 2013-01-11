@@ -98,10 +98,10 @@ def _get_matching_datasets(path, fragment) :
     dicomdir = medipy.io.dicom.read(path)
     datasets = []
     
-    for record in dicomdir.directory_record_sequence :
+    for record in dicomdir.directory_record_sequence.value :
         match = True
         for tag, value in filters :
-            if tag not in record or record[tag] != value :
+            if tag not in record or record[tag].value != value :
                 match = False
                 break
         
