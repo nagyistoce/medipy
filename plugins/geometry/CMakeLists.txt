@@ -1,8 +1,6 @@
 file(GLOB files "*.py")
 install_py_files(${files})
 
-# TODO : OpenMP
-
 wrap_library("MediPyGeometry" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
