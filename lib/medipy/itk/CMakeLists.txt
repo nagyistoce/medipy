@@ -4,9 +4,8 @@ install_py_files(${files})
 wrap_library("MediPyBridge" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
-    set(WRAPPER_SWIG_LIBRARY_FILES ${WRAPPER_SWIG_LIBRARY_FILES} 
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkNumpyBridge.swg"
-        "${CMAKE_CURRENT_SOURCE_DIR}/itkMatrixBridge.swg")
+    
+    find_swig_library_files("NumpyBridge" "MatrixBridge")
     
     wrap_module("itkNumpyBridge")
         wrap_class("itk::NumpyBridge")
