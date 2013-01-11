@@ -9,9 +9,11 @@ wrap_library("PyArrayIO" python)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
     
     set(modules "PyArrayFileReader;PyArrayFileWriter")
+    
+    find_swig_library_files("PyArrayFileReader" "PyArrayFileWriter")
+    
     foreach(module ${modules})
-        set(WRAPPER_SWIG_LIBRARY_FILES 
-            ${WRAPPER_SWIG_LIBRARY_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/itk${module}.swg")
+        find_swig_library_files(${module})
         
         wrap_module("itk${module}")
             wrap_class("itk::${module}" POINTER)

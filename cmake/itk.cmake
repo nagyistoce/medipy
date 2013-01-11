@@ -122,6 +122,13 @@ macro(wrap_ikt_post_install library)
     ")
 endmacro(wrap_ikt_post_install)
 
+macro(find_swig_library_files)
+    foreach(module ${ARGN})
+        set(WRAPPER_SWIG_LIBRARY_FILES 
+            ${WRAPPER_SWIG_LIBRARY_FILES} "${CMAKE_CURRENT_SOURCE_DIR}/itk${module}.swg")
+    endforeach()
+endmacro()
+
 wrap_type("itk::Matrix" "M")
     unique(types "${WRAP_ITK_SCALAR};D")
     foreach(d ${WRAP_ITK_DIMS})
