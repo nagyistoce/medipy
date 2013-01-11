@@ -285,7 +285,7 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None) :
             im=medipy.io.load(ImageList[j])
             imres=medipy.base.Image(dtype=im.dtype)       
             medipy.medimax.recalage.ApplyTransfo3d(im,TransfoResList[j],imres,8)
-            meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, imres).data
+            meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, imres, imref, imres).data
    
         meanImage.data=meanImage.data/float(i+1)
         
