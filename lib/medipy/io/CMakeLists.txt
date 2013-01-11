@@ -4,11 +4,6 @@ add_subdirectory("schemes")
 file(GLOB files "*.py")
 install_py_files(${files})
 
-# Old WrapITK does not work with g++-4.6
-set(CMAKE_CXX_COMPILER g++-4.4)
-
-set(WRAP_ITK_DOC OFF)
-
 wrap_library("PyArrayIO" python)
     set(WRAPPER_LIBRARY_DEPENDS Base IO)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)

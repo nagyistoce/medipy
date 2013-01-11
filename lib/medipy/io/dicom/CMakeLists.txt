@@ -1,26 +1,14 @@
 file(GLOB files "*.py")
 install_py_files(${files})
 
-# Build "parse" Python module
 find_package(ITK)
-if(${ITK_FOUND})
-    if(${ITK_USE_SYSTEM_GDCM})
-        find_package(GDCM REQUIRED)
-    else(${ITK_USE_SYSTEM_GDCM})
-        include_directories(${ITK_INCLUDE_DIRS})
-        link_directories(${ITK_LIBRARY_DIRS})
-    endif(${ITK_USE_SYSTEM_GDCM})
-else(${ITK_FOUND})
-    find_package(GDCM REQUIRED)
-endif(${ITK_FOUND})
+include_directories(${ITK_INCLUDE_DIRS})
+link_directories(${ITK_LIBRARY_DIRS})
 
+# Build "parse" Python module
 swig_python_module(dataset_io dataset_io.i dataset_io.cpp DataSetBridge.cpp)
-message("${foo}")
 swig_link_libraries(dataset_io "itkgdcm")
 install_swig_python_module(dataset_io)
-
-# Old WrapITK does not work with g++-4.6
-set(CMAKE_CXX_COMPILER g++-4.4)
 
 wrap_library("AssembleTilesImageFilter" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
