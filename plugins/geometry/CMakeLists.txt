@@ -3,11 +3,6 @@ install_py_files(${files})
 
 # TODO : OpenMP
 
-# Old WrapITK does not work with g++-4.6
-set(CMAKE_CXX_COMPILER g++-4.4)
-
-set(WRAP_ITK_DOC OFF)
-
 wrap_library("MediPyGeometry" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)

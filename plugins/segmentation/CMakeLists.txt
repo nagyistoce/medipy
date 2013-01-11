@@ -11,11 +11,6 @@ foreach(file ${files})
     endif()
 endforeach()
 
-# Old WrapITK does not work with g++-4.6
-set(CMAKE_CXX_COMPILER g++-4.4)
-
-set(WRAP_ITK_DOC OFF)
-
 find_package("VTK" REQUIRED)
 get_directory_property(include_directories INCLUDE_DIRECTORIES)
 set(include_directories ${include_directories} ${VTK_INCLUDE_DIRS})

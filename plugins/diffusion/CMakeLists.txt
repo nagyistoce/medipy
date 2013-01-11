@@ -1,14 +1,9 @@
 file(GLOB files "*.py" "gui/*.py")
 install_py_files(${files})
 
-# Old WrapITK does not work with g++-4.6
-set(CMAKE_CXX_COMPILER g++-4.4)
-
 swig_python_module(spectral_analysis spectral_analysis.i spectral_analysis.cpp)
 swig_link_libraries(spectral_analysis ${ITK_LIBS})
 install_swig_python_module(spectral_analysis)
-
-set(WRAP_ITK_DOC OFF)
 
 set(instantiations )
 set(vector_images )
