@@ -147,13 +147,14 @@ def stacks(datasets):
         defined as "groups of frames that have a geometric relationship" 
         (PS 3.3-2011, C.7.6.16.2.2.4). Stacks are formed using the following 
         attributes : 
-          * Image Orientation (Patient)
-          * Echo Number, 
-          * Acquisition Number
-          * Frame Type
-          * Temporal Position Index
-          * Diffusion Gradient Orientation 
-          * Diffusion b-Value.
+        
+            * Image Orientation (Patient)
+            * Echo Number, 
+            * Acquisition Number
+            * Frame Type
+            * Temporal Position Index
+            * Diffusion Gradient Orientation 
+            * Diffusion b-Value.
     """
     
     dictionary = stacks_dictionary(datasets)
