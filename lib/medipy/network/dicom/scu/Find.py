@@ -19,9 +19,36 @@ import medipy.io.dicom.dictionary
 from SCU import SCU
 
 class Find(SCU) :
-    """ Find SCU.
+    """ The Find SCU allows simple queries on a DICOM node. This SCU has three
+        parameters :
+            * the highest-level object that is returned (:attr:`root`)
+            * the hierarchy level at which the query is made (:attr:`query_level`)
+            * the query parameters (:attr:`query_parameters`)
+        
+        The following example returns one DataSet for each patient whose name
+        begins by `L`. Each resulting DataSet will contain the Patient ID 
+        attribute. ::
+        
+            connection = medipy.io.dicom.Connection("pacs.example.com", 104, 
+                "MY_MACHINE", "REMOTE_PACS")
+            
+            query = medipy.io.dicom.DataSet()
+            query.patients_name = medipy.io.dicom.PN("L*")
+            query.patient_id = medipy.io.dicom.LO(None)
+            
+            find = medipy.network.dicom.scu.Find(connection, "patient", "patient", query)
+            results = find()
+        
+        This kind of request is not recursive: a request of the Study Description
+        attribute performed at the ``"patient"`` level is not allowed. Moreover,
+        the key attributes of higher level must be present in ``query_parameters`` :
+            * Patient ID (0010,0020) at the ``"patient"`` level
+            * Study Instance UID (0020,000D) at the ``"study"`` level
+            * Study Instance UID (0020,000E) at the ``"series"`` level
+            * SOP Instance UID (0008,0018) at the ``"image"`` level
     """
     
+    #: Query keys for each level.
     keys = {
         "patient" : {
             "patient" : [(0x0010,0x0020)], # Patient ID 
@@ -107,6 +134,9 @@ class Find(SCU) :
     ##############
     
     def _get_root(self) :
+        """ Query root object, may be either ``"patient"`` or ``"study"``.
+        """
+        
         return self._root
     
     def _set_root(self, root) :
@@ -120,6 +150,10 @@ class Find(SCU) :
         self._root = root
     
     def _get_query_level(self) :
+        """ Query level, may be either ``"patient"``, ``"study"``, ``"series"``
+            or ``"image"``.
+        """
+        
         return self._query_level
     
     def _set_query_level(self, query_level) :
@@ -133,6 +167,27 @@ class Find(SCU) :
         self._query_level = query_level
     
     def _get_query_parameters(self) :
+        """ :class:`~medipy.io.dicom.DataSet` containing the queried attributes.
+            The following values are allowed
+                * a simple value (no wildcard): this criterion selects the 
+                  DataSets whose attribute matches *exactly* the query attribute.
+                  For string VRs, the criterion is case-dependent, except for 
+                  the Person Name (PN) VR.
+                * a UID list: the value must be a list of strings, separated by
+                  the ``\\`` character. This criterion selects the DataSets whose
+                  attribute have a value *contained* in the list.
+                * an empty value (``None`` or ``""``): this criterion selects
+                  *every* DataSet, and is used to specify an attribute that must
+                  be returned by the query.
+                * a string containing wildcards (``*`` and ``?``). These two
+                  characters have the same meaning as in :py:mod:`fnmatch`: 
+                  ``?`` matches any single character, while ``*`` matches any
+                  sequence of characters.
+                * a Sequence: the sequence shall have only one item, and the
+                  criteria will be applied to the item using the rules defined
+                  above.
+        """
+        
         return self._query_parameters
     
     def _set_query_parameters(self, query_parameters) :
