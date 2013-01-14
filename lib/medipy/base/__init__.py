@@ -22,5 +22,5 @@ from property_synchronized import PropertySynchronized
 
 __all__ = ["array", "Command", "UndoableCommand", "coordinate_system", 
            "Exception", "find_resource", "History", "Image", "ImageAnnotation", 
-           "LateBindingProperty", "Object3D", "Observable", "ObservableList"
+           "LateBindingProperty", "Object3D", "Observable", "ObservableList",
            "PropertySynchronized"]

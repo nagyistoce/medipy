@@ -21,6 +21,7 @@ from SCU import SCU
 class Find(SCU) :
     """ The Find SCU allows simple queries on a DICOM node. This SCU has three
         parameters :
+        
             * the highest-level object that is returned (:attr:`root`)
             * the hierarchy level at which the query is made (:attr:`query_level`)
             * the query parameters (:attr:`query_parameters`)
@@ -42,6 +43,7 @@ class Find(SCU) :
         This kind of request is not recursive: a request of the Study Description
         attribute performed at the ``"patient"`` level is not allowed. Moreover,
         the key attributes of higher level must be present in ``query_parameters`` :
+        
             * Patient ID (0010,0020) at the ``"patient"`` level
             * Study Instance UID (0020,000D) at the ``"study"`` level
             * Study Instance UID (0020,000E) at the ``"series"`` level
@@ -168,7 +170,8 @@ class Find(SCU) :
     
     def _get_query_parameters(self) :
         """ :class:`~medipy.io.dicom.DataSet` containing the queried attributes.
-            The following values are allowed
+            The following values are allowed:
+            
                 * a simple value (no wildcard): this criterion selects the 
                   DataSets whose attribute matches *exactly* the query attribute.
                   For string VRs, the criterion is case-dependent, except for 

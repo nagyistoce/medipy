@@ -17,18 +17,18 @@ from observable_list import ObservableList
 
 class Image(Observable):
     """ n-dimensional image class, based on numpy.ndarray. An image contains
-          * an array of voxel data (image.data), which can also be directly
-            accessed : image.data[something] can be written as image[something]
-          * a transformation to convert the voxel space to and from the physical
-            space (origin, direction, spacing). A voxel index I is converted to
-            a physical point P by : P = direction * spacing * I + origin. If not
-            specified, origin is 0, spacing is 1 and direction is identity. 
-          * a dictionary of metadata
+            * an array of voxel data (image.data), which can also be directly
+              accessed : image.data[something] can be written as image[something]
+            * a transformation to convert the voxel space to and from the physical
+              space (origin, direction, spacing). A voxel index I is converted to
+              a physical point P by : P = direction * spacing * I + origin. If not
+              specified, origin is 0, spacing is 1 and direction is identity. 
+            * a dictionary of metadata
         
         The data has two kinds of interpretation :
-          * data_type : whether the data is scalar, vector or matrix
-          * image_type : how the image should be interpreted, can be unspecified
-           (normal), "rgb", "tensor_2", or spectroscopy 
+            * data_type : whether the data is scalar, vector or matrix
+            * image_type : how the image should be interpreted, can be unspecified
+              (normal), "rgb", "tensor_2", or spectroscopy 
         
         If data_type == "vector" or data_type == "matrix", an array of
         dimension N will have a spacing of size N-1 (resp. N-2)
@@ -45,7 +45,7 @@ class Image(Observable):
         (40, 128, 128, 6) vector [ 1.  1.  1.]
         
         The following events may be fired : 
-          * modified
+            * modified
     """
     
     def __init__(self, shape=(0,), dtype=numpy.single, 
