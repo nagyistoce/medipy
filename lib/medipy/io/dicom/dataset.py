@@ -22,16 +22,14 @@ from medipy.io.dicom import dictionary
 class DataSet(dict):
     """ An Data Set is a collection (dictionary) of Data Elements values.
         
-        Example of two ways to retrieve or set values:
+        The values can be accessed or set using one of the following methods :
+            * Numerical value of tag : ``dataset[0x0010, 0x0010]``
+            * Name of tag : ``dataset.patients_name``
+            * Tag object : ``dataset[medipy.io.dicom.Tag(0x0010, 0x0010)]``
         
-        1. dataset[0x10, 0x10] --> patient's name
-        2. dataset.patients_name --> patient's name
-        
-        Example (2) is referred to as *Named tags* in this documentation.
-        patients_name is not actually a member of the object, but unknown member
-        requests are checked against the dicom dictionary. If the name matches a
-        DicomDictionary descriptive string, the corresponding tag is used
-        to look up or set the Data Element's value.
+        Member requests are checked against the dicom dictionary. If the name 
+        matches a DicomDictionary descriptive string, the corresponding tag is 
+        used to get or set the Data Element's value.
     """
     
     def __init__(self, include_header=True):

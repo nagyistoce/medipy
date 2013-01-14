@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -11,6 +11,10 @@ import logging
 import medipy.base
 
 class DicomSeries(object) :
+    """ A dictionary of DICOM series, mapping a Series Instance UID to the
+        Series Description, and optionally to a custom name given by the user.
+    """
+    
     def __init__(self, root=None, series=None) :
         self.root = root
         self.series = []
@@ -23,10 +27,16 @@ class DicomSeries(object) :
                 self.series.append(list(serie)+["", ""])
     
     def has_uid(self, uid) :
+        """ Test whether the Series Instance UID is in the dictionary.
+        """
+        
         matches = [x for x in self.series if x[0] == uid]
         return (len(matches) != 0)
 
     def url_from_uid(self, uid) :
+        """ Return the URL associated with the Series Instance UID
+        """
+        
         if not self.has_uid(uid) :
             raise medipy.base.Exception("No such UID {0}".format(repr(uid)))
         matches = [x for x in self.series if x[0] == uid]
@@ -35,10 +45,16 @@ class DicomSeries(object) :
         return "{0}#series_instance_uid={1}".format(self.root, matches[0][0])
 
     def has_description(self, description) :
+        """ Test whether the Series Description is in the dictionary.
+        """
+        
         matches = [x for x in self.series if x[1] == description]
         return (len(matches) != 0)
 
     def url_from_description(self, description) :
+        """ Return the URL associated with the Series Description.
+        """
+        
         if not self.has_description(description) :
             raise medipy.base.Exception("No such description {0}".format(repr(description)))
         matches = [x for x in self.series if x[1] == description]
@@ -47,10 +63,16 @@ class DicomSeries(object) :
         return "{0}#series_instance_uid={1}".format(self.root, matches[0][0])
 
     def has_custom_name(self, custom_name) :
+        """ Test whether the custom name is in the dictionary.
+        """
+        
         matches = [x for x in self.series if x[2] == custom_name]
         return (len(matches) != 0)
 
     def url_from_custom_name(self, custom_name) :
+        """ Return the URL associated with the custom name.
+        """
+        
         if not self.has_custom_name(custom_name) :
             raise medipy.base.Exception("No such custom name {0}".format(repr(custom_name)))
         matches = [x for x in self.series if x[2] == custom_name]
