@@ -1,0 +1,147 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>medipy.network.dicom.query &mdash; MediPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/translations.js"></script>
+    <link rel="top" title="MediPy 1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Référence de MediPy" href="../../index.html" />
+    <link rel="next" title="medipy.network.dicom.scu" href="scu.html" />
+    <link rel="prev" title="medipy.network.dicom" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scu.html" title="medipy.network.dicom.scu"
+             accesskey="N">suivant</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="medipy.network.dicom"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Référence de MediPy</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-medipy.network.dicom.query">
+<span id="medipy-network-dicom-query"></span><h1><a class="reference internal" href="#module-medipy.network.dicom.query" title="medipy.network.dicom.query"><tt class="xref py py-mod docutils literal"><span class="pre">medipy.network.dicom.query</span></tt></a><a class="headerlink" href="#module-medipy.network.dicom.query" title="Lien permanent vers ce titre">¶</a></h1>
+<p>This module allows more fine-tuned DICOM queries than those available using
+the <a class="reference internal" href="scu.html#medipy.network.dicom.scu.Find" title="medipy.network.dicom.scu.Find"><tt class="xref py py-class docutils literal"><span class="pre">Find</span></tt></a> SCU. They may, however, be
+slower.</p>
+<dl class="function">
+<dt id="medipy.network.dicom.query.relational">
+<tt class="descclassname">medipy.network.dicom.query.</tt><tt class="descname">relational</tt><big>(</big><em>connection</em>, <em>root</em>, <em>level</em>, <em>query</em><big>)</big><a class="headerlink" href="#medipy.network.dicom.query.relational" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Perform a relation DICOM query, as described in PS 3.4-2011, C.4.1.2.2.1.
+This function performs a query at the start <tt class="docutils literal"><span class="pre">level</span></tt>, and extends the
+query at lower levels until all criteria are met or the lowest level is
+reached. The keys of all levels present in the result will be included
+in the result.</p>
+<p>In the following example, the query results will contain the attribute
+Query/Retrieve Level (0008,0052) with a value of <tt class="docutils literal"><span class="pre">STUDY</span></tt> since one
+of the query attributes is at the Study level. The key attributes of the
+Study Level and its higher levels (Study Instance UID (0020,000D) and
+Patient ID (0010,0020)) will be included in the datasets.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">connection</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="s">&quot;pacs.example.com&quot;</span><span class="p">,</span> <span class="mi">104</span><span class="p">,</span> 
+        <span class="s">&quot;MY_MACHINE&quot;</span><span class="p">,</span> <span class="s">&quot;REMOTE_PACS&quot;</span><span class="p">)</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">DataSet</span><span class="p">()</span>
+<span class="n">query</span><span class="o">.</span><span class="n">study_description</span> <span class="o">=</span> <span class="s">&quot;MY_PROTOCOL&quot;</span>
+
+<span class="n">datasets</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">relational</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="s">&quot;patient&quot;</span><span class="p">,</span> <span class="s">&quot;patient&quot;</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>The resulting datasets will contain the highest level below the given
+level where all arguments from the query are matched. The keys for all
+those levels will be present.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Sujet précédent</h4>
+  <p class="topless"><a href="index.html"
+                        title="Chapitre précédent"><tt class="docutils literal docutils literal docutils literal"><span class="pre">medipy.network.dicom</span></tt></a></p>
+  <h4>Sujet suivant</h4>
+  <p class="topless"><a href="scu.html"
+                        title="Chapitre suivant"><tt class="docutils literal"><span class="pre">medipy.network.dicom.scu</span></tt></a></p>
+<div id="searchbox" style="display: none">
+  <h3>Recherche rapide</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Saisissez un mot clef ou un nom de module, classe ou fonction.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scu.html" title="medipy.network.dicom.scu"
+             >suivant</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="medipy.network.dicom"
+             >précédent</a> |</li>
+        <li><a href="../../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Référence de MediPy</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
