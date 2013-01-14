@@ -11,3 +11,4 @@ Table des matières :
     medipy.base/coordinate_system
     medipy.itk/index
     medipy.itk/types
+    medipy.vtk/index

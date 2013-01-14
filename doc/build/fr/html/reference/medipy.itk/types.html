@@ -10,7 +10,7 @@
     
     <title>medipy.itk.types &mdash; MediPy 1.0 documentation</title>
     
-    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -28,6 +28,7 @@
     <script type="text/javascript" src="../../_static/translations.js"></script>
     <link rel="top" title="MediPy 1.0 documentation" href="../../index.html" />
     <link rel="up" title="Référence de MediPy" href="../index.html" />
+    <link rel="next" title="medipy.vtk" href="../medipy.vtk/index.html" />
     <link rel="prev" title="medipy.itk" href="index.html" /> 
   </head>
   <body>
@@ -41,32 +42,15 @@
           <a href="../../py-modindex.html" title="Index des modules Python"
              >modules</a> |</li>
         <li class="right" >
+          <a href="../medipy.vtk/index.html" title="medipy.vtk"
+             accesskey="N">suivant</a> |</li>
+        <li class="right" >
           <a href="index.html" title="medipy.itk"
              accesskey="P">précédent</a> |</li>
         <li><a href="../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
           <li><a href="../index.html" accesskey="U">Référence de MediPy</a> &raquo;</li> 
       </ul>
-    </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h4>Sujet précédent</h4>
-  <p class="topless"><a href="index.html"
-                        title="Chapitre précédent"><tt class="docutils literal docutils literal docutils literal"><span class="pre">medipy.itk</span></tt></a></p>
-<div id="searchbox" style="display: none">
-  <h3>Recherche rapide</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Saisissez un mot clef ou un nom de module, classe ou fonction.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -83,13 +67,13 @@
 
 <dl class="data">
 <dt id="medipy.itk.types.larger_type">
-<tt class="descclassname">medipy.itk.types.</tt><tt class="descname">larger_type</tt><em class="property"> = {&lt;itkCType signed char&gt;: &lt;itkCType signed short&gt;, &lt;itkCType unsigned int&gt;: &lt;itkCType unsigned long&gt;, &lt;itkCType unsigned short&gt;: &lt;itkCType unsigned long&gt;, &lt;itkCType float&gt;: &lt;itkCType double&gt;, &lt;itkCType signed short&gt;: &lt;itkCType signed long&gt;, &lt;itkCType signed int&gt;: &lt;itkCType signed long&gt;, &lt;itkCType unsigned char&gt;: &lt;itkCType unsigned short&gt;}</em><a class="headerlink" href="#medipy.itk.types.larger_type" title="Lien permanent vers cette définition">¶</a></dt>
+<tt class="descclassname">medipy.itk.types.</tt><tt class="descname">larger_type</tt><em class="property"> = {&lt;itkCType signed int&gt;: &lt;itkCType signed long&gt;, &lt;itkCType signed char&gt;: &lt;itkCType signed short&gt;, &lt;itkCType unsigned int&gt;: &lt;itkCType unsigned long&gt;, &lt;itkCType signed short&gt;: &lt;itkCType signed long&gt;, &lt;itkCType float&gt;: &lt;itkCType double&gt;, &lt;itkCType unsigned char&gt;: &lt;itkCType unsigned short&gt;, &lt;itkCType unsigned short&gt;: &lt;itkCType unsigned long&gt;}</em><a class="headerlink" href="#medipy.itk.types.larger_type" title="Lien permanent vers cette définition">¶</a></dt>
 <dd><p>Map an ITK type to its immediately larger ITK type</p>
 </dd></dl>
 
 <dl class="data">
 <dt id="medipy.itk.types.smaller_type">
-<tt class="descclassname">medipy.itk.types.</tt><tt class="descname">smaller_type</tt><em class="property"> = {&lt;itkCType unsigned int&gt;: &lt;itkCType unsigned short&gt;, &lt;itkCType unsigned short&gt;: &lt;itkCType unsigned char&gt;, &lt;itkCType signed long&gt;: &lt;itkCType signed short&gt;, &lt;itkCType unsigned long&gt;: &lt;itkCType unsigned short&gt;, &lt;itkCType signed short&gt;: &lt;itkCType signed char&gt;, &lt;itkCType double&gt;: &lt;itkCType float&gt;, &lt;itkCType signed int&gt;: &lt;itkCType signed short&gt;}</em><a class="headerlink" href="#medipy.itk.types.smaller_type" title="Lien permanent vers cette définition">¶</a></dt>
+<tt class="descclassname">medipy.itk.types.</tt><tt class="descname">smaller_type</tt><em class="property"> = {&lt;itkCType signed int&gt;: &lt;itkCType signed short&gt;, &lt;itkCType signed long&gt;: &lt;itkCType signed short&gt;, &lt;itkCType unsigned int&gt;: &lt;itkCType unsigned short&gt;, &lt;itkCType signed short&gt;: &lt;itkCType signed char&gt;, &lt;itkCType double&gt;: &lt;itkCType float&gt;, &lt;itkCType unsigned short&gt;: &lt;itkCType unsigned char&gt;, &lt;itkCType unsigned long&gt;: &lt;itkCType unsigned short&gt;}</em><a class="headerlink" href="#medipy.itk.types.smaller_type" title="Lien permanent vers cette définition">¶</a></dt>
 <dd><p>Map an ITK type to its immediately smaller ITK type</p>
 </dd></dl>
 
@@ -97,6 +81,29 @@
 
 
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Sujet précédent</h4>
+  <p class="topless"><a href="index.html"
+                        title="Chapitre précédent"><tt class="docutils literal docutils literal docutils literal"><span class="pre">medipy.itk</span></tt></a></p>
+  <h4>Sujet suivant</h4>
+  <p class="topless"><a href="../medipy.vtk/index.html"
+                        title="Chapitre suivant"><tt class="docutils literal"><span class="pre">medipy.vtk</span></tt></a></p>
+<div id="searchbox" style="display: none">
+  <h3>Recherche rapide</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Saisissez un mot clef ou un nom de module, classe ou fonction.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -110,6 +117,9 @@
         <li class="right" >
           <a href="../../py-modindex.html" title="Index des modules Python"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="../medipy.vtk/index.html" title="medipy.vtk"
+             >suivant</a> |</li>
         <li class="right" >
           <a href="index.html" title="medipy.itk"
              >précédent</a> |</li>
