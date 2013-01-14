@@ -19,12 +19,12 @@ import medipy.base
 from medipy.vtk import vtkColorTransferFunctionWithAlpha, vtkEnhancedLookupTable 
 
 def array_to_vtk_image(array, copy_data, data_type="scalar"):
-    """ Create an vtkImage matching the contents and type of given array. If
-        copy_data is True, then the data of the will be copied. Otherwise the
-        data will be shared, and the array MUST NOT be destroyed before the 
-        vtkImage. data_type specifies how the array should be interpreted : 
-        either as a n-array of scalars (data_type="scalar") or as an n-1 array
-        of vectors (data_type="vector").
+    """ Create an ``vtkImage`` matching the contents and type of given array. If
+        ``copy_data`` is ``True``, then the data of the will be copied. Otherwise the
+        data will be shared, and the array **must not** be destroyed before the 
+        ``vtkImage``. ``data_type`` specifies how the array should be interpreted : 
+        either as a n-array of scalars (``data_type="scalar"``) or as an n-1 array
+        of vectors (``data_type="vector"``).
     """
     
     if data_type not in ["scalar", "vector"] :
@@ -78,7 +78,7 @@ def array_to_vtk_image(array, copy_data, data_type="scalar"):
     return importer.GetOutput()
 
 def vtk_image_to_array(vtk_image) :
-    """ Create an numpy.ndarray matching the contents and type of given image. 
+    """ Create an ``numpy.ndarray`` matching the contents and type of given image. 
         If the number of scalars components in the image is greater than 1, then
         the ndarray will be 4D, otherwise it will be 3D. 
     """
@@ -101,6 +101,9 @@ def vtk_image_to_array(vtk_image) :
     return array
 
 def vtk_image_to_medipy_image(vtk_image, medipy_image):
+    """ Create an ``medipy.base.Image`` matching the contents and type of given image. 
+    """
+    
     if medipy_image is None :
         medipy_image = medipy.base.Image(
             (0,0,0), 
@@ -119,11 +122,13 @@ def vtk_image_to_medipy_image(vtk_image, medipy_image):
     return medipy_image
 
 def build_vtk_colormap(colormap, vtk_colormap=None) :
-    """ Build either a vtkLookupTable or a vtkColorTransferFunctionWithAlpha 
+    """ Build either a ``vtkLookupTable`` or a ``vtkColorTransferFunctionWithAlpha`` 
         from the given colormap. The colormap is specified as a  
         custom table -- which must respect the formats of the dictionaries 
-        mentionned above. If vtk_colormap is None, a new vtk object is created, 
-        otherwise vtk_colormap is used as a container.
+        defined in :func:`build_lookup_table` and 
+        :func:`build_color_transfer_function_with_alpha`. If ``vtk_colormap`` 
+        is ``None``, a new vtk object is created, otherwise ``vtk_colormap`` 
+        is used as a container.
     """
     
     if type(colormap) not in [list, tuple] :
@@ -140,7 +145,7 @@ def build_vtk_colormap(colormap, vtk_colormap=None) :
     return vtk_colormap
 
 def build_lookup_table(colormap, vtk_colormap=None):
-    """ Build a vtkLookupTable from a colormap, given as an array of colors.
+    """ Build a ``vtkLookupTable`` from a colormap, given as an array of colors.
     """
     
     if vtk_colormap is None :
@@ -160,7 +165,7 @@ def build_lookup_table(colormap, vtk_colormap=None):
     return vtk_colormap
 
 def build_color_transfer_function_with_alpha(colormap, vtk_colormap=None):
-    """ Build a vtkColorTransferFunctionWithAlpha from an array of (range, color)
+    """ Build a ``vtkColorTransferFunctionWithAlpha`` from an array of (range, color)
     """
     
     if vtk_colormap is None :
