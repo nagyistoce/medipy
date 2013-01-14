@@ -15,14 +15,14 @@ class Condition(object):
         raise NotImplementedError()
 
 class AlwaysTrue(Condition):
-    """ Condition which is always True
+    """ Condition which is always ``True``.
     """
     
     def __call__(self, dataset):
         return True
 
 class AlwaysFalse(Condition):
-    """ Condition which is always False
+    """ Condition which is always ``False``.
     """
     
     def __call__(self, dataset):
@@ -39,7 +39,7 @@ class And(Condition):
         return all([child(dataset) for child in self._children])
 
 class Or(Condition):
-    """ And-combination of several conditions. 
+    """ Or-combination of several conditions. 
     """
     
     def __init__(self, *args):

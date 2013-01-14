@@ -79,7 +79,7 @@ class SaveDataSet(Action):
         
         This action is thread-safe when called on different data-sets.
     
-        mode can be either "flat" or "hierarchical"
+        ``mode`` can be either ``"flat"`` or ``"hierarchical"``.
     """
     
     _lock = threading.Lock()
