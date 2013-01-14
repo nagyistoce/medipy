@@ -90,16 +90,40 @@ using the contents of the file.</li>
 to determine whether the original file has an even or odd length. This 
 is done by adding an item in Document Class Code Sequence (0040,e008). 
 The item has a Code Value (0008,0100) and Code Meaning (0008,0104) of
-&#8220;LENGTH_PARITY:EVEN&#8221; or &#8220;LENGTH_PARITY:ODD&#8221;, and a Coding Scheme 
-Designator (0008,0102) of &#8220;MEDIPY&#8221;.</p>
+<tt class="docutils literal"><span class="pre">&quot;LENGTH_PARITY:EVEN&quot;</span></tt> or <tt class="docutils literal"><span class="pre">&quot;LENGTH_PARITY:ODD&quot;</span></tt>, and a Coding Scheme 
+Designator (0008,0102) of <tt class="docutils literal"><span class="pre">&quot;MEDIPY&quot;</span></tt>.</p>
+<p>Example :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dataset</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">encapsulated_document</span><span class="o">.</span><span class="n">encapsulate</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<span class="c"># Use Raw Data Storage as a SOP class since Encapsulated Document SOP classes</span>
+<span class="c"># are limited to PDF and HL7 documents</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">media_storage_sop_class_uid</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">UI</span><span class="p">(</span>
+    <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">dictionary</span><span class="o">.</span><span class="n">uid_name_dictionary</span><span class="p">[</span><span class="s">&quot;raw_data_storage&quot;</span><span class="p">])</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">sop_class_uid</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">UI</span><span class="p">(</span>
+    <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">dictionary</span><span class="o">.</span><span class="n">uid_name_dictionary</span><span class="p">[</span><span class="s">&quot;raw_data_storage&quot;</span><span class="p">])</span>
+
+<span class="c"># New file, hence new SOP Instance UID</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">sop_instance_uid</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">generate_uid</span><span class="p">()</span>
+
+<span class="c"># Most DICOM nodes will complain without Patient information</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">patient_id</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">LO</span><span class="p">(</span><span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">generate_uid</span><span class="p">(</span><span class="bp">False</span><span class="p">))</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">patients_name</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">PN</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">patient_id</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+<span class="c"># Generate a new Study Instance UID</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">study_instance_uid</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">generate_uid</span><span class="p">()</span>
+
+<span class="n">connection</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">aet</span><span class="p">,</span> <span class="n">aec</span><span class="p">)</span>
+<span class="n">store</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">scu</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span>
+<span class="n">store</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="medipy.io.dicom.encapsulated_document.expose">
 <tt class="descclassname">medipy.io.dicom.encapsulated_document.</tt><tt class="descname">expose</tt><big>(</big><em>dataset</em>, <em>filename</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.encapsulated_document.expose" title="Lien permanent vers cette définition">¶</a></dt>
 <dd><p>Save the Encapsulated Document in the dataset to a file. See the remark
-in <tt class="docutils literal"><span class="pre">medipy.io.dicom.encapsulated_document.encapsulate</span></tt> concerning
-the parity of the file size.</p>
+in <a class="reference internal" href="#medipy.io.dicom.encapsulated_document.encapsulate" title="medipy.io.dicom.encapsulated_document.encapsulate"><tt class="xref py py-func docutils literal"><span class="pre">encapsulate()</span></tt></a> concerning the parity of the file size.</p>
 </dd></dl>
 
 </div>

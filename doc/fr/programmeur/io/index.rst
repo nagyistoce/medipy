@@ -8,4 +8,3 @@ Table des matières :
     :numbered:
 
     dicom
-    dicom_encapsulated_document
