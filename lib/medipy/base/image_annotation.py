@@ -26,6 +26,9 @@ class ImageAnnotation(Observable):
     """
     
     class Shape(object):
+        """ Image shape.
+        """
+        
         sphere = 0
         cube = 1
         cross = 2
@@ -33,6 +36,12 @@ class ImageAnnotation(Observable):
         
         @staticmethod
         def to_name(value):
+            """ Convert a shape value to its name.
+                
+                >>> medipy.base.ImageAnnotation.Shape.to_name(0)
+                "sphere"
+            """
+            
             dictionary = dict([(getattr(ImageAnnotation.Shape, name), name) 
                                for name in dir(ImageAnnotation.Shape) 
                                if isinstance(getattr(ImageAnnotation.Shape, name), int)])

@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -188,9 +188,15 @@ class Image(Observable):
         return numpy.asarray(self.data)
     
     def index_to_physical(self, index):
+        """ Transform an index coordinate to a physical coordinate.
+        """
+        
         return numpy.dot(self._index_to_physical_matrix, index)+self._origin
     
     def physical_to_index(self, physical):
+        """ Transform a physical coordinate to an index coordinate.
+        """
+        
         return numpy.dot(self._physical_to_index_matrix, physical-self._origin)
     
     ##############
@@ -198,6 +204,9 @@ class Image(Observable):
     ##############
     
     def _get_spacing(self):
+        """ Image spacing in millimeters.
+        """
+        
         return self._spacing
     
     def _set_spacing(self, value):
@@ -205,12 +214,19 @@ class Image(Observable):
         self._compute_index_to_physical_matrix()
     
     def _get_origin(self):
+        """ Physical coordinates in millimeters of the voxel with index 
+            coordinates :math:`(0,0,0)`.
+        """
+        
         return self._origin
     
     def _set_origin(self, value):
         self._origin = numpy.asarray(value, dtype=numpy.single)
     
     def _get_direction(self):
+        """ Direction cosine matrix.
+        """
+        
         return self._direction
     
     def _set_direction(self, value):
@@ -218,6 +234,13 @@ class Image(Observable):
         self._compute_index_to_physical_matrix()
     
     def _get_shape(self):
+        """ Shape of the image. This property accounts for non-scalar data, i.e.
+            
+            >>> image = medipy.base.Image(shape=(256, 256, 256, 3), data_type="scalar", image_type="rgb")
+            >>> image.shape
+            (256, 256, 256)
+        """
+        
         if self.data_type == "scalar" :
             return self.data.shape
         elif self.data_type == "vector" :
@@ -226,9 +249,20 @@ class Image(Observable):
             raise medipy.base.Exception("Unknown data_type: {0}".format(self.data_type))
     
     def _get_dtype(self):
+        """ dtype of the underlying array.
+        """
+        
         return self.data.dtype
     
     def _get_ndim(self):
+        """ Number of dimensions in the image. This property accounts for 
+            non-scalar data, i.e.
+            
+            >>> image = medipy.base.Image(shape=(256, 256, 256, 3), data_type="scalar", image_type="rgb")
+            >>> image.ndim
+            3 
+        """
+        
         if self.data_type == "scalar" :
             return self.data.ndim
         elif self.data_type == "vector" :
