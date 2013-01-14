@@ -62,20 +62,48 @@
 <dl class="class">
 <dt id="medipy.io.dicom.Tag">
 <em class="property">class </em><tt class="descclassname">medipy.io.dicom.</tt><tt class="descname">Tag</tt><a class="headerlink" href="#medipy.io.dicom.Tag" title="Lien permanent vers cette définition">¶</a></dt>
-<dd><dl class="attribute">
+<dd><p>Tag of a DICOM element. The tag can be either created by two 16-bits
+integers or by one 32-bits integer :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Both are tags for Patient&#39;s Name (0010,0010)</span>
+<span class="n">tag1</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Tag</span><span class="p">(</span><span class="mh">0x0010</span><span class="p">,</span><span class="mh">0x0010</span><span class="p">)</span>
+<span class="n">tag2</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Tag</span><span class="p">(</span><span class="mh">0x00100010</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="attribute">
 <dt id="medipy.io.dicom.Tag.element">
 <tt class="descname">element</tt><a class="headerlink" href="#medipy.io.dicom.Tag.element" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Element of the tag, i.e. the last two bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Tag</span><span class="p">(</span><span class="mh">0x0010</span><span class="p">,</span> <span class="mh">0x0020</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span><span class="o">.</span><span class="n">element</span>
+<span class="go">0x0020</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="medipy.io.dicom.Tag.group">
 <tt class="descname">group</tt><a class="headerlink" href="#medipy.io.dicom.Tag.group" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Group of the tag, i.e. the first two bytes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Tag</span><span class="p">(</span><span class="mh">0x0010</span><span class="p">,</span> <span class="mh">0x0020</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tag</span><span class="o">.</span><span class="n">group</span>
+<span class="go">0x0010</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="medipy.io.dicom.Tag.private">
 <tt class="descname">private</tt><a class="headerlink" href="#medipy.io.dicom.Tag.private" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Whether the tag is private (i.e. odd group).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">tag1</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Tag</span><span class="p">(</span><span class="mh">0x0010</span><span class="p">,</span> <span class="mh">0x0010</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tag1</span><span class="o">.</span><span class="n">private</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tag2</span> <span class="o">=</span> <span class="n">medipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">dicom</span><span class="o">.</span><span class="n">Tag</span><span class="p">(</span><span class="mh">0x0029</span><span class="p">,</span> <span class="mh">0x1047</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tag2</span><span class="o">.</span><span class="n">private</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
 
 </dd></dl>
 
@@ -83,16 +111,18 @@
 <dt id="medipy.io.dicom.DataSet">
 <em class="property">class </em><tt class="descclassname">medipy.io.dicom.</tt><tt class="descname">DataSet</tt><big>(</big><em>include_header=True</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DataSet" title="Lien permanent vers cette définition">¶</a></dt>
 <dd><p>An Data Set is a collection (dictionary) of Data Elements values.</p>
-<p>Example of two ways to retrieve or set values:</p>
-<ol class="arabic simple">
-<li>dataset[0x10, 0x10] &#8211;&gt; patient&#8217;s name</li>
-<li>dataset.patients_name &#8211;&gt; patient&#8217;s name</li>
-</ol>
-<p>Example (2) is referred to as <em>Named tags</em> in this documentation.
-patients_name is not actually a member of the object, but unknown member
-requests are checked against the dicom dictionary. If the name matches a
-DicomDictionary descriptive string, the corresponding tag is used
-to look up or set the Data Element&#8217;s value.</p>
+<dl class="docutils">
+<dt>The values can be accessed or set using one of the following methods :</dt>
+<dd><ul class="first last simple">
+<li>Numerical value of tag : <tt class="docutils literal"><span class="pre">dataset[0x0010,</span> <span class="pre">0x0010]</span></tt></li>
+<li>Name of tag : <tt class="docutils literal"><span class="pre">dataset.patients_name</span></tt></li>
+<li>Tag object : <tt class="docutils literal"><span class="pre">dataset[medipy.io.dicom.Tag(0x0010,</span> <span class="pre">0x0010)]</span></tt></li>
+</ul>
+</dd>
+</dl>
+<p>Member requests are checked against the dicom dictionary. If the name 
+matches a DicomDictionary descriptive string, the corresponding tag is 
+used to get or set the Data Element&#8217;s value.</p>
 <dl class="method">
 <dt id="medipy.io.dicom.DataSet.get">
 <tt class="descname">get</tt><big>(</big><em>key</em>, <em>default=None</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DataSet.get" title="Lien permanent vers cette définition">¶</a></dt>
@@ -126,20 +156,25 @@ to look up or set the Data Element&#8217;s value.</p>
 <dl class="class">
 <dt id="medipy.io.dicom.DicomSeries">
 <em class="property">class </em><tt class="descclassname">medipy.io.dicom.</tt><tt class="descname">DicomSeries</tt><big>(</big><em>root=None</em>, <em>series=None</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries" title="Lien permanent vers cette définition">¶</a></dt>
-<dd><dl class="method">
+<dd><p>A dictionary of DICOM series, mapping a Series Instance UID to the
+Series Description, and optionally to a custom name given by the user.</p>
+<dl class="method">
 <dt id="medipy.io.dicom.DicomSeries.has_custom_name">
 <tt class="descname">has_custom_name</tt><big>(</big><em>custom_name</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries.has_custom_name" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Test whether the custom name is in the dictionary.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="medipy.io.dicom.DicomSeries.has_description">
 <tt class="descname">has_description</tt><big>(</big><em>description</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries.has_description" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Test whether the Series Description is in the dictionary.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="medipy.io.dicom.DicomSeries.has_uid">
 <tt class="descname">has_uid</tt><big>(</big><em>uid</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries.has_uid" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Test whether the Series Instance UID is in the dictionary.</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="medipy.io.dicom.DicomSeries.read">
@@ -149,17 +184,20 @@ to look up or set the Data Element&#8217;s value.</p>
 <dl class="method">
 <dt id="medipy.io.dicom.DicomSeries.url_from_custom_name">
 <tt class="descname">url_from_custom_name</tt><big>(</big><em>custom_name</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries.url_from_custom_name" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return the URL associated with the custom name.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="medipy.io.dicom.DicomSeries.url_from_description">
 <tt class="descname">url_from_description</tt><big>(</big><em>description</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries.url_from_description" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return the URL associated with the Series Description.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="medipy.io.dicom.DicomSeries.url_from_uid">
 <tt class="descname">url_from_uid</tt><big>(</big><em>uid</em><big>)</big><a class="headerlink" href="#medipy.io.dicom.DicomSeries.url_from_uid" title="Lien permanent vers cette définition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Return the URL associated with the Series Instance UID</p>
+</dd></dl>
 
 </dd></dl>
 
