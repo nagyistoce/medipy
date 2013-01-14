@@ -104,3 +104,16 @@ Set (0008,0005) est donc fixé à "ISO_IR 192".
     # Modification du DataSet ...
     
     medipy.io.dicom.write(dataset, "foo.dcm")
+
+Encapsulation d'un document au format DICOM
+-------------------------------------------
+
+Le standard DICOM permet de stocker tout type de document dans un Data Set [#]_.
+Le module :mod:`medipy.io.dicom.encapsulated_document` permet d'encapsuler un 
+fichier dans un Data Set, et d'exposer un fichier précédemment encapsulé. Les
+fonctions contenues dans ce module ne génèrent pas un Data Set directement 
+envoyable sur un nœud DICOM, seuls les modules DICOM concernant l'objet
+Encapsulated Document sont présents. L'exemple suivant permet d'obtenir un
+Data Set « correct » pour le stockage. 
+
+.. [#] PS 3.3-2011, A.1.2.16, p. 121 et PS 3.3-2011, A.45, p. 278 
