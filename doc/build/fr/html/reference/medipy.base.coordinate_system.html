@@ -1,0 +1,206 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>medipy.base.coordinate_system &mdash; MediPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="MediPy 1.0 documentation" href="../index.html" />
+    <link rel="up" title="Référence de MediPy" href="index.html" />
+    <link rel="prev" title="medipy.base.array" href="medipy.base.array.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Index des modules Python"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="medipy.base.array.html" title="medipy.base.array"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Référence de MediPy</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Sujet précédent</h4>
+  <p class="topless"><a href="medipy.base.array.html"
+                        title="Chapitre précédent"><tt class="docutils literal docutils literal docutils literal"><span class="pre">medipy.base.array</span></tt></a></p>
+<div id="searchbox" style="display: none">
+  <h3>Recherche rapide</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Saisissez un mot clef ou un nom de module, classe ou fonction.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-medipy.base.coordinate_system">
+<span id="medipy-base-coordinate-system"></span><h1><a class="reference internal" href="#module-medipy.base.coordinate_system" title="medipy.base.coordinate_system"><tt class="xref py py-mod docutils literal"><span class="pre">medipy.base.coordinate_system</span></tt></a><a class="headerlink" href="#module-medipy.base.coordinate_system" title="Lien permanent vers ce titre">¶</a></h1>
+<p>The rows of the matrices are the orientation of the other coordinate system in 
+the LPS coordinate system. For example :</p>
+<blockquote>
+<div><ul class="simple">
+<li>the y axis of RAS is (0,-1,0), i.e. Anterior</li>
+<li>the normal of the coronal slice (radiological convention) is (0,-1,0), 
+i.e. Anterior</li>
+<li>the normal of the sagittal slice (radiological convention) is (0,0,-1), 
+i.e. Right</li>
+</ul>
+</div></blockquote>
+<p>Since column-vector matrices would transform to LPS (cf. below) and since the
+matrices are orthogonal (<math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msup><mi>M</mi><mi>T</mi></msup><mo>=</mo><msup><mi>M</mi>
+<mrow><mo>-</mo><mn>1</mn></mrow></msup></mrow></math>), the row-vector matrices transform from LPS
+to the other coordinate system.</p>
+<p>Let <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msup><mi>e</mi><mn>1</mn></msup><mo>,</mo><msup><mi>e</mi><mn>2</mn></msup><mo>,</mo><msup><mi>e</mi><mn>3</mn></msup><mo>)</mo></mrow></math> and <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msub><mi>e</mi><mn>1</mn></msub><mo>,</mo><msub><mi>e</mi><mn>2</mn></msub><mo>,</mo><msub><mi>e</mi><mn>3</mn></msub><mo>)</mo></mrow></math> be two bases of 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msup><mi>R</mi><mn>3</mn></msup></mrow></math>. Let M be the matrix formed by the column vectors of the coordinates
+of <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msup><mi>e</mi><mn>1</mn></msup><mo>,</mo><msup><mi>e</mi><mn>2</mn></msup><mo>,</mo><msup><mi>e</mi><mn>3</mn></msup><mo>)</mo></mrow></math>, expressed in <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msub><mi>e</mi><mn>1</mn></msub><mo>,</mo><msub><mi>e</mi><mn>2</mn></msub><mo>,</mo><msub><mi>e</mi><mn>3</mn></msub><mo>)</mo></mrow></math>, i.e.</p>
+<div>
+<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
+<mtable>
+<mtr>
+<mtd><mi>M</mi><mo>=</mo><mfenced open="(" close=")">
+<mrow>
+<mtable>
+<mtr>
+<mtd><msubsup><mi>e</mi><mi>x</mi><mn>1</mn></msubsup><msubsup><mi>e</mi><mi>x</mi><mn>2</mn></msubsup><msubsup><mi>e</mi><mi>x</mi><mn>3</mn></msubsup></mtd></mtr>
+<mtr>
+<mtd><msubsup><mi>e</mi><mi>y</mi><mn>1</mn></msubsup><msubsup><mi>e</mi><mi>y</mi><mn>2</mn></msubsup><msubsup><mi>e</mi><mi>y</mi><mn>3</mn></msubsup></mtd></mtr>
+<mtr>
+<mtd><msubsup><mi>e</mi><mi>z</mi><mn>1</mn></msubsup><msubsup><mi>e</mi><mi>z</mi><mn>2</mn></msubsup><msubsup><mi>e</mi><mi>z</mi><mn>3</mn></msubsup></mtd></mtr></mtable></mrow></mfenced></mtd></mtr></mtable></math>
+</div>
+<p>Let v be a column-vector :</p>
+<div>
+<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
+<mtable>
+<mtr>
+<mtd><mi>v</mi><mo>=</mo><mfenced open="(" close=")">
+<mrow>
+<mtable>
+<mtr>
+<mtd><mi>a</mi></mtd></mtr>
+<mtr>
+<mtd><mi>b</mi></mtd></mtr>
+<mtr>
+<mtd><mi>c</mi></mtd></mtr></mtable></mrow></mfenced></mtd></mtr></mtable></math>
+</div>
+<p>By right-multiplying M by v, we get <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>a</mi><msup><mi>e</mi><mn>1</mn></msup><mo>+</mo><mi>b</mi><msup><mi>e</mi><mn>2</mn></msup><mo>+</mo><mi>c</mi><msup><mi>e</mi><mn>3</mn></msup></mrow></math>, where the 
+coordinates of the <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msup><mi>e</mi><mi>i</mi></msup></mrow></math> are expressed in <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msub><mi>e</mi><mn>1</mn></msub><mo>,</mo><msub><mi>e</mi><mn>2</mn></msub><mo>,</mo><msub><mi>e</mi><mn>3</mn></msub><mo>)</mo></mrow></math>. If the 
+elements of v are coordinates expressed in <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msup><mi>e</mi><mn>1</mn></msup><mo>,</mo><msup><mi>e</mi><mn>2</mn></msup><mo>,</mo><msup><mi>e</mi><mn>3</mn></msup><mo>)</mo></mrow></math>, then M 
+transforms a vector from <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msup><mi>e</mi><mn>1</mn></msup><mo>,</mo><msup><mi>e</mi><mn>2</mn></msup><mo>,</mo><msup><mi>e</mi><mn>3</mn></msup><mo>)</mo></mrow></math> to <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>(</mo><msub><mi>e</mi><mn>1</mn></msub><mo>,</mo><msub><mi>e</mi><mn>2</mn></msub><mo>,</mo><msub><mi>e</mi><mn>3</mn></msub><mo>)</mo></mrow></math>.</p>
+<p>The preceding reasoning can be applied to row-vectors: let v_c and w_c be 
+column-vectors, and let M be a matrix such that <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>M</mi><mo>.</mo><msub><mi>v</mi><mi>c</mi></msub><mo>=</mo><msub><mi>w</mi><mi>c</mi></msub></mrow></math>. Let 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msub><mi>v</mi><mi>r</mi></msub></mrow></math> (respectively <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msub><mi>w</mi><mi>r</mi></msub></mrow></math>) be the row vector corresponding to 
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msub><mi>v</mi><mi>c</mi></msub></mrow></math> (respectively <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msub><mi>w</mi><mi>c</mi></msub></mrow></math>). Using the matrix-vector multiplication 
+formula, it is easy to prove that <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msub><mi>v</mi><mi>r</mi></msub><mo>.</mo><mi>M</mi><mo>=</mo><msub><mi>w</mi><mi>r</mi></msub></mrow></math>.</p>
+<dl class="data">
+<dt id="medipy.base.coordinate_system.LPS">
+<tt class="descclassname">medipy.base.coordinate_system.</tt><tt class="descname">LPS</tt><em class="property"> = array([[ 1.,  0.,  0.],        [ 0.,  1.,  0.],        [ 0.,  0.,  1.]])</em><a class="headerlink" href="#medipy.base.coordinate_system.LPS" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>LPS coordinate system, in LPS coordinates. This is the DICOM coordinate system.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="medipy.base.coordinate_system.RAS">
+<tt class="descclassname">medipy.base.coordinate_system.</tt><tt class="descname">RAS</tt><em class="property"> = array([[ 1.,  0.,  0.],        [ 0., -1.,  0.],        [ 0.,  0., -1.]])</em><a class="headerlink" href="#medipy.base.coordinate_system.RAS" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>RAS coordinate system, in LPS coordinates. This is the NIfTI coordinate system.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="medipy.base.coordinate_system.best_fitting_axes_aligned_matrix">
+<tt class="descclassname">medipy.base.coordinate_system.</tt><tt class="descname">best_fitting_axes_aligned_matrix</tt><big>(</big><em>direction</em><big>)</big><a class="headerlink" href="#medipy.base.coordinate_system.best_fitting_axes_aligned_matrix" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Compute the transformation matrix that best fits the given direction 
+matrix while being aligned to the axes.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="medipy.base.coordinate_system.slices">
+<tt class="descclassname">medipy.base.coordinate_system.</tt><tt class="descname">slices</tt><em class="property"> = {'index': {'axial': array([[ 1.,  0.,  0.],        [ 0.,  1.,  0.],        [ 0.,  0.,  1.]]), 'coronal': array([[ 0., -1.,  0.],        [ 1.,  0.,  0.],        [ 0.,  0.,  1.]]), 'sagittal': array([[ 0.,  0.,  1.],        [ 1.,  0.,  0.],        [ 0.,  1.,  0.]])}, 'radiological': {'axial': array([[-1.,  0.,  0.],        [ 0., -1.,  0.],        [ 0.,  0.,  1.]]), 'coronal': array([[ 0., -1.,  0.],        [ 1.,  0.,  0.],        [ 0.,  0.,  1.]]), 'sagittal': array([[ 0.,  0., -1.],        [ 1.,  0.,  0.],        [ 0.,  1.,  0.]])}, 'neurological': {'axial': array([[ 1.,  0.,  0.],        [ 0., -1.,  0.],        [ 0.,  0., -1.]]), 'coronal': array([[ 0.,  1.,  0.],        [ 1.,  0.,  0.],        [ 0.,  0., -1.]]), 'sagittal': array([[ 0.,  0.,  1.],        [ 1.,  0.,  0.],        [ 0., -1.,  0.]])}}</em><a class="headerlink" href="#medipy.base.coordinate_system.slices" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Transformation matrices from LPS to OpenGL coordinates, ZYX order</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Index des modules Python"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="medipy.base.array.html" title="medipy.base.array"
+             >précédent</a> |</li>
+        <li><a href="../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Référence de MediPy</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

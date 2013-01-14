@@ -193,3 +193,5 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+autodoc_default_flags = ["members", "undoc-members"]
