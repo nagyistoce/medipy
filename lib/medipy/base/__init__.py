@@ -1,11 +1,12 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
+import array
 from command import Command, UndoableCommand
 import coordinate_system
 from exception import Exception
@@ -18,3 +19,8 @@ from object_3d import Object3D
 from observable import Observable
 from observable_list import ObservableList
 from property_synchronized import PropertySynchronized
+
+__all__ = ["array", "Command", "UndoableCommand", "coordinate_system", 
+           "Exception", "find_resource", "History", "Image", "ImageAnnotation", 
+           "LateBindingProperty", "Object3D", "Observable", "ObservableList"
+           "PropertySynchronized"]
