@@ -8,7 +8,7 @@
 
 import itk
 
-# Convert ImageIOBase::IOComponentType to its corresponding ITK type
+#: Convert ImageIOBase::IOComponentType to its corresponding ITK type
 io_component_type_to_type = {
     itk.ImageIOBase.UCHAR : itk.UC,
     itk.ImageIOBase.CHAR : itk.SC,
@@ -22,7 +22,7 @@ io_component_type_to_type = {
     itk.ImageIOBase.DOUBLE : itk.D,
 }
 
-# Map an ITK type to its immediately smaller ITK type
+#: Map an ITK type to its immediately smaller ITK type
 smaller_type = {
     itk.US : itk.UC,
     itk.UL : itk.US,
@@ -33,7 +33,7 @@ smaller_type = {
     itk.D : itk.F
 }
 
-# Map an ITK type to its immediately larger ITK type
+#: Map an ITK type to its immediately larger ITK type
 larger_type = {
     itk.UC : itk.US,
     itk.US : itk.UL,
