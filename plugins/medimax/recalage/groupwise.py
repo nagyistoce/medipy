@@ -276,7 +276,7 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None) :
         print('#------------------------------------------------\n')
     
         imref = medipy.base.Image(dtype=imfirst.dtype)
-        meanImage = medipy.base.Image(dtype=imfirst.dtype)
+        meanImage = medipy.base.Image(dtype=np.float32)
         medipy.medimax.recalage.ApplyTransfo3d(imfirst,TransfoResList[0],imref,8)
         meanImage.data=np.copy(imref.data)
         meanImage.copy_information(imref)
