@@ -195,3 +195,10 @@ latex_documents = [
 #latex_use_modindex = True
 
 autodoc_default_flags = ["members", "undoc-members"]
+
+# Duck-punch autodoc extension to remove object representation
+from sphinx.ext.autodoc import ModuleLevelDocumenter, DataDocumenter
+def add_directive_header(self, sig):
+    ModuleLevelDocumenter.add_directive_header(self, sig)
+    # Rest of original method ignored
+DataDocumenter.add_directive_header = add_directive_header

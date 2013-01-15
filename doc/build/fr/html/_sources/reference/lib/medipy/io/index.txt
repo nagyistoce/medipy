@@ -1,4 +1,0 @@
-:mod:`medipy.io.schemes`
-========================
-
-.. automodule:: medipy.io.schemes
