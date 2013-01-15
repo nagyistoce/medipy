@@ -9,6 +9,7 @@
 import numpy
 import medipy.base
 import medipy.base.exception
+import medipy.logic
 
 def mean_stdev_normalization(reference, image, mask_ref=None, mask_image=None):
     """ Return a normalized version of image, so that the mean and standard 
@@ -47,6 +48,10 @@ def mean_stdev_normalization(reference, image, mask_ref=None, mask_image=None):
     data = alpha*image.data+beta
     output = medipy.base.Image(data=data)
     output.copy_information(image)
+    
+    if mask_image :
+        output=medipy.logic.apply_mask( output, mask_image.astype(numpy.float32), 0, 0)
+    
     
     return output
 
