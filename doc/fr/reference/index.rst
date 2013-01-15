@@ -11,6 +11,7 @@ Liste des modules :
     lib/medipy/io/dicom/index
     lib/medipy/io/dicom/encapsulated_document
     lib/medipy/io/dicom/routing
+    lib/medipy/io/schemes
     lib/medipy/itk/index
     lib/medipy/itk/types
     lib/medipy/network/dicom/index
