@@ -6,6 +6,14 @@
 # for details.
 ##########################################################################
 
+#: Dictionary of DICOM data elements (PS 3.6-2001). The key of this dictionary 
+#: is the numeric tag, and the values are tuples with the following elements :
+#:
+#:   * VR, as unicode string
+#:   * VM, as unicode string (cannot use a number since some VM are e.g. ``'1-8'``)
+#:   * name, as unicode string
+#:   * retired flag as a boolean
+#:   * Python name, similar to the *keyword* entry in the DICOM standard
 data_dictionary = {
 0x00020000 : (u'UL', u'1', u'File Meta Information Group Length', False, u'file_meta_information_group_length'),
 0x00020001 : (u'OB', u'1', u'File Meta Information Version', False, u'file_meta_information_version'),
@@ -3618,6 +3626,7 @@ data_dictionary = {
 "7fxx0040" : (u'OW', u'1', u'Variable Coefficients SDDN', True, u'variable_coefficients_sddn'),
 }
 
+#: Dictionary mapping the Python name of DICOM data elements to their tag.
 name_dictionary = {
 "2d_degree_of_freedom_axis" : 0x006864f0,
 "2d_degree_of_freedom_sequence" : 0x00686470,
@@ -7137,7 +7146,15 @@ name_dictionary = {
 "zoom_factor" : 0x00280031,
 }
 
-# value -> (name, type, part, retired, python_name
+#: Dictionary of DICOM well-known UIDs elements (PS 3.6-2011. The key of this 
+#: dictionary is the UID (as a string) and the values are tuples with the 
+#: following elements :
+#:
+#:   * name, as unicode string
+#:   * type, as unicode string
+#:   * part of the DICOM standard where the UID is defined
+#:   * retired flag as a boolean
+#:   * Python name (cf. :attr:`data_dictionary`)
 uid_dictionary = {
 "1.2.840.10008.1.1" : (u'Verification SOP Class', u'SOP Class', u'PS 3.4', False, u'verification_sop_class'),
 "1.2.840.10008.1.2" : (u'Implicit VR Little Endian: Default Transfer Syntax for DICOM', u'Transfer Syntax', u'PS 3.5', False, u'implicit_vr_little_endian_default_transfer_syntax_for_dicom'),
@@ -7477,6 +7494,8 @@ uid_dictionary = {
 "1.2.840.10008.7.1.1" : (u'Native DICOM Model', u'Application Hosting Model', u'PS 3.19', False, u'native_dicom_model'),
 "1.2.840.10008.7.1.2" : (u'Abstract Multi-Dimensional Image Model', u'Application Hosting Model', u'PS 3.19', False, u'abstract_multi_dimensional_image_model'),
 }
+
+#: Dictionary mapping the Python name of well-known UIDs to their value.
 uid_name_dictionary = {
 "12_lead_ecg_waveform_storage" : "1.2.840.10008.5.1.4.1.1.9.1.1",
 "abstract_multi_dimensional_image_model" : "1.2.840.10008.7.1.2",

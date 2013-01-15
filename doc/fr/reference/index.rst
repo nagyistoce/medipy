@@ -9,6 +9,7 @@ Liste des modules :
     lib/medipy/base/array
     lib/medipy/base/coordinate_system
     lib/medipy/io/dicom/index
+    lib/medipy/io/dicom/dictionary
     lib/medipy/io/dicom/encapsulated_document
     lib/medipy/io/dicom/routing
     lib/medipy/io/schemes

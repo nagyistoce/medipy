@@ -1,0 +1,4 @@
+:mod:`medipy.io.dicom.dictionary`
+---------------------------------
+
+.. automodule:: medipy.io.dicom.dictionary
