@@ -17,6 +17,9 @@ class IOBase(object):
         self._report_progress = report_progress
     
     def _get_filename(self):
+        """ Path to the file to read or write.
+        """
+        
         return self._filename
     
     def _set_filename(self, filename):
