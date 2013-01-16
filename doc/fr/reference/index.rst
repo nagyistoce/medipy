@@ -11,5 +11,5 @@ Liste des modules :
     lib/medipy/base/index.rst
     lib/medipy/io/index
     lib/medipy/itk/index
-    lib/medipy/network/dicom/index
+    lib/medipy/network/index
     lib/medipy/vtk/index
