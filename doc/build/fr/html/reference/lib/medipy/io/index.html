@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>2. medipy.io — Reading and writing data &mdash; MediPy 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/translations.js"></script>
+    <link rel="top" title="MediPy 1.0 documentation" href="../../../../index.html" />
+    <link rel="up" title="Référence de MediPy" href="../../../index.html" />
+    <link rel="next" title="2.1. medipy.io.dicom — Basic and file functionalities of DICOM" href="dicom/index.html" />
+    <link rel="prev" title="1.2. medipy.base.coordinate_system — Definition and transformation of coordinate systems" href="../base/coordinate_system.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="Index général"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dicom/index.html" title="2.1. medipy.io.dicom — Basic and file functionalities of DICOM"
+             accesskey="N">suivant</a> |</li>
+        <li class="right" >
+          <a href="../base/coordinate_system.html" title="1.2. medipy.base.coordinate_system — Definition and transformation of coordinate systems"
+             accesskey="P">précédent</a> |</li>
+        <li><a href="../../../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Référence de MediPy</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="medipy-io-reading-and-writing-data">
+<h1>2. <a class="reference internal" href="#module-medipy.io" title="medipy.io"><tt class="xref py py-mod docutils literal"><span class="pre">medipy.io</span></tt></a> &#8212; Reading and writing data<a class="headerlink" href="#medipy-io-reading-and-writing-data" title="Lien permanent vers ce titre">¶</a></h1>
+<p>The following sub-modules are also documented :</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dicom/index.html">2.1. <tt class="docutils literal"><span class="pre">medipy.io.dicom</span></tt> &#8212; Basic and file functionalities of DICOM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dicom/dictionary.html">2.1.1. <tt class="docutils literal"><span class="pre">medipy.io.dicom.dictionary</span></tt> &#8212; DICOM dictionaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dicom/encapsulated_document.html">2.1.2. <tt class="docutils literal"><span class="pre">medipy.io.dicom.encapsulated_document</span></tt> &#8212; Storage of non-DICOM data in DICOM data sets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dicom/routing.html">2.1.3. <tt class="docutils literal"><span class="pre">medipy.io.dicom.routing</span></tt> &#8212; Rule-based modification and storage of data sets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="schemes.html">2.2. <tt class="docutils literal"><span class="pre">medipy.io.schemes</span></tt></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="schemes.html#module-medipy.io.schemes.dicom">2.2.1. <tt class="docutils literal"><span class="pre">medipy.io.schemes.dicom</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="schemes.html#module-medipy.io.schemes.dicomdir">2.2.2. <tt class="docutils literal"><span class="pre">medipy.io.schemes.dicomdir</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="schemes.html#module-medipy.io.schemes.dicom_series">2.2.3. <tt class="docutils literal"><span class="pre">medipy.io.schemes.dicom_series</span></tt></a></li>
+<li class="toctree-l2"><a class="reference internal" href="schemes.html#module-medipy.io.schemes.file">2.2.4. <tt class="docutils literal"><span class="pre">medipy.io.schemes.file</span></tt></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<hr class="docutils" />
+<span class="target" id="module-medipy.io"></span><dl class="function">
+<dt id="medipy.io.load">
+<tt class="descclassname">medipy.io.</tt><tt class="descname">load</tt><big>(</big><em>url</em>, <em>dtype=&lt;type 'numpy.float32'&gt;</em><big>)</big><a class="headerlink" href="#medipy.io.load" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Load an image.</p>
+<blockquote>
+<div><ul class="simple">
+<li><tt class="docutils literal"><span class="pre">url</span></tt> : url to load from, uses the usual syntax of 
+<tt class="docutils literal"><span class="pre">[scheme</span> <span class="pre">&quot;://&quot;]</span> <span class="pre">[authority]</span> <span class="pre">path</span> <span class="pre">[</span> <span class="pre">&quot;#&quot;</span> <span class="pre">fragment]</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">dtype</span></tt> : type to which the data will be cast. Passing <tt class="docutils literal"><span class="pre">None</span></tt> will not cast.</li>
+</ul>
+</div></blockquote>
+<p>The URL <tt class="docutils literal"><span class="pre">scheme</span></tt> can be one of :</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="schemes.html#module-medipy.io.schemes.file" title="medipy.io.schemes.file"><tt class="xref py py-mod docutils literal"><span class="pre">file</span></tt></a> : load the image from the filesystem.</li>
+<li><a class="reference internal" href="schemes.html#module-medipy.io.schemes.dicomdir" title="medipy.io.schemes.dicomdir"><tt class="xref py py-mod docutils literal"><span class="pre">dicomdir</span></tt></a> : load an image using a DICOMDIR</li>
+<li><a class="reference internal" href="schemes.html#module-medipy.io.schemes.dicom" title="medipy.io.schemes.dicom"><tt class="xref py py-mod docutils literal"><span class="pre">dicom</span></tt></a> : load an image using a local 
+filesystem directory containing DICOM files</li>
+<li><a class="reference internal" href="schemes.html#module-medipy.io.schemes.dicom_series" title="medipy.io.schemes.dicom_series"><tt class="xref py py-mod docutils literal"><span class="pre">dicom-series</span></tt></a> : load an image
+using a <a class="reference internal" href="dicom/index.html#medipy.io.dicom.DicomSeries" title="medipy.io.dicom.DicomSeries"><tt class="xref py py-class docutils literal"><span class="pre">dicom_series</span></tt></a> file</li>
+</ul>
+</div></blockquote>
+<p>Refer to the documentation of the different schemes for the details of 
+the URL syntax.</p>
+<p>If no scheme is specified, the URL is assumed to be a filesystem path.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="medipy.io.load_serie">
+<tt class="descclassname">medipy.io.</tt><tt class="descname">load_serie</tt><big>(</big><em>url</em>, <em>dtype=&lt;type 'numpy.float32'&gt;</em><big>)</big><a class="headerlink" href="#medipy.io.load_serie" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Load a serie of images.</p>
+<blockquote>
+<div><ul class="simple">
+<li>url : url to load from.</li>
+<li>dtype : type to which the data will be cast. Passing <tt class="docutils literal"><span class="pre">None</span></tt> will not cast.</li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="#medipy.io.load" title="medipy.io.load"><tt class="xref py py-func docutils literal"><span class="pre">load()</span></tt></a> for URL details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="medipy.io.save">
+<tt class="descclassname">medipy.io.</tt><tt class="descname">save</tt><big>(</big><em>image</em>, <em>url</em><big>)</big><a class="headerlink" href="#medipy.io.save" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Save an image.</p>
+<blockquote>
+<div><ul class="simple">
+<li>image : image to save.</li>
+<li>url : url to save to.</li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="#medipy.io.load" title="medipy.io.load"><tt class="xref py py-func docutils literal"><span class="pre">load()</span></tt></a> for URL details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="medipy.io.save_serie">
+<tt class="descclassname">medipy.io.</tt><tt class="descname">save_serie</tt><big>(</big><em>images</em>, <em>url</em><big>)</big><a class="headerlink" href="#medipy.io.save_serie" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Save a serie of images.</p>
+<blockquote>
+<div><ul class="simple">
+<li>image : image to save.</li>
+<li>url : url to save to.</li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference internal" href="#medipy.io.load" title="medipy.io.load"><tt class="xref py py-func docutils literal"><span class="pre">load()</span></tt></a> for URL details.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="medipy.io.number_of_images">
+<tt class="descclassname">medipy.io.</tt><tt class="descname">number_of_images</tt><big>(</big><em>url</em><big>)</big><a class="headerlink" href="#medipy.io.number_of_images" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Return the number of images contained at given URL</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="medipy.io.IOBase">
+<em class="property">class </em><tt class="descclassname">medipy.io.</tt><tt class="descname">IOBase</tt><big>(</big><em>filename=None</em>, <em>report_progress=None</em><big>)</big><a class="headerlink" href="#medipy.io.IOBase" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Base class for all IO classes.</p>
+<dl class="attribute">
+<dt id="medipy.io.IOBase.filename">
+<tt class="descname">filename</tt><a class="headerlink" href="#medipy.io.IOBase.filename" title="Lien permanent vers cette définition">¶</a></dt>
+<dd><p>Path to the file to read or write.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Sujet précédent</h4>
+  <p class="topless"><a href="../base/coordinate_system.html"
+                        title="Chapitre précédent">1.2. <tt class="docutils literal docutils literal docutils literal"><span class="pre">medipy.base.coordinate_system</span></tt> &#8212; Definition and transformation of coordinate systems</a></p>
+  <h4>Sujet suivant</h4>
+  <p class="topless"><a href="dicom/index.html"
+                        title="Chapitre suivant">2.1. <tt class="docutils literal docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">medipy.io.dicom</span></tt> &#8212; Basic and file functionalities of DICOM</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Recherche rapide</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Saisissez un mot clef ou un nom de module, classe ou fonction.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="Index général"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Index des modules Python"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dicom/index.html" title="2.1. medipy.io.dicom — Basic and file functionalities of DICOM"
+             >suivant</a> |</li>
+        <li class="right" >
+          <a href="../base/coordinate_system.html" title="1.2. medipy.base.coordinate_system — Definition and transformation of coordinate systems"
+             >précédent</a> |</li>
+        <li><a href="../../../../index.html">MediPy 1.0 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Référence de MediPy</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright Université de Strasbourg.
+      Créé avec <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
