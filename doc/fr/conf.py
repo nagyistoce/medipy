@@ -202,3 +202,6 @@ def add_directive_header(self, sig):
     ModuleLevelDocumenter.add_directive_header(self, sig)
     # Rest of original method ignored
 DataDocumenter.add_directive_header = add_directive_header
+
+# Import medipy so that plugins can be found
+import medipy
