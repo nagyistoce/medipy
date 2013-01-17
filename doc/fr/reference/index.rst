@@ -13,3 +13,5 @@ Liste des modules :
     lib/medipy/itk/index
     lib/medipy/network/index
     lib/medipy/vtk/index
+    
+    plugins/index

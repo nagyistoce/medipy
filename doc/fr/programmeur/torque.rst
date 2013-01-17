@@ -10,7 +10,7 @@ l'utilisateur soumet une tâche à un nœud maître. Ce nœud maître maintient 
 liste de nœuds de calcul, et répartit les tâches en fonction de l'utilisation de
 ces nœuds de calcul.
 
-Le plugin ``medipy.torque`` encapsule l'opération de soumission des tâches et
+Le plugin :mod:`medipy.torque` encapsule l'opération de soumission des tâches et
 facilite certains aspects de cette soumission. Les différentes fonctions de ce
 plugin supposent que la tâche à effectuer est un fichier exécutable.
 
