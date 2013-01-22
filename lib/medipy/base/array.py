@@ -16,6 +16,9 @@ def crop(array, shape, keep_axis_begin=True) :
         are preserved.
     """
     
+    if array.shape == shape :
+        return array
+    
     slices = ()
     for axis in range(len(shape)) :
         if keep_axis_begin :
@@ -39,8 +42,11 @@ def pad(array, shape, mode, keep_axis_begin=True, **kwargs) :
         the beginning of each axis. The ``mode`` argument and the extra keywords
         arguments determine how the padding is done :
         
-          * ``"constant"`` : a constant value is used (keyword argument : ``value``)
+        * ``"constant"`` : a constant value is used (keyword argument : ``value``)
     """
+    
+    if array.shape == shape :
+        return array
     
     # Padding functions, passed to numpy.apply_along_axis. All padding functions
     # must have a signature similar to
