@@ -34,8 +34,9 @@ def label_connected_components(input, output):
     if output.dtype == numpy.uint16 :
         medipy.itk.itk_image_to_medipy_image(itk_output, output, True)
     else :
-        output.data = medipy.itk.itk_image_to_array(itk_output, True).astype(output.dtype)
-        output.spacing = [x for x in reversed(itk_output.GetSpacing())]
+        output_uint16 = medipy.itk.itk_image_to_medipy_image(itk_output, None, False)
+        output.data = output_uint16.data.astype(output.dtype)
+        output.copy_information(output_uint16)
 
 def largest_connected_component(input, output):
     """ Get the largest connected component from a labelled image.
