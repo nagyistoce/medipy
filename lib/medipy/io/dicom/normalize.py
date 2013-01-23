@@ -86,8 +86,10 @@ def dwi_normalize(dataset_or_datasets):
         dwi_dataset = DataSet()
         dwi_dataset.diffusion_directionality = CS("")
         if tag_bval in dataset.keys() :
-            if len(dataset[tag_bval].value)!=0 :
-                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval][0])
+            if isinstance(dataset[tag_bval].value, (list, tuple)) and dataset[tag_bval].value :
+                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value[0])
+            else :
+                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value)
         if tag_bvec in dataset.keys() :
             gradient_dataset = DataSet()
             gradient_dataset.diffusion_gradient_orientation = FD(dataset[tag_bvec].value)
