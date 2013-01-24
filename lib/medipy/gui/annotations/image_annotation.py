@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import numpy
@@ -90,7 +90,7 @@ class ImageAnnotation(object) :
         self._update_label()
     
     def _get_slice_position(self) :
-        """ Position of the slice place.
+        """ Position of the slice, in world coordinates, VTK order.
         """
         
         return self._slice_position
@@ -151,18 +151,19 @@ class ImageAnnotation(object) :
     
         altitude = self._shape.actor.GetPosition()[2]
         position = self._layer.physical_to_world(self._annotation.position)[::-1]
-        position[0] = altitude
         
-        self._shape.position = position
+        shape_position = numpy.copy(position)
+        shape_position[0] = altitude
+        
+        self._shape.position = shape_position
         self._shape.color = self.annotation.color
         
         # Apparent size of the shape is how high the annotation is above the 
         # slice plane.
         # TODO : should depend on the annotation shape
         if self._slice_position is not None :
-            p1 = self._layer.physical_to_world(self._annotation.position)[::-1]
-            p2 = self._layer.physical_to_world(self._slice_position)[::-1]
-            distance = abs(p1[0]-p2[0])
+            # position is in numpy order, slice_position in VTK order 
+            distance = abs(position[0]-self.slice_position[-1])
             self._shape.size = max(0, self._annotation.size-distance)
         
         self._shape.filled = self.annotation.filled
