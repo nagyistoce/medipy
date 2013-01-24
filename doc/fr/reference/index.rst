@@ -8,8 +8,8 @@ Liste des modules :
     :maxdepth: 3
     :numbered:
 
-    lib/medipy/base/index.rst
-    lib/medipy/gui/shapes.rst
+    lib/medipy/base/index
+    lib/medipy/gui/index
     lib/medipy/io/index
     lib/medipy/itk/index
     lib/medipy/network/index
