@@ -9,6 +9,7 @@ Liste des modules :
     :numbered:
 
     lib/medipy/base/index.rst
+    lib/medipy/gui/shapes.rst
     lib/medipy/io/index
     lib/medipy/itk/index
     lib/medipy/network/index
