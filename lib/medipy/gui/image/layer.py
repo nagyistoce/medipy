@@ -17,6 +17,8 @@ from medipy.base import LateBindingProperty
 import medipy.gui
 import medipy.vtk
 
+import helpers
+
 class Layer(medipy.base.Observable) :
     """ Representation of a plane slice through a 2D or 3D image.
     
@@ -123,35 +125,7 @@ class Layer(medipy.base.Observable) :
             image index (numpy order).
         """
         
-        # Make sure the pipeline is up-to-date
-        self._change_information.Update()
-        
-        # Convert to index coordinate in resliced image (VTK order)
-        index = numpy.divide(
-            numpy.subtract(world, self._change_information.GetOutputOrigin()),
-            self._change_information.GetOutputSpacing())
-        # Set height to 0, since the picked value will depend on the position
-        # of the actor
-        index[2] = 0
-        
-        # Apply the reslicer transform (homogeneous coordinates, VTK order),
-        # converting to the non-sliced image
-        physical = numpy.add(
-            numpy.multiply(index, self._reslicer.GetOutput().GetSpacing()),
-            self._reslicer.GetOutput().GetOrigin())
-        physical = numpy.hstack((physical, 1.))
-        physical = self._reslicer.GetResliceAxes().MultiplyPoint(physical)
-        physical = [physical[i]/physical[3] for i in range(3)]
-        
-        # Convert to index coordinate in the non-sliced image (VTK order)
-        index = numpy.divide(
-            numpy.subtract(physical, self._vtk_image.GetOrigin()),
-            self._vtk_image.GetSpacing())
-        
-        # VTK order -> NumPy order
-        index = index[::-1]
-        
-        return index
+        return numpy.asarray(helpers.layer_world_to_index(self, world))
 
     def world_to_physical(self, world) :
         """ Convert a VTK world coordinate (VTK order) to the corresponding 
@@ -161,7 +135,7 @@ class Layer(medipy.base.Observable) :
         index = self.world_to_index(world)
         index = medipy.base.array.reshape(index, (self._image.ndim,), 
             "constant", False, value=0)
-        return self._image.index_to_physical(index) 
+        return numpy.asarray(self._image.index_to_physical(index)) 
     
     def index_to_world(self, index) :
         """ Convert an image index (numpy order) to the corresponding VTK world
@@ -170,43 +144,15 @@ class Layer(medipy.base.Observable) :
         
         index = medipy.base.array.reshape(numpy.asarray(index), (3,), 
             "constant", False, value=0)
+        return helpers.layer_index_to_world(self, index)
         
-        # Make sure the pipeline is up-to-date
-        self._change_information.Update()
-        
-        # NumPy Order -> VTK order
-        index = index[::-1]
-        
-        # Convert from the non-sliced image point coordinates (VKT order)
-        physical = numpy.add(
-            numpy.multiply(index, self._vtk_image.GetSpacing()),
-            self._vtk_image.GetOrigin())
-        
-        # Apply the inverse reslicer transform (homogeneous coordinates, VTK 
-        # order), converting to the sliced image
-        physical = numpy.hstack((physical, 1.))
-        physical = self._reslicer_axes_inverse.MultiplyPoint(physical)
-        physical = [physical[i]/physical[3] for i in range(3)]
-        
-        # Convert to index coordinate in resliced image (VTK order)
-        index = numpy.divide(
-            numpy.subtract(physical, self._reslicer.GetOutput().GetOrigin()),
-            self._reslicer.GetOutput().GetSpacing())
-        
-        # Convert to world coordinates
-        world = numpy.add(
-            numpy.multiply(index, self._change_information.GetOutputSpacing()),
-            self._change_information.GetOutputOrigin())
-        
-        return world
-    
     def physical_to_world(self, physical) :
         """ Convert an image physical coordinate (numpy order) to the 
             corresponding VTK world coordinate (VTK order).
         """
         
         index = self._image.physical_to_index(physical)
-        return self.index_to_world(index)
+        return numpy.asarray(self.index_to_world(index))
     
     ##############
     # Properties #
@@ -269,7 +215,6 @@ class Layer(medipy.base.Observable) :
         
         self._physical_position = physical_position_image
         self._index_position = self._image.physical_to_index(physical_position_image)
-        
         
         index_position = medipy.base.array.reshape(self._index_position, (3,),
             "constant", False, value=0)
