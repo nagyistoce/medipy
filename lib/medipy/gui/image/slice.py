@@ -498,20 +498,21 @@ class Slice(PropertySynchronized) :
         self._annotations = annotations
         self._annotations.add_observer("any", self._on_annotations_changed)
         
-        for annotation in annotations :
-            gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
-            gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
-            gui_annotation.renderer = self._renderer
-            
-            actor_position = gui_annotation.shape_actor.GetPosition()
-            gui_annotation.shape_actor.SetPosition(
-                actor_position[0], actor_position[1], 
-                self._actors_altitudes["annotations"]
-            )
-            self._gui_annotations[annotation] = gui_annotation
-            
-            self.renderer.AddActor(gui_annotation.shape_actor)
-            self.renderer.AddActor(gui_annotation.text_actor)
+        if self._cursor_physical_position is not None :
+            for annotation in annotations :
+                gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
+                gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
+                gui_annotation.renderer = self._renderer
+                
+                actor_position = gui_annotation.shape_actor.GetPosition()
+                gui_annotation.shape_actor.SetPosition(
+                    actor_position[0], actor_position[1], 
+                    self._actors_altitudes["annotations"]
+                )
+                self._gui_annotations[annotation] = gui_annotation
+                
+                self.renderer.AddActor(gui_annotation.shape_actor)
+                self.renderer.AddActor(gui_annotation.text_actor)
     
     def _get_interpolation(self) :
         """ Interpolate the displayed data or not.
