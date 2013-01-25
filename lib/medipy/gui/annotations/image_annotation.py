@@ -31,7 +31,7 @@ class ImageAnnotation(object) :
         
         self._annotation = None
         self._layer = None
-        self._slice_position = None
+        self._slice_position_world = None
         self._text_actor = vtkTextActor()
         
         ###################
@@ -89,14 +89,14 @@ class ImageAnnotation(object) :
         self._update_shape()
         self._update_label()
     
-    def _get_slice_position(self) :
-        """ Position of the slice, in world coordinates, VTK order.
+    def _get_slice_position_world(self) :
+        """ Position of the slice, in world VTK coordinates, VTK order.
         """
         
-        return self._slice_position
+        return self._slice_position_world
     
-    def _set_slice_position(self, slice_position) :
-        self._slice_position = slice_position
+    def _set_slice_position_world(self, position) :
+        self._slice_position_world = position
         
         self._update_shape()
         self._update_label()
@@ -121,7 +121,7 @@ class ImageAnnotation(object) :
     
     annotation = property(_get_annotation, _set_annotation)
     layer = property(_get_layer, _set_layer)
-    slice_position = property(_get_slice_position, _set_slice_position)
+    slice_position_world = property(_get_slice_position_world, _set_slice_position_world)
     shape_actor = property(_get_shape_actor)
     text_actor = property(_get_text_actor)
     renderer = property(_get_renderer, _set_renderer)
@@ -161,9 +161,9 @@ class ImageAnnotation(object) :
         # Apparent size of the shape is how high the annotation is above the 
         # slice plane.
         # TODO : should depend on the annotation shape
-        if self._slice_position is not None :
-            # position is in numpy order, slice_position in VTK order 
-            distance = abs(position[0]-self.slice_position[-1])
+        if self.slice_position_world is not None :
+            # position is in numpy order, slice_position_world in VTK order 
+            distance = abs(position[0]-self.slice_position_world[-1])
             self._shape.size = max(0, self._annotation.size-distance)
         
         self._shape.filled = self.annotation.filled
