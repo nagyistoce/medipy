@@ -29,7 +29,7 @@ def erode(input, erode_value, *args, **kwargs):
     if len(args) == 1 :
         return erode_se(input, erode_value, *args)
     elif len(args) == 2 :
-        return erode_shape_and_radius(input, erode_value, **args)
+        return erode_shape_and_radius(input, erode_value, *args)
     elif len(args) == 0 :
         if "shape" in kwargs :
             return erode_shape_and_radius(input, erode_value, **kwargs)
@@ -80,7 +80,7 @@ def dilate(input, dilate_value, *args, **kwargs):
     if len(args) == 1 :
         return dilate_se(input, dilate_value, *args)
     elif len(args) == 2 :
-        return dilate_shape_and_radius(input, dilate_value, **args)
+        return dilate_shape_and_radius(input, dilate_value, *args)
     elif len(args) == 0 :
         if "shape" in kwargs :
             return dilate_shape_and_radius(input, dilate_value, **kwargs)

@@ -28,7 +28,7 @@ def erode(input, *args, **kwargs):
     if len(args) == 1 :
         return erode_se(input, *args)
     elif len(args) == 2 :
-        return erode_shape_and_radius(input, **args)
+        return erode_shape_and_radius(input, *args)
     elif len(args) == 0 :
         if "shape" in kwargs :
             return erode_shape_and_radius(input, **kwargs)
@@ -77,7 +77,7 @@ def dilate(input, *args, **kwargs):
     if len(args) == 1 :
         return dilate_se(input, *args)
     elif len(args) == 2 :
-        return dilate_shape_and_radius(input, **args)
+        return dilate_shape_and_radius(input, *args)
     elif len(args) == 0 :
         if "shape" in kwargs :
             return dilate_shape_and_radius(input, **kwargs)
@@ -125,7 +125,7 @@ def open(input, *args, **kwargs):
     if len(args) == 1 :
         return open_se(input, *args)
     elif len(args) == 2 :
-        return open_shape_and_radius(input, **args)
+        return open_shape_and_radius(input, *args)
     elif len(args) == 0 :
         if "shape" in kwargs :
             return open_shape_and_radius(input, **kwargs)
@@ -175,7 +175,7 @@ def close(input, *args, **kwargs):
     if len(args) == 1 :
         return close_se(input, *args)
     elif len(args) == 2 :
-        return close_shape_and_radius(input, **args)
+        return close_shape_and_radius(input, *args)
     elif len(args) == 0 :
         if "shape" in kwargs :
             return close_shape_and_radius(input, **kwargs)
