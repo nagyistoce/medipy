@@ -341,6 +341,9 @@ class Image(wx.Panel, PropertySynchronized):
         if slice_mode not in ["axial", "coronal", "sagittal", "multiplanar"] :
             raise medipy.base.Exception("Unknown slice mode : %s"%(slice_mode,))
         
+        old_cursor_position = (numpy.copy(self.cursor_index_position) 
+                               if self.cursor_index_position is not None else None)
+        
         old_slice_mode = self._slice_mode
         self._slice_mode = slice_mode
         
@@ -417,6 +420,12 @@ class Image(wx.Panel, PropertySynchronized):
             self.set_mouse_button_tool(button, class_, *args, **kwargs)
         for key, (class_, args, kwargs) in self._keyboard_tools.items() :
             self.set_keyboard_tool(key, class_, *args, **kwargs)
+        
+        # Keep the same pixel under the cursor and centered in the view
+        self._locked = True
+        if old_cursor_position is not None :
+            self._set_cursor_index_position(old_cursor_position)
+        self._locked = False
         
         self._update_informations()
         
