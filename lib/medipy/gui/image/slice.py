@@ -500,7 +500,7 @@ class Slice(PropertySynchronized) :
         
         for annotation in annotations :
             gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
-            gui_annotation.slice_position = self._layers[0].physical_to_world(self._cursor_physical_position)
+            gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
             gui_annotation.renderer = self._renderer
             
             actor_position = gui_annotation.shape_actor.GetPosition()
@@ -744,7 +744,7 @@ class Slice(PropertySynchronized) :
         
         # Update annotations
         for gui_annotation in self._gui_annotations.values() :
-            gui_annotation.slice_position = self._layers[0].physical_to_world(self._cursor_physical_position)
+            gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
         
         self.notify_observers("cursor_position")
         
@@ -934,7 +934,7 @@ class Slice(PropertySynchronized) :
                 gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
                 gui_annotation.renderer = self._renderer
                 
-                gui_annotation.slice_position = self._layers[0].physical_to_world(self._cursor_physical_position)
+                gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
                 
                 actor_position = gui_annotation.shape_actor.GetPosition()
                 gui_annotation.shape_actor.SetPosition(
