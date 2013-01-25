@@ -26,6 +26,9 @@ class Sphere(Base):
         self._set_dimension(dimension)
     
     def indices(self, position=None):
+        """ See :func:`medipy.gui.brushes.Base.indices`.
+        """
+        
         if position is None :
             position = numpy.zeros(self._dimension)
         return numpy.add(self._indices, position)
@@ -35,6 +38,9 @@ class Sphere(Base):
     ##############
     
     def _get_radius(self):
+        """ Radius in pixels.
+        """
+        
         return self._radius
     
     def _set_radius(self, radius):
@@ -43,6 +49,9 @@ class Sphere(Base):
             self._compute_indices()
     
     def _get_dimension(self):
+        """ Number of dimensions.
+        """
+        
         return self._dimension
     
     def _set_dimension(self, dimension):
