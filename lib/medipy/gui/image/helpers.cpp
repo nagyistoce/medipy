@@ -8,6 +8,21 @@
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 
+void sequence_to_array(PyObject* sequence, double* array, bool reverse=false)
+{
+    Py_ssize_t const size = PySequence_Size(sequence);
+    for(unsigned int i=0; i<size; ++i)
+    {
+        PyObject* object = PySequence_GetItem(sequence, i);
+        double const value = PyFloat_AsDouble(object);
+        Py_DECREF(object);
+
+        unsigned int const index = reverse?(size-i-1):i;
+        array[index] = value;
+
+    }
+}
+
 void index_to_physical(double* index, double* origin, double* spacing, double* physical)
 {
     for(unsigned int i=0; i<3; ++i)
@@ -41,11 +56,8 @@ PyObject* layer_index_to_world(PyObject * layer, PyObject * index_python)
             PyObject_GetAttrString(layer, "_reslicer_axes_inverse"))->vtk_ptr);
 
     // Get the index coordinates as a C object, converting to VTK order
-    double index[3] = {
-        PyFloat_AsDouble(PySequence_GetItem(index_python, 2)) ,
-        PyFloat_AsDouble(PySequence_GetItem(index_python, 1)) ,
-        PyFloat_AsDouble(PySequence_GetItem(index_python, 0))
-    };
+    double index[3];
+    sequence_to_array(index_python, index, true);
 
     // Make sure the pipeline is up-to-date
     change_information->Update();
@@ -74,7 +86,7 @@ PyObject* layer_index_to_world(PyObject * layer, PyObject * index_python)
         change_information->GetOutputOrigin(), change_information->GetOutputSpacing(),
         world);
 
-    return Py_BuildValue("(d,d,d)", world[0], world[1], index[2]);
+    return Py_BuildValue("(d,d,d)", world[0], world[1], world[2]);
 }
 
 PyObject* layer_world_to_index(PyObject * layer, PyObject * world_python)
@@ -91,11 +103,8 @@ PyObject* layer_world_to_index(PyObject * layer, PyObject * world_python)
             PyObject_GetAttrString(layer, "_vtk_image"))->vtk_ptr);
 
     // Get the world coordinates as a C object
-    double world[3] = {
-        PyFloat_AsDouble(PySequence_GetItem(world_python, 0)) ,
-        PyFloat_AsDouble(PySequence_GetItem(world_python, 1)) ,
-        PyFloat_AsDouble(PySequence_GetItem(world_python, 2))
-    };
+    double world[3];
+    sequence_to_array(world_python, world);
 
     // Make sure the pipeline is up-to-date
     change_information->Update();
