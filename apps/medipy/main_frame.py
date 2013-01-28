@@ -433,7 +433,7 @@ class MainFrame(medipy.gui.base.Frame):
         return self._crosshair
 
     def _set_crosshair(self, value) :
-        if value not in ["full", "none"] :
+        if value not in ["full", "partial", "none"] :
             raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
         
         self._crosshair = value
@@ -625,8 +625,8 @@ class MainFrame(medipy.gui.base.Frame):
     def OnCrosshairFull(self, dummy):
         self.crosshair = "full"
     
-#    def OnCrosshairPartial(self, dummy):
-#        pass
+    def OnCrosshairPartial(self, dummy):
+        self.crosshair = "partial"
     
     def OnCrosshairNone(self, dummy):
         self.crosshair = "none"
