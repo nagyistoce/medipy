@@ -241,7 +241,7 @@
       </object>
     </object>
     <object class="wxSplitterWindow" name="main_splitter">
-      <object class="wxNotebook">
+      <object class="wxNotebook" name="notebook">
         <object class="notebookpage">
           <object class="wxSplitterWindow" name="left_splitter">
             <object class="wxTreeCtrl" name="menu_treectrl">

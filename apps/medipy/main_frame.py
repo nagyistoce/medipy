@@ -48,6 +48,7 @@ class MainFrame(medipy.gui.base.Frame):
     
     class UI(medipy.gui.base.UI):
         def __init__(self):
+            self.notebook = None
             self.menu_treectrl = None
             self.function_ui_panel = None
             self.function_ui_sizer = None
@@ -63,7 +64,8 @@ class MainFrame(medipy.gui.base.Frame):
             self.images_sizer = None
             
             self.controls = [
-                "menu_treectrl", "function_ui_panel",
+                "notebook",
+                "menu_treectrl", "function_ui_panel", 
                 "layers_tab", 
                 "annotations_tab",
                 "images_panel"]
