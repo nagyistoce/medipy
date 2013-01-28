@@ -496,10 +496,13 @@ class Image(wx.Panel, PropertySynchronized):
             slice.world_to_slice = world_to_slice
     
     def _get_crosshair(self):
+        """ Display mode of the crosshair.
+        """
+        
         return self._crosshair
     
     def _set_crosshair(self, value):
-        if value not in ["full", "none"] :
+        if value not in ["full", "partial", "none"] :
             raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
         
         self._set_slice_property("crosshair", value)

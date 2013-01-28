@@ -263,10 +263,13 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
             image.render()
     
     def _get_crosshair(self) :
+        """ Display mode of the crosshair.
+        """
+        
         return self._crosshair
 
     def _set_crosshair(self, value) :
-        if value not in ["full", "none"] :
+        if value not in ["full", "partial", "none"] :
             raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
         
         self._crosshair = value
