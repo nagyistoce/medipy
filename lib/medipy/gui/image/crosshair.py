@@ -78,7 +78,7 @@ class Crosshair(object):
               based on the extent
             * ``"partial"`` : a hole is left at the center of the horizontal and
               vertical lines. The size of the hole is given by 
-              :prop:`hole_size`.
+              :attr:`hole_size`.
             * ``"none"`` : no lines are displayed.
         """
         
