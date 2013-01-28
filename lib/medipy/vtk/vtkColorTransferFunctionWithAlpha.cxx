@@ -314,7 +314,7 @@ vtkColorTransferFunctionWithAlpha
     this->UnsignedCharRGBAValue[0] = (unsigned char) (255.0*rgb[0]);
     this->UnsignedCharRGBAValue[1] = (unsigned char) (255.0*rgb[1]);
     this->UnsignedCharRGBAValue[2] = (unsigned char) (255.0*rgb[2]);
-    this->UnsignedCharRGBAValue[3] = 255;
+    this->UnsignedCharRGBAValue[3] = (unsigned char) (255.0*this->GetAlphaValue(x));
     return this->UnsignedCharRGBAValue;
 }
 
