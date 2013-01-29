@@ -28,6 +28,8 @@ classes_template_info = [
     ("itk::ChangeDetectionClusteringImageFilter", instantiations, "pointer"),
 ]
 
+types = get_scalar_types(wrapitk_root())
+dimensions = get_dimensions(wrapitk_root())
 instantiations = [(i,) for i in get_instantiations("itk::Image", types, dimensions)]
 classes_template_info.append(
     ("itk::ClustersToAnnotationsCalculator", instantiations, "pointer")
