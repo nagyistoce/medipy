@@ -866,10 +866,7 @@ class Slice(PropertySynchronized) :
                 self._mouse_tools[source].dispatch_interaction(rwi, self)
     
     def _get_key_name(self, rwi):
-        if rwi.GetKeyCode() in ["\x00", ""] : 
-            key = rwi.GetKeySym()
-        else :
-            key = rwi.GetKeyCode()	
+        key = rwi.GetKeySym()
         if key is None :
             return None
         if rwi.GetControlKey() :
