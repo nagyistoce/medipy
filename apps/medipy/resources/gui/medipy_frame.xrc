@@ -82,6 +82,17 @@
           <accel>Ctrl+Q</accel>
         </object>
       </object>
+      <object class="wxMenu" name="edit_menu">
+        <object class="wxMenuItem" name="undo">
+          <label>Undo</label>
+          <accel>Ctrl+Z</accel>
+        </object>
+        <object class="wxMenuItem" name="redo">
+          <label>Redo</label>
+          <accel>Ctrl+Shift+Z</accel>
+        </object>
+        <label>&amp;Edit</label>
+      </object>
       <object class="wxMenu" name="image_menu">
         <object class="wxMenuItem" name="reset_view">
           <label>&amp;Reset view</label>
@@ -197,8 +208,6 @@
           </object>
           <label>Synchronize</label>
         </object>
-
-
         <object class="wxMenu" name="display_tensors_menu">
           <object class="wxMenuItem" name="tensor2_display_principal_direction_voxel">
             <label>Color map</label>
@@ -214,9 +223,6 @@
           </object>
           <label>Display tensors</label>
         </object>
-
-
-
         <label>View</label>
       </object>
     </object>
