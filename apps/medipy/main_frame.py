@@ -738,6 +738,17 @@ class MainFrame(medipy.gui.base.Frame):
         else :
             undo_item.Enable(self._history.can_undo)
             redo_item.Enable(self._history.can_redo)
+        
+        undo_item.SetItemLabel("Undo")
+        if self._history.can_undo :
+            undo_item.SetItemLabel("{0} {1}\t{2}".format(
+               undo_item.GetItemLabel(), self._history.labels[self._history.cursor],
+               "Ctrl+Z"))
+        redo_item.SetItemLabel("Redo")
+        if self._history.can_redo :
+            redo_item.SetItemLabel("{0} {1}\t{2}".format(
+                redo_item.GetText(), self._history.labels[self._history.cursor-1],
+                "Ctrl+Shift+Z"))
     
     #####################
     # Private interface #
