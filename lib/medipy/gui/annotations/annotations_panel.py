@@ -334,6 +334,8 @@ class AddAnnotation(medipy.base.UndoableCommand) :
     """
     
     def __init__(self, annotations_panel, new_annotation):
+        medipy.base.UndoableCommand.__init__(self, "Add annotation")
+        
         self.annotations_panel = annotations_panel
         self.new_annotation = new_annotation
     
@@ -363,6 +365,8 @@ class DeleteAnnotation(medipy.base.UndoableCommand):
     """
     
     def __init__(self, annotations_panel, annotation_index):
+        medipy.base.UndoableCommand.__init__(self, "Delete annotation")
+        
         self.annotations_panel = annotations_panel
         self.annotation_index = annotation_index
         self._annotation = None
