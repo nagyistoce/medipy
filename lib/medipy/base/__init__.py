@@ -16,11 +16,11 @@ from image import Image
 from image_annotation import ImageAnnotation
 from late_binding_property import LateBindingProperty
 from object_3d import Object3D
-from observable import Observable
+from observable import EventObject, Observable
 from observable_list import ObservableList
 from property_synchronized import PropertySynchronized
 
 __all__ = ["array", "Command", "UndoableCommand", "coordinate_system", 
            "Exception", "find_resource", "History", "Image", "ImageAnnotation", 
-           "LateBindingProperty", "Object3D", "Observable", "ObservableList",
-           "PropertySynchronized"]
+           "LateBindingProperty", "Object3D", "EventObject", "Observable", 
+           "ObservableList", "PropertySynchronized"]
