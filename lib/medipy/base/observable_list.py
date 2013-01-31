@@ -29,7 +29,7 @@ class ObservableList(list, Observable) :
         * sort : self, cmpfunc, key, reverse, old_list
     """ 
     
-    def __init__(self, sequence=[], observers=None) :
+    def __init__(self, sequence=[]) :
         list.__init__(self, sequence)
         Observable.__init__(self, ["set_item", "delete_item", "append", "pop",
             "extend", "insert", "remove", "reverse", "sort"])
@@ -70,7 +70,7 @@ class ObservableList(list, Observable) :
     
     def insert(self, index, value) :
         list.insert(self, index, value)
-        #self.notify_observers("insert", index=index, value=value)
+        self.notify_observers("insert", index=index, value=value)
             
     def remove(self, value) :
         index = list.index(self, value)

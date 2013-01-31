@@ -11,6 +11,8 @@ import weakref
 import exception
 
 class EventObject(object):
+    """ Dummy class for events.
+    """
     pass
 
 class Observable(object) :
