@@ -303,7 +303,20 @@ class Layer(medipy.base.Observable) :
     #####################
     
     def _on_image_modified(self, event):
-        self._vtk_image.Modified()
+        # We have no way of knowing what changed, so just re-create the VTK 
+        # image from scratch.
+        
+        self._vtk_image = medipy.vtk.bridge.array_to_vtk_image(
+            self._image.data, False, self._image.data_type)
+        
+        # Reset the origin and spacing of the VTK image since the reslice matrix
+        # will be from voxel space to slice space
+        self._vtk_image.SetOrigin(0,0,0)
+        self._vtk_image.SetSpacing(1,1,1)
+        # Update the pipeline
+        self._update_reslicer_matrix()
+        self._update_change_information()
+        self._reslicer.SetInput(self._vtk_image)
     
     def _update_reslicer_matrix(self):
         """ Update the reslicer matrix with respect to the world_to_slice matrix
