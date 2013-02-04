@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -10,10 +10,17 @@
     
     The path is interpreted as a local filesystem path to a dicom_series file.
     
-    The fragment is of the form tag "=" value where tag can be one of :
-      * uid
-      * description
-      * custom_name
+    The fragment is of the form ``tag "=" value`` where tag can be one of :
+      
+      * ``uid``
+      * ``description``
+      * ``custom_name``
+    
+    The following examples are correct fragments : ::
+    
+        uid_fragment = "uid=2.25.169876028567313845957086020100076112905"
+        description_fragment = "description=T1 3D SPGR"
+        custom_name_fragment = "custom_name=my specific description"
 """
 
 import csv

@@ -24,7 +24,7 @@ class TestRule(unittest.TestCase):
         rule(self.dataset)
         
         self.assertTrue("patient_id" in self.dataset)
-        self.assertEqual(self.dataset.patient_id, "FOO")
+        self.assertEqual(self.dataset.patient_id.value, "FOO")
 
 if __name__ == "__main__" :
     unittest.main()

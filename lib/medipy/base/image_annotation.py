@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -14,8 +14,8 @@ from observable import Observable
 
 class ImageAnnotation(Observable):
     """ Annotation localized on an image. Position is in mm, expressed as 
-        (z,y,x).
-        Can fire the following events : 
+        (z,y,x). Can fire the following events : 
+            
             * position : old_value
             * label : old_value
             * shape : old_value
@@ -26,6 +26,9 @@ class ImageAnnotation(Observable):
     """
     
     class Shape(object):
+        """ Image shape.
+        """
+        
         sphere = 0
         cube = 1
         cross = 2
@@ -33,6 +36,12 @@ class ImageAnnotation(Observable):
         
         @staticmethod
         def to_name(value):
+            """ Convert a shape value to its name.
+                
+                >>> medipy.base.ImageAnnotation.Shape.to_name(0)
+                "sphere"
+            """
+            
             dictionary = dict([(getattr(ImageAnnotation.Shape, name), name) 
                                for name in dir(ImageAnnotation.Shape) 
                                if isinstance(getattr(ImageAnnotation.Shape, name), int)])

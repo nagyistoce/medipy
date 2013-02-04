@@ -6,6 +6,14 @@
 # for details.
 ##########################################################################
 
+""" Other than Service Classes that can copy data 
+    (:class:`~medipy.network.dicom.scu.Get` and 
+    :class:`~medipy.network.dicom.scu.Move`), the DICOM standard contains a 
+    method to access DICOM data through HTTP: *WADO*, for *Web Access to DICOM 
+    Objects* (PS 3.18-2011). Through this service, the user can access DICOM
+    data with and HTTP GET request that specifies the key of a given DICOM object.
+"""
+
 import os
 import tempfile
 import urllib
@@ -19,14 +27,28 @@ def get(url, dataset, filename=None):
         SOP Instance UID).
         
         If filename is None, then the resulting dataset will be returned, otherwise
-        it will be stored in the given filename.
+        it will be stored in the given filename. ::
+        
+            wado_url = "http://pacs.example.com/wado"
+    
+            query = medipy.io.dicom.DataSet()
+            query.patient_id = "12345"
+            query.study_instance_uid = "..."
+            query.series_instance_uid = "..."
+            query.sop_instance_uid = "..."
+            
+            # Store the result in a file
+            medipy.network.dicom.wado.get(wado_url, query, "result.dcm")
+            
+            # Return the resulting dataset.
+            dataset = medipy.network.dicom.wado.get(wado_url, query)
     """
     
     query = {
         "requestType" : "WADO", # Required, cf. 3.18-2011, 8.1.1,
-        "studyUID" : dataset.study_instance_uid,
-        "seriesUID" : dataset.series_instance_uid,
-        "objectUID" : dataset.sop_instance_uid,
+        "studyUID" : dataset.study_instance_uid.value,
+        "seriesUID" : dataset.series_instance_uid.value,
+        "objectUID" : dataset.sop_instance_uid.value,
         "contentType" : "application/dicom"
     }
     

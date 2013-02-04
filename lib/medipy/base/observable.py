@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -11,6 +11,8 @@ import weakref
 import exception
 
 class EventObject(object):
+    """ Dummy class for events.
+    """
     pass
 
 class Observable(object) :
@@ -130,10 +132,27 @@ class Observable(object) :
         self._locked = False
     
     def is_allowed_event(self, event):
+        """ Test if ``event`` is allowed for the current object.
+        """
+        
         self._remove_dead_observers()
         return event in self._allowed_events
     
-    allowed_events = property(fget=lambda self : self._allowed_events)
+    ##############
+    # Properties #
+    ##############
+    
+    def _get_allowed_events(self):
+        """ Events allowed for the current object.
+        """
+        
+        return self._allowed_events
+    
+    allowed_events = property(_get_allowed_events)
+    
+    #####################
+    # Private interface #
+    #####################
     
     def _add_bound_method_observer(self, event, observer):
         observers = [(o[0](), o[1]) for o in self._observers[event] if isinstance(o, tuple)]

@@ -48,6 +48,7 @@ class MainFrame(medipy.gui.base.Frame):
     
     class UI(medipy.gui.base.UI):
         def __init__(self):
+            self.notebook = None
             self.menu_treectrl = None
             self.function_ui_panel = None
             self.function_ui_sizer = None
@@ -63,7 +64,8 @@ class MainFrame(medipy.gui.base.Frame):
             self.images_sizer = None
             
             self.controls = [
-                "menu_treectrl", "function_ui_panel",
+                "notebook",
+                "menu_treectrl", "function_ui_panel", 
                 "layers_tab", 
                 "annotations_tab",
                 "images_panel"]
@@ -129,6 +131,10 @@ class MainFrame(medipy.gui.base.Frame):
         
         self._image_tool = None
         
+        self._history = medipy.base.History(10)
+        self._history.add_observer("cursor", self._on_history)
+        self.ui.annotations.history = self._history
+        
         ##################
         # Initialize GUI #
         ##################
@@ -145,6 +151,11 @@ class MainFrame(medipy.gui.base.Frame):
         
         # Disable item that should not be active when no image is loaded
         for item in self._menus_active_when_image_loaded :
+            menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item))
+            if menu_item is not None :
+                menu_item.Enable(False)
+        # Disable history-related menu items
+        for item in ["undo", "redo"] :
             menu_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID(item))
             if menu_item is not None :
                 menu_item.Enable(False)
@@ -433,7 +444,7 @@ class MainFrame(medipy.gui.base.Frame):
         return self._crosshair
 
     def _set_crosshair(self, value) :
-        if value not in ["full", "none"] :
+        if value not in ["full", "partial", "none"] :
             raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
         
         self._crosshair = value
@@ -527,6 +538,12 @@ class MainFrame(medipy.gui.base.Frame):
     def OnCloseAllImages(self, dummy):
         while self.images :
             self.delete_image(0)
+    
+    def OnUndo(self, dummy):
+        self._history.undo()
+    
+    def OnRedo(self, dummy):
+        self._history.redo()
     
     def OnQuit(self, dummy):
         self.Close()
@@ -625,8 +642,8 @@ class MainFrame(medipy.gui.base.Frame):
     def OnCrosshairFull(self, dummy):
         self.crosshair = "full"
     
-#    def OnCrosshairPartial(self, dummy):
-#        pass
+    def OnCrosshairPartial(self, dummy):
+        self.crosshair = "partial"
     
     def OnCrosshairNone(self, dummy):
         self.crosshair = "none"
@@ -707,6 +724,31 @@ class MainFrame(medipy.gui.base.Frame):
                     control.image = image
         elif hasattr(self.current_ui, "image") :
             self.current_ui.image = image
+    
+    def _on_history(self, event):
+        undo_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID("undo"))
+        redo_item = self.GetMenuBar().FindItemById(wx.xrc.XRCID("redo"))
+        
+        undo_item.Enable(True)
+        redo_item.Enable(True)
+        
+        if self._history.empty :
+            undo_item.Enable(False)
+            redo_item.Enable(False)
+        else :
+            undo_item.Enable(self._history.can_undo)
+            redo_item.Enable(self._history.can_redo)
+        
+        undo_item.SetItemLabel("Undo")
+        if self._history.can_undo :
+            undo_item.SetItemLabel("{0} {1}\t{2}".format(
+               undo_item.GetItemLabel(), self._history.labels[self._history.cursor],
+               "Ctrl+Z"))
+        redo_item.SetItemLabel("Redo")
+        if self._history.can_redo :
+            redo_item.SetItemLabel("{0} {1}\t{2}".format(
+                redo_item.GetText(), self._history.labels[self._history.cursor-1],
+                "Ctrl+Shift+Z"))
     
     #####################
     # Private interface #

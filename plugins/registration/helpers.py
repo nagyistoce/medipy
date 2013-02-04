@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -11,6 +11,20 @@ import numpy
 
 import medipy.base
 import medipy.itk
+
+def mutual_information_histogram(fixed, moving):
+    if isinstance(fixed, medipy.base.Image) :
+        FixedImageType = medipy.itk.itk_image_type(fixed)
+    else :
+        FixedImageType = fixed
+    
+    if isinstance(moving, medipy.base.Image) :
+        MovingImageType = medipy.itk.itk_image_type(moving)
+    else :
+        MovingImageType = moving
+        
+    # Not wrapped !
+    metric = itk.MutualInformationHistogramImageToImageMetric[FixedImageType, MovingImageType].New()
 
 def mattes_mutual_information(fixed, moving, bins_count=50, pixels_fraction=None,
                               **kwargs) :
@@ -98,6 +112,34 @@ def euler_3d_transform(initialize=False, fixed=None, moving=None, moments=True) 
             initializer.GeometryOn()
         initializer.InitializeTransform()
         transform.SetCenter(initial_transform.GetCenter())
+        transform.SetOffset(initial_transform.GetOffset())
+    
+    return transform
+
+def affine_transform(fixed, initialize=False, moving=None, moments=True) :
+    """ Return an object of type itk.AffineTransform. If initialize is True,
+        then the fixed and moving must be medipy.base.Image. The value of moments 
+        indicates wether moments-based or geometry-based initialization is
+        performed.
+    """
+    
+    transform = itk.AffineTransform[itk.D, fixed.ndim].New()
+    
+    if initialize :
+        fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
+        moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)
+        
+        initial_transform = itk.VersorRigid3DTransform[itk.D].New()
+        initializer = itk.CenteredTransformInitializer[
+            initial_transform, fixed_itk, moving_itk].New(
+            Transform=initial_transform, FixedImage=fixed_itk, MovingImage=moving_itk) 
+        if moments :
+            initializer.MomentsOn()
+        else :
+            initializer.GeometryOn()
+        initializer.InitializeTransform()
+        transform.SetCenter(initial_transform.GetCenter())
+        transform.SetOffset(initial_transform.GetOffset())
     
     return transform
 

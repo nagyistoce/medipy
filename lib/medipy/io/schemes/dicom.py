@@ -12,19 +12,32 @@
     or to a directory. If the path is a directory, DICOM files will be searched
     in that path, using recursion unless specified otherwise.
     
-    The fragment is of form [ tag "=" value { "&" tag "=" value } ], where tag
+    The fragment is of form ``[ tag "=" value { "&" tag "=" value } ]``, where ``tag``
     is a DICOM tag in one of the following forms :
-      * Numerical (accepted forms : "(0020,000e)", "(0x0020,0x000e)", 
-        "0020000e", "0x0020000e")
+      
+      * Numerical (accepted forms : ``"(0020,000e)"``, ``"(0x0020,0x000e)"``, 
+        ``"0020000e"``, ``"0x0020000e"``)
       * Named, in which case it must be a key of
-        medipy.io.dicom.dictionary.name_dictionary
+        :attr:`medipy.io.dicom.dictionary.name_dictionary`
+    
     The tag may also have the following special values :
-      * recursive : the value must be True (default) or False. If True, all 
-        files below the given path will be used. If False, only files directly
+      
+      * ``recursive`` : the value must be ``True`` (default) or ``False``. If ``True``, all 
+        files below the given path will be used. If ``False``, only files directly
         below the given path will be used.
     
     A dataset is considered a match for the fragment if it contains all the 
-    tags in the filters, and matches all the corresponding values. 
+    tags in the filters, and matches all the corresponding values.
+    
+    The following examples are correct fragments, matching datasets where the
+    Patient's Name is equal to ``"Doe^John"`` and the Patient ID is equal to
+    ``"1234"``. Since ``recursive`` is not specified for the first three, it is 
+    assumed to be ``True``. ::
+    
+        numerical_fragment = "(0010,0010)=Doe^John&(0010,0020)=1234"
+        named_fragment = "patients_name=Doe^John&patient_id=1234"
+        mixed_fragment = "00100010=Doe^John&patient_id=1234"
+        non_recursive_fragment = "recursive=False&patients_name=Doe^John&patient_id=1234"
 """
 
 import os
@@ -132,7 +145,7 @@ def _get_matching_datasets(path, fragment) :
         
         match = True
         for tag, value in filters :
-            if tag not in dataset or dataset[tag] != value :
+            if tag not in dataset or dataset[tag].value != value :
                 match = False
                 break
         

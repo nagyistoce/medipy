@@ -798,9 +798,10 @@ class wxVTKRenderWindowInteractor(baseClass):
         alt = event.AltDown()
         keycode = event.GetKeyCode()
         
-        # If keysym is None, then the event information is not modified
         key = chr(keycode if keycode<256 else 0)
-        keysym = self.keysyms.get(keycode, None)
+        # Get keysym from the table, default to the key representation, or None
+        # if the key is not <256
+        keysym = self.keysyms.get(keycode, key)
         
         # wxPython 2.6.0.1 does not return a valid event.Get{X,Y}()
         # for this event, so we use the cached position.

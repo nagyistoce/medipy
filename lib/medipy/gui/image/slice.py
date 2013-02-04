@@ -10,8 +10,7 @@ import sys
 
 import numpy
 import scipy.spatial
-from vtk import (vtkActor, vtkCornerAnnotation, vtkLineSource, 
-    vtkPolyDataMapper, vtkRenderer, vtkScalarBarActor)
+from vtk import vtkCornerAnnotation, vtkRenderer, vtkScalarBarActor
 
 import medipy.base
 import medipy.base.array
@@ -22,6 +21,7 @@ from medipy.gui.annotations import ImageAnnotation as GUIImageAnnotation
 from layer import Layer
 from medipy.vtk import vtkOrientationAnnotation
 
+from crosshair import Crosshair
 import mouse_tools
 import keyboard_tools 
 
@@ -123,10 +123,7 @@ class Slice(PropertySynchronized) :
         self._scalar_bar_actor = vtkScalarBarActor()
         self._corner_annotation = vtkCornerAnnotation()
         self._orientation_annotation = vtkOrientationAnnotation()
-        self._horizontal_line_source = vtkLineSource()
-        self._vertical_line_source = vtkLineSource()
-        self._horizontal_line_actor = vtkActor()
-        self._vertical_line_actor = vtkActor()
+        self._crosshair = Crosshair()
         
         # Tools and interactions
         self._observer_tags = []
@@ -152,17 +149,10 @@ class Slice(PropertySynchronized) :
         camera.SetPosition(0, 0, self._actors_altitudes["camera"])
         camera.SetFocalPoint(0, 0, 0)
         
-        # Create cursor objects
-        for direction in ["horizontal", "vertical"] :
-            line_source = getattr(self, "_%s_line_source"%direction)
-            actor = getattr(self, "_%s_line_actor"%direction)
-            
-            mapper = vtkPolyDataMapper()
-            mapper.SetInputConnection(line_source.GetOutputPort())
-            actor.SetMapper(mapper)
-            actor.PickableOff()
-            actor.GetProperty().SetColor(1,0,0)
-            self._renderer.AddActor(actor)
+        # Create cursor
+        self._crosshair.altitude = self._actors_altitudes["cursor"]
+        self._crosshair.hole_size = 5
+        self._renderer.AddActor(self._crosshair.actor)
         
         # Create scalar bar (from vtkInria3D)
         self._scalar_bar_actor.GetLabelTextProperty().SetColor(1.0,1.0,1.0)
@@ -229,8 +219,7 @@ class Slice(PropertySynchronized) :
         """ Remove all actors from renderer, prepare for destruction.
         """
     
-        self.renderer.RemoveActor(self._horizontal_line_actor)
-        self.renderer.RemoveActor(self._vertical_line_actor)
+        self.renderer.RemoveActor(self._crosshair.actor)
         self.renderer.RemoveActor(self._scalar_bar_actor)
         self.renderer.RemoveActor(self._orientation_annotation)
         self.renderer.RemoveActor(self._corner_annotation)
@@ -486,7 +475,6 @@ class Slice(PropertySynchronized) :
         return self._annotations
     
     def _set_annotations(self, annotations):
-    
         if self._annotations is not None :
             self._annotations.remove_observer("any", self._on_annotations_changed)
             for slice_annotation in self._gui_annotations.values() :
@@ -498,9 +486,14 @@ class Slice(PropertySynchronized) :
         self._annotations = annotations
         self._annotations.add_observer("any", self._on_annotations_changed)
         
+        
         for annotation in annotations :
             gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
-            gui_annotation.slice_position = self._cursor_physical_position
+            if self._cursor_physical_position is not None :
+                gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
+            else :
+                # Use dummy value
+                gui_annotation.slice_position_world = (0,0,0)
             gui_annotation.renderer = self._renderer
             
             actor_position = gui_annotation.shape_actor.GetPosition()
@@ -587,21 +580,13 @@ class Slice(PropertySynchronized) :
         self.notify_observers("corner_annotations_visibility")
     
     def _get_crosshair(self):
-        return self._crosshair
+        """ Crosshair display mode.
+        """
+        
+        return self._crosshair.mode
     
     def _set_crosshair(self, value):
-        if value not in ["full", "none"] :
-            raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
-        
-        self._crosshair = value
-        
-        if self._crosshair == "full" :
-            self._horizontal_line_actor.VisibilityOn()
-            self._vertical_line_actor.VisibilityOn()
-        else :
-            self._horizontal_line_actor.VisibilityOff()
-            self._vertical_line_actor.VisibilityOff()
-        
+        self._crosshair.mode = value
         self.notify_observers("crosshair")
     
     def _get_world_to_slice(self) :
@@ -732,11 +717,7 @@ class Slice(PropertySynchronized) :
         
         extent = self._slice_extent
         
-        z = self._actors_altitudes["cursor"]
-        self._horizontal_line_source.SetPoint1(extent[0], world_vtk[1], z)
-        self._horizontal_line_source.SetPoint2(extent[1], world_vtk[1], z)
-        self._vertical_line_source.SetPoint1(world_vtk[0], extent[2], z)
-        self._vertical_line_source.SetPoint2(world_vtk[0], extent[3], z)
+        self._crosshair.position = world_vtk[:2]
         
         # Update layers
         for layer in self._layers :
@@ -744,7 +725,7 @@ class Slice(PropertySynchronized) :
         
         # Update annotations
         for gui_annotation in self._gui_annotations.values() :
-            gui_annotation.slice_position = self._cursor_physical_position
+            gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
         
         self.notify_observers("cursor_position")
         
@@ -837,6 +818,8 @@ class Slice(PropertySynchronized) :
                     slice_extent[i] = max(slice_extent[i], value)
         
         self._slice_extent = slice_extent
+        self._crosshair.extent = [[self._slice_extent[0], self._slice_extent[2]],
+                                  [self._slice_extent[1], self._slice_extent[3]]]
     
     def _start_interaction(self, rwi, event) :
         
@@ -883,10 +866,7 @@ class Slice(PropertySynchronized) :
                 self._mouse_tools[source].dispatch_interaction(rwi, self)
     
     def _get_key_name(self, rwi):
-        if rwi.GetKeyCode() in ["\x00", ""] : 
-            key = rwi.GetKeySym()
-        else :
-            key = rwi.GetKeyCode()	
+        key = rwi.GetKeySym()
         if key is None :
             return None
         if rwi.GetControlKey() :
@@ -934,7 +914,7 @@ class Slice(PropertySynchronized) :
                 gui_annotation = GUIImageAnnotation(annotation, self._layers[0])
                 gui_annotation.renderer = self._renderer
                 
-                gui_annotation.slice_position = self._cursor_physical_position
+                gui_annotation.slice_position_world = self._layers[0].physical_to_world(self._cursor_physical_position)
                 
                 actor_position = gui_annotation.shape_actor.GetPosition()
                 gui_annotation.shape_actor.SetPosition(

@@ -10,6 +10,7 @@ from tag import Tag
 from dataset import DataSet
 from dataset_io import read, write
 from dicom_series import DicomSeries
+import dictionary
 import encapsulated_document
 from misc import generate_uid, load_dicomdir_records, uid_and_description
 from reconstruction import image
@@ -20,3 +21,7 @@ from vr import *
 import os.path
 import medipy.itk
 medipy.itk.load_wrapitk_module(os.path.dirname(__file__), "AssembleTilesImageFilter")
+
+__all__ = ["Tag", "DataSet", "read", "write", "DicomSeries", "dictionary",
+           "encapsulated_document", "generate_uid", "load_dicomdir_records", 
+           "uid_and_description", "image", "routing", "series", "stacks"]

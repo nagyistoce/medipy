@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import numpy
@@ -27,6 +27,9 @@ class Square(Base):
         self._set_normal(normal)
     
     def indices(self, position=None):
+        """ See :func:`medipy.gui.brushes.Base.indices`.
+        """
+        
         if position is None :
             position = numpy.zeros(len(self._normal))
         return numpy.add(self._indices, position)
@@ -36,6 +39,9 @@ class Square(Base):
     ##############
     
     def _get_radius(self):
+        """ Radius in pixels.
+        """
+        
         return self._radius
     
     def _set_radius(self, radius):
@@ -44,7 +50,7 @@ class Square(Base):
             self._compute_indices()
     
     def _get_normal(self):
-        """ Normal of the circle plane (must be unit-length) 
+        """ Normal of the square plane (must be unit-length). 
         """
         
         return self._normal

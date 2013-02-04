@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 from observable import Observable
@@ -17,6 +17,7 @@ class ObservableList(list, Observable) :
     The events are fired after the list is notified, and have the following
     arguments. The arguments are sufficient to have all information about the
     modification.
+        
         * set_item : self, index, old_value
         * delete_item : self, index, old_value
         * append : self
@@ -28,7 +29,7 @@ class ObservableList(list, Observable) :
         * sort : self, cmpfunc, key, reverse, old_list
     """ 
     
-    def __init__(self, sequence=[], observers=None) :
+    def __init__(self, sequence=[]) :
         list.__init__(self, sequence)
         Observable.__init__(self, ["set_item", "delete_item", "append", "pop",
             "extend", "insert", "remove", "reverse", "sort"])
@@ -69,7 +70,7 @@ class ObservableList(list, Observable) :
     
     def insert(self, index, value) :
         list.insert(self, index, value)
-        #self.notify_observers("insert", index=index, value=value)
+        self.notify_observers("insert", index=index, value=value)
             
     def remove(self, value) :
         index = list.index(self, value)

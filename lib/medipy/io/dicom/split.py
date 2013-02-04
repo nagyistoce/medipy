@@ -46,17 +46,18 @@ def series(datasets, keep_only_images = True):
     
     for dataset in filtered_datasets :
         if "directory_record_sequence" in dataset :
-            for record in dataset.directory_record_sequence :
-                if record.directory_record_type != "SERIES" :
+            for record in dataset.directory_record_sequence.value :
+                if record.directory_record_type.value != "SERIES" :
                     continue
                 
-                series_instance_uid = record.series_instance_uid.value
+                series_instance_uid = record.get(
+                    "series_instance_uid", UI(None)).value
                 
                 if keep_only_images :
                     modified_record = copy.deepcopy(record)
                     modified_record.children = [
                         x for x in record.children 
-                        if x.directory_record_type == "IMAGE"]
+                        if x.directory_record_type.value == "IMAGE"]
                     
                     if modified_record.children :
                         result.setdefault(series_instance_uid, [])
@@ -96,7 +97,7 @@ def stacks_dictionary(datasets):
         return lambda x: x.get(tag, vr(default_value)).value
     
     def sequence_getter(sequence_tag, item_tag, vr, default_value=None):
-        return lambda x: x.get(sequence_tag, SQ([{}]))[0].get(item_tag, vr(default_value)).value
+        return lambda x: x.get(sequence_tag, SQ([{}])).value[0].get(item_tag, vr(default_value)).value
     
     getters = {
         # Image Orientation (Patient) (0020,0037)
@@ -115,8 +116,8 @@ def stacks_dictionary(datasets):
                                              "temporal_position_index", UL),
         # Diffusion Gradient Orientation (0018,9089)
         Tag(0x0018,0x9089) : lambda x:tuple(
-            x.get("mr_diffusion_sequence", SQ([{}]))[0].
-                get("diffusion_gradient_direction_sequence", SQ([{}]))[0].
+            x.get("mr_diffusion_sequence", SQ([{}])).value[0].
+                get("diffusion_gradient_direction_sequence", SQ([{}])).value[0].
                     get("diffusion_gradient_orientation", FD(())).value),
         # Diffusion b-value (0018,9087)
         Tag(0x0018,0x9087) : sequence_getter("mr_diffusion_sequence", 
@@ -146,13 +147,14 @@ def stacks(datasets):
         defined as "groups of frames that have a geometric relationship" 
         (PS 3.3-2011, C.7.6.16.2.2.4). Stacks are formed using the following 
         attributes : 
-          * Image Orientation (Patient)
-          * Echo Number, 
-          * Acquisition Number
-          * Frame Type
-          * Temporal Position Index
-          * Diffusion Gradient Orientation 
-          * Diffusion b-Value.
+        
+            * Image Orientation (Patient)
+            * Echo Number, 
+            * Acquisition Number
+            * Frame Type
+            * Temporal Position Index
+            * Diffusion Gradient Orientation 
+            * Diffusion b-Value.
     """
     
     dictionary = stacks_dictionary(datasets)

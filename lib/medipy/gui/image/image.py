@@ -341,6 +341,9 @@ class Image(wx.Panel, PropertySynchronized):
         if slice_mode not in ["axial", "coronal", "sagittal", "multiplanar"] :
             raise medipy.base.Exception("Unknown slice mode : %s"%(slice_mode,))
         
+        old_cursor_position = (numpy.copy(self.cursor_index_position) 
+                               if self.cursor_index_position is not None else None)
+        
         old_slice_mode = self._slice_mode
         self._slice_mode = slice_mode
         
@@ -418,6 +421,12 @@ class Image(wx.Panel, PropertySynchronized):
         for key, (class_, args, kwargs) in self._keyboard_tools.items() :
             self.set_keyboard_tool(key, class_, *args, **kwargs)
         
+        # Keep the same pixel under the cursor and centered in the view
+        self._locked = True
+        if old_cursor_position is not None :
+            self._set_cursor_index_position(old_cursor_position)
+        self._locked = False
+        
         self._update_informations()
         
     def _get_number_of_layers(self):
@@ -487,10 +496,13 @@ class Image(wx.Panel, PropertySynchronized):
             slice.world_to_slice = world_to_slice
     
     def _get_crosshair(self):
+        """ Display mode of the crosshair.
+        """
+        
         return self._crosshair
     
     def _set_crosshair(self, value):
-        if value not in ["full", "none"] :
+        if value not in ["full", "partial", "none"] :
             raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
         
         self._set_slice_property("crosshair", value)

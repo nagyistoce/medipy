@@ -15,7 +15,19 @@ import medipy.io.dicom
 from SCU import SCU
 
 class Store(SCU):
-    """ Store SCU.
+    """ The Store SCU stores DataSets on a DICOM node. This SCU has only one
+        parameter: :attr:`dataset`, the DataSet to be stored. The Store SCU does
+        not return any value, but raises an exception if the data set could not
+        be stored.::
+        
+                connection = medipy.io.dicom.Connection("pacs.example.com", 104, 
+                    "MY_MACHINE", "REMOTE_PACS")
+        
+                dataset = medipy.io.dicom.DataSet()
+                # Fill the dataset ...
+                
+                store = medipy.network.dicom.scu.Store(connection, dataset)
+                store()
     """
     
     def __init__(self, connection, dataset) :

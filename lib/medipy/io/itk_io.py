@@ -255,17 +255,17 @@ class ITK(IOBase) :
                 # Make sure we have all the required elements
                 if "diffusion_gradient_direction_sequence" not in diffusion :
                     continue
-                elif not diffusion.diffusion_gradient_direction_sequence :
+                elif not diffusion.diffusion_gradient_direction_sequence.value :
                     continue
-                elif "diffusion_gradient_orientation" not in diffusion.diffusion_gradient_direction_sequence[0] :
+                elif "diffusion_gradient_orientation" not in diffusion.diffusion_gradient_direction_sequence.value[0] :
                     continue
                 elif "diffusion_bvalue" not in diffusion :
                     continue
                 
-                gradient = diffusion.diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
-                b_value = diffusion.diffusion_bvalue
+                gradient = diffusion.diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation
+                b_value = diffusion.diffusion_bvalue.value
                 
-                for index, value in enumerate(gradient) :
+                for index, value in enumerate(gradient.value) :
                     gradients[index].append(str(value))
                 b_values.append(str(b_value))
             
