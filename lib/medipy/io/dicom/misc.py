@@ -80,7 +80,26 @@ def get_series_datetime(dataset):
     
     return series_datetime
 
-def load_dicomdir_records(datasets, base_directory=None):
+def get_child_file_records(record):
+    """ Return children of given DICOMDIR Record which contain 
+        Referenced File ID (0004,1500).
+    """
+    
+    result = []
+    
+    queue = [record]
+    while queue :
+        dataset = queue.pop()
+        if "referenced_file_id" in dataset :
+            if isinstance(dataset.referenced_file_id.value, basestring) :
+                # Normalize to a list with one element
+                dataset.referenced_file_id = [dataset.referenced_file_id.value]
+            result.append(dataset)
+        queue.extend(dataset.children)
+    
+    return result
+
+def load_dicomdir_records(datasets):
     """ If a Data Set is a DICOMDIR Record, replace it by the file it 
         (or its children) references.
     """
@@ -91,16 +110,9 @@ def load_dicomdir_records(datasets, base_directory=None):
     
     for dataset in datasets :
         if "directory_record_type" in dataset : # Directory Record Type
-            # Find all children with Referenced File ID (0x0004,0x1500)
-            queue = [dataset]
-            while queue :
-                d = queue.pop()
-                if "referenced_file_id" in d :
-                    if isinstance(d.referenced_file_id, basestring) :
-                        # Normalize to a list with one element
-                        d.referenced_file_id = [d.referenced_file_id]
-                    file_ids.add((d.path, tuple(d.referenced_file_id)))
-                queue.extend(d.children)
+            children = get_child_file_records(dataset)
+            file_ids.update([(child.path, tuple(child.referenced_file_id.value))
+                              for child in children])
         else :
             result.append(dataset)
 

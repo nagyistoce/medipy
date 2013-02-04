@@ -40,8 +40,33 @@ def encapsulate(filename, **kwargs):
         to determine whether the original file has an even or odd length. This 
         is done by adding an item in Document Class Code Sequence (0040,e008). 
         The item has a Code Value (0008,0100) and Code Meaning (0008,0104) of
-        "LENGTH_PARITY:EVEN" or "LENGTH_PARITY:ODD", and a Coding Scheme 
-        Designator (0008,0102) of "MEDIPY".
+        ``"LENGTH_PARITY:EVEN"`` or ``"LENGTH_PARITY:ODD"``, and a Coding Scheme 
+        Designator (0008,0102) of ``"MEDIPY"``.
+        
+        Example : ::
+        
+            dataset = medipy.io.dicom.encapsulated_document.encapsulate(filename)
+
+            # Use Raw Data Storage as a SOP class since Encapsulated Document SOP classes
+            # are limited to PDF and HL7 documents
+            dataset.header.media_storage_sop_class_uid = medipy.io.dicom.UI(
+                medipy.io.dicom.dictionary.uid_name_dictionary["raw_data_storage"])
+            dataset.sop_class_uid = medipy.io.dicom.UI(
+                medipy.io.dicom.dictionary.uid_name_dictionary["raw_data_storage"])
+            
+            # New file, hence new SOP Instance UID
+            dataset.sop_instance_uid = medipy.io.dicom.generate_uid()
+            
+            # Most DICOM nodes will complain without Patient information
+            dataset.patient_id = medipy.io.dicom.LO(medipy.io.dicom.generate_uid(False))
+            dataset.patients_name = medipy.io.dicom.PN(dataset.patient_id.value)
+            
+            # Generate a new Study Instance UID
+            dataset.study_instance_uid = medipy.io.dicom.generate_uid()
+            
+            connection = medipy.network.dicom.Connection(host, port, aet, aec)
+            store = medipy.network.dicom.scu.Store(connection, dataset)
+            store()
          
     """
     
@@ -115,19 +140,18 @@ def encapsulate(filename, **kwargs):
 
 def expose(dataset, filename):
     """ Save the Encapsulated Document in the dataset to a file. See the remark
-        in ``medipy.io.dicom.encapsulated_document.encapsulate`` concerning
-        the parity of the file size.
+        in :func:`encapsulate` concerning the parity of the file size.
     """
     
     parity = None
-    for item in dataset.get("document_class_code_sequence", SQ([])) :
+    for item in dataset.get("document_class_code_sequence", SQ([])).value :
         if item.get("coding_scheme_designator", "") == "MEDIPY" :
             match = re.match(r"LENGTH_PARITY:(EVEN|ODD)", item.code_value.value)
             if match :
                 parity = match.group(1)
     
     fd = open(filename, "wb")
-    if parity == "ODD" and len(dataset.encapsulated_document)%2==0 :
+    if parity == "ODD" and len(dataset.encapsulated_document.value)%2==0 :
         fd.write(dataset.encapsulated_document.value[:-1])
     else :
         fd.write(dataset.encapsulated_document.value)

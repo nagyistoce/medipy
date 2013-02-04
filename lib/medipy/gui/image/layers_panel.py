@@ -50,7 +50,7 @@ class LayersPanel(medipy.gui.base.Panel):
             self.colormaps.SetItems(all_colormaps)
             
             self.opacity.range = (0,100)
-            self.display_range.orientation = wx.HORIZONTAL
+            self.display_range.orientation = wx.VERTICAL
             window.Layout()
     
     def __init__(self, parent=None, *args, **kwargs):

@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -20,8 +20,10 @@ import schemes
 def load_serie(url, dtype=numpy.single):
     """ Load a serie of images.
         
-        url : url to load from.
-        dtype : type to which the data will be cast. Passing None will not cast.
+          * url : url to load from.
+          * dtype : type to which the data will be cast. Passing ``None`` will not cast.
+        
+        See :func:`load` for URL details.
     """
     scheme, path, fragment = _split(url)
    
@@ -41,8 +43,10 @@ def load_serie(url, dtype=numpy.single):
 def save_serie(images, url) :
     """ Save a serie of images.
         
-        image : image to save.
-        url : url to save to.
+          * image : image to save.
+          * url : url to save to.
+          
+        See :func:`load` for URL details.
     """
     
     scheme, path, _ = _split(url)
@@ -57,24 +61,23 @@ def save_serie(images, url) :
 def load(url, dtype=numpy.single) :
     """ Load an image.
         
-        url : url to load from.
-        dtype : type to which the data will be cast. Passing None will not cast.
+          * ``url`` : url to load from, uses the usual syntax of 
+            ``[scheme "://"] [authority] path [ "#" fragment]``
+          * ``dtype`` : type to which the data will be cast. Passing ``None`` will not cast.
         
-        url uses the usual syntax of [scheme] "://" [authority] path [ "#" fragment]
-        scheme can be one of :
-          * "file" : the default value if no scheme is specified. Load the image
-            from the filesystem.
-          * "dicomdir" : load an image using a DICOMDIR
-          * "dicom" : load an image using a local filesystem directory 
-            containing DICOM files
-          * "dicom-series" : load an image using a dicom_series file
+        The URL ``scheme`` can be one of :
+          
+          * :mod:`~medipy.io.schemes.file` : load the image from the filesystem.
+          * :mod:`~medipy.io.schemes.dicomdir` : load an image using a DICOMDIR
+          * :mod:`~medipy.io.schemes.dicom` : load an image using a local 
+            filesystem directory containing DICOM files
+          * :mod:`dicom-series <medipy.io.schemes.dicom_series>` : load an image
+            using a :class:`dicom_series <medipy.io.dicom.DicomSeries>` file
         
-        >>> import medipy.io
-        >>> medipy.io.load("/some/where/image.nii") # Uses "file" scheme
-        >>> medipy.io.load("dicomdir:/some/where/DICOMDIR#series_instance_uid=1.2.3.4")
-        >>> medipy.io.load("dicom:/some/where/#series_instance_uid=1.2.3.4")
+        Refer to the documentation of the different schemes for the details of 
+        the URL syntax.
         
-        Refer to the different schemes for the details of the URL syntax
+        If no scheme is specified, the URL is assumed to be a filesystem path. 
     """
     
     scheme, path, fragment = _split(url)
@@ -96,8 +99,10 @@ def load(url, dtype=numpy.single) :
 def save(image, url) :
     """ Save an image.
         
-        image : image to save.
-        url : url to save to.
+          * image : image to save.
+          * url : url to save to.
+        
+        See :func:`load` for URL details.
     """
     
     scheme, path, _ = _split(url)

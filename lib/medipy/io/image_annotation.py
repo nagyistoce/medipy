@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -7,7 +7,7 @@
 ##########################################################################
 
 import xml.etree.ElementTree
-
+import numpy
 import medipy.base
 
 def annotation_from_xml(root):
@@ -21,8 +21,8 @@ def annotation_from_xml(root):
     
     child_tags = dict([(x.tag, x) for x in root.getchildren() if x.text is not None])
     if "position" in child_tags :
-        annotation.position = [
-            float(x) for x in child_tags["position"].text.split(" ")]
+        annotation.position = numpy.asarray([
+            float(x) for x in child_tags["position"].text.split(" ")])
     if "label" in child_tags :
         annotation.label = child_tags["label"].text.decode("utf-8")
     if "shape" in child_tags :

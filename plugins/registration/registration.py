@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -19,7 +19,7 @@ def registration(fixed, moving, metric, transform, optimizer, interpolator):
     
     registration = itk.ImageRegistrationMethod[fixed_itk, moving_itk].New(
         Metric=metric, Transform=transform, 
-        InitialTransformParameters=transform.GetParameters(),
+        InitialTransformParameters=list(transform.GetParameters()),
         Optimizer=optimizer, Interpolator=interpolator, 
         FixedImage=fixed_itk, MovingImage=moving_itk, 
         FixedImageRegion=fixed_itk.GetBufferedRegion())
@@ -31,6 +31,28 @@ def registration(fixed, moving, metric, transform, optimizer, interpolator):
     
     return final_transform
 
+def multi_resolution_registration(fixed, moving, metric, transform, optimizer, interpolator, levels):
+    fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
+    moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)
+    
+    fixed_pyramid = itk.RecursiveMultiResolutionPyramidImageFilter[fixed_itk, fixed_itk].New()
+    moving_pyramid = itk.RecursiveMultiResolutionPyramidImageFilter[moving_itk, moving_itk].New()
+
+    registration = itk.MultiResolutionImageRegistrationMethod[fixed_itk, moving_itk].New(
+        Metric=metric, Transform=transform, 
+        InitialTransformParameters=list(transform.GetParameters()),
+        Optimizer=optimizer, Interpolator=interpolator, 
+        FixedImage=fixed_itk, MovingImage=moving_itk, 
+        FixedImageRegion=fixed_itk.GetBufferedRegion(),
+        FixedImagePyramid=fixed_pyramid, MovingImagePyramid=moving_pyramid,
+        NumberOfLevels=levels)
+    
+    final_transform = transform.__class__.New(
+        Parameters=registration.GetLastTransformParameters(), 
+        FixedParameters=transform.GetFixedParameters())
+    
+    return final_transform
+    
 def apply_transform(fixed, moving, transform, interpolator) :
     
     fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)

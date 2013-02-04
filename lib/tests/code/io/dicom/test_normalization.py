@@ -22,13 +22,13 @@ class TestDiffusion(unittest.TestCase):
         
         for dataset in normalized :
             self.assertTrue("mr_diffusion_sequence" in dataset)
-            diffusion = dataset.mr_diffusion_sequence[0]
-            self.assertEqual(diffusion.diffusion_bvalue, 0)
-            self.assertEqual(diffusion.diffusion_directionality, "DIRECTIONAL")
+            diffusion = dataset.mr_diffusion_sequence.value[0]
+            self.assertEqual(diffusion.diffusion_bvalue.value, 0)
+            self.assertEqual(diffusion.diffusion_directionality.value, "DIRECTIONAL")
             self.assertTrue("diffusion_gradient_direction_sequence" in diffusion)
-            direction = diffusion.diffusion_gradient_direction_sequence[0].\
+            direction = diffusion.diffusion_gradient_direction_sequence.value[0].\
                 diffusion_gradient_orientation
-            numpy.testing.assert_array_equal(direction, [0,0,0])
+            numpy.testing.assert_array_equal(direction.value, [0,0,0])
     
     def test_siemens_1000(self):
         """ Normalization of a DWI Siemens image with a b-value of 1000.
@@ -41,13 +41,13 @@ class TestDiffusion(unittest.TestCase):
         
         for dataset in normalized :
             self.assertTrue("mr_diffusion_sequence" in dataset)
-            diffusion = dataset.mr_diffusion_sequence[0]
-            self.assertEqual(diffusion.diffusion_bvalue, 1000)
-            self.assertEqual(diffusion.diffusion_directionality, "DIRECTIONAL")
+            diffusion = dataset.mr_diffusion_sequence.value[0]
+            self.assertEqual(diffusion.diffusion_bvalue.value, 1000)
+            self.assertEqual(diffusion.diffusion_directionality.value, "DIRECTIONAL")
             self.assertTrue("diffusion_gradient_direction_sequence" in diffusion)
-            direction = diffusion.diffusion_gradient_direction_sequence[0].\
+            direction = diffusion.diffusion_gradient_direction_sequence.value[0].\
                 diffusion_gradient_orientation
-            self.assertAlmostEqual(numpy.linalg.norm(direction), 1)
+            self.assertAlmostEqual(numpy.linalg.norm(direction.value), 1)
 
 if __name__ == "__main__" :
     unittest.main()

@@ -78,23 +78,21 @@ class TestEncapsulatedDocument(unittest.TestCase):
         document_title = dataset.document_title
         self.assertTrue(isinstance(document_title, medipy.io.dicom.ST))
         self.assertTrue(isinstance(document_title.value, str))
-        self.assertEqual(document_title, "input")
+        self.assertEqual(document_title.value, "input")
         
         # MIME type
         self.assertTrue("mime_type_of_encapsulated_document" in dataset)
         mime_type_of_encapsulated_document = dataset.mime_type_of_encapsulated_document
         self.assertTrue(isinstance(mime_type_of_encapsulated_document, medipy.io.dicom.LO))
-        self.assertTrue(isinstance(mime_type_of_encapsulated_document.value, str))
-        self.assertEqual(mime_type_of_encapsulated_document, mime_type)
+        self.assertEqual(mime_type_of_encapsulated_document.value, mime_type)
         
         # File length parity
         self.assertTrue("document_class_code_sequence" in dataset)
         document_class_code_sequence = dataset.document_class_code_sequence
         self.assertTrue(isinstance(document_class_code_sequence, medipy.io.dicom.SQ))
-        self.assertTrue(isinstance(document_class_code_sequence.value, list))
-        self.assertEqual(len(document_class_code_sequence), 1)
+        self.assertEqual(len(document_class_code_sequence.value), 1)
         
-        code = document_class_code_sequence[0]
+        code = document_class_code_sequence.value[0]
         self.assertTrue(isinstance(code, medipy.io.dicom.DataSet))
         
         self.assertTrue("code_value" in code)

@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -35,7 +35,10 @@ itk_to_dtype_table = [
     #(itk.COV_VECTOR_REALS, ),
 ]
 
+#: Map an ITK type to a NumPy dtype
 itk_to_dtype = {}
+
+#: Map a NumPy dtype to an ITK type
 dtype_to_itk = {}
 
 for itk_type, dtype in itk_to_dtype_table :
@@ -43,8 +46,8 @@ for itk_type, dtype in itk_to_dtype_table :
     dtype_to_itk[dtype] = itk_type
 
 def array_to_itk_matrix(array, flip):
-    """ Create an itk.Matrix matching the contents and type of given array. If
-        flip is True, then the rows and columns of the itk.Matrix will be 
+    """ Create an ``itk.Matrix`` matching the contents and type of given array. If
+        ``flip`` is ``True``, then the rows and columns of the ``itk.Matrix`` will be 
         flipped with respect to the numpy array to reflect the different
         coordinate order between ITK and numpy.
     """
@@ -60,8 +63,8 @@ def array_to_itk_matrix(array, flip):
     return itk_matrix
 
 def itk_matrix_to_array(matrix, flip):
-    """ Create an numpy.ndarray matching the contents of given itk.Matrix. If
-        flip is True, then the rows and columns of the array will be 
+    """ Create an ``numpy.ndarray`` matching the contents of given ``itk.Matrix``. If
+        ``flip`` is ``True``, then the rows and columns of the array will be 
         flipped with respect to the ITK matrix to reflect the different
         coordinate order between ITK and numpy.
     """
@@ -76,9 +79,9 @@ def itk_matrix_to_array(matrix, flip):
 ########################################################
 
 def array_to_itk_image(array, transferOwnership):
-    """ Create an itk.Image matching the contents and type of given array. If
-        transferOwnership is True, then the itk.Image will own the data, and the
-        array will not. Otherwise, the itk.Image does not own the image, and the 
+    """ Create an ``itk.Image`` matching the contents and type of given ``array``. If
+        ``transferOwnership`` is ``True``, then the ``itk.Image`` will own the data, and the
+        array will not. Otherwise, the ``itk.Image`` does not own the image, and the 
         array is unchanged.
     """
     
@@ -87,9 +90,9 @@ def array_to_itk_image(array, transferOwnership):
     return itk.NumpyBridge[image_type].GetImageFromArray(array, transferOwnership)
 
 def array_to_itk_vector_image(array, transferOwnership):
-    """ Create an itk.VectorImage matching the contents and type of given array.
-        If transferOwnership is True, then the itk.Image will own the data, and 
-        the array will not. Otherwise, the itk.Image does not own the image, and
+    """ Create an ``itk.VectorImage`` matching the contents and type of given array.
+        If ``transferOwnership`` is ``True``, then the ``itk.Image`` will own the data, and 
+        the array will not. Otherwise, the ``itk.Image`` does not own the image, and
         the array is unchanged.
     """
     
@@ -98,32 +101,32 @@ def array_to_itk_vector_image(array, transferOwnership):
     return itk.NumpyBridge[image_type].GetImageFromArray(array, transferOwnership)
 
 def itk_image_to_array(image, transferOwnership):
-    """ Create an numpy.ndarray matching the contents and type of given image. If
-        transferOwnership is True, then the array will own the data, and the
+    """ Create an ``numpy.ndarray`` matching the contents and type of given ``image``. If
+        ``transferOwnership`` is ``True``, then the array will own the data, and the
         image will not. Otherwise, the array does not own the image, and the 
         image is unchanged.
     """
     
     return itk.NumpyBridge[image].GetArrayFromImage(image, transferOwnership)
 
-def itk_vector_image_to_array(image, transferOwnership):
-    """ Create an numpy.ndarray matching the contents and type of given 
-        VectorImage. If transferOwnership is True, then the array will own the 
+def itk_vector_image_to_array(vector_image, transferOwnership):
+    """ Create an ``numpy.ndarray`` matching the contents and type of given 
+        ``vector_image``. If ``transferOwnership`` is ``True``, then the array will own the 
         data, and the image will not. Otherwise, the array does not own the 
         image, and the image is unchanged.
     """
     
-    return itk.NumpyBridge[image].GetArrayFromImage(image, transferOwnership)
+    return itk.NumpyBridge[vector_image].GetArrayFromImage(vector_image, transferOwnership)
 
 ############################################################
 # Convert itk.Image, itk.VectorImage and medipy.base.Image #
 ############################################################
 
 def medipy_image_to_itk_image(image, transferOwnership):
-    """ Create an itk.Image or itk.VectorImage matching the contents and type 
-        of given medipy.base.Image. If transferOwnership is True, then the 
-        itk.Image will own the data, and the image will not. Otherwise, the 
-        itk.Image does not own the image, and the image is unchanged.
+    """ Create an ``itk.Image`` or ``itk.VectorImage`` matching the contents and type 
+        of given ``medipy.base.Image``. If ``transferOwnership`` is ``True``, then the 
+        ``itk.Image`` will own the data, and the image will not. Otherwise, the 
+        ``itk.Image`` does not own the image, and the image is unchanged.
     """
     
     if image.data_type == "scalar" :
@@ -149,10 +152,10 @@ def medipy_image_to_itk_image(image, transferOwnership):
     return itk_image
 
 def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
-    """ Modify a medipy.base.Image to match the contents and type of given ITK image. If
-        transferOwnership is True, then the image will own the data, and the
-        itk.Image will not. Otherwise, the image does not own the data, and the 
-        itk.Image is unchanged. If medipy_image is None, then a new image is 
+    """ Modify a ``medipy.base.Image`` to match the contents and type of given ITK image. If
+        ``transferOwnership`` is ``True``, then the image will own the data, and the
+        ``itk.Image`` will not. Otherwise, the image does not own the data, and the 
+        ``itk.Image`` is unchanged. If ``medipy_image`` is ``None``, then a new image is 
         created. In any case, the medipy Image is returned
     """
     
@@ -181,7 +184,7 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
     return medipy_image
 
 def itk_image_type(medipy_image):
-    """ Return the ITK image type corresponding to the given medipy.base.Image
+    """ Return the ITK image type corresponding to the given ``medipy.base.Image``
     """
     
     if medipy_image.data_type == "scalar" :

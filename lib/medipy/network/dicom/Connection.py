@@ -9,9 +9,13 @@
 class Connection(object) :
     """ A network connection from a SCU to a SCP.
     
-        host and port are TCP/IP peer informations. calling_ae_title and
-        called_ae_title are DICOM Application Entity titles, respectively for 
-        the SCU and the SCP.
+        ``host`` and ``port`` are peer informations at the TCP/IP level. 
+        ``calling_ae_title`` and ``called_ae_title`` are DICOM Application 
+        Entity titles, respectively for the SCU and the SCP. ::
+        
+            connection = medipy.network.dicom.Connection(
+                "pacs.example.com", 11112,
+                "MY_MACHINE", "REMOTE_PACS")
     """
     
     def __init__(self, host, port, calling_ae_title, called_ae_title) :

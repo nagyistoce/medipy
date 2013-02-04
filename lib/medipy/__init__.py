@@ -52,7 +52,10 @@ class Importer(object):
             for level, package in enumerate(fullname.split(".")[1:]) :
                 file, pathname, description = imp.find_module(package, path)
                 path = [pathname]
-                module = imp.load_module(".".join(fullname.split(".")[1:level+2]), file, pathname, description)
+                intermediate = ".".join(fullname.split(".")[1:level+2])
+                module = imp.load_module(intermediate, file, pathname, description)
+                # Add the module with the correct name to sys.modules
+                sys.modules["medipy.{0}".format(module.__name__)] = module
         except :
             raise
         else :

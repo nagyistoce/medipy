@@ -34,8 +34,36 @@ def label_connected_components(input, output):
     if output.dtype == numpy.uint16 :
         medipy.itk.itk_image_to_medipy_image(itk_output, output, True)
     else :
-        output.data = medipy.itk.itk_image_to_array(itk_output, True).astype(output.dtype)
-        output.spacing = [x for x in reversed(itk_output.GetSpacing())]
+        output_uint16 = medipy.itk.itk_image_to_medipy_image(itk_output, None, False)
+        output.data = output_uint16.data.astype(output.dtype)
+        output.copy_information(output_uint16)
+
+def order_connected_components(input):
+    """ Re-label connected components such that labels are consecutive and that
+        labels are based on the size of the object : the largest object will
+        have label 1, the second largest will have label 2, etc.
+        
+        <gui>
+            <item name="input" type="Image" label="Input"/>
+            <item name="output" type="Image" initializer="output=True" 
+                role="return" label="Output"/>
+        </gui>
+    """
+    
+    if input.dtype == numpy.uint16 :
+        itk_input = medipy.itk.medipy_image_to_itk_image(input,False)
+    else :
+        input_uint16 = input.astype(numpy.uint16)
+        itk_input = medipy.itk.medipy_image_to_itk_image(input_uint16, True)
+    
+    relabel_component_filter = itk.RelabelComponentImageFilter[itk_input, itk_input].New()
+    relabel_component_filter(itk_input)
+    
+    itk_output = relabel_component_filter[0]
+    output = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+    output.data = output.data.astype(input.dtype)
+    
+    return output
 
 def largest_connected_component(input, output):
     """ Get the largest connected component from a labelled image.
@@ -71,5 +99,6 @@ def largest_connected_component(input, output):
     if output.dtype == numpy.uint16 :
         medipy.itk.itk_image_to_medipy_image(itk_output, output, True)
     else :
-        output.data = medipy.itk.itk_image_to_array(itk_output, True).astype(output.dtype)
-        output.spacing = [x for x in reversed(itk_output.GetSpacing())]
+        output_uint16 = medipy.itk.itk_image_to_medipy_image(itk_output, None, False)
+        output.data = output_uint16.data.astype(output.dtype)
+        output.copy_information(output_uint16)

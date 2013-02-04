@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -25,6 +25,8 @@ import medipy.gui.xrc_wrapper
 from medipy.gui.control import Float 
 
 class AnnotationsPanel(medipy.gui.base.Panel):
+    """ GUI showing a list of annotations.
+    """
     
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -47,7 +49,8 @@ class AnnotationsPanel(medipy.gui.base.Panel):
                              "add", "delete", "load", "save"]
     
     def __init__(self, parent=None, *args, **kwargs):
-        
+        # History of commands
+        self.history = None
         # Image whose annotations will be changed
         self._image = None
         # Mapping from shape ID to name
@@ -109,14 +112,12 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         annotation.size = 5
         annotation.filled = True
         annotation.color = colorsys.hsv_to_rgb(random.random(), 1, 1)
-        self._image.annotations.append(annotation)
-        self._image.render()
-        self.ui.annotations.Append(annotation.label)
         
-        self.ui.delete.Enable(True)
-        self.ui.save.Enable(True)
-        
-        self.select_annotation(-1)
+        command = AddAnnotation(self, annotation)
+        if self.history :
+            self.history.add(command)
+        else :
+            command.execute()
     
     def delete_selected_annotations(self):
         """ Delete the selected annotations.
@@ -127,22 +128,11 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         # indices stay correct
         items.sort(reverse=True)
         for item in items :
-            del self._image.annotations[item]
-            self.ui.annotations.Delete(item)
-        
-        if self._image.annotations :
-            self.select_annotation(min(items[-1], self.ui.annotations.GetCount()-1))
-            self.ui.delete.Enable(True)
-            self.ui.save.Enable(True)
-        else :
-            self.ui.position.Clear()
-            self.ui.label.Clear()
-            self.ui.size.value = 1
-            self.ui.color.SetBackgroundColour(wx.NullColor)
-            self.ui.delete.Enable(False)
-            self.ui.save.Enable(False)
-        
-        self._image.render()
+            command = DeleteAnnotation(self, item)
+            if self.history :
+                self.history.add(command)
+            else :
+                command.execute()
     
     def select_annotation(self, index):
         if index < 0 :
@@ -336,4 +326,77 @@ class AnnotationsPanel(medipy.gui.base.Panel):
             return None
         
         return self._image.annotations[self.ui.annotations.GetSelection()]
+
+class AddAnnotation(medipy.base.UndoableCommand) :
+    """ Command for adding an annotation.
         
+        Undo effect : remove the annotation.
+    """
+    
+    def __init__(self, annotations_panel, new_annotation):
+        medipy.base.UndoableCommand.__init__(self, "Add annotation")
+        
+        self.annotations_panel = annotations_panel
+        self.new_annotation = new_annotation
+    
+    def execute(self) :
+        self.annotations_panel.image.annotations.append(self.new_annotation)
+        self.annotations_panel.image.render()
+        self.annotations_panel.ui.annotations.Append(self.new_annotation.label)
+        
+        self.annotations_panel.ui.delete.Enable(True)
+        self.annotations_panel.ui.save.Enable(True)
+        
+        self.annotations_panel.select_annotation(-1)
+        
+    def undo(self) :
+        try :
+            index = self.annotations_panel.image.annotations.index(self.new_annotation)
+        except ValueError, e:
+            # Annotation is not in panel. Weird, but nothing to do
+            return
+        delete_command = DeleteAnnotation(self.annotations_panel, index)
+        delete_command.execute()
+
+class DeleteAnnotation(medipy.base.UndoableCommand):
+    """ Command for deleting an annotation.
+        
+        Undo effect : add the annotation.
+    """
+    
+    def __init__(self, annotations_panel, annotation_index):
+        medipy.base.UndoableCommand.__init__(self, "Delete annotation")
+        
+        self.annotations_panel = annotations_panel
+        self.annotation_index = annotation_index
+        self._annotation = None
+    
+    def execute(self):
+        
+        self._annotation = self.annotations_panel.image.annotations[self.annotation_index]
+        
+        del self.annotations_panel.image.annotations[self.annotation_index]
+        self.annotations_panel.ui.annotations.Delete(self.annotation_index)
+        
+        if self.annotations_panel.image.annotations :
+            self.annotations_panel.select_annotation(
+                 min(self.annotation_index, 
+                     self.annotations_panel.ui.annotations.GetCount()-1))
+            self.annotations_panel.ui.delete.Enable(True)
+            self.annotations_panel.ui.save.Enable(True)
+        else :
+            self.annotations_panel.ui.position.Clear()
+            self.annotations_panel.ui.label.Clear()
+            self.annotations_panel.ui.size.value = 1
+            self.annotations_panel.ui.color.SetBackgroundColour(wx.NullColor)
+            self.annotations_panel.ui.delete.Enable(False)
+            self.annotations_panel.ui.save.Enable(False)
+        
+        self.annotations_panel.image.render()
+    
+    def undo(self):
+        if self._annotation is None :
+            raise medipy.base.Exception("Cannot undo")
+        
+        command = AddAnnotation(self.annotations_panel, self._annotation)
+        command.execute()

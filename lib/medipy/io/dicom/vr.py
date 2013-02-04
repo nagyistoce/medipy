@@ -6,9 +6,6 @@
 # for details.
 ##########################################################################
 
-import copy
-import operator
-
 class VR(object):
     """ Base class for all VR classes.
     """
@@ -16,40 +13,11 @@ class VR(object):
     def __init__(self, value):
         self.value = value
     
-    def __contains__(self, item) :
-        return self.value.__contains__(item)
-    
-    def __deepcopy__(self, memento) :
-        new_value = copy.deepcopy(self.value, memento)
-        new_object = type(self)(new_value)
-        return new_object
-    
     def __eq__(self, other):
         return self.value == other
     
-    def __getitem__(self, key):
-        return self.value.__getitem__(key)
-    
-    def __getattr__(self, key):
-        return getattr(self.value, key)
-    
-    def __iter__(self) :
-        return self.value.__iter__()
-    
-    def __len__(self):
-        return self.value.__len__()
-    
     def __ne__(self, other):
         return self.value != other
-    
-    def __str__(self):
-        return str(self.value)
-    
-    def __unicode__(self):
-        return unicode(self.value)
-    
-    def __repr__(self) :
-        return self.value.__repr__()
 
 class AE(VR): pass
 class AS(VR): pass

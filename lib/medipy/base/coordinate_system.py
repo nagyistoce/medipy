@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -9,6 +9,7 @@
 """
 The rows of the matrices are the orientation of the other coordinate system in 
 the LPS coordinate system. For example : 
+  
   * the y axis of RAS is (0,-1,0), i.e. Anterior
   * the normal of the coronal slice (radiological convention) is (0,-1,0), 
     i.e. Anterior
@@ -16,42 +17,49 @@ the LPS coordinate system. For example :
     i.e. Right
 
 Since column-vector matrices would transform to LPS (cf. below) and since the
-matrices are orthogonal (M^T=M^{-1}), the row-vector matrices transform from LPS
+matrices are orthogonal (:math:`M^T=M^{-1}`), the row-vector matrices transform from LPS
 to the other coordinate system.
 
-Let (e^1, e^2, e^3) and (e_1, e_2, e_3) be two bases of R^3. Let M be the matrix
-formed by the column vectors of the coordinates of (e^1, e^2, e^3), expressed in 
-(e_1, e_2, e_3), i.e.
-    e^1_x e^2_x e^3_x 
-M = e^1_y e^2_y e^3_y
-    e^1_z e^2_z e^3_z
+Let :math:`(e^1, e^2, e^3)` and :math:`(e_1, e_2, e_3)` be two bases of 
+:math:`R^3`. Let M be the matrix formed by the column vectors of the coordinates
+of :math:`(e^1, e^2, e^3)`, expressed in :math:`(e_1, e_2, e_3)`, i.e.
 
-Let v be a column-vector :
-    a
-v = b
-    c
+.. math::
 
-By right-multiplying M by v, we get ae^1+be^2+ce^3, where the coordinates of the
-e^i are expressed in (e_1, e_2, e_3). If the elements of v are coordinates 
-expressed in (e^1, e^2, e^3), then M transforms a vector from (e^1, e^2, e^3)
-to (e_1, e_2, e_3).
+    M = \\left( \\begin{matrix}
+        e^1_x e^2_x e^3_x \\\\
+        e^1_y e^2_y e^3_y \\\\ 
+        e^1_z e^2_z e^3_z 
+        \\end{matrix} \\right)
+
+Let v be a column-vector : 
+
+.. math::
+
+    v = \\left( \\begin{matrix}a\\\\b\\\\c\\end{matrix} \\right)
+
+By right-multiplying M by v, we get :math:`ae^1+be^2+ce^3`, where the 
+coordinates of the :math:`e^i` are expressed in :math:`(e_1, e_2, e_3)`. If the 
+elements of v are coordinates expressed in :math:`(e^1, e^2, e^3)`, then M 
+transforms a vector from :math:`(e^1, e^2, e^3)` to :math:`(e_1, e_2, e_3)`.
 
 The preceding reasoning can be applied to row-vectors: let v_c and w_c be 
-column-vectors, and let M be a matrix such that M.v_c = w_c. Let v_r (resp. w_r)
-be the row vector corresponding to v_c (resp. w_c). Using the matrix-vector
-multiplication formula, it is easy to prove that v_r.M = w_r.
+column-vectors, and let M be a matrix such that :math:`M.v_c = w_c`. Let 
+:math:`v_r` (respectively :math:`w_r`) be the row vector corresponding to 
+:math:`v_c` (respectively :math:`w_c`). Using the matrix-vector multiplication 
+formula, it is easy to prove that :math:`v_r.M = w_r`.
 """
 
 import numpy
 
-# LPS coordinate system, in LPS coordinates. This is the DICOM coordinate system.
+#: LPS coordinate system, in LPS coordinates. This is the DICOM coordinate system.
 LPS = numpy.identity(3, dtype=numpy.float)
-# RAS coordinate system, in LPS coordinates. This is the NIfTI coordinate system.
+#: RAS coordinate system, in LPS coordinates. This is the NIfTI coordinate system.
 RAS = numpy.asarray([[1,  0,  0],
                      [0, -1,  0],
                      [0,  0, -1]], dtype=numpy.float)
 
-# Transformation matrices from LPS to OpenGL coordinates, ZYX order
+#: Transformation matrices from LPS to OpenGL coordinates, ZYX order
 # The ASCII representations are what would be displayed on a screen.
 # The OpenGL coordinate system is:
 #   Y

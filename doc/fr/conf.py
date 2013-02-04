@@ -91,7 +91,7 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -193,3 +193,15 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+autodoc_default_flags = ["members", "undoc-members"]
+
+# Duck-punch autodoc extension to remove object representation
+from sphinx.ext.autodoc import ModuleLevelDocumenter, DataDocumenter
+def add_directive_header(self, sig):
+    ModuleLevelDocumenter.add_directive_header(self, sig)
+    # Rest of original method ignored
+DataDocumenter.add_directive_header = add_directive_header
+
+# Import medipy so that plugins can be found
+import medipy

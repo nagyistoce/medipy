@@ -6,13 +6,36 @@
 # for details.
 ##########################################################################
 
+""" This module allows more fine-tuned DICOM queries than those available using
+    the :class:`~medipy.network.dicom.scu.Find` SCU. They may, however, be
+    slower.
+"""
+
 import itertools
 
 import medipy.io.dicom
 import medipy.network.dicom
 
 def relational(connection, root, level, query) :
-    """ Perform a relation DICOM query, as described in PS 3.4-2011, C.4.1.2.2.1
+    """ Perform a relation DICOM query, as described in PS 3.4-2011, C.4.1.2.2.1.
+        This function performs a query at the start ``level``, and extends the
+        query at lower levels until all criteria are met or the lowest level is
+        reached. The keys of all levels present in the result will be included
+        in the result.
+        
+        In the following example, the query results will contain the attribute
+        Query/Retrieve Level (0008,0052) with a value of ``STUDY`` since one
+        of the query attributes is at the Study level. The key attributes of the
+        Study Level and its higher levels (Study Instance UID (0020,000D) and
+        Patient ID (0010,0020)) will be included in the datasets. ::
+        
+            connection = medipy.io.dicom.Connection("pacs.example.com", 104, 
+                    "MY_MACHINE", "REMOTE_PACS")
+        
+            query = medipy.io.dicom.DataSet()
+            query.study_description = "MY_PROTOCOL"
+            
+            datasets = medipy.network.dicom.query.relational(connection, "patient", "patient", query) 
         
         The resulting datasets will contain the highest level below the given
         level where all arguments from the query are matched. The keys for all
@@ -35,15 +58,15 @@ def relational(connection, root, level, query) :
     for attribute in query :
         everywhere = True
         for dataset in result :
-            value = dataset.get(attribute, None)
+            value = dataset.get(attribute, medipy.io.dicom.UN(None))
             if isinstance(value, medipy.io.dicom.SQ) :
-                query_item = query[attribute][0]
+                query_item = query[attribute].value[0]
                 for item in value :
                     for query_item_attribute in query_item :
                         if not item.get(query_item_attribute, None).value :
                             everywhere = False
                             break
-            elif not value :
+            elif not value.value :
                 everywhere = False
                 break
         matched[attribute] = everywhere

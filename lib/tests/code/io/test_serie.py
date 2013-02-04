@@ -77,7 +77,7 @@ class TestSerie(unittest.TestCase):
         for image in images :
             self.assertTrue("mr_diffusion_sequence" in image.metadata)
             diffusion = image.metadata["mr_diffusion_sequence"][0]
-            if diffusion.diffusion_bvalue == 0 :
+            if diffusion.diffusion_bvalue.value == 0 :
                 b_0_images.append(image)
             else :
                 b_non_0_images.append(image)
@@ -87,19 +87,19 @@ class TestSerie(unittest.TestCase):
         
         for image in b_0_images :
             diffusion = image.metadata["mr_diffusion_sequence"][0]
-            gradient = diffusion.diffusion_gradient_direction_sequence[0].\
+            gradient = diffusion.diffusion_gradient_direction_sequence.value[0].\
                 diffusion_gradient_orientation
-            self.assertAlmostEqual(numpy.linalg.norm(gradient), 0, 3)
+            self.assertAlmostEqual(numpy.linalg.norm(gradient.value), 0, 3)
             
             self.assertEqual(image.shape, (60, 102, 102))
         
         for image in b_non_0_images :
             diffusion = image.metadata["mr_diffusion_sequence"][0]
-            self.assertEqual(diffusion.diffusion_bvalue, 1000)
+            self.assertEqual(diffusion.diffusion_bvalue.value, 1000)
             
-            gradient = diffusion.diffusion_gradient_direction_sequence[0].\
+            gradient = diffusion.diffusion_gradient_direction_sequence.value[0].\
                 diffusion_gradient_orientation
-            self.assertAlmostEqual(numpy.linalg.norm(gradient), 1, 3)
+            self.assertAlmostEqual(numpy.linalg.norm(gradient.value), 1, 3)
             
             self.assertEqual(image.shape, (60, 102, 102))
         
