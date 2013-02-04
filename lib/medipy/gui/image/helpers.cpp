@@ -72,7 +72,7 @@ PyObject* layer_index_to_world(PyObject * layer, PyObject * index_python)
     physical[3] = 1;
     double transformed[4];
     reslicer_axes_inverse->MultiplyPoint(physical, transformed);
-    vtkMath::MultiplyScalar(transformed, 1./transformed[3]);
+    for(unsigned int i=0; i<3; ++i) { transformed[i] /= transformed[3]; }
 
     // Convert to index coordinate in resliced image (VTK order)
     double index_resliced[3];
@@ -128,7 +128,7 @@ PyObject* layer_world_to_index(PyObject * layer, PyObject * world_python)
 
     double transformed[4];
     reslicer->GetResliceAxes()->MultiplyPoint(physical, transformed);
-    vtkMath::MultiplyScalar(transformed, 1./transformed[3]);
+    for(unsigned int i=0; i<3; ++i) { transformed[i] /= transformed[3]; }
 
     // Convert to index coordinate in the non-sliced image (VTK order)
     physical_to_index(transformed,
