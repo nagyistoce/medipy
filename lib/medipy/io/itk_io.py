@@ -48,6 +48,11 @@ class ITK(IOBase) :
         if filename is not None :
             self._set_filename(filename)
         
+    def __deepcopy__(self, memo):
+        # deepcopy does not like WrapITK objects
+        new_object = ITK(self._filename, self._report_progress)
+        return new_object
+    
     def can_load(self):
         return self._loader is not None
     
