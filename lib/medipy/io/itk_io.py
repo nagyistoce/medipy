@@ -357,7 +357,7 @@ class ITK(IOBase) :
                 if l.GetPixelTypeAsString(l.GetPixelType()) in ["vector", "rgb"] :
                     if 1+l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
                         filter = itk.PyArrayFileReader
-                else :
+                elif l.GetPixelTypeAsString(l.GetPixelType()) == "scalar" :
                     if l.GetNumberOfDimensions() in [x[1] for x in itk.Image] :
                         filter = itk.ImageFileReader
                     elif l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
