@@ -410,9 +410,8 @@ class Layer(medipy.base.Observable) :
             changed_origin = medipy.base.array.reshape(changed_origin, (3,),
                 "constant", False, value=0)
 
-            changed_spacing = numpy.abs(
-                numpy.dot(world_to_slice, 
-                    numpy.dot(self._image.direction, self._image.spacing)))
+            changed_spacing = numpy.abs(numpy.dot(world_to_slice, 
+                                                  self._image.spacing))
             changed_spacing = medipy.base.array.reshape(changed_spacing, (3,),
                 "constant", False, value=0)
         else :
