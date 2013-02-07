@@ -42,8 +42,8 @@ public :
     typedef PathIterator<OutputImageType, PathType> IteratorType;
 
     /** Number of input images*/
-    itkGetMacro(Nb_images, unsigned int);
-    itkSetMacro(Nb_images, unsigned int);
+    itkGetMacro(Number_images, unsigned int);
+    itkSetMacro(Number_images, unsigned int);
 
     /** Boolean for atlas*/
     itkGetMacro(Atlas_bool, bool);
@@ -62,12 +62,20 @@ public :
     itkSetMacro(Criterion_outliers, unsigned int);
 
     /** Value for the criterion for outliers*/
-    itkGetMacro(Criterion_outliers_value, float);
-    itkSetMacro(Criterion_outliers_value, float);
+    itkGetMacro(Criterion_outliers_value, double);
+    itkSetMacro(Criterion_outliers_value, double);
 
-    /** Number of classes*/
+    /** Taille cube*/
     itkGetMacro(Taille_cube, PathOrderType);
     itkSetMacro(Taille_cube, PathOrderType);
+
+    /** Outliers only on Flair (0 for all images and 1 for Flair only)*/
+    itkGetMacro(Flair_bool, bool);
+    itkSetMacro(Flair_bool, bool);
+
+    /** Position of the Flair*/
+    itkGetMacro(Position_Flair, unsigned int);
+    itkSetMacro(Position_Flair, unsigned int);
 
     TOutputImage* GetOuputSegImage();
     TOutputImage* GetOuputOutliersImage();
@@ -87,21 +95,27 @@ protected :
 
 private :
 
-    unsigned int m_Nb_images;
+    unsigned int m_Number_images;
     bool m_Atlas_bool;
     unsigned int m_Number_iter;
     unsigned int m_Number_classes;
     unsigned int m_Criterion_outliers;
-    float m_Criterion_outliers_value;
+    double m_Criterion_outliers_value;
     PathOrderType m_Taille_cube;
+    bool m_Flair_bool;
+    unsigned int m_Position_Flair;
 
-    //std::vector<double> PIi;
-    //std::vector< std::vector<double> > aij;
+
 
     HiddenMarkovChainFilter(const Self&); //purposely not implemented
     void operator=(const Self&); //purposely not implemented
 
-    
+    void Chains_Creation(std::vector< std::vector<double> > &Chain, std::vector< std::vector<double> > &Chain_Atlas, ConstIteratorType *mask_it, std::vector<ConstIteratorType *> &inputs_its, std::vector<ConstIteratorType *> &atlas_its);
+    void Chain_Itialisation(std::vector< std::vector<double> > &Chain, std::vector< std::vector<double> > &Moyenne, std::vector< std::vector< std::vector<double> > > &Variance, std::vector<double> &Proba_ini,  std::vector< std::vector<double> > &aij);
+    void Chain_EM(std::vector< std::vector<double> > &Chain, std::vector< std::vector<double> > &Chain_Atlas, std::vector< std::vector<double> > &Moyenne, std::vector< std::vector< std::vector<double> > > &Variance, std::vector<double> &Proba_ini,  std::vector< std::vector<double> > &aij, std::vector<unsigned int> &Chain_seg , std::vector<unsigned int> &Chain_outliers);
+    void Chain_MPM(std::vector< std::vector<double> > &Chain, std::vector< std::vector<double> > &Chain_Atlas, std::vector< std::vector<double> > &Moyenne, std::vector< std::vector< std::vector<double> > > &Variance, std::vector<double> &Proba_ini,  std::vector< std::vector<double> > &aij, std::vector<unsigned int> &Chain_seg, std::vector<unsigned int> &Chain_outliers);
+    void Images_Reconstruction(std::vector<unsigned int> &Chain_seg, std::vector<unsigned int> &Chain_outliers, ConstIteratorType *mask_it, IteratorType &output_seg_it, IteratorType &output_outliers_it);
+    double Gaussian(std::vector<double> Data, std::vector<double> Mu, std::vector< std::vector<double> > Sigma);
 };
 
 }
