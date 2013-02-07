@@ -11,33 +11,30 @@ import medipy.arithmetic.pixelwise
 
 
 
-def hmc(input_images, atlas_bool, atlas_images, number_iter, number_classes, criterion_outliers, criterion_outliers_value):
+def hmc(input_images, mask, atlas_bool, atlas_images, number_iter, number_classes, criterion_outliers, criterion_outliers_value, flair_bool, flair_position):
     
     itk_input = medipy.itk.medipy_image_to_itk_image(input_images[0], False)
     nb_images = len(input_images)
     taille_cube = max_puissance(max(input_images[0].shape))[1]
     criterion_dico = {"percentage":0, "threshold":1}
     hmc_filter = itk.HiddenMarkovChainFilter[itk_input, itk_input].New(
-        Nb_images=nb_images, Atlas_bool=atlas_bool, Number_iter=number_iter, Number_classes=number_classes, Criterion_outliers=criterion_dico[criterion_outliers], Criterion_outliers_value=criterion_outliers_value, Taille_cube=taille_cube)
+        Number_images=nb_images, Atlas_bool=atlas_bool, Number_iter=number_iter, Number_classes=number_classes, Criterion_outliers=criterion_dico[criterion_outliers], Criterion_outliers_value=criterion_outliers_value, Taille_cube=taille_cube, Flair_bool=flair_bool, Position_Flair=flair_position)
  
     input_images_resized = []
     itk_inputs = []
 
     for idx, input_image in enumerate(input_images):
-        mask = medipy.logic.create_mask(input_image, 0) if idx==0 else medipy.arithmetic.pixelwise.multiplication(mask, medipy.logic.create_mask(input_image, 0))
         input_images_resized.append(resize_input(input_image))
         itk_inputs.append(medipy.itk.medipy_image_to_itk_image(input_images_resized[len(input_images_resized)-1], False))
         hmc_filter.SetInputImage(idx, itk_inputs[len(itk_inputs)-1])
 
     if atlas_bool:
         for idx, atlas_image in enumerate(atlas_images):
-            
-            atlas_sum = atlas_image if idx==0 else medipy.arithmetic.pixelwise.addition(atlas_sum, atlas_image)
-            input_images_resized.append(resize_input(atlas_image))
+
+            input_images_resized.append(resize_input(atlas_image))            
             itk_inputs.append(medipy.itk.medipy_image_to_itk_image(input_images_resized[len(input_images_resized)-1], False))
             hmc_filter.SetInputImage(idx+nb_images, itk_inputs[len(itk_inputs)-1])
 
-        mask = medipy.arithmetic.pixelwise.multiplication(mask, medipy.logic.create_mask(atlas_sum, 0))
         mask = resize_input(mask)
         itk_inputs.append( medipy.itk.medipy_image_to_itk_image(mask, False))
         hmc_filter.SetInputImage(idx+nb_images+1, itk_inputs[len(itk_inputs)-1])
