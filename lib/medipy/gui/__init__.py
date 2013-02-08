@@ -12,3 +12,7 @@ from colormaps import colormaps, get_colormap_from_name, stage_colormaps
 from periodic_progress_dialog import PeriodicProgressDialog, WorkerThread
 from review_dialog import ReviewDialog
 from wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
+
+__all__ = ["Cine3dDialog", "Colormap", "colormaps", "get_colormap_from_name", 
+           "stage_colormaps", "PeriodicProgressDialog", "WorkerThread",
+           "ReviewDialog", "wxVTKRenderWindowInteractor"]

@@ -45,6 +45,7 @@ class ReviewDialog(wx.Dialog, medipy.base.Observable):
             dialog.ShowModal()
     """
     
+    #: Review status of an item
     Status = medipy.base.enum("Status", "not_reviewed", "in_progress", "reviewed")
     
     def __init__(self, parent, *args, **kwargs):
@@ -75,10 +76,18 @@ class ReviewDialog(wx.Dialog, medipy.base.Observable):
         self._labels_to_index = {}
     
     def get_status(self, index_or_label):
+        """ Return the review status of an item specified either by its index
+            or by its label.
+        """
+        
         index = self._get_index(index_or_label)
         return self._items.GetClientData(index)["status"]
     
     def set_status(self, index_or_label, value):
+        """ Set the review status of an item specified either by its index or 
+            by its label.
+        """
+        
         index = self._get_index(index_or_label)
         
         data = self._items.GetClientData(index)
@@ -93,6 +102,9 @@ class ReviewDialog(wx.Dialog, medipy.base.Observable):
         self.notify_observers("status", item=item, status=data["status"])
     
     def previous(self, *args):
+        """ Select the previous item in the list.
+        """
+        
         if args and isinstance(args[0], wx.Event) :
             self.previous()
         else :
