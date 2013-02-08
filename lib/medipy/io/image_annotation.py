@@ -67,7 +67,7 @@ def annotation_to_xml(annotation):
     label.text = annotation.label.encode("utf-8")
     
     shape = xml.etree.ElementTree.SubElement(root, "shape")
-    shape.text = medipy.base.ImageAnnotation.Shape.to_name(annotation.shape)
+    shape.text = medipy.base.ImageAnnotation.Shape[annotation.shape]
     
     size = xml.etree.ElementTree.SubElement(root, "size")
     size.text = str(annotation.size)
