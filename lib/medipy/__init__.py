@@ -11,6 +11,10 @@
 # http://www.sourceware.org/bugzilla/show_bug.cgi?id=12453
 import uuid
 
+# If expat is loaded too late, WrapITK causes crashes when an exception is 
+# raised. See https://issues.itk.org/jira/browse/HISTITK-834
+import xml.parsers.expat
+
 import ConfigParser
 import imp
 import new
