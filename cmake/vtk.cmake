@@ -28,9 +28,15 @@ macro(vtk_python_module name sources)
     # Build the module using the modified Init file
     #python_add_module(${name} ${sources} ${wrappers} ${name}InitModified.cxx)
     python_add_module(${name} ${sources} ${wrappers} ${name}Init.cxx)
-    target_link_libraries(${name} vtkHybrid vtkHybridPythonD)
+    
+    set(vtk_python_libraries)
+    foreach(lib ${VTK_LIBRARIES})
+        set(vtk_python_libraries ${vtk_python_libraries} ${lib}PythonD)
+    endforeach()
+    
+    target_link_libraries(${name} ${VTK_LIBRARIES} ${vtk_python_libraries})
     set_target_properties(${name} PROPERTIES PREFIX "")
-endmacro(vtk_python_module name sources)
+endmacro(vtk_python_module)
 
 macro(install_vtk_python_module name)
     # Get path to the generated library
@@ -40,4 +46,4 @@ macro(install_vtk_python_module name)
     get_filename_component(destination ${destination} PATH)
     
     install(TARGETS ${name} DESTINATION ${destination})
-endmacro(install_vtk_python_module name sources)
+endmacro(install_vtk_python_module)
