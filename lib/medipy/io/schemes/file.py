@@ -10,9 +10,10 @@
     
     The path is interpreted as an usual filesystem path.
     
-    The fragment is of form [ tag "=" value { "&" tag "=" value } ], where tag
+    The fragment is of form ``[ tag "=" value { "&" tag "=" value } ]``, where ``tag``
     is one of :
-      * index : specifies the index of the image to load. Defaults to 0.
+      
+      * ``index`` : specifies the index of the image to load. Defaults to 0.
 """
 
 import urlparse

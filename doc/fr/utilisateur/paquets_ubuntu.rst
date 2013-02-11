@@ -12,6 +12,7 @@ commandes suivantes réalisent cette procédure.
 **Outils** ::
 
     echo "deb http://fr.archive.ubuntu.com/ubuntu lucid main restricted universe multiverse" >> /etc/apt/sources.list
+    apt-get update
     apt-get install mercurial python-setuptools swig/lucid ipython python-tk \
         cmake doxygen gccxml cableswig g++-4.4
     echo "swig hold" | dpkg --set-selections

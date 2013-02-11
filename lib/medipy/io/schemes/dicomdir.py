@@ -10,16 +10,19 @@
 
     The path is interpreted as a local filesystem path to a DICOMDIR.
     
-    The fragment is of form [ tag "=" value { "&" tag "=" value } ], where tag
+    The fragment is of form ``[ tag "=" value { "&" tag "=" value } ]``, where ``tag``
     is a DICOM tag in one of the following forms :
-      * Numerical (accepted forms : "(0020,000e)", "(0x0020,0x000e)", 
-        "0020000e", "0x0020000e")
+      
+      * Numerical (accepted forms : ``"(0020,000e)"``, ``"(0x0020,0x000e)"``, 
+        ``"0020000e"``, ``"0x0020000e"``)
       * Named, in which case it must be a key of
-        medipy.io.dicom.dictionary.name_dictionary
+        :attr:`medipy.io.dicom.dictionary.name_dictionary`
     
     A record in the Directory Record Sequence is considered a match for the 
     fragment if it (or one of its ancestors) contains all the tags in the 
     filters, and matches all the corresponding values. 
+    
+    See :mod:`medipy.io.schemes.dicom` for fragment examples.
 """
 
 import re

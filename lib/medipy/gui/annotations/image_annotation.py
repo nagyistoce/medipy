@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import numpy
@@ -16,13 +16,6 @@ class ImageAnnotation(object) :
     """ 2D representation of a base.ImageAnnotation
     """
 
-    # Mapping of shape ID to shape name
-    _annotation_id_to_shape = dict( 
-        [ (getattr(medipy.base.ImageAnnotation.Shape, name), name)
-            for name in dir(medipy.base.ImageAnnotation.Shape) if name[:2] != "__"
-        ]
-    )
-    
     def __init__(self, annotation, layer) :
         
         ############################
@@ -31,7 +24,7 @@ class ImageAnnotation(object) :
         
         self._annotation = None
         self._layer = None
-        self._slice_position = None
+        self._slice_position_world = None
         self._text_actor = vtkTextActor()
         
         ###################
@@ -89,14 +82,14 @@ class ImageAnnotation(object) :
         self._update_shape()
         self._update_label()
     
-    def _get_slice_position(self) :
-        """ Position of the slice place.
+    def _get_slice_position_world(self) :
+        """ Position of the slice, in world VTK coordinates, VTK order.
         """
         
-        return self._slice_position
+        return self._slice_position_world
     
-    def _set_slice_position(self, slice_position) :
-        self._slice_position = slice_position
+    def _set_slice_position_world(self, position) :
+        self._slice_position_world = position
         
         self._update_shape()
         self._update_label()
@@ -121,7 +114,7 @@ class ImageAnnotation(object) :
     
     annotation = property(_get_annotation, _set_annotation)
     layer = property(_get_layer, _set_layer)
-    slice_position = property(_get_slice_position, _set_slice_position)
+    slice_position_world = property(_get_slice_position_world, _set_slice_position_world)
     shape_actor = property(_get_shape_actor)
     text_actor = property(_get_text_actor)
     renderer = property(_get_renderer, _set_renderer)
@@ -151,18 +144,19 @@ class ImageAnnotation(object) :
     
         altitude = self._shape.actor.GetPosition()[2]
         position = self._layer.physical_to_world(self._annotation.position)[::-1]
-        position[0] = altitude
         
-        self._shape.position = position
+        shape_position = numpy.copy(position)
+        shape_position[0] = altitude
+        
+        self._shape.position = shape_position
         self._shape.color = self.annotation.color
         
         # Apparent size of the shape is how high the annotation is above the 
         # slice plane.
         # TODO : should depend on the annotation shape
-        if self._slice_position is not None :
-            p1 = self._layer.physical_to_world(self._annotation.position)[::-1]
-            p2 = self._layer.physical_to_world(self._slice_position)[::-1]
-            distance = abs(p1[0]-p2[0])
+        if self.slice_position_world is not None :
+            # position is in numpy order, slice_position_world in VTK order 
+            distance = abs(position[0]-self.slice_position_world[-1])
             self._shape.size = max(0, self._annotation.size-distance)
         
         self._shape.filled = self.annotation.filled

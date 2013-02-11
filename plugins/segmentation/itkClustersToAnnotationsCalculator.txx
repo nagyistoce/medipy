@@ -75,26 +75,12 @@ ClustersToAnnotationsCalculator<TImage>
             sub_image->SetPixel(*it, 1);
         }
 
-        // Make it more compact to better estimate the center
-        typedef itk::FlatStructuringElement<SubImageType::ImageDimension>
-            StructuringElementType;
-        typename StructuringElementType::RadiusType radius; radius.Fill(2);
-        StructuringElementType const ball = StructuringElementType::Ball(radius);
-        typename itk::GrayscaleDilateImageFilter<SubImageType, SubImageType, StructuringElementType>::Pointer dilate_filter =
-            itk::GrayscaleDilateImageFilter<SubImageType, SubImageType, StructuringElementType>::New();
-        dilate_filter->SetInput(sub_image);
-        dilate_filter->SetKernel(ball);
-        typename itk::GrayscaleErodeImageFilter<SubImageType, SubImageType, StructuringElementType>::Pointer erode_filter =
-            itk::GrayscaleErodeImageFilter<SubImageType, SubImageType, StructuringElementType>::New();
-        erode_filter->SetInput(dilate_filter->GetOutput());
-        erode_filter->SetKernel(ball);
-
         // Compute distance map
         typedef SignedMaurerDistanceMapImageFilter<SubImageType, SubImageType>
             DistanceMapFilterType;
         typename DistanceMapFilterType::Pointer distance_map_filter =
             DistanceMapFilterType::New();
-        distance_map_filter->SetInput(erode_filter->GetOutput());
+        distance_map_filter->SetInput(sub_image);
         distance_map_filter->Update();
 
         // Find minimum, since "the inside is considered as having negative

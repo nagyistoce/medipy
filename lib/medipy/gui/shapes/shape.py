@@ -1,13 +1,14 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
-import logging
 from vtk import vtkActor
+
+import medipy.base
 
 class Shape(object):
     """ Base class for a simple geometric shape.
@@ -47,18 +48,35 @@ class Shape(object):
     # Properties #
     ##############
     
-    def _set_position(self, position):
-        """ Set the position of the shape by moving the actor to specified  
-            position
+    def _get_actor(self):
+        return self._actor
+    
+    def _get_position(self):
+        """ World position of the shape, in numpy order.
         """
+        
+        return self._position
+    
+    def _set_position(self, position):
         self._position = position
         # numpy->vtk
         self._actor.SetPosition(*reversed(position))
     
+    def _get_color(self):
+        """ RGB color of the shape.
+        """
+        
+        return self._color
+    
     def _set_color(self, color):
-        """ Set the color of the shape by setting the color of the actor. """
         self._color = color
         self._actor.GetProperty().SetColor(color)
+    
+    def _get_size(self):
+        """ World size of the shape.
+        """
+        
+        return self._size
     
     def _set_size(self, size):
         self._size = size
@@ -68,10 +86,13 @@ class Shape(object):
         else :
             self._actor.VisibilityOn()
     
-    def _set_filled(self, filled):
-        """ Set the filled status of the shape by rendering either as a surface
-            or as wireframe.
+    def _get_filled(self):
+        """ Filled status of the shape.
         """
+        
+        return self._filled
+    
+    def _set_filled(self, filled):
         self._filled = filled
         
         if filled : 
@@ -81,9 +102,9 @@ class Shape(object):
     
     # Define all "set" properties as lazy, so that derived classes can override
     # them
-    actor = property(lambda self : self._actor)
-    position = property(lambda self : self._position, lambda o, x : o._set_position(x))
-    color = property(lambda self : self._color, lambda o, x : o._set_color(x))
-    size = property(lambda self : self._size, lambda o, x : o._set_size(x))
-    filled = property(lambda self : self._filled, lambda o, x : o._set_filled(x))
+    actor = medipy.base.LateBindingProperty(_get_actor)
+    position = medipy.base.LateBindingProperty(_get_position, _set_position)
+    color = medipy.base.LateBindingProperty(_get_color, _set_color)
+    size = medipy.base.LateBindingProperty(_get_size, _set_size)
+    filled = medipy.base.LateBindingProperty(_get_filled, _set_filled)
     

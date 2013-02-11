@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import weakref
@@ -13,8 +13,9 @@ from observable import Observable
 class PropertySynchronized(Observable) :
     """ A PropertySynchronized object will replicate any event to a child.
         This class expects the following formalism :
-          * each value to be synchronized is a property
-          * each property generate an event bearing its name
+            
+            * each value to be synchronized is a property
+            * each property generate an event bearing its name
         
         >>> class Image(PropertySynchronized) :
         ...     def __init__(self, position=None, zoom=None) :
