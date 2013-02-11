@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="layers_panel">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Colormap : </label>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="colormaps"/>
+          </object>
+          <object class="spacer">
+            <size>25</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="transparent_background">
+              <label>Transparent background</label>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Opacity : </label>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.Float" name="opacity"/>
+            <option>1</option>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="cut_low">
+              <label>Cut low</label>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.FloatInterval" name="display_range"/>
+            <option>1</option>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="cut_high">
+              <label>Cut high</label>
+            </object>
+            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxBOTTOM|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wx.CheckListBox" name="layers"/>
+        <option>1</option>
+        <flag>wxBOTTOM|wxEXPAND</flag>
+        <border>5</border>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="load">
+              <bitmap stock_id="wxART_FILE_OPEN"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="delete">
+              <bitmap stock_id="wxART_CROSS_MARK"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="move_up">
+              <bitmap stock_id="wxART_GO_UP"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="move_down">
+              <bitmap stock_id="wxART_GO_DOWN"/>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+</resource>

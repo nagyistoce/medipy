@@ -1,0 +1,8 @@
+Import("env")
+env = env.Clone()
+
+env.Use("vtk")
+env.PythonModule("_helpers", ["helpers.i", "helpers.cpp"], CPPPATH=["."]) 
+
+targets=env.Glob("*.py")
+Return("targets")
