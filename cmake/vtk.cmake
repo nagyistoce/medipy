@@ -1,3 +1,8 @@
+set(VTK_PYTHON_LIBRARIES)
+foreach(lib ${VTK_LIBRARIES})
+    set(vtk_python_libraries ${VTK_PYTHON_LIBRARIES} ${lib}PythonD)
+endforeach()
+
 macro(vtk_python_module name sources)
     # TODO : Use hint file ?
     
@@ -29,12 +34,7 @@ macro(vtk_python_module name sources)
     #python_add_module(${name} ${sources} ${wrappers} ${name}InitModified.cxx)
     python_add_module(${name} ${sources} ${wrappers} ${name}Init.cxx)
     
-    set(vtk_python_libraries)
-    foreach(lib ${VTK_LIBRARIES})
-        set(vtk_python_libraries ${vtk_python_libraries} ${lib}PythonD)
-    endforeach()
-    
-    target_link_libraries(${name} ${VTK_LIBRARIES} ${vtk_python_libraries})
+    target_link_libraries(${name} ${VTK_LIBRARIES} ${VTK_PYTHON_LIBRARIES})
     set_target_properties(${name} PROPERTIES PREFIX "")
 endmacro(vtk_python_module)
 
