@@ -17,7 +17,7 @@ set(include_directories ${include_directories} ${VTK_INCLUDE_DIRS})
 set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${include_directories}")
 
 wrap_library("MediPySegmentation" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base)
+    set(WRAPPER_LIBRARY_DEPENDS Base Numerics)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
     
     wrap_module("itkBETImageFilter")
