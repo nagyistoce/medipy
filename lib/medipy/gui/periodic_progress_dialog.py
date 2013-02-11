@@ -90,6 +90,8 @@ class WorkerThread(threading.Thread) :
     def _get_result(self):
         """ Return value of the thread's target.
         """
+        
+        return self._result
     
     exception = property(_get_exception)
     result = property(_get_result)
