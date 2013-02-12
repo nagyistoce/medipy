@@ -24,14 +24,14 @@ from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
 # Fiber
 ############
 
-def interpolate_field(points,field,spacing):
+def interpolate_field(points,field):
     """
     Interpolate (linear) Image instance at arbitrary points in world space   
     The resampling is done with scipy.ndimage.
     """
     
-    points_voxel = points/spacing
-    points_voxel = points_voxel.T
+    #points_voxel = (points-origin)/spacing
+    points_voxel = points.T
 
     comps = []
     for i in range(3):
@@ -41,35 +41,63 @@ def interpolate_field(points,field,spacing):
 
     return numpy.asarray(comps).T
 
-def apply_transfo(points,transfo,spacing):
+def apply_transfo(points,transfo):
     """
     Apply the transformation to the fiber points.
     """
-    transfo = transfo*spacing
-
+    #transfo = transfo*spacing
     #points x y z in mm
     return points + transfo
 
 
-def register_multi(points,field,spacing):
+def register_multi(points,field,spacing_wrap,origin_wrap,spacing,origin):
     """
     Register a track.
     """
-    transfo = interpolate_field(points,field,spacing)
-    return apply_transfo(points,transfo,spacing)
+    points_voxel = (points-origin_wrap)/spacing_wrap # in index
+    transfo = interpolate_field(points_voxel,field)
+    points_wrap_voxel = apply_transfo(points_voxel,transfo) # in index
+    return points_wrap_voxel*spacing + origin # in physical
+
+def register_multi_(points,field,model_wrap,model_fix):
+    """
+    Register a track.
+    """
+    points_voxel = numpy.asarray( [model_wrap.physical_to_index(point[::-1])[::-1] for point in points] )  # in index
+    transfo = interpolate_field(points_voxel,field)
+    points_wrap_voxel = apply_transfo(points_voxel,transfo) # in index
+    return numpy.asarray( [model_fix.index_to_physical(point[::-1])[::-1] for point in points_wrap_voxel] ) # in physical
 
 def register_star(params):
     return register_multi(*params)
 
-def register_fibers(T,ftrf,model_wrap) :
+def register_fibers_wrong(T,ftrf,model_wrap,model,inv=False) :
 
-    field_backward = load_trf(ftrf,model_wrap)
+    if inv :
+        field_backward = load_trf(ftrf,model,athr=100.0)
+    else :
+        field_backward = load_trf(ftrf,model_wrap,athr=100.0)
 
     pool = multiprocessing.Pool() # Create a group of CPUs to run on
-    asyncResult = pool.map_async(register_star, [a for a in itertools.izip(T,itertools.repeat(field_backward),itertools.repeat(model_wrap.spacing))])
+    asyncResult = pool.map_async(register_star, [a for a in itertools.izip( T,itertools.repeat(field_backward),itertools.repeat(model_wrap.spacing),itertools.repeat(model_wrap.origin),itertools.repeat(model.spacing),itertools.repeat(model.origin) ) ])
     resultList = asyncResult.get()
 
     return resultList
+
+
+def register_fibers(fibers,ftrf,model1,model2):
+    field_backward_inv = load_trf(ftrf,model1,athr=100.0)
+    fout = [] 
+    for f in fibers :
+        fout.append(register_multi(f,field_backward_inv,model2.spacing,model2.origin,model1.spacing,model1.origin))
+    return fout
+
+def register_fibers_(fibers,field_backward_inv,model1,model2):
+    fout = [] 
+    for f in fibers :
+        fout.append(register_multi(f,field_backward_inv,model2.spacing,model2.origin,model1.spacing,model1.origin))
+    return fout
+
 
 def invert_trf(fname_aff,fname_nl,fname_inv_aff,fname_inv_nl, fname_inv_affnl, model_wrap) :
 
@@ -81,6 +109,16 @@ def invert_trf(fname_aff,fname_nl,fname_inv_aff,fname_inv_nl, fname_inv_affnl, m
     medipy.medimax.recalage.InvertTransfo3d(str(fname_aff), str(fname_inv_aff), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
     medipy.medimax.recalage.InvertTransfo3d(str(fname_nl), str(fname_inv_nl), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
     medipy.medimax.recalage.CombineTransfo3d(str(fname_inv_nl), str(fname_inv_aff), str(fname_inv_affnl), 5)
+
+def invert_trf_rigid(fname_rigid,fname_inv_rigid, model_wrap) :
+
+    dpthref,hghtref,wdthref = model_wrap.shape
+    dzref,dyref,dxref = model_wrap.spacing
+    dzref = float(dzref)
+    dyref = float(dyref)
+    dxref = float(dxref)
+    medipy.medimax.recalage.InvertTransfo3d(str(fname_rigid), str(fname_inv_rigid), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+
 
 #############
 # Voxel
@@ -123,7 +161,7 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
     model_out = ppd_tensor_trf(model_out,field_backward)
     return model_out
 
-def load_trf(ftrf,model_wrap) :
+def load_trf(ftrf,model_wrap,athr=500) :
     """ Load a .trf transformation field
     """
     ux = medipy.base.Image(shape=(1), dtype=numpy.float32)
@@ -137,6 +175,8 @@ def load_trf(ftrf,model_wrap) :
     field[...,0] = ux.data
     field[...,1] = uy.data
     field[...,2] = uz.data
+
+    field.data[numpy.where(field.data>athr)] = 0.0
 
     return field
 
@@ -248,9 +288,9 @@ def jacobian_from_trf_field(trf_field):
 
     # compute Jx <- dx
     g = gradient_itk(trf_field[...,0])
-    J[...,0,0] = g[...,0] #df/dx
-    J[...,0,1] = g[...,1] #df/dy
-    J[...,0,2] = g[...,2] #df/dz
+    J[...,0,0] = g[...,0] #df1/dx
+    J[...,0,1] = g[...,1] #df1/dy
+    J[...,0,2] = g[...,2] #df1/dz
     # compute Jy <- dy
     g = gradient_itk(trf_field[...,1])
     J[...,1,0] = g[...,0]
@@ -263,6 +303,7 @@ def jacobian_from_trf_field(trf_field):
     J[...,2,2] = g[...,2]
 
     return J
+
 
 if __name__ == '__main__':
 
