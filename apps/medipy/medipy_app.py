@@ -22,6 +22,8 @@ import medipy.gui.base
 from main_frame import MainFrame
 import menu_builder
 
+from medipy.base import Object3D
+
 class MediPyApp(medipy.gui.base.Application) :
     
     _application_name = "MediPy"

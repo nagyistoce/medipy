@@ -66,13 +66,13 @@ def generate_image_sampling(image,step=(1,1,1),mask=None) :
     seeds = []
     if mask==None :
         for i,j,k in zip(X,Y,Z) :
-            seeds.append((i+origin[0],j+origin[1],k+origin[2]))
+            seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
     else :
         for i,j,k in zip(X,Y,Z) :
             point = np.cast[int](np.floor(np.array([k,j,i])/spacing))
             if mask[tuple(point)]==1 :
-                seeds.append((i+origin[0],j+origin[1],k+origin[2]))
-    return seeds
+                seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
+    return np.asarray(seeds)
 
 def length(xyz, constant_step=None):
     """ Euclidean length of track line in mm 
