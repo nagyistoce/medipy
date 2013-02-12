@@ -40,8 +40,8 @@ def mean_diffusivity(image):
     """
     
     md_filter = itk.MeanDiffusivityImageFilter[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
-    itk_tensor = medipy.itk.medipy_image_to_itk_image(tensor, False)
-    md_filter.SetInput(0,itk_tensor)
+    itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
+    md_filter.SetInput(0,itk_image)
     md_filter.Update()
     itk_output = md_filter.GetOutput(0)
     output = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
