@@ -36,13 +36,13 @@ def least_squares(images):
         InputImage, OutputImage]
     
     estimation_filter = EstimationFilter.New()
-    estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
+    estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value)
     for cnt,image in enumerate(images) :
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         estimation_filter.SetInput(cnt,itk_image)
         
         gradient = image.metadata["mr_diffusion_sequence"][0].\
-            diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
+            diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
         estimation_filter.SetGradientDirection(cnt, [float(x) for x in gradient])
     
     itk_output = estimation_filter()[0]
