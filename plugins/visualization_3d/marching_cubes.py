@@ -6,7 +6,7 @@
 # for details.
 ##########################################################################
 
-from vtk import vtkDiscreteMarchingCubes, vtkMarchingCubes
+from vtk import vtkDiscreteMarchingCubes, vtkMarchingCubes, vtkMatrix4x4, vtkTransform, vtkTransformPolyDataFilter
 
 from medipy.base import Object3D
 import medipy.vtk
@@ -34,23 +34,46 @@ def marching_cubes(input, isovalue, compute_normals, output):
     output.image = input
     output.dataset = marching_cubes.GetOutput()
     
-def discrete_marching_cubes(input, isovalue, output):
+def discrete_marching_cubes(input,*args,**kwargs):
     """ Generate a triangle mesh of the surface using the discrete marching cubes 
         algorithm.
         
         <gui>
             <item name="input" type="Image" label="Image"/>
             <item name="isovalue" type="Float" initializer="0.5" label="Isovalue"/>
-            <item name="output" type="Object3D" role="output" label="Output"/>
+            <item name="output" type="Object3D" role="return" label="Output"/>
         </gui>
     """
-    
+
+    isovalue = kwargs['isovalue']
+
     vtk_image = medipy.vtk.array_to_vtk_image(input.data, False, input.data_type)
     marching_cubes = vtkDiscreteMarchingCubes()
     marching_cubes.SetInput(vtk_image)
     marching_cubes.SetValue(0, isovalue)
     marching_cubes.Update()
-    
-    output.dataset = marching_cubes.GetOutput()
-    output.image = input
+
+    vtk_polydata = marching_cubes.GetOutput()
+
+    matrix = vtkMatrix4x4()
+    matrix.Identity()
+    direction = input.direction[::-1,::-1]
+    for i in range(3):
+        for j in range(3):
+            matrix.SetElement(i,j,direction[i,j])
+
+    transform = vtkTransform()
+    transform.Translate(input.origin[::-1])
+    transform.Concatenate(matrix)
+    transform.Scale(input.spacing[::-1])
+
+    transformPD = vtkTransformPolyDataFilter()
+    transformPD.SetTransform(transform)
+    transformPD.SetInput(vtk_polydata)
+
+    output = Object3D(transformPD.GetOutput(),"Discrete Marching Cubes")
+    output._set_image(input)
+
+    return output
+
     

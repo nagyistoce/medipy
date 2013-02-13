@@ -15,10 +15,12 @@ import xml.dom.minidom
 
 import numpy
 
-from vtk import vtkPlanes, vtkPoints, vtkPolyData
+from vtk import vtkPlanes, vtkPoints, vtkPolyData, vtkMatrix4x4, vtkTransform
 
 import wx
 import wx.xrc
+
+from medipy.base.coordinate_system import slices
 
 import medipy.base
 from medipy.base import Object3D, Observable, ObservableList
@@ -35,31 +37,7 @@ from medipy.visualization_3d.texture import texture_from_depth
 
 import viewer_3d_tools
 
-class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
-    slicing_matrices = {
-            "axial" : numpy.asarray([ 
-                [1, 0, 0], # Patient I-S mapped to -z -> +z
-                [0, 1, 0], # Patient P-A mapped to -y -> +y
-                [0, 0, 1]  # Patient L-R mapped to -x -> +x
-            ], dtype=float),
-            "coronal" : numpy.asarray([ 
-                [0, 1, 0], # Patient P-A mapped to -z -> +z
-                [1, 0, 0], # Patient I-S mapped to -y -> +y
-                [0, 0, 1]  # Patient L-R mapped to -x -> +x
-            ], dtype=float),
-            "sagittal" : numpy.asarray([ 
-                [0, 0, 1], # Patient L-R mapped to -z -> +z
-                [1, 0, 0], # Patient I-S mapped to -y -> +y
-                [0, 1, 0]  # Patient P-A mapped to -x -> +x
-            ], dtype=float)
-        }
-    
-    orientations = {
-                    "axial" : (0, 0, 0),
-                    "coronal" : (90, 90, -90),
-                    "sagittal" : (90, 90, 0)
-    }
-    
+class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):  
     
     def __init__(self, parent, objects_3d, *args, **kwargs):
         
@@ -67,6 +45,17 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         
         self._objects_3d = objects_3d
         self._cine_3d_dialog = None
+
+        self._display_coordinates = None
+        if "display_coordinates" in kwargs.keys() and "slicing_mode" in  kwargs.keys():
+            self._set_display_coordinates(kwargs["display_coordinates"])
+            if kwargs["slicing_mode"] in ["radiological","index"] :
+                self.slicing_matrices = slices[kwargs["slicing_mode"]]
+            else :
+                 raise medipy.base.Exception("Unknown slicing mode : %s"%(kwargs["slicing_mode"],)) 
+        else :
+            self.slicing_matrices = slices["radiological"]
+            self._set_display_coordinates("physical")
         
 #        self._interaction_mode = "Normal"
 #        self._motion_factor = 0.5
@@ -242,6 +231,12 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
     
         # initialization of the viewer_3d_frame tools
         self._viewer_3d.tools["LeftButtonShift"] = viewer_3d_tools.Rotate(self._viewer_3d)
+
+    def _set_display_coordinates(self, display_coordinates) :
+        if display_coordinates not in ["physical", "nearest_axis_aligned", "index"] :
+            raise medipy.base.Exception("Unknown display coordinates : %s"%(display_coordinates,))
+        
+        self._display_coordinates = display_coordinates      
     
     
     def view_all(self):
@@ -791,13 +786,22 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         
     def _create_image_layers(self, state, _object) :
         image = _object.image
+        print image
         colormap_name = image.metadata["colormap"] if "colormap" in image.metadata else "gray"
         colormap = Colormap(get_colormap_from_name(colormap_name), None)
-        for axis, matrice in Viewer3DFrame.slicing_matrices.items() :
-            image_layer = ImageLayer(matrice, image, colormap=colormap)
+        for axis, matrice in self.slicing_matrices.items() :
+            image_layer = ImageLayer(matrice, image, colormap=colormap, display_coordinates=self._display_coordinates)
             image_layer.position = numpy.divide(_object.image.shape, 2.)
-            image_layer.actor.SetOrientation(Viewer3DFrame.orientations[axis])
+            matrix = vtkMatrix4x4()
+            matrix.Identity()
+            direction = image_layer._slice_to_world[::-1,::-1]
+            for i in range(3):
+                for j in range(3):
+                    matrix.SetElement(i,j,direction[i,j])
+            image_layer.actor.SetUserMatrix(matrix)
             image_layer.zero_transparency = True
+
+
             image_layer.actor.SetVisibility(False)
             
             center = list(_object.image.shape)
@@ -852,7 +856,7 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         
         
     def _synchronized_cut(self, widget, axis):
-        if self._synchronize_checkbox.IsChecked() :
+        if self._synchronize_checkbox.IsChecked() : #ToCheck
             for _object in self._objects_3d :
                 self._extended_cut(_object)
                 if _object.image :
@@ -864,26 +868,37 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         else :
             index = self._objects_check_list_box.GetSelection()
             _object = self._objects_3d[index]
-            self._extended_cut(_object)
+            self._extended_cut(_object, axis)
             if _object.image :
+
+                #_object.actor.SetPosition(_object.image.origin[::-1])
+                #_object.actor.SetScale(_object.image.spacing[::-1])
+
                 if widget == "choice" :
                     self._display_image_layers(axis, _object)
-                    self._move_image_layers(axis, _object)
+                    self._extended_cut(_object, axis)
+                    self._update_image_layers(axis, _object)
                 elif widget == "slider" :
-                    self._move_image_layers(axis, _object)
+                    self._update_image_layers(axis, _object)    
     
-    
-    def _extended_cut(self, _object):
+    def _extended_cut(self, _object, axis):
         if _object.image :
-            zmin, ymin, xmin = _object.image.origin
-            zmax, ymax, xmax = _object.image.shape
+            shape_inf = [0,0,0] #_object.image.origin
+            shape_sup = numpy.asarray(_object.image.shape)-1
+
+            if self._display_coordinates in ["physical","nearest_axis_aligned"] :
+                shape_sup = _object.image.index_to_physical(shape_sup)
+                shape_inf = _object.image.index_to_physical(shape_inf)
+
+            zmax, ymax, xmax = shape_sup
+            zmin, ymin, xmin = shape_inf
+
         else :
-            xmin, xmax, ymin, ymax, zmin, zmax = _object.dataset.GetBounds()
+            raise medipy.base.Exception("Cannot cut volume in physical coordinate system without an image attached to the Oject3D.")
+            #xmin, xmax, ymin, ymax, zmin, zmax = _object.dataset.GetBounds() 
         
-        Pmin = (xmin, ymin, zmin)
-        Pmax = (xmax, ymax, zmax)
-        
-        bounds = [xmin-1, xmax+1, ymin-1, ymax+1, zmin-1, zmax+1]
+       
+        bounds = [xmin, xmax, ymin, ymax, zmin, zmax]
         self._manage_clipping(bounds, _object)
         
         self._internal_cut(_object, bounds)
@@ -893,27 +908,68 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         
     def _internal_cut(self, _object, bounds):
         if _object.clipping_functions :
-           
-            cor_val = self._coronal_slider.GetValue()
-            cor_str = self._coronal_choice.GetStringSelection()
-            if cor_str == "Keep anterior" :
-                bounds[2] = cor_val
-            elif cor_str == "Keep posterior" :
-                bounds[3] = cor_val
+
+            state = self._memento[_object]
+            activated_acs = []
+            for axis in ["axial","coronal","sagittal"] :
+                if state[axis+"_image_layer"].actor.GetVisibility() :
+                    activated_acs.append( axis )
             
-            axi_val = self._axial_slider.GetValue()
-            axi_str = self._axial_choice.GetStringSelection()
-            if axi_str == "Keep superior" :    
-                bounds[4] = axi_val
-            elif axi_str == "Keep inferior" :
-                bounds[5] = axi_val
-            
-            sag_val = self._sagittal_slider.GetValue() 
-            sag_str = self._sagittal_choice.GetStringSelection()
-            if sag_str == "Keep right" :    
-                bounds[0] = sag_val
-            elif sag_str == "Keep left" :
-                bounds[1] = sag_val
+            point = numpy.asarray(_object.image.shape)-1
+            cut_options = []
+            for axis in activated_acs :
+                if axis == "axial" :
+                    cut_options.append( self._axial_choice.GetStringSelection() )
+                    axi_val = self._axial_slider.GetValue()
+                    point[1] = axi_val
+                elif axis == "coronal" :
+                    cut_options.append( self._coronal_choice.GetStringSelection() )
+                    cor_val = self._coronal_slider.GetValue() 
+                    point[2] = cor_val
+                elif axis == "sagittal" :
+                    cut_options.append( self._sagittal_choice.GetStringSelection() )
+                    sag_val = self._sagittal_slider.GetValue()
+                    point[0] = sag_val
+                else :
+                    raise medipy.base.Exception("Uknown axis : %s"%(axis,))
+
+            if self._display_coordinates in ["physical","nearest_axis_aligned"] :
+                if _object.image :
+                    point = _object.image.index_to_physical(point)
+                else :
+                    raise medipy.base.Exception("Cannot cut volume in physical coordinate system without an image attached to the Oject3D.")  
+            point = point[::-1]
+  
+            b_inf = bounds[::2] 
+            b_sup = bounds[1::2]
+            key_inf = list(point != b_inf)
+            key_sup = list(point != b_sup)
+            key = key_inf and key_sup     
+
+            bounds_sorted = [] # Space Problem ?
+            axis = ["sagittal", "coronal", "axial"]
+            new_axis = [] # signed ?
+            for i in range(3) :
+                if b_inf[i]<b_sup[i] :
+                    bounds_sorted.append(b_inf[i])
+                    bounds_sorted.append(b_sup[i])
+                else :
+                    bounds_sorted.append(b_sup[i])
+                    bounds_sorted.append(b_inf[i])
+ 
+                perm = numpy.where(_object.image._index_to_physical_matrix[i]!=0)[0][0]
+                if axis[perm] in activated_acs :
+                    new_axis.append(axis[perm])              
+            bounds = numpy.asarray(bounds_sorted)
+                
+            while True in key :
+                index = key.index(True)
+                cut_option = cut_options[activated_acs.index(axis[index])]
+                if cut_option in ["Keep superior", "Keep posterior", "Keep right"] : 
+                    bounds[index*2] = point[index]
+                else :
+                    bounds[index*2+1] = point[index]
+                key[index] = False
             
             _object.clipping_functions[0].SetBounds(bounds)
          
@@ -957,6 +1013,7 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
             self._viewer_3d.render_window_interactor.Render()
         else :
             self._inside_out_checkbox.Enable(True)
+            self._viewer_3d.render_window_interactor.Render()
             
     
     def _manage_images(self, state, _object):
@@ -975,24 +1032,29 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         _object.color_by_scalars(lut, min, max)
         texture_from_depth(_object, image, depth)
             
-
-    def _move_image_layers(self, axis, _object):
-        indexes  = {"axial" : 0, "coronal" : 1, "sagittal" : 2}
+    def _update_image_layers(self, axis, _object):
+        indexes  = {"axial" : 1, "coronal" : 2, "sagittal" : 0}
         i = indexes[axis]
         
         state = self._memento[_object]
         
         value = getattr(self, "_"+axis+"_slider")
-        value = value.GetValue()
+        value = value.GetValue()          
+
+        state[axis + "_image_layer"].position[i] = value
+        new_position = state[axis + "_image_layer"].position
             
-        new_position = [0]*3
-        new_position[i] = value
-        state[axis + "_image_layer"].position = new_position
+        if self._display_coordinates == "index" :
+            state[axis + "_image_layer"]._set_index_position(new_position)
+            direction = state[axis + "_image_layer"]._world_to_slice[::-1,::-1]
+            state[axis + "_image_layer"].actor.SetPosition( numpy.dot(direction,new_position[::-1]) )
+        else :
+            state[axis + "_image_layer"]._set_physical_position(_object.image.index_to_physical(new_position))
+            direction = state[axis + "_image_layer"]._world_to_slice[::-1,::-1]
+            state[axis + "_image_layer"].actor.SetPosition( numpy.dot(direction,_object.image.index_to_physical(new_position)[::-1]) )
+        state[axis + "_image_layer"]._update_change_information()
             
-        new_actor_position = list(state[axis + "_image_layer_center"])
-        new_actor_position[2-i] = _object.image.origin[i] + value * _object.image.spacing[i]
-            
-        state[axis + "_image_layer"].actor.SetPosition(new_actor_position)
+
         
         
     def _setup_tool(self, tool) :
@@ -1041,7 +1103,7 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
     
     def _save_object_default_state(self, state, _object):
         if _object.image :
-            zmin, ymin, xmin = _object.image.origin
+            zmin, ymin, xmin = [0,0,0] #_object.image.origin
             zmax, ymax, xmax = _object.image.shape
         else :
             _object.dataset.Update()
@@ -1053,16 +1115,16 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         center = numpy.add(Pmin, Pmax)/2.
             
         state["check_box"] = False
-        state["axial_slider_min"] = zmin-1
-        state["axial_slider_max"] = zmax+1
+        state["axial_slider_min"] = zmin
+        state["axial_slider_max"] = ymax-1
         state["axial_slider_value"] = center[2]
         state["axial_choice"] = 0 #Inactive
-        state["coronal_slider_min"] = ymin-1     
-        state["coronal_slider_max"] = ymax+1
+        state["coronal_slider_min"] = ymin    
+        state["coronal_slider_max"] = xmax-1
         state["coronal_slider_value"] = center[1]
         state["coronal_choice"] = 0 #Inactive
-        state["sagittal_slider_min"] = xmin-1    
-        state["sagittal_slider_max"] = xmax+1
+        state["sagittal_slider_min"] = xmin    
+        state["sagittal_slider_max"] = zmax-1
         state["sagittal_slider_value"] = center[0]
         state["sagittal_choice"] = 0 #Inactive
         state["static_visibility"] = _object.visibility
