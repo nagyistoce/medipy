@@ -6,6 +6,14 @@
 # for details.
 ##########################################################################
 
+import itk
+import vtk
+
+from medipy.base import Object3D 
+import medipy.itk
+
+from utils import length,generate_image_sampling
+
 def streamline_tractography(model,*args,**kwargs) :
     """ Streamline 2nd order tensor tractography 
  
@@ -48,7 +56,6 @@ def streamline_tractography(model,*args,**kwargs) :
     for i in range(nb_fiber) :
         fibers.append(tractography_filter.GetOutputFiberAsPyArray(i))
 
-    output = Object3D()
     fusion = vtk.vtkAppendPolyData()
 
     for fiber in fibers :
@@ -74,7 +81,7 @@ def streamline_tractography(model,*args,**kwargs) :
             fusion.AddInput(polydata)
    
     fusion.Update()
-    output.dataset = fusion.GetOutput()
+    output = Object3D(fusion.GetOutput(),"Streamline Tractography")
     return output
 
 
