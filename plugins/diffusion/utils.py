@@ -15,6 +15,48 @@ import medipy.base
 import medipy.diffusion
 import medipy.itk
 
+def generate_image_sampling(image,step=(1,1,1)) :
+    """ Generate seeds to init tractographu
+    step is expressed in mm
+    """
+
+    spacing = image.spacing
+    shape = image.shape*spacing
+    Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
+    X = X.flatten()
+    Y = Y.flatten()
+    Z = Z.flatten()
+    seeds = []
+    for i,j,k in zip(X,Y,Z) :
+        seeds.append((i,j,k))
+    return seeds
+
+def length(xyz, constant_step=None):
+    """ Euclidean length of track line in mm 
+    """
+    if constant_step==None :
+        if xyz.shape[0] < 2 :
+            return 0
+        else :
+            dists = np.sqrt((np.diff(xyz, axis=0)**2).sum(axis=1))
+            return np.sum(dists)
+    else :
+        return (xyz.shape[0]-1)*constant_step
+
+def voxel_parameters(tensor,w_size_plane=3,w_size_depth=3,mask=None):
+    shape = tensor.shape
+    mean = medipy.base.Image(data=np.zeros(shape+(6,),dtype=np.single),data_type="vector")
+    var = medipy.base.Image(data=np.zeros(shape+(1,),dtype=np.single),data_type="vector")
+    if mask==None :
+        mask = medipy.base.Image(data=np.zeros((1,1,1),dtype=np.single))
+        medipy.diffusion.dtiParamItk(tensor,mean,var,mask,w_size_plane,w_size_depth,False)
+    else :
+        medipy.diffusion.dtiParamItk(tensor,mean,var,mask,w_size_plane,w_size_depth,True)
+    var.data = np.sqrt( var.data/6.0 ) # compute standard deviation
+    
+    return mean,var,w_size_plane*w_size_plane*w_size_depth
+
+
 def spectral_decomposition(slice_tensor):
     shape = slice_tensor.shape
 
