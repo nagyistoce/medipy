@@ -13,6 +13,8 @@
 import numpy as np
 import medipy.base
 
+from _spectral_analysis import spectral_analysis
+
 def generate_image_sampling(image,step=(1,1,1)) :
     """ Generate seeds to init tractographu
     step is expressed in mm
@@ -46,8 +48,13 @@ def spectral_decomposition(slice_tensor):
     shape = slice_tensor.shape
 
     eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
+    eigVal_itk = medipy.itk.medipy_image_to_itk_image(eigVal, False)
+    
     eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
-    spectral_analysis(slice_tensor,eigVal,eigVec)
+    eigVec_itk = medipy.itk.medipy_image_to_itk_image(eigVec, False)
+    
+    itk_tensors = medipy.itk.medipy_image_to_itk_image(slice_tensor, False)
+    spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
 
     return eigVal,eigVec
 
