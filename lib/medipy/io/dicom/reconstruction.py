@@ -104,7 +104,7 @@ def data(datasets):
     dtype = sample_dataset.pixel_array.dtype
     for dataset in datasets :
         if "rescale_slope" in dataset or "rescale_intercept" in dataset :
-            dtype = float
+            dtype = numpy.float32
             break
     array = numpy.ndarray(shape, dtype=dtype)
     
