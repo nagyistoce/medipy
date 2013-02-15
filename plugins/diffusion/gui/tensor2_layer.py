@@ -15,7 +15,7 @@ import vtk.util.numpy_support
 import medipy.itk
 import medipy.gui.image
 import medipy.vtk
-from medipy.diffusion.utils import rotation33todt6, spectral_decomposition
+from ..utils import rotation33todt6, spectral_decomposition
 
 def get_fa(eigenvalues, eigenvectors):
     ev1 = eigenvalues[...,0]
