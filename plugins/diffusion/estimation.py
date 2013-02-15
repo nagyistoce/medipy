@@ -8,8 +8,10 @@
 
 import itk
 import medipy.itk
+import medipy.base
+import numpy as np
 
-def least_squares(images):
+def least_squares(images,accu):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
         in the list) and a set of float diffusion weighted images (on shell, 
@@ -20,6 +22,7 @@ def least_squares(images):
         
         <gui>
             <item name="images" type="ImageSerie" label="Input"/>
+            <item name="accu" type="Enum" initializer="('First', 'Mean')" label="Accumulation Type" />
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
@@ -27,6 +30,47 @@ def least_squares(images):
     
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, 
     # so it has already been included in itk by __init__
+
+    # reference must be at the begining of the diffusion images list
+    bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue for image in images]
+    if 0 in bval :
+        nb_ref = bval.count(0)
+        argb = np.argsort(bval)
+        if accu=="First" :
+            reference = images[argb[0]]
+            images.remove(reference)
+            images.insert(0,reference)
+        elif accu=="Mean" :
+            references = []
+            for index in argb[:nb_ref] :
+                references.append( images[index] )
+            reference = references[0]
+            images.remove(reference)
+            for r in references[1:] :
+                images.remove(r)
+                reference.data += r
+            reference.data /= nb_ref        
+            images.insert(0,reference)
+        elif accu=="Overall Mean" :
+            if len(bval)%nb_ref==0 :
+                # ToDo: track gradient directions if possible (not working yet)
+                f = len(bval)/nb_ref
+                sequences = []
+                for i in range(nb_ref) :
+                    sequences.append( images[i*nb_ref:(i+1)*nb_ref] )
+                images = sequences[0]
+                for accu_images in sequences[1:] :
+                    for cnt,image in enumerate(accu_images) :
+                        images[cnt].data += image.data
+                for cnt in range(len(images)) :
+                    images[cnt].data /= nb_ref
+            else :
+                raise medipy.base.Exception("Impossible to average the whole diffusion serie")
+
+        else :
+            raise medipy.base.Exception("Uknown accumlation option")
+    else :
+        raise medipy.base.Exception("No reference image in diffusion sequence")
     
     PixelType = medipy.itk.dtype_to_itk[images[0].dtype.type]
     Dimension = images[0].ndim
