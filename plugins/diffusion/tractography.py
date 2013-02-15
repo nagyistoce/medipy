@@ -7,12 +7,13 @@
 ##########################################################################
 
 import itk
+import numpy
 import vtk
 
 from medipy.base import Object3D 
 import medipy.itk
 
-from utils import length,generate_image_sampling
+from utils import length, generate_image_sampling
 
 def streamline_tractography(model,*args,**kwargs) :
     """ Streamline 2nd order tensor tractography 
@@ -88,7 +89,7 @@ def streamline_tractography(model,*args,**kwargs) :
 
 
 
-def streamline_tractography_(model,seeds=None,step=1.0,thr_fa=0.2,thr_angle=np.pi,rk4=False):
+def streamline_tractography_(model,seeds=None,step=1.0,thr_fa=0.2,thr_angle=numpy.pi,rk4=False):
     """ Streamline 2nd order tensor tractography """
  
     if seeds==None :
