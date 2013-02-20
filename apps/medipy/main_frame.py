@@ -460,6 +460,9 @@ class MainFrame(medipy.gui.base.Frame):
     def _get_current_ui(self):
         return self._current_ui
     
+    def _get_history(self):
+        return self._history
+    
     display_coordinates = property(_get_display_coordinates, 
                                    _set_display_coordinates)
     display_convention = property(_get_display_convention,
@@ -468,6 +471,7 @@ class MainFrame(medipy.gui.base.Frame):
     slices = property(_get_slices, _set_slices)
     crosshair = property(_get_crosshair, _set_crosshair)
     current_ui = property(_get_current_ui)
+    history = property(_get_history)
     
     ##################
     # Event handlers #
