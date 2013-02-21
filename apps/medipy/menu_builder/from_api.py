@@ -39,7 +39,7 @@ def build_menu(path, root) :
         # No api 
         return result
     
-    module_name = ["medipy"] + path[len(root)+1:].split(os.path.sep) + ["api"]
+    module_name = ["medipy"] + path[len(os.path.normpath(root))+1:].split(os.path.sep) + ["api"]
     # Remove empty elements
     module_name = ".".join([x for x in module_name if x])
     
