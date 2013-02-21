@@ -219,6 +219,8 @@ class MainFrame(medipy.gui.base.Frame):
         for name in ["layers", "annotations"] :
             panel = getattr(self.ui, name)
             panel.image = None
+        if hasattr(self.current_ui, "image") :
+            self.current_ui.image = None
         self.ui.image_grid.delete(index)
         del self.images[index]
         
