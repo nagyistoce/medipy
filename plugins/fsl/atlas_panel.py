@@ -47,7 +47,8 @@ class AtlasPanel(wx.Panel):
         if self._image is not None :
             self._image.remove_observer("cursor_position", self.on_cursor_position)
         self._image = image
-        self._image.add_observer("cursor_position", self.on_cursor_position)
+        if self._image is not None :
+            self._image.add_observer("cursor_position", self.on_cursor_position)
         self._update_label()
     
     def _get_atlas(self):
