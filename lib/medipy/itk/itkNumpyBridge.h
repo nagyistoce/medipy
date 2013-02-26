@@ -1,13 +1,13 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * for details.
  ************************************************************************/
 
-#ifndef itk_itknumpybridge_h
-#define itk_itknumpybridge_h
+#ifndef _bcd8dc5f_fe20_4542_99ff_db406e1c0329
+#define _bcd8dc5f_fe20_4542_99ff_db406e1c0329
 
 #include <itkImage.h>
 #include <itkImportImageFilter.h>
@@ -66,7 +66,8 @@ public:
 protected:
     typedef enum PyArray_TYPES PyArrayType;
     static PyArrayType GetPyType(void);
-    static void set_array_ownership(PyObject* array, bool value);
+    static void set_array_ownership(PyArrayObject* array, bool value);
+    static PyArrayObject* GetPyArrayObject(PyObject* obj);
 
     NumpyBridge(const Self&); // Not implemented.
     void operator=(const Self&); // Not implemented.
@@ -76,4 +77,4 @@ protected:
 
 #include "itkNumpyBridge.txx"
 
-#endif // itk_itknumpybridge_h
+#endif // _bcd8dc5f_fe20_4542_99ff_db406e1c0329
