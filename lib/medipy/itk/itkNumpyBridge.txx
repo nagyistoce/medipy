@@ -1,14 +1,15 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * for details.
  ************************************************************************/
 
-#ifndef itk_itknumpybridge_txx
-#define itk_itknumpybridge_txx
+#ifndef _6be648b4_a39e_41bb_9d88_a83e6873e3a1
+#define _6be648b4_a39e_41bb_9d88_a83e6873e3a1
 
+#include <cstring>
 #include "itkNumpyBridge.h"
 #include <itkPixelTraits.h>
 
@@ -59,7 +60,7 @@ NumpyBridge<TImage>
         throw std::runtime_error(std::string("Cannot convert object of type") + image->GetNameOfClass());
     }
 
-    unsigned int const arrayDimension = ImageDimension+dataDimension;
+    unsigned int const arrayDimension = Self::ImageDimension+dataDimension;
 
     // Fill array dimensions
     npy_intp* dimensions = new npy_intp[arrayDimension];
@@ -79,30 +80,46 @@ NumpyBridge<TImage>
     void* data = reinterpret_cast<void*>(image->GetBufferPointer());
 
     // Create the Python object, obj will not own the memory by default
-    int item_type = GetPyType();
+    int item_type = Self::GetPyType();
     PyObject * obj = PyArray_SimpleNewFromData(arrayDimension, dimensions, item_type, data);
     delete[] dimensions;
 
     // Transfer ownership only if ITK image manages memory
     if(transferOwnership && image->GetPixelContainer()->GetContainerManageMemory())
     {
-        Self::set_array_ownership(obj, true);
+        Self::set_array_ownership(reinterpret_cast<PyArrayObject*>(obj), true);
         image->GetPixelContainer()->ContainerManageMemoryOff();
     }
 
     return obj;
 }
 
-
 template<typename TImage>
 const typename NumpyBridge<TImage>::ImagePointer
 NumpyBridge<TImage>
 ::GetImageFromArray(PyObject* obj, bool transferOwnership)
 {
-    if(!PyArray_ISCONTIGUOUS(obj))
+    PyArrayObject* array = Self::GetPyArrayObject(obj);
+
+    // Fill image size, leave out the (non-scalar) data dimensions
+    SizeType size;
+    for(unsigned int d = 0; d<TImage::GetImageDimension(); d++)
     {
-        throw std::runtime_error("Cannot convert a non C-contiguous array");
+        size[TImage::GetImageDimension() - d - 1] = array->dimensions[d];
     }
+
+    IndexType start;
+    start.Fill(0);
+
+    RegionType region;
+    region.SetIndex(start);
+    region.SetSize(size);
+
+    PointType origin;
+    origin.Fill(0.0);
+
+    SpacingType spacing;
+    spacing.Fill(1.0);
 
     ImagePointer result = TImage::New();
 
@@ -124,45 +141,15 @@ NumpyBridge<TImage>
         throw std::runtime_error(std::string("Cannot convert object of type") + result->GetNameOfClass());
     }
 
-    // Get the array object
-    int element_type = GetPyType();
-    PyArrayObject * parray = (PyArrayObject *) PyArray_ContiguousFromAny(obj, element_type, arrayDimension, arrayDimension);
-
-    if(parray == NULL)
-    {
-        throw std::runtime_error("Contiguous array couldn't be created from input python object");
-    }
-
-
-    // Fill image size, leave out the (non-scalar) data dimensions
-    SizeType size;
-    for(unsigned int d = 0; d<TImage::GetImageDimension(); d++)
-    {
-        size[TImage::GetImageDimension() - d - 1] = parray->dimensions[d];
-    }
-
-    IndexType start;
-    start.Fill(0);
-
-    RegionType region;
-    region.SetIndex(start);
-    region.SetSize(size);
-
-    PointType origin;
-    origin.Fill(0.0);
-
-    SpacingType spacing;
-    spacing.Fill(1.0);
-
     unsigned long numberOfPixels = 1;
     for(unsigned int d=0; d<arrayDimension; ++d)
     {
-        numberOfPixels *= parray->dimensions[d];
+        numberOfPixels *= array->dimensions[d];
     }
 
     typedef itk::ImportImageContainer<unsigned long, IOPixelType> ContainerType;
     typename ContainerType::Pointer container = ContainerType::New();
-    IOPixelType* data = (IOPixelType*) parray->data;
+    IOPixelType* data = (IOPixelType*) array->data;
     container->SetImportPointer(data, numberOfPixels, transferOwnership);
 
     result->SetRegions(region);
@@ -171,17 +158,13 @@ NumpyBridge<TImage>
     result->SetPixelContainer(container);
     if(result->GetNameOfClass() == std::string("VectorImage"))
     {
-        result->SetNumberOfComponentsPerPixel(parray->dimensions[arrayDimension-1]);
+        result->SetNumberOfComponentsPerPixel(array->dimensions[arrayDimension-1]);
     }
 
     if(transferOwnership)
     {
-        Self::set_array_ownership(obj, false);
+        Self::set_array_ownership(array, false);
     }
-
-    // has been Py_INCREF'ed in PyArray_FromArray, called by PyArray_FromAny,
-    // called by PyArray_ContiguousFromObject
-    Py_XDECREF(obj);
 
     return result;
 }
@@ -192,11 +175,99 @@ bool
 NumpyBridge<TImage>
 ::IsBufferShared(PyObject* obj, ImageType* image)
 {
-    if(!PyArray_ISCONTIGUOUS(obj))
-   {
-       return false;
-   }
+    PyArrayObject* array = NULL;
+    try
+    {
+        PyArrayObject* array = Self::GetPyArrayObject(obj);
+    }
+    catch(...)
+    {
+        // Could not convert : buffer is not shared
+        PyErr_Clear();
+        return false;
+    }
 
+    if(array == NULL)
+    {
+        return false;
+    }
+
+    return (array->data==reinterpret_cast<char*>(image->GetBufferPointer()));
+}
+
+#define NUMPY_BRIDGE_SET_ITEM_TYPE(image_type, c_type, item_type, python_type) \
+    if(typeid(image_type) == typeid(c_type)) { item_type = python_type; }
+
+template<typename TImage>
+typename NumpyBridge<TImage>::PyArrayType
+NumpyBridge<TImage>
+::GetPyType(void)
+{
+    PyArrayType item_type=PyArray_NOTYPE;
+    typedef typename PixelTraits<IOPixelType>::ValueType ScalarType;
+
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, double, item_type, PyArray_DOUBLE)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, float, item_type, PyArray_FLOAT)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, unsigned char, item_type, PyArray_UBYTE)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, unsigned short, item_type, PyArray_USHORT)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, unsigned int, item_type, PyArray_UINT)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, unsigned long, item_type, PyArray_ULONG)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, char, item_type, PyArray_BYTE)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, short, item_type, PyArray_SHORT)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, int, item_type, PyArray_INT)
+    NUMPY_BRIDGE_SET_ITEM_TYPE(ScalarType, long, item_type, PyArray_LONG)
+
+    if(item_type == PyArray_NOTYPE)
+    {
+        throw std::runtime_error("Type currently not supported");
+    }
+    return item_type;
+}
+
+#undef NUMPY_BRIDGE_SET_ITEM_TYPE
+
+template<typename TImage>
+void
+NumpyBridge<TImage>
+::set_array_ownership(PyArrayObject* array, bool value)
+{
+    if(value)
+    {
+        array->flags |= NPY_OWNDATA;
+    }
+    else
+    {
+        array->flags &= ~NPY_OWNDATA;
+    }
+}
+
+template<typename TImage>
+PyArrayObject*
+NumpyBridge<TImage>
+::GetPyArrayObject(PyObject* obj)
+{
+    if(strcmp(obj->ob_type->tp_name, "numpy.ndarray") != 0)
+    {
+        throw std::runtime_error(
+            "Cannot convert a " + std::string(obj->ob_type->tp_name));
+    }
+
+    PyArrayObject* array = reinterpret_cast<PyArrayObject*>(obj);
+    // Check that we have a C array
+    if(!PyArray_ISCONTIGUOUS(array))
+    {
+        throw std::runtime_error("Cannot convert a non C-contiguous array");
+    }
+    // Check that array and image types match
+    PyArrayType const py_type = Self::GetPyType();
+    if(array->descr->type_num != Self::GetPyType())
+    {
+        std::cout << "array: " << array->descr->type_num << " "
+                  << "image: " << Self::GetPyType() << std::endl;
+        throw std::runtime_error("Array and image types do not match");
+    }
+    // Check that array and image dimensions match
+    ImagePointer image = TImage::New();
     unsigned int arrayDimension=0;
     if(image->GetNameOfClass() == std::string("Image"))
     {
@@ -212,103 +283,17 @@ NumpyBridge<TImage>
     }
     else
     {
-        return false;
+        throw std::runtime_error(
+            std::string("Cannot convert object of type")+image->GetNameOfClass());
+    }
+    if(arrayDimension != array->nd)
+    {
+        throw std::runtime_error("Array and image dimensions do not match");
     }
 
-    // Get the array object
-    int element_type = GetPyType();
-    PyArrayObject * array = (PyArrayObject *) PyArray_ContiguousFromAny(obj, element_type, arrayDimension, arrayDimension);
-    if(array == NULL)
-    {
-    	PyErr_Clear();
-        return false;
-    }
-
-    // has been Py_INCREF'ed in PyArray_FromArray, called by PyArray_FromAny,
-    // called by PyArray_ContiguousFromObject
-    Py_XDECREF(obj);
-
-    return (array->data==reinterpret_cast<char*>(image->GetBufferPointer()));
-}
-
-
-template<typename TImage>
-typename NumpyBridge<TImage>::PyArrayType
-NumpyBridge<TImage>
-::GetPyType(void)
-{
-
-  PyArrayType item_type;
-  typedef typename PixelTraits< IOPixelType >::ValueType    ScalarType;
-  if(typeid(ScalarType) == typeid(double))
-    {
-    item_type = PyArray_DOUBLE;
-    }
-  else if(typeid(ScalarType) == typeid(float))
-    {
-    item_type = PyArray_FLOAT;
-    }
-  else if(typeid(ScalarType) == typeid(long))
-    {
-    item_type = PyArray_LONG;
-    }
-  else if(typeid(ScalarType) == typeid(unsigned long))
-    {
-#ifdef NDARRAY_VERSION
-    item_type = PyArray_ULONG;
-#else
-    throw std::runtime_error("Type currently not supported");
-#endif
-    }
-  else if(typeid(ScalarType) == typeid(int))
-    {
-    item_type = PyArray_INT;
-    }
-  else if(typeid(ScalarType) == typeid(unsigned int))
-    {
-    item_type = PyArray_UINT;
-    }
-  else if(typeid(ScalarType) == typeid(short))
-    {
-    item_type = PyArray_SHORT;
-    }
-  else if(typeid(ScalarType) == typeid(unsigned short))
-    {
-    item_type = PyArray_USHORT;
-    }
-  else if(typeid(ScalarType) == typeid(signed char))
-    {
-    item_type = PyArray_BYTE;
-    }
-  else if(typeid(ScalarType) == typeid(unsigned char))
-    {
-    item_type = PyArray_UBYTE;
-    }
-  else
-    {
-    item_type = PyArray_NOTYPE;
-    throw std::runtime_error("Type currently not supported");
-    }
-  return item_type;
-}
-
-template<typename TImage>
-void
-NumpyBridge<TImage>
-::set_array_ownership(PyObject* array, bool value)
-{
-    PyArrayObject* pyArray = reinterpret_cast<PyArrayObject*>(array);
-
-    if(value)
-    {
-        pyArray->flags |= NPY_OWNDATA;
-    }
-    else
-    {
-        pyArray->flags &= ~NPY_OWNDATA;
-    }
+    return array;
 }
 
 } // namespace itk
 
-#endif // itk_itknumpybridge_txx
+#endif // _6be648b4_a39e_41bb_9d88_a83e6873e3a1
