@@ -188,9 +188,6 @@ class Image(wx.Panel, PropertySynchronized):
         if colormap.display_range is None :
             colormap.display_range = (image.data.min(), image.data.max())
         
-        self._layers.insert(index, {"image" : image, "colormap" : colormap, 
-                                    "opacity" : opacity})
-        
         for slice in self._slices :
             slice.insert_layer(index, image, colormap, opacity)
         
@@ -201,6 +198,11 @@ class Image(wx.Panel, PropertySynchronized):
                 layer = slice.layers[index]
                 next_slice_layer = self._slices[(slice_index+1)%len(self._slices)].layers[index]
                 layer.colormap.append_child(next_slice_layer.colormap)
+        
+        # Update self._layers late to be sure that slices are correctly set-up
+        # before observers get notified
+        self._layers.insert(index, {"image" : image, "colormap" : colormap, 
+                                    "opacity" : opacity})
     
     def delete_layer(self, index) :
         """ Remove a layer from the list.
