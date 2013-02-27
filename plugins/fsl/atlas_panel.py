@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import logging
 import os
 
 import wx
@@ -103,7 +104,7 @@ class AtlasPanel(wx.Panel):
                 atlas = Atlas.read(os.path.join(atlases_dir, entry))
             except medipy.base.Exception, e :
                 # Cannot read the atlas
-                print e
+                logging.warning("Cannot read the atlas: '{0}'".format(e))
                 continue
             else :
                 atlases.append(atlas)
@@ -136,15 +137,18 @@ class AtlasPanel(wx.Panel):
             return
         else :
             position_physical = self._image.cursor_physical_position
-            position_index = self._label_image.physical_to_index(position_physical)
-            position_index = tuple([int(x) for x in position_index])
-            label = self._label_image[position_index]
-            
-            if self.atlas.type == Atlas.Type.probabilistic and label != 0 :
-                name = self._atlas.labels[label-1]
-            elif self.atlas.type == Atlas.Type.label and label != 0 :
-                name = self._atlas.labels[label]
+            position_index = tuple(
+                self._label_image.physical_to_index(
+                    position_physical).round().astype(int))
+            if self._label_image.is_inside(position_index) :
+                label = self._label_image[position_index]
+                if self.atlas.type == Atlas.Type.probabilistic and label != 0 :
+                    name = self._atlas.labels[label-1]
+                elif self.atlas.type == Atlas.Type.label and label != 0 :
+                    name = self._atlas.labels[label]
+                else :
+                    name = "(no label)"
             else :
-                name = ""
+                name = "(out of atlas)"
             
             self._label.ChangeValue(name)

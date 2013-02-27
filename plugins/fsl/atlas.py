@@ -99,7 +99,7 @@ class TreeBuilder(object):
             types = { "Label" : Atlas.Type.label, 
                       "Probabalistic" : Atlas.Type.probabilistic}
             if data not in types.keys() :
-                raise medipy.base.Exception("Unknown type {0}".format(repr(data)))
+                raise medipy.base.Exception("Unknown type {0!r}".format(data))
             self._atlas.type = types[data]
         elif self._state == "imagefile" :
             if data.startswith("/") :
