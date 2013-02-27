@@ -141,7 +141,7 @@ grphic3d  *cr_grphic3d(grphic3d *temp)
 		ia->annotations			= NULL;
 		#endif /*__GTK_GUI */
 /*JPA*/
-printf("temp = NULL %d %d %d \n",ia->width,ia->height,ia->depth);
+//printf("temp = NULL %d %d %d \n",ia->width,ia->height,ia->depth);
 	}
 	
 	else
@@ -184,7 +184,7 @@ printf("temp = NULL %d %d %d \n",ia->width,ia->height,ia->depth);
 		strcpy(ia->patient.medecin, temp->patient.medecin);
 		strcpy(ia->patient.d_examen, temp->patient.d_examen);
 /*JPA*/
-printf("%d %d %d \n",ia->width,ia->height,ia->depth);
+//printf("%d %d %d \n",ia->width,ia->height,ia->depth);
 	}
 	
 	if ((ia->mri = cr_mri_3d(ia->width, ia->height, ia->depth)) == NULL)
