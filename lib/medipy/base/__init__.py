@@ -9,6 +9,7 @@
 import array
 from command import Command, UndoableCommand
 import coordinate_system
+from enum import enum, Enum
 from exception import Exception
 from find_resource import find_resource
 from history import History
@@ -20,7 +21,7 @@ from observable import EventObject, Observable
 from observable_list import ObservableList
 from property_synchronized import PropertySynchronized
 
-__all__ = ["array", "Command", "UndoableCommand", "coordinate_system", 
-           "Exception", "find_resource", "History", "Image", "ImageAnnotation", 
-           "LateBindingProperty", "Object3D", "EventObject", "Observable", 
-           "ObservableList", "PropertySynchronized"]
+__all__ = ["array", "Command", "UndoableCommand", "coordinate_system", "enum", 
+           "Enum", "Exception", "find_resource", "History", "Image", 
+           "ImageAnnotation", "LateBindingProperty", "Object3D", "EventObject", 
+           "Observable", "ObservableList", "PropertySynchronized"]

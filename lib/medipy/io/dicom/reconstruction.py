@@ -100,7 +100,13 @@ def data(datasets):
                  sample_dataset.rows.value/mosaic_size, sample_dataset.columns.value/mosaic_size)
     else :
         shape = (len(datasets),) + sample_dataset.pixel_array.shape[-2:]
-    array = numpy.ndarray(shape, dtype=sample_dataset.pixel_array.dtype)
+    
+    dtype = sample_dataset.pixel_array.dtype
+    for dataset in datasets :
+        if "rescale_slope" in dataset or "rescale_intercept" in dataset :
+            dtype = numpy.float32
+            break
+    array = numpy.ndarray(shape, dtype=dtype)
     
     for index, dataset in enumerate(datasets) :
         # Get data
@@ -112,8 +118,8 @@ def data(datasets):
             
             itk_pixel_array = medipy.itk.array_to_itk_image(dataset.pixel_array, False)
             
-            TileImageType = itk.Image[medipy.itk.dtype_to_itk[array.dtype.type], 2]
-            VolumeImageType = itk.Image[medipy.itk.dtype_to_itk[array.dtype.type], 3]
+            TileImageType = itk.Image[medipy.itk.dtype_to_itk[dataset.pixel_array.dtype.type], 2]
+            VolumeImageType = itk.Image[medipy.itk.dtype_to_itk[dataset.pixel_array.dtype.type], 3]
             assemble_tiles = itk.AssembleTilesImageFilter[TileImageType, VolumeImageType].New(
                 Input=itk_pixel_array, 
                 TileSize=tile_size, NumberOfTiles=number_of_tiles)
@@ -121,6 +127,12 @@ def data(datasets):
             pixel_data = medipy.itk.itk_image_to_array(itk_volume, True)
         else : 
             pixel_data = dataset.pixel_array
+        
+        # Apply LUT transform
+        if "rescale_slope" in dataset or "rescale_intercept" in dataset :
+            rescale_slope = dataset.get("rescale_slope", DS(1.0)).value
+            rescale_intercept = dataset.get("rescale_intercept", DS(0.0)).value
+            pixel_data = pixel_data.astype(float)*rescale_slope+rescale_intercept
         
         # Insert into reconstructed data
         pixel_data = pixel_data.reshape(shape[1:])

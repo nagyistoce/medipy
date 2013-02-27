@@ -22,6 +22,8 @@ class History(Observable) :
         """ Execute the command, and add it to the history.
         """
         
+        previous = self._cursor
+        
         command.execute()
         if self._cursor :
             del self._steps[0:self._cursor]
@@ -29,7 +31,7 @@ class History(Observable) :
         if self.maximum_steps and len(self._steps) == self.maximum_steps :
             del self._steps[-1]
         self._steps.insert(0, command)
-        self.notify_observers("cursor")
+        self.notify_observers("cursor", previous=previous)
     
     def undo(self, count=1) :
         """ Undo the current command.
@@ -37,7 +39,6 @@ class History(Observable) :
         
         for _ in range(count) :
             self.cursor+=1
-            self.notify_observers("cursor")
     
     def redo(self, count=1) :
         """ Redo the current command.
@@ -45,17 +46,25 @@ class History(Observable) :
         
         for _ in range(count) :
             self.cursor-=1
-            self.notify_observers("cursor")
+
+    def get_command(self, index):
+        """ Return the command at the given index. The command MUST NOT be 
+            executed or undone.
+        """
+        
+        return self._steps[index]
 
     def _get_cursor(self):
         """ Current position in the history. Latest commands have lower indices
-            than earliest commands : the earlist command has index steps_count,
+            than earliest commands : the earliest command has index steps_count,
             the latest has index 0.
         """
         
         return self._cursor
     
     def _set_cursor(self, cursor):
+        previous = self._cursor
+        
         offset = cursor - self._cursor
         if offset <= 0 :
             function = "execute"
@@ -70,7 +79,7 @@ class History(Observable) :
             if function == "undo" :
                 i += 1
         self._cursor = cursor
-        self.notify_observers("cursor")
+        self.notify_observers("cursor", previous=previous)
     
     def _get_steps_count(self) :
         """ Number of steps in the history.

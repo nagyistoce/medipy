@@ -10,40 +10,7 @@ import itk
 import numpy
 import medipy.base
 
-itk_to_dtype_table = [
-    # Unsigned int types (char, short, long)
-    (itk.UC, numpy.ubyte),
-    (itk.US, numpy.ushort),
-    (itk.UL, numpy.uint32),
-    # Signed int types (char, short, long)
-    (itk.SC, numpy.byte),
-    (itk.SS, numpy.short),
-    (itk.SL, numpy.int32),
-    # Float types (float, double, long double)
-    (itk.F, numpy.single),
-    (itk.D, numpy.double),
-    (itk.LD, numpy.longdouble),
-    # Complex types
-    #(itk.COMPLEX_REALS, ),
-    # Vector types
-    #(itk.VECTOR_REALS, ),
-    # RGB types
-    #(itk.RGBS, ),
-    # RGBA types
-    #(itk.RGBAS, ),
-    # Covariant vector types
-    #(itk.COV_VECTOR_REALS, ),
-]
-
-#: Map an ITK type to a NumPy dtype
-itk_to_dtype = {}
-
-#: Map a NumPy dtype to an ITK type
-dtype_to_itk = {}
-
-for itk_type, dtype in itk_to_dtype_table :
-    itk_to_dtype[itk_type] = dtype
-    dtype_to_itk[dtype] = itk_type
+import types
 
 def array_to_itk_matrix(array, flip):
     """ Create an ``itk.Matrix`` matching the contents and type of given array. If
@@ -52,7 +19,7 @@ def array_to_itk_matrix(array, flip):
         coordinate order between ITK and numpy.
     """
     
-    itk_type = dtype_to_itk[array.dtype.type]
+    itk_type = types.dtype_to_itk[array.dtype.type]
     
     matrix_type = itk.Matrix[itk_type, array.shape[-1], array.shape[-2]]
     matrix_bridge = itk.MatrixBridge[matrix_type]
@@ -85,7 +52,7 @@ def array_to_itk_image(array, transferOwnership):
         array is unchanged.
     """
     
-    itk_type = dtype_to_itk[array.dtype.type]
+    itk_type = types.dtype_to_itk[array.dtype.type]
     image_type = itk.Image[itk_type, array.ndim]
     return itk.NumpyBridge[image_type].GetImageFromArray(array, transferOwnership)
 
@@ -96,7 +63,7 @@ def array_to_itk_vector_image(array, transferOwnership):
         the array is unchanged.
     """
     
-    itk_type = dtype_to_itk[array.dtype.type]
+    itk_type = types.dtype_to_itk[array.dtype.type]
     image_type = itk.VectorImage[itk_type, array.ndim-1]
     return itk.NumpyBridge[image_type].GetImageFromArray(array, transferOwnership)
 
@@ -162,7 +129,7 @@ def itk_image_to_medipy_image(itk_image, medipy_image, transferOwnership):
     if medipy_image is None :
         itk_type = itk.template(itk_image)[1][0]
         dimension = itk.template(itk_image)[1][1]
-        medipy_image = medipy.base.Image(dimension*(0,), itk_to_dtype[itk_type])
+        medipy_image = medipy.base.Image(dimension*(0,), types.itk_to_dtype[itk_type])
     
     if itk_image.GetNameOfClass() == "Image" :
         if not itk.NumpyBridge[itk_image].IsBufferShared(medipy_image.data, itk_image) :
@@ -188,10 +155,10 @@ def itk_image_type(medipy_image):
     """
     
     if medipy_image.data_type == "scalar" :
-        itk_type = dtype_to_itk[medipy_image.dtype.type]
+        itk_type = types.dtype_to_itk[medipy_image.dtype.type]
         image_type = itk.Image[itk_type, medipy_image.ndim]
     elif medipy_image.data_type == "vector" :
-        itk_type = dtype_to_itk[medipy_image.dtype.type]
+        itk_type = types.dtype_to_itk[medipy_image.dtype.type]
         image_type = itk.VectorImage[itk_type, medipy_image.ndim-1]
     else :
         raise medipy.base.Exception("Unknown image data_type : %s"%medipy_image.data_type)
