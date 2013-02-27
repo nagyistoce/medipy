@@ -12,15 +12,49 @@
 
 import numpy as np
 import medipy.base
-import medipy.diffusion
-import medipy.itk
+
+from _spectral_analysis import spectral_analysis
+
+def generate_image_sampling(image,step=(1,1,1)) :
+    """ Generate seeds to init tractographu
+    step is expressed in mm
+    """
+
+    spacing = image.spacing
+    shape = image.shape*spacing
+    Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
+    X = X.flatten()
+    Y = Y.flatten()
+    Z = Z.flatten()
+    seeds = []
+    for i,j,k in zip(X,Y,Z) :
+        seeds.append((i,j,k))
+    return seeds
+
+def length(xyz, constant_step=None):
+    """ Euclidean length of track line in mm 
+    """
+    if constant_step==None :
+        if xyz.shape[0] < 2 :
+            return 0
+        else :
+            dists = np.sqrt((np.diff(xyz, axis=0)**2).sum(axis=1))
+            return np.sum(dists)
+    else :
+        return (xyz.shape[0]-1)*constant_step
+
 
 def spectral_decomposition(slice_tensor):
     shape = slice_tensor.shape
 
     eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
+    eigVal_itk = medipy.itk.medipy_image_to_itk_image(eigVal, False)
+    
     eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
-    medipy.diffusion.spectral_analysis(slice_tensor,eigVal,eigVec)
+    eigVec_itk = medipy.itk.medipy_image_to_itk_image(eigVec, False)
+    
+    itk_tensors = medipy.itk.medipy_image_to_itk_image(slice_tensor, False)
+    spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
 
     return eigVal,eigVec
 

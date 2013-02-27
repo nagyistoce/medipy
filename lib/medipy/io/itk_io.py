@@ -20,9 +20,9 @@ from medipy.itk import itk_image_to_array, medipy_image_to_itk_image, dtype_to_i
 
 class ITK(IOBase) :
     
-    _io_classes = [itk.BMPImageIO, itk.JPEGImageIO, itk.MetaImageIO, 
-                   itk.NiftiImageIO, itk.NrrdImageIO, itk.PNGImageIO, 
-                   itk.TIFFImageIO, itk.VTKImageIO]
+    _io_classes = [itk.AnalyzeImageIO, itk.BMPImageIO, itk.JPEGImageIO, 
+                   itk.MetaImageIO, itk.NiftiImageIO, itk.NrrdImageIO, 
+                   itk.PNGImageIO, itk.TIFFImageIO, itk.VTKImageIO]
     
     # Merge all supported read extensions, add a "*" before each of them       
     filenames = ["*"+str(x) for x in 
@@ -48,6 +48,11 @@ class ITK(IOBase) :
         if filename is not None :
             self._set_filename(filename)
         
+    def __deepcopy__(self, memo):
+        # deepcopy does not like WrapITK objects
+        new_object = ITK(self._filename, self._report_progress)
+        return new_object
+    
     def can_load(self):
         return self._loader is not None
     
@@ -218,19 +223,53 @@ class ITK(IOBase) :
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
         PixelType = dtype_to_itk[image.dtype.type]
+        try_smaller_types = False
         while PixelType not in InstantiatedTypes :
+            if PixelType not in medipy.itk.types.larger_type :
+                # No instantiated pixel type larger that the pixel type in the
+                # file ; try smaller types
+                try_smaller_types = True
+                break
             PixelType = medipy.itk.types.larger_type[PixelType]
+        if try_smaller_types :
+            PixelType = dtype_to_itk[image.dtype.type]
+            while PixelType not in InstantiatedTypes :
+                if PixelType not in medipy.itk.types.smaller_type :
+                    raise medipy.base.Exception(
+                        "Cannot find an instantiated pixel type for {0}".format(
+                            dtype_to_itk[image.dtype.type]))
+                PixelType = medipy.itk.types.smaller_type[PixelType]
+            logging.warn("No instantiated type larger than {0}, using {1}".format(
+                dtype_to_itk[image.dtype.type], PixelType))
+        
         Dimension = image.ndim
         
         return ((PixelType, Dimension) in itk.Image.__template__ or
                 (PixelType, Dimension) in itk.PyArrayFileWriter.__template__)
     
     def save(self, image) :
+        # Check the instantiations
         InstantiatedTypes = set([itk.template(x[0])[1][0] 
                                  for x in itk.NumpyBridge.__template__.keys()])
         PixelType = dtype_to_itk[image.dtype.type]
+        try_smaller_types = False
         while PixelType not in InstantiatedTypes :
+            if PixelType not in medipy.itk.types.larger_type :
+                # No instantiated pixel type larger that the pixel type in the
+                # file ; try smaller types
+                try_smaller_types = True
+                break
             PixelType = medipy.itk.types.larger_type[PixelType]
+        if try_smaller_types :
+            PixelType = dtype_to_itk[image.dtype.type]
+            while PixelType not in InstantiatedTypes :
+                if PixelType not in medipy.itk.types.smaller_type :
+                    raise medipy.base.Exception(
+                        "Cannot find an instantiated pixel type for {0}".format(
+                            dtype_to_itk[image.dtype.type]))
+                PixelType = medipy.itk.types.smaller_type[PixelType]
+            logging.warn("No instantiated type larger than {0}, using {1}".format(
+                dtype_to_itk[image.dtype.type], PixelType))
         Dimension = image.ndim
         
         if (PixelType, Dimension) in itk.Image.__template__ :
@@ -318,7 +357,7 @@ class ITK(IOBase) :
                 if l.GetPixelTypeAsString(l.GetPixelType()) in ["vector", "rgb"] :
                     if 1+l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
                         filter = itk.PyArrayFileReader
-                else :
+                elif l.GetPixelTypeAsString(l.GetPixelType()) == "scalar" :
                     if l.GetNumberOfDimensions() in [x[1] for x in itk.Image] :
                         filter = itk.ImageFileReader
                     elif l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :

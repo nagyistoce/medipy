@@ -272,10 +272,10 @@ class DataSet(dict):
                     value.extend([8*" "+unicode(x) for x in element.splitlines()])
                 value = "\n"+"\n".join(value)
             elif vr in ["OB", "OW", "OB/OW", "OF", "UN"] :
-                value = "<array of %i bytes>"%(len(value),)
-            elif vr == "UI" and value in dictionary.uid_dictionary :
-                value = "{0} ({1})".format(dictionary.uid_dictionary[value][0],
-                                           value)
+                value = "<array of %i bytes>"%(len(value.value),)
+            elif vr == "UI" and value.value in dictionary.uid_dictionary :
+                value = "{0} ({1})".format(dictionary.uid_dictionary[value.value][0],
+                                           value.value)
             else :
                 value = value.value
 

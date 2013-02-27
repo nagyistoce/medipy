@@ -16,7 +16,7 @@ import numpy
 
 import medipy.base
 import medipy.io
-from medipy.diffusion.utils import dti6to33, dti33to6, rotation33todt6
+from utils import dti6to33, dti33to6, rotation33todt6
 
 class Vtk(medipy.io.IOBase) :
     """I/O class for Vtk format.

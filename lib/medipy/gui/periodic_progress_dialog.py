@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import logging
@@ -60,6 +60,9 @@ class WorkerThread(threading.Thread) :
         threading.Thread.__init__(self, group, target, name, args, kwargs)
     
     def run(self) :
+        """ Method representing the thread's activity.
+        """
+        
         try:
             if self._target:
                 self._result = self._target(*self._args, **self._kwargs)
@@ -74,8 +77,24 @@ class WorkerThread(threading.Thread) :
 
         self._periodic_progress_dialog.stop()
     
-    exception = property(lambda x:x._exception)
-    result = property(lambda x:x._result)
+    ##############
+    # Properties #
+    ##############
+    
+    def _get_exception(self):
+        """ Exception that was thrown by the thread's target, or None.
+        """
+        
+        return self._exception
+    
+    def _get_result(self):
+        """ Return value of the thread's target.
+        """
+        
+        return self._result
+    
+    exception = property(_get_exception)
+    result = property(_get_result)
 
 if __name__ == "__main__":
     import doctest

@@ -135,7 +135,7 @@ class MediPyApp(medipy.gui.base.Application) :
         else :
             menu = []
             for directory in medipy.Importer().plugins_path :
-                menu.extend(menu_builder.from_api.build_menu(directory))
+                menu.extend(menu_builder.from_api.build_menu(directory, directory))
         
         self.frame = MainFrame(menu, None, title=self._application_name, size=(1000,800))
         self.frame.Show()

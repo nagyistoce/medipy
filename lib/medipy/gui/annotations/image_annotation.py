@@ -16,13 +16,6 @@ class ImageAnnotation(object) :
     """ 2D representation of a base.ImageAnnotation
     """
 
-    # Mapping of shape ID to shape name
-    _annotation_id_to_shape = dict( 
-        [ (getattr(medipy.base.ImageAnnotation.Shape, name), name)
-            for name in dir(medipy.base.ImageAnnotation.Shape) if name[:2] != "__"
-        ]
-    )
-    
     def __init__(self, annotation, layer) :
         
         ############################

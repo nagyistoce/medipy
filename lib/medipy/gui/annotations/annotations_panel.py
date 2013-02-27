@@ -53,12 +53,6 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         self.history = None
         # Image whose annotations will be changed
         self._image = None
-        # Mapping from shape ID to name
-        self._annotation_id_to_shape = dict( 
-            [ (getattr(medipy.base.ImageAnnotation.Shape, name), name)
-                for name in dir(medipy.base.ImageAnnotation.Shape) if name[:2] != "__"
-            ]
-        )
         # User interface
         self.ui = AnnotationsPanel.UI()
         
@@ -68,7 +62,7 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         medipy.gui.base.Panel.__init__(self, xrc_file, "annotations_panel", 
             wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
         
-        for shape in sorted(self._annotation_id_to_shape.values()) : 
+        for shape in medipy.base.ImageAnnotation.Shape.members : 
             self.ui.shape.Append(shape)
         
         # Events
@@ -144,7 +138,7 @@ class AnnotationsPanel(medipy.gui.base.Panel):
         
         self.ui.position.ChangeValue(position)
         self.ui.label.ChangeValue(annotation.label)
-        self.ui.shape.SetStringSelection(self._annotation_id_to_shape[annotation.shape])
+        self.ui.shape.SetStringSelection(medipy.base.ImageAnnotation.Shape[annotation.shape])
         self.ui.size.value = annotation.size
         self.ui.color.SetBackgroundColour([int(255.*c) for c in annotation.color])
         self.ui.filled.SetValue(annotation.filled)
@@ -400,3 +394,11 @@ class DeleteAnnotation(medipy.base.UndoableCommand):
         
         command = AddAnnotation(self.annotations_panel, self._annotation)
         command.execute()
+    
+    def _get_annotation(self):
+        """ Annotation that was deleted
+        """
+        
+        return self._annotation
+
+    annotation = property(_get_annotation)
