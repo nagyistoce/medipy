@@ -95,9 +95,11 @@ class TreeBuilder(object):
         if self._state == "name" :
             self._atlas.name = data
         elif self._state == "type" :
-            # The typo in "Probabalistic" is a "feature" of FSL
+            # "Probabalistic" is in FSL<5.0.2
             types = { "Label" : Atlas.Type.label, 
-                      "Probabalistic" : Atlas.Type.probabilistic}
+                      "Probabalistic" : Atlas.Type.probabilistic,
+                      "Probabilistic" : Atlas.Type.probabilistic
+                    }
             if data not in types.keys() :
                 raise medipy.base.Exception("Unknown type {0!r}".format(data))
             self._atlas.type = types[data]
