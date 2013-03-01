@@ -7,6 +7,7 @@
 # for details.
 ##########################################################################
 
+import copy
 import os
 import sys
 
@@ -56,7 +57,11 @@ class MediPyApp(medipy.gui.base.Application) :
             self._frame.full_screen(None)      
     
     def execute_script(self, filename):
+        # Pretend we execute the script in its local dir
+        old_path = copy.copy(sys.path)
+        sys.path.insert(0, os.path.dirname(filename))
         execfile(filename, globals(), locals())
+        sys.path = old_path
     
     def load_object_3d(self, path, viewer_3d):
         generic_reader = vtkDataReader()
