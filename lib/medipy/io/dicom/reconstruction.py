@@ -187,12 +187,14 @@ def metadata(datasets, skipped_tags="default"):
                 name = str(key)
         else :
             private_creator, tag = key
-            if private_creator in private_dictionaries :
+            if private_creator.value in private_dictionaries :
                 tag = "{0:04x}xx{1:02x}".format(tag.group, tag.element%0x100)
-                name = private_dictionaries[private_creator].get(
+                name = private_dictionaries[private_creator.value].get(
                     tag, ("", "", "", "", str(tag)))[4]
             else :
-                name = str(key)
+                name = str(tag)
+            # Make sure name is not empty
+            name = name or str(tag)
         
         named_result[name] = value
     result = named_result
