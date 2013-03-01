@@ -64,6 +64,10 @@ def to_axis_aligned_ras_space(image):
     original_direction = image.direction
     
     direction = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
+    if (direction==medipy.base.coordinate_system.RAS).all() :
+        # No need to reorient
+        return
+    
     itk_direction = numpy.fliplr(numpy.flipud(direction))
     itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
     
