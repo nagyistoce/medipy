@@ -9,6 +9,7 @@
 import copy
 import os
 
+import numpy
 import wx
 
 import medipy.base
@@ -27,10 +28,12 @@ class RegionGrowingPanel(medipy.gui.base.Panel):
             self.threshold = None
             self.threshold_type = None
             self.radius = None
+            self.accept = None
             self.controls = [
                 "source_layer", "destination_layer", "new_destination_layer", 
                 "threshold", "threshold_type",
-                "radius"]
+                "radius", 
+                "accept"]
             medipy.gui.base.UI.__init__(self)
         
         def from_window(self, window, names):
@@ -55,6 +58,7 @@ class RegionGrowingPanel(medipy.gui.base.Panel):
         self.ui.source_layer.Bind(wx.EVT_CHOICE, self._set_source_layer)
         self.ui.new_destination_layer.add_observer(
             "value", self._on_new_destination_layer)
+        self.ui.accept.Bind(wx.EVT_BUTTON, self.accept_region)
         
         self.ui.threshold.add_observer("value", self.update_region)
         self.ui.threshold_type.Bind(wx.EVT_CHOICE, self.update_region)
@@ -105,6 +109,39 @@ class RegionGrowingPanel(medipy.gui.base.Panel):
     def Close(self, force=False):
         self.image = None
         medipy.gui.base.Panel.Close(self, force)
+    
+    def accept_region(self, *args):
+        if self._region_layer is None :
+            return
+        
+        region_image = self.image.get_layer_image(self._region_layer)
+        if self.ui.new_destination_layer.value :
+            # Delete region_layer to make sure it will be re-created
+            self.image.delete_layer(self._region_layer)
+            self._region_layer = None
+            
+            # Create a new layer just below region_layer 
+            colormap = medipy.gui.Colormap(medipy.gui.colormaps["rainbow"], None, 
+                                           zero_transparency=True)
+            self.image.insert_layer(len(self.image.layers), region_image, colormap)
+            
+            # Un-check the "new" checkbox
+            self.ui.new_destination_layer.value = False
+        
+        max = numpy.max(self._image.get_layer_image(self.destination_layer))
+        
+        # Update the image
+        destination = self.image.get_layer_image(self.destination_layer)
+        region = numpy.nonzero(region_image)
+        destination[region] = 1+max
+        destination.modified()
+        
+        # Update the colormap display range to include the new region 
+        self.image.get_layer_colormap(self.destination_layer).display_range = (
+            self.image.get_layer_colormap(self.destination_layer).display_range[0],
+            float(1+max))
+        
+        self.image.render()
     
     ##############
     # Properties #
@@ -177,6 +214,9 @@ class RegionGrowingPanel(medipy.gui.base.Panel):
             self.destination_layer = 0
             if self.ui.source_layer.GetCount() == 1 :
                 self.ui.new_destination_layer.value = True
+            else :
+                self.destination_layer = -1
+                self.ui.new_destination_layer.value = False
             self.Enable()
         else :
             self.Disable()
