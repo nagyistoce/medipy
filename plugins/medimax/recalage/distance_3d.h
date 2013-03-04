@@ -55,6 +55,7 @@ extern double   erreur_IM_Region_3d(ptr_distance_param dist_param);
 extern double   erreur_coeff_correlation_d(ptr_distance_param dist_param);
 extern double	  erreur_ICP_3d(ptr_distance_param dist_param);
 extern double	  erreur_ICP_sym_3d(ptr_distance_param dist_param);
+extern double   erreur_quad_plandesymetrie_3d(ptr_distance_param dist_param);
 
 /****fonctions auxilaires pour le calculs bases sur l'information mutuelle simple****/
 double calcul_info_mutuelle_3d(IM3DTYPE im_type, ptr_distance_param dist_param);
