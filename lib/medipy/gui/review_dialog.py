@@ -145,8 +145,8 @@ class ReviewDialog(wx.Dialog, medipy.base.Observable):
         
         items = []
         for i in range(self._items.GetCount()) :
-            items.append((self._items.GetClientData()[i]["label"], 
-                          self._items.GetClientData()[i]["data"]))
+            items.append((self._items.GetClientData(i)["label"], 
+                          self._items.GetClientData(i)["data"]))
         return items
     
     def _set_items(self, items):
