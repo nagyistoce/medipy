@@ -11,7 +11,7 @@ import medipy.itk
 import medipy.base
 import numpy as np
 
-def least_squares(images,accu):
+def least_squares(limages,accu):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
         in the list) and a set of float diffusion weighted images (on shell, 
@@ -21,8 +21,8 @@ def least_squares(images,accu):
         contain diffusion metadata.
         
         <gui>
-            <item name="images" type="ImageSerie" label="Input"/>
-            <item name="accu" type="Enum" initializer="('First', 'Mean')" label="Accumulation Type" />
+            <item name="limages" type="ImageSerie" label="Input"/>
+            <item name="accu" type="Enum" initializer="('First', 'Mean', 'Overall Mean')" label="Accumulation Type" />
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
@@ -30,6 +30,9 @@ def least_squares(images,accu):
     
     # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, 
     # so it has already been included in itk by __init__
+
+    # copy
+    images = [x.astype(x.dtype) for x in limages]
 
     # reference must be at the begining of the diffusion images list
     bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue for image in images]
@@ -53,17 +56,38 @@ def least_squares(images,accu):
             images.insert(0,reference)
         elif accu=="Overall Mean" :
             if len(bval)%nb_ref==0 :
-                # ToDo: track gradient directions if possible (not working yet)
-                f = len(bval)/nb_ref
+                # Track gradient directions if possible 
                 sequences = []
-                for i in range(nb_ref) :
-                    sequences.append( images[i*nb_ref:(i+1)*nb_ref] )
-                images = sequences[0]
-                for accu_images in sequences[1:] :
-                    for cnt,image in enumerate(accu_images) :
-                        images[cnt].data += image.data
-                for cnt in range(len(images)) :
-                    images[cnt].data /= nb_ref
+                while len(images)>0 :
+                    image = images.pop(0)
+                    cbvec = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
+                    bvec = [im.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value for im in images]
+                    check = [np.allclose(cbvec,v,atol=1e-3) for v in bvec]
+                    if check.count(True)==(nb_ref-1) :
+                        stack = []
+                        stack.append( image )
+                        index = np.where(np.asarray(check)==True)[0][::-1].tolist()
+                        for i in index :
+                            image = images.pop(i)
+                            stack.append( image )
+                        sequences.append( stack )
+                    else :
+                        raise medipy.base.Exception("Impossible to average the whole diffusion serie")
+
+                images = []
+                for stack in sequences :
+                    image = stack[0]
+                    for im in stack[1:] :
+                        image.data += im.data
+                    image.data /= nb_ref
+                    images.append( image )
+
+                bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue for image in images]
+                argb = np.argsort(bval)
+                reference = images[argb[0]]
+                images.remove(reference)
+                images.insert(0,reference)
+
             else :
                 raise medipy.base.Exception("Impossible to average the whole diffusion serie")
 
