@@ -13,7 +13,7 @@ def fractional_anisotropy(image):
     """ Compute the fractional anisotropy from a second order symmetric tensor field.
     
         <gui>
-            <item name="images" type="Image" label="Input"/>
+            <item name="image" type="Image" label="Input"/>
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
@@ -33,7 +33,7 @@ def mean_diffusivity(image):
     """ Compute the mean diffusivity from a second order symmetric tensor field.
     
         <gui>
-            <item name="images" type="Image" label="Input"/>
+            <item name="image" type="Image" label="Input"/>
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
