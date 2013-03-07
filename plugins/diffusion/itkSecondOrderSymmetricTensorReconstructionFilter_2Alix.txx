@@ -87,17 +87,17 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
     const unsigned int VectorLength = 6;
     unsigned int nb_dir = this->directions.size();
 
-    this->bmatrix.set_size(nb_dir,VectorLength+1);
+    this->bmatrix.set_size(nb_dir-1,VectorLength);
  
-    for (unsigned int i=0; i<nb_dir; i++) {					
+    for (unsigned int i=1; i<nb_dir; i++) 
+    {					
         DirectionType bvec = this->directions[i];
-        this->bmatrix(i,0) = (float) 1;
-        this->bmatrix(i,1) = (float) -this->m_BVal*bvec[0]*bvec[0];        //Dxx
-        this->bmatrix(i,2) = (float) -this->m_BVal*2.0*bvec[0]*bvec[1];    //Dxy
-        this->bmatrix(i,3) = (float) -this->m_BVal*2.0*bvec[0]*bvec[2];    //Dxz
-        this->bmatrix(i,4) = (float) -this->m_BVal*bvec[1]*bvec[1];        //Dyy
-        this->bmatrix(i,5) = (float) -this->m_BVal*2.0*bvec[1]*bvec[2];    //Dyz
-        this->bmatrix(i,6) = (float) -this->m_BVal*bvec[2]*bvec[2];        //Dzz
+        this->bmatrix(i-1,0) = (float) -this->m_BVal*bvec[0]*bvec[0];        //Dxx
+        this->bmatrix(i-1,1) = (float) -this->m_BVal*2.0*bvec[0]*bvec[1];    //Dxy
+        this->bmatrix(i-1,2) = (float) -this->m_BVal*2.0*bvec[0]*bvec[2];    //Dxz
+        this->bmatrix(i-1,3) = (float) -this->m_BVal*bvec[1]*bvec[1];        //Dyy
+        this->bmatrix(i-1,4) = (float) -this->m_BVal*2.0*bvec[1]*bvec[2];    //Dyz
+        this->bmatrix(i-1,5) = (float) -this->m_BVal*bvec[2]*bvec[2];        //Dzz
     }
     this->invbmatrix.set_size(this->bmatrix.cols(),this->bmatrix.rows()); 
     BMatrixType b1 = this->bmatrix.transpose();
@@ -127,7 +127,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
         inputIterators.push_back(iterator);
     }
 
-    vnl_vector<float> S(nb_dir, 0.0);
+    vnl_vector<float> S(nb_dir-1, 0.0);
 
     typedef ImageRegionIterator<OutputImageType> OutputIterator;
     for(OutputIterator outputIt(output, outputRegionForThread);
@@ -142,9 +142,8 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
             S0=min_signal;
         }
         
-        S(0) = (float) log(S0);
-        
-        for (unsigned int i=1; i<nb_dir; ++i) {
+        for (unsigned int i=1; i<nb_dir; ++i) 
+        {
             InputImagePixelType Si = inputIterators[i].Get();
             if (Si<min_signal)
             {
@@ -152,7 +151,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
             }
             if (S0>=Si)
             {
-                S(i) = (float) log(Si);
+                S(i-1) = (float) log(Si/S0);
             }
         }
 
@@ -160,15 +159,15 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
         
         // changement WLS:
         //int nb_iter = 5;
-        vnl_vector<float> W(nb_dir,0.0);
+        vnl_vector<float> W(nb_dir-1,0.0);
         BMatrixType tmp1;
-        tmp1.set_size(VectorLength+1,VectorLength+1);
-        vnl_vector<float> tmp2(VectorLength+1,0.0);
+        tmp1.set_size(VectorLength,VectorLength);
+        vnl_vector<float> tmp2(VectorLength,0.0);
         
         for(unsigned int iter=0; iter<nb_iter; iter++)
         {
             W.fill(0.);
-            for(unsigned int i=0; i<nb_dir; i++)
+            for(unsigned int i=0; i<nb_dir-1; i++)
             {
                 W(i) = (float) exp(2.0*inner_product(this->bmatrix.get_row(i), dt6));
             }
@@ -177,7 +176,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
             tmp1.fill(0.);
             tmp2.fill(0.);
             
-            for(unsigned int i=0; i<nb_dir; i++)
+            for(unsigned int i=0; i<nb_dir-1; i++)
             {
                 tmp1 = tmp1 + W(i) * outer_product(b1.get_column(i), this->bmatrix.get_row(i));
                 tmp2 = tmp2 + W(i) * b1.get_column(i) * S(i);
@@ -190,14 +189,8 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
         }
         // fin changement WLS
         
-        vnl_vector<float> dt6_tenseur(VectorLength,0.0);
-        for(unsigned int i=0; i<VectorLength; ++i)
-        {
-            dt6_tenseur(i) = (float) dt6(i+1);
-        }
-        
         OutputPixelType vec = outputIt.Get();
-        std::copy(dt6_tenseur.begin(), dt6_tenseur.end(), &vec[0]);
+        std::copy(dt6.begin(), dt6.end(), &vec[0]);
 
         for(typename std::vector<InputIterator>::iterator inputIteratorsIt=inputIterators.begin();
             inputIteratorsIt!=inputIterators.end(); ++inputIteratorsIt)
