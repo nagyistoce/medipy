@@ -169,6 +169,7 @@ class Image(Observable):
         self.spacing = copy.copy(source.spacing)
         self.origin = copy.copy(source.origin)
         self.direction = copy.copy(source.direction)
+        self.metadata = copy.copy(source.metadata)
     
     def astype(self, dtype):
         """ Copy of the image, cast to a specified type.
