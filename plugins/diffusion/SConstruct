@@ -28,6 +28,8 @@ env.WrapITKPythonModule("MediPyDiffusion", [
          [(x,) for x in vector_image_types], "pointer", ["Base", "IO"]),
     ("itk::SecondOrderSymmetricTensorReconstructionFilter", 
          [(x,y) for x,y in zip(image_types, vector_image_types)], "pointer"),
+    ("itk::SecondOrderSymmetricTensorReconstructionFilter_2Alix", 
+         [(x,y) for x,y in zip(image_types, vector_image_types)], "pointer"),
     ("itk::FractionalAnisotropyImageFilter", 
          [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"),
     ("itk::MeanDiffusivityImageFilter", 
