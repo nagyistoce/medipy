@@ -3,19 +3,81 @@
 
 #include "itkClustersToAnnotationsCalculator.h"
 
-#include <cmath>
+#include <algorithm>
+#include <functional>
 #include <map>
+#include <stdexcept>
 #include <vector>
 
-#include <itkFlatStructuringElement.h>
-#include <itkGrayscaleDilateImageFilter.h>
-#include <itkGrayscaleErodeImageFilter.h>
+#include <itkFloodFilledImageFunctionConditionalConstIterator.h>
+#include <itkImageFunction.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
-#include <itkMinimumMaximumImageCalculator.h>
-#include <itkSignedMaurerDistanceMapImageFilter.h>
 
 namespace itk
 {
+
+/**
+ * @brief Image function always returning true.
+ *
+ * This can be used to get an "infinite" propagation with flood-filled iterators.
+ */
+template<typename TInputImage, typename TCoordRep=float>
+class AlwaysTrueImageFunction : public ImageFunction<TInputImage, bool, TCoordRep>
+{
+public:
+    /** Standard class typedefs. */
+    typedef AlwaysTrueImageFunction Self;
+    typedef ImageFunction<TInputImage, bool, TCoordRep> Superclass;
+    typedef SmartPointer<Self> Pointer;
+    typedef SmartPointer<const Self> ConstPointer;
+
+    /** Run-time type information (and related methods). */
+    itkTypeMacro(AlwaysTrueImageFunction, ImageFunction);
+
+    /** Method for creation through the object factory. */
+    itkNewMacro(Self);
+
+    /** InputImageType typedef support. */
+    typedef typename Superclass::InputImageType InputImageType;
+
+    /** Typedef to describe the type of pixel. */
+    typedef typename TInputImage::PixelType PixelType;
+
+    /** Dimension underlying input image. */
+    itkStaticConstMacro(ImageDimension, unsigned int, Superclass::ImageDimension);
+
+    /** Point typedef support. */
+    typedef typename Superclass::PointType PointType;
+
+    /** Index typedef support. */
+    typedef typename Superclass::IndexType IndexType;
+
+    /** ContinuousIndex typedef support. */
+    typedef typename Superclass::ContinuousIndexType ContinuousIndexType;
+
+    virtual bool Evaluate(PointType const & point) const
+    {
+        return true;
+    }
+
+    virtual bool EvaluateAtContinuousIndex(ContinuousIndexType const & index) const
+    {
+        return true;
+    }
+
+    virtual bool EvaluateAtIndex(IndexType const & index) const
+    {
+        return true;
+    }
+
+protected:
+    AlwaysTrueImageFunction() {}
+    ~AlwaysTrueImageFunction() {};
+
+private:
+    AlwaysTrueImageFunction(Self const &); //purposely not implemented
+    void operator=(Self const &); //purposely not implemented
+};
 
 template<typename TImage>
 void
@@ -38,64 +100,84 @@ ClustersToAnnotationsCalculator<TImage>
         }
     }
 
-    // Compute a distance map for each region, use maximum as location of annotation
+    // Compute the center of mass of each region
+    std::map<PixelType, IndexType> centers;
     for(typename RegionsMapType::const_iterator regions_it=regions.begin();
         regions_it!=regions.end(); ++regions_it)
     {
+        itk::ContinuousIndex<float, TImage::ImageDimension> center;
+        center.Fill(0);
+
         typename RegionsMapType::mapped_type const & region = regions_it->second;
-
-        // Find bounding box
-        IndexType first = *(region.begin());
-        IndexType last = *(region.begin());
         for(typename RegionsMapType::mapped_type::const_iterator it=region.begin();
             it != region.end(); ++it)
         {
-            IndexType const index = *it;
-            for(unsigned int d=0; d<ImageType::ImageDimension; ++d)
+            IndexType const & index = *it;
+            std::transform(center.Begin(), center.End(), index.m_Index,
+                           center.Begin(), std::plus<float>());
+        }
+
+        std::transform(center.Begin(), center.End(),
+            center.Begin(), std::bind2nd(std::divides<float>(), region.size()));
+
+        // Convert to index : round the continuous index
+        IndexType center_index;
+        for(unsigned int i=0; i<TImage::ImageDimension; ++i)
+        {
+            center_index[i] = int(center[i]+0.5);
+        }
+        centers[regions_it->first] = center_index;
+    }
+
+    // Adjust the center of mass to the closest voxel in the region
+    for(typename RegionsMapType::const_iterator regions_it=regions.begin();
+        regions_it!=regions.end(); ++regions_it)
+    {
+        PixelType const & label = regions_it->first;
+
+        IndexType & center = centers[label];
+        if(this->m_Image->GetPixel(center) != label)
+        {
+            // Center of mass is not in region, find the closest voxel.
+
+            // FIXME : function should always return true
+            typedef AlwaysTrueImageFunction<ImageType> FunctionType;
+            typename FunctionType::Pointer function = FunctionType::New();
+
+            FloodFilledImageFunctionConditionalConstIterator<
+                ImageType, FunctionType> image_it(this->m_Image, function, center);
+            while(!image_it.IsAtEnd())
             {
-                first[d] = std::min(first[d], index[d]);
-                last[d] = std::max(last[d], index[d]);
+                if(image_it.Get() == label)
+                {
+                    break;
+                }
+                ++image_it;
             }
-        }
 
-        // Create sub-image
-        typedef Image<float, ImageType::ImageDimension> SubImageType;
-        typename SubImageType::Pointer sub_image = SubImageType::New();
-        typename SubImageType::RegionType::SizeType size;
-        for(unsigned int d=0; d<SubImageType::ImageDimension; ++d)
-        {
-            size[d] = last[d]-first[d]+1;
-        }
-        sub_image->SetRegions(typename SubImageType::RegionType(first, size));
-        sub_image->Allocate();
-        sub_image->FillBuffer(0);
-        for(typename RegionsMapType::mapped_type::const_iterator it=region.begin();
-            it != region.end(); ++it)
-        {
-            sub_image->SetPixel(*it, 1);
-        }
+            // Make sure we could find a matching voxel
+            if(image_it.IsAtEnd())
+            {
+                throw std::runtime_error("Cannot find matching label");
+            }
 
-        // Compute distance map
-        typedef SignedMaurerDistanceMapImageFilter<SubImageType, SubImageType>
-            DistanceMapFilterType;
-        typename DistanceMapFilterType::Pointer distance_map_filter =
-            DistanceMapFilterType::New();
-        distance_map_filter->SetInput(sub_image);
-        distance_map_filter->Update();
+            // Adjust the center
+            center = image_it.GetIndex();
+        }
+    }
 
-        // Find minimum, since "the inside is considered as having negative
-        // distances" (cf. doc of SignedMaurerDistanceMapImageFilter)
-        typedef MinimumMaximumImageCalculator<SubImageType> MinimumCalculatorType;
-        typename MinimumCalculatorType::Pointer minimum_calculator = MinimumCalculatorType::New();
-        minimum_calculator->SetImage(distance_map_filter->GetOutput());
-        minimum_calculator->ComputeMinimum();
+    // Create the annotations
+    for(typename RegionsMapType::const_iterator regions_it=regions.begin();
+        regions_it!=regions.end(); ++regions_it)
+    {
+        PixelType const & label = regions_it->first;
 
         Annotation annotation;
-        annotation.position = minimum_calculator->GetIndexOfMinimum();
-        // Use distance transform informations as annotation size
-        annotation.size = -minimum_calculator->GetMinimum();
+        annotation.position = centers[label];
+        // FIXME : compute annotation size
+        annotation.size = 1;
 
-        this->m_Annotations[regions_it->first] = annotation;
+        this->m_Annotations[label] = annotation;
     }
 }
 
