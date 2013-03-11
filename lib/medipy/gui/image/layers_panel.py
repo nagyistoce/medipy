@@ -139,14 +139,6 @@ class LayersPanel(medipy.gui.base.Panel):
         for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
             self._image.get_layer_colormap(index).add_observer(event, self.on_colormap_event)
         
-        if self.ui.layers.GetCount() == 1 or index == self.ui.layers.GetCount():
-            self.ui.layers.Insert("", 0)
-        else :
-            self.ui.layers.Insert("", self.ui.layers.GetCount()-index-1)
-        
-        self._relabel_layers()
-        self._update_checked_layers()
-        
         self.ui.delete.Enable(len(self._image.layers)>1)
         
         self._image.render()
