@@ -23,9 +23,7 @@
         # Get some data sets (e.g. from a PACS)
         datasets = []
         
-        conditions = [
-            medipy.io.dicom.routing.ElementMatch("patients_name", "Doe^John")
-        ]
+        condition = medipy.io.dicom.routing.ElementMatch("patients_name", "Doe^John")
         
         actions = [
             medipy.io.dicom.routing.EmptyElement("patients_name"),
