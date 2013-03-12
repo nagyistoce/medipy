@@ -132,6 +132,7 @@ class Image(wx.Panel, PropertySynchronized):
         ##################
         
         wx.Panel.__init__(self, parent, *args, **kwargs)
+        self.SetMinSize((400,400))
         # Explicitely pass size to RWI to propagate it correctly
         self._rwi = wxVTKRenderWindowInteractor(self, wx.ID_ANY, size=self.GetSize())
         self._rwi.Enable(1)
