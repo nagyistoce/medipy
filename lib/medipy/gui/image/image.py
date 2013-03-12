@@ -132,7 +132,8 @@ class Image(wx.Panel, PropertySynchronized):
         ##################
         
         wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._rwi = wxVTKRenderWindowInteractor(self, wx.ID_ANY)
+        # Explicitely pass size to RWI to propagate it correctly
+        self._rwi = wxVTKRenderWindowInteractor(self, wx.ID_ANY, size=self.GetSize())
         self._rwi.Enable(1)
         sizer = wx.BoxSizer()
         sizer.Add(self._rwi, 1, wx.EXPAND|wx.ALL, 3)
