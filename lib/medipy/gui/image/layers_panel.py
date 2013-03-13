@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import os
@@ -57,7 +57,6 @@ class LayersPanel(medipy.gui.base.Panel):
         
         self._image = None
         self._current_layer = 0
-        self._display_ranges = []
         # User interface
         self.ui = LayersPanel.UI()
         
@@ -89,6 +88,10 @@ class LayersPanel(medipy.gui.base.Panel):
             index must be positive
         """
         
+        if self._current_layer is not None:
+            image = self._image.get_layer_image(self._current_layer)
+            image.remove_observer("modified", self._update_display_range)
+        
         self._current_layer = index
         
         self.ui.layers.SetSelection(len(self._image.layers)-index-1)
@@ -107,8 +110,10 @@ class LayersPanel(medipy.gui.base.Panel):
                     colormap_name = name
                     break
         
+        image = self._image.get_layer_image(self._current_layer)
+        
         self.ui.colormaps.SetStringSelection(colormap_name)
-        self.ui.display_range.range = self._display_ranges[self._current_layer]
+        self.ui.display_range.range = (image.data.min(), image.data.max())
         
         self.ui.display_range.remove_observer("value", self.on_display_range)
         self.ui.display_range.value = colormap.display_range
@@ -124,21 +129,15 @@ class LayersPanel(medipy.gui.base.Panel):
         
         self.ui.move_up.Enable(index != len(self._image.layers)-1)
         self.ui.move_down.Enable(index != 0)
+        
+        image = self._image.get_layer_image(self._current_layer)
+        image.add_observer("modified", self._update_display_range)
     
     def insert_layer(self, index, image, colormap=None, opacity=1.0) :
         self._image.insert_layer(index, image, colormap, opacity)
-        self._display_ranges.insert(index, (image.data.min(), image.data.max()))
         
         for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
             self._image.get_layer_colormap(index).add_observer(event, self.on_colormap_event)
-        
-        if self.ui.layers.GetCount() == 1 or index == self.ui.layers.GetCount():
-            self.ui.layers.Insert("", 0)
-        else :
-            self.ui.layers.Insert("", self.ui.layers.GetCount()-index-1)
-        
-        self._relabel_layers()
-        self._update_checked_layers()
         
         self.ui.delete.Enable(len(self._image.layers)>1)
         
@@ -146,7 +145,6 @@ class LayersPanel(medipy.gui.base.Panel):
     
     def delete_layer(self, index):
         self._image.delete_layer(index)
-        del self._display_ranges[index]
         
         self.ui.layers.Delete(self.ui.layers.GetCount()-index-1)
         
@@ -161,25 +159,23 @@ class LayersPanel(medipy.gui.base.Panel):
         image_1 = self._image.get_layer_image(source_index)
         colormap_1 = self._image.get_layer_colormap(source_index)
         opacity_1 = self._image.get_layer_opacity(source_index)
-        display_range_1 = self._display_ranges[source_index]
+        display_range_1 = (image_1.data.min(), image_1.data.max())
         label_1 = self.ui.layers.GetString(self.ui.layers.GetCount()-source_index-1)
         
         image_2 = self._image.get_layer_image(destination_index)
         colormap_2 = self._image.get_layer_colormap(destination_index)
         opacity_2 = self._image.get_layer_opacity(destination_index)
-        display_range_2 = self._display_ranges[destination_index]
+        display_range_2 = (image_2.data.min(), image_2.data.max())
         label_2 = self.ui.layers.GetString(self.ui.layers.GetCount()-destination_index-1)
         
         self._image.set_layer_image(source_index, image_2)
         self._image.set_layer_colormap(source_index, colormap_2)
         self._image.set_layer_opacity(source_index, opacity_2)
-        self._display_ranges[source_index] = display_range_2
         self.ui.layers.SetString(self.ui.layers.GetCount()-source_index-1, label_2)
         
         self._image.set_layer_image(destination_index, image_1)
         self._image.set_layer_colormap(destination_index, colormap_1)
         self._image.set_layer_opacity(destination_index, opacity_1)
-        self._display_ranges[destination_index] = display_range_1
         self.ui.layers.SetString(self.ui.layers.GetCount()-destination_index-1, label_1)
         
         self._image.render()
@@ -195,36 +191,17 @@ class LayersPanel(medipy.gui.base.Panel):
     def _set_image(self, image):
 
         if self._image is not None :
+            self._image.layers.remove_observer("any", self._update_layers)
             self._image.remove_observer("layer_visibility", self.on_layer_visibility)
             for i in range(len(self._image.layers)) :
                 self._image.get_layer_colormap(i).remove_observer(
                   "display_range", self.on_colormap_event)
         
-        self.ui.layers.Clear()
-        
         self._image = image
-        self._current_layer = 0
-        
-        self._display_ranges = []
+        self._update_layers()
         
         if self._image is not None :
-            for i in range(len(self._image.layers)) :
-                self._display_ranges.append((image.get_layer_image(i).data.min(), 
-                                             image.get_layer_image(i).data.max()))
-                for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
-                    self._image.get_layer_colormap(i).add_observer(event, self.on_colormap_event)
-            
-            for index, layer in enumerate(self._image.layers) :
-                self.ui.layers.Append(
-                   "Layer {0}".format(len(self._image.layers)-index))
-        
-            self._update_checked_layers()
-            self.ui.delete.Enable(len(self._image.layers) > 1)
-            self.select_layer(self._current_layer)
-            
-            self._image.add_observer("layer_visibility", self.on_layer_visibility)
-        else :
-            self.ui.delete.Disable()
+            self._image.layers.add_observer("any", self._update_layers)
     
     image = property(_get_image, _set_image)
     
@@ -368,3 +345,37 @@ class LayersPanel(medipy.gui.base.Panel):
                           for i, _ in enumerate(self._image.layers) 
                           if self._image.get_layer_visibility(i)] 
         self.ui.layers.SetChecked(checked_layers)
+    
+    def _update_display_range(self, *args):
+        """ Update the display_range range of the current image. This function
+            can also be used as an event handler.
+        """
+        
+        image = self._image.get_layer_image(self._current_layer)
+        self.ui.display_range.range = (image.data.min(), image.data.max())
+    
+    def _update_layers(self, *args):
+        """ Update the layers list in the GUI. This function can also be used as
+            an event handler.
+        """
+        
+        self.ui.layers.Clear()
+        
+        self._current_layer = 0
+        
+        if self.image is not None :
+            for i in range(len(self.image.layers)) :
+                for event in ["data", "display_range", "cut_low", "cut_high", "zero_transparency"] :
+                    self.image.get_layer_colormap(i).add_observer(event, self.on_colormap_event)
+            
+            for index, layer in enumerate(self.image.layers) :
+                self.ui.layers.Append(
+                   "Layer {0}".format(len(self.image.layers)-index))
+        
+            self._update_checked_layers()
+            self.ui.delete.Enable(len(self.image.layers) > 1)
+            self.select_layer(self._current_layer)
+            
+            self.image.add_observer("layer_visibility", self.on_layer_visibility)
+        else :
+            self.ui.delete.Disable()

@@ -32,4 +32,10 @@ env.WrapITKPythonModule("MediPyDiffusion", [
          [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"),
     ("itk::MeanDiffusivityImageFilter", 
          [(x,y) for x,y in zip(vector_image_types, image_types)], "pointer"),
+    ("itk::TractographyAlgorithm", 
+        [(Instantiation("itk::VectorImage", "float", 3), 
+          Instantiation("itk::Image", "float", 3))], "pointer"),
+    ("itk::StreamlineTractographyAlgorithm", 
+        [(Instantiation("itk::VectorImage", "float", 3), 
+          Instantiation("itk::Image", "float", 3))], "pointer"),
 ])

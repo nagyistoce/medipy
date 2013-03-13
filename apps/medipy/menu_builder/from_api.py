@@ -1,16 +1,15 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
 # for details.
 ##########################################################################
 
-import copy
 import logging
-import marshal
 import os
 import sys
+import traceback
 
 def title_for(title):
     """ Create a title from a underscore-separated string.
@@ -18,7 +17,7 @@ def title_for(title):
     
     return title.replace("_", " ").capitalize()
 
-def build_menu(path) :
+def build_menu(path, root) :
     """ Build a menu from given path : path is recursively scanned for files
         name api.py, which are parsed. Any function declared inside will be 
         added to the menu.
@@ -30,42 +29,37 @@ def build_menu(path) :
     
     for name in names :
         if os.path.isdir(os.path.join(path, name)) :
-            sub_result = build_menu(os.path.join(path, name))
+            sub_result = build_menu(os.path.join(path, name), root)
             if len(sub_result)>0 :
                 label = title_for(name)
                 result.append((label, None, sub_result))
     result.sort(lambda x,y : cmp(x[0], y[0]))
     
-    api_globals = {}
-    api_locals = {}
-    # Backup sys.path to avoid pollution
-    old_path = copy.copy(sys.path)
-    sys.path.insert(0, path)
+    if not any([x in names for x in ["api", "api.py", "api.pyc"]]) :
+        # No api 
+        return result
     
-    if "api.py" in names :
-        api_file = os.path.join(path, "api.py")
-        try :
-            execfile(api_file, api_globals, api_locals)
-        except Exception, e :
-            logging.warn("Could not load %s/api.py : %s"%(path, e))
+    module_name = ["medipy"] + path[len(os.path.normpath(root))+1:].split(os.path.sep) + ["api"]
+    # Remove empty elements
+    module_name = ".".join([x for x in module_name if x])
+    
+    try :
+        __import__(module_name)
+    except ImportError, e :
+        # An api exists, but it cannot be imported
+        logging.debug("Could not import {0}: {1}".format(module_name, e))
+        return result
+    
+    module = sys.modules[module_name]
+    
+    items = []
+    for name in dir(module) :
+        if name.startswith("_") :
+            continue
         
-    elif "api.pyc" in names :
-        api_file = os.path.join(path, "api.pyc")
-        try :
-            f = open(api_file, "rb")
-            # A .pyc file a an 8 bytes header and a marshaled code object
-            f.read(8)
-            code = marshal.load(f)
-            exec code in api_globals, api_locals
-        except Exception, e :
-            logging.warn("Could not load %s/api.pyc : %s"%(path, e))
-    functions = []
-    for function_name in api_locals :
-        label = title_for(function_name)
-        functions.append((label, api_locals[function_name], []))
-    functions.sort(lambda x,y : cmp(x[0], y[0]))
-    result.extend(functions)
-    # Restore sys.path
-    sys.path = old_path
+        label = title_for(name)
+        items.append((label, getattr(module, name), []))
+    items.sort(lambda x,y : cmp(x[0], y[0]))
+    result.extend(items)
     
     return result

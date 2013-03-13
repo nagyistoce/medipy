@@ -394,3 +394,11 @@ class DeleteAnnotation(medipy.base.UndoableCommand):
         
         command = AddAnnotation(self.annotations_panel, self._annotation)
         command.execute()
+    
+    def _get_annotation(self):
+        """ Annotation that was deleted
+        """
+        
+        return self._annotation
+
+    annotation = property(_get_annotation)

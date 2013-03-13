@@ -7,4 +7,6 @@ import estimation
 import gui
 import io
 from spectral_analysis import spectral_analysis
+import scalars
+import tractography
 import utils

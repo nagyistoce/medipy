@@ -8,8 +8,11 @@
 # for details.
 ##########################################################################
 
+import copy
 import logging
 import os
+import sys
+
 import wx
 
 try :
@@ -31,11 +34,19 @@ try :
                 style = wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|wx.PD_SMOOTH)
         dialog.Update(0, 'Loading script ...')
         dialog.Show()
+        
+        # Pretend we execute the script in its local dir
+        old_path = copy.copy(sys.path)
+        sys.path.insert(0, os.path.dirname(app.options.filename))
+        
         # Use an empty globals dictionary to avoid memory leak. If using 
         # globals() instead of {}, any image allocated in globals will be 
         # referenced by globals() /and/ MediPyApp, and as such will not be 
         # deleted when MediPyApp.close_image is called
         execfile(app.options.filename, {})
+        
+        sys.path = old_path
+        
         dialog.Hide()
         dialog.Destroy()
 except :

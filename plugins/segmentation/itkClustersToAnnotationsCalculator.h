@@ -2,7 +2,7 @@
 #define e5a5528b_6847_4f64_b1b7_76a442d67604
 
 #include <map>
-#include <ostream>
+#include <vector>
 
 #include <itkObject.h>
 
@@ -59,7 +59,6 @@ private:
 
     ImageConstPointer m_Image;
     MapType m_Annotations;
-
 };
 
 }

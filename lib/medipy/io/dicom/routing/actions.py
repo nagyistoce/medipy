@@ -8,6 +8,7 @@
 
 import os
 import threading
+import zlib
 
 import medipy.base
 import medipy.io.dicom
@@ -74,12 +75,17 @@ class EmptyElement(Action) :
             dataset[self.tag] = ""
 
 class SaveDataSet(Action):
-    """ Save the dataset to a file. The root directory must be empty the first
-        time this rule is called.
+    """ Save the dataset to a file. 
         
-        This action is thread-safe when called on different data-sets.
-    
-        ``mode`` can be either ``"flat"`` or ``"hierarchical"``.
+        The destination filename is base on Patient ID, Study Instance UID,
+        Series Instance UID and SOP Instance UID. The organization of the files
+        in ``root`` is according to ``mode`` :
+        
+        * ``"flat"``: datasets are saved directly in ``root``
+        * ``"hierarchical"``: datasets are saved in sub-directories according to
+          their Patient ID, Study Instance UID and Series Instance UID.
+        
+        This action is thread-safe.
     """
     
     _lock = threading.Lock()
@@ -88,40 +94,32 @@ class SaveDataSet(Action):
         self.root = root
         self.mode = mode
         
-        self._next_file = 0
-        self._hierarchy = {}
-        self._next_series_file = {}
-    
     def __call__(self, dataset):
-        self._lock.acquire(True)
+        
+        patient = dataset.get("patient_id", medipy.io.dicom.CS("")).value
+        study = dataset.get("study_instance_uid", medipy.io.dicom.UI("")).value
+        series = dataset.get("series_instance_uid", medipy.io.dicom.UI("")).value
+        instance = dataset.get("sop_instance_uid", medipy.io.dicom.UI("")).value
         
         if self.mode == "flat" :
-            filename = os.path.join(self.root, "{0:08}".format(self._next_file))
-            self._next_file += 1
+            filename = "{0:X}".format(zlib.crc32(patient+study+series+instance))
         elif self.mode == "hierarchical" :
-            patient_key = dataset.get("patient_id", None).value
-            study_key = dataset.get("study_instance_uid", None).value
-            series_key = dataset.get("series_instance_uid", None).value
-            
-            patient = self._hierarchy.setdefault(patient_key, (len(self._hierarchy), {}))
-            study = patient[1].setdefault(study_key, (len(patient[1]), {}))
-            series = study[1].setdefault(series_key, len(study[1]))
-            
-            dirname = os.path.join(self.root, 
-                "{0:08}".format(patient[0]), "{0:08}".format(study[0]), 
-                "{0:08}".format(series))
-            
-            if not os.path.isdir(dirname) :
-                os.makedirs(dirname)
-            
-            filename = os.path.join(dirname, 
-                "{0:08}".format(self._next_series_file.setdefault(series, 0)))
-            
-            self._next_series_file[series] += 1
+            filename = os.path.join("{0:X}".format(zlib.crc32(patient)&0xffffffff),
+                                    "{0:X}".format(zlib.crc32(study)&0xffffffff),
+                                    "{0:X}".format(zlib.crc32(series)&0xffffffff),
+                                    "{0:X}".format(zlib.crc32(instance)&0xffffffff))
         
-        medipy.io.dicom.write(dataset, filename) 
+        destination = os.path.join(self.root, filename)
         
+        destination_dir = os.path.dirname(destination)
+        # Make sure we have a lock before creating the dir, otherwise we might
+        # have a race condition and an exception thrown in makedirs
+        self._lock.acquire(True)
+        if not os.path.isdir(destination_dir) :
+            os.makedirs(destination_dir)
         self._lock.release()
+        
+        medipy.io.dicom.write(dataset, destination)
 
 # TODO StoreDataset(connection)
 # TODO stop_rule_processing
