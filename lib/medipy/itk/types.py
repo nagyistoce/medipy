@@ -6,7 +6,12 @@
 # for details.
 ##########################################################################
 
+import ctypes
+
 import itk
+import numpy
+
+import medipy.base
 
 #: Convert ImageIOBase::IOComponentType to its corresponding ITK type
 io_component_type_to_type = {
@@ -43,3 +48,94 @@ larger_type = {
     itk.SI : itk.SL,
     itk.F : itk.D
 }
+
+def get_numpy_type(c_type):
+    """ Return the numpy type associated with the given C type, given as a
+        string. For example:
+        
+        >>> get_numpy_type("unsigned long")
+        numpy.uint64
+        >>> get_numpy_type("float")
+        numpy.float32
+    """
+    
+    # ctypes.c_XXX do not have spaces in their names
+    c_type = c_type.replace(" ", "")
+    
+    signedness = "u" if c_type.startswith("unsigned") else ""
+    
+    family = None
+    integers = ["char", "short", "int", "long", "longlong"]
+    floating_points = ["float", "double", "longdouble"]
+    if c_type.startswith("unsigned") :
+        if c_type[len("unsigned"):] in integers :
+            family = "int"
+        elif c_type[len("unsigned"):] in floating_points :
+            family = "float"
+    else :
+        if c_type in integers :
+            family = "int"
+        elif c_type in floating_points :
+            family = "float"
+    
+    # "unsigned xxx" are named "uxxx" in ctypes
+    if c_type.startswith("unsigned") :
+        c_type = "u"+c_type[len("unsigned"):]
+    
+    # "char" is named "byte" in ctypes
+    if c_type.endswith("char") :
+        c_type = c_type[:-len("char")]+"byte"
+    
+    c_type = "c_"+c_type
+    if c_type not in dir(ctypes) :
+        raise medipy.base.Exception("Unknown C type: {0!r}".format(c_type))
+    
+    size = 8*ctypes.sizeof(getattr(ctypes, c_type))
+    numpy_type = "{signedness}{family}{size}".format(**locals())
+    if numpy_type not in dir(numpy) :
+        raise medipy.base.Exception("Unknown numpy type: {0!r}".format(numpy_type))
+    
+    return getattr(numpy, numpy_type)
+
+def _get_type_dictionaries():
+    itk_to_dtype_table = [
+        # Unsigned int types (char, short, long)
+        (itk.UC, get_numpy_type("unsigned char")),
+        (itk.US, get_numpy_type("unsigned short")),
+        (itk.UI, get_numpy_type("unsigned int")),
+        (itk.UL, get_numpy_type("unsigned long")),
+        # Signed int types (char, short, long)
+        (itk.SC, get_numpy_type("char")),
+        (itk.SS, get_numpy_type("short")),
+        (itk.SI, get_numpy_type("int")),
+        (itk.SL, get_numpy_type("long")),
+        # Float types (float, double, long double)
+        (itk.F, get_numpy_type("float")),
+        (itk.D, get_numpy_type("double")),
+        (itk.LD, get_numpy_type("long double")),
+        # Complex types
+        #(itk.COMPLEX_REALS, ),
+        # Vector types
+        #(itk.VECTOR_REALS, ),
+        # RGB types
+        #(itk.RGBS, ),
+        # RGBA types
+        #(itk.RGBAS, ),
+        # Covariant vector types
+        #(itk.COV_VECTOR_REALS, ),
+    ]
+    
+    #: Map an ITK type to a NumPy dtype
+    itk_to_dtype = {}
+    
+    #: Map a NumPy dtype to an ITK type
+    dtype_to_itk = {}
+    
+    for itk_type, dtype in itk_to_dtype_table :
+        itk_to_dtype[itk_type] = dtype
+        dtype_to_itk[dtype] = itk_type
+    
+    return itk_to_dtype, dtype_to_itk
+
+#: Map ITK types to and from numpy dtypes
+itk_to_dtype, dtype_to_itk = _get_type_dictionaries()

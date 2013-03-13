@@ -15,7 +15,7 @@ import vtk.util.numpy_support
 import medipy.itk
 import medipy.gui.image
 import medipy.vtk
-from medipy.diffusion.utils import rotation33todt6, spectral_decomposition
+from ..utils import rotation33todt6, spectral_decomposition
 
 def get_fa(eigenvalues, eigenvectors):
     ev1 = eigenvalues[...,0]
@@ -243,7 +243,7 @@ class Tensor2Layer(medipy.gui.image.Layer) :
             self._change_information.GetOutput(), None)
         if self.display_coordinates in ["physical", "nearest_axis_aligned"] :
             
-            matrix = self.image.direction
+            matrix = numpy.dot(self.world_to_slice, numpy_slice_tensors.direction)
             if self.display_coordinates == "nearest_axis_aligned" :
                 matrix = medipy.base.coordinate_system.\
                             best_fitting_axes_aligned_matrix(matrix)

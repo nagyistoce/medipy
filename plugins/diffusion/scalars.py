@@ -13,7 +13,7 @@ def fractional_anisotropy(image):
     """ Compute the fractional anisotropy from a second order symmetric tensor field.
     
         <gui>
-            <item name="images" type="Image" label="Input"/>
+            <item name="image" type="Image" label="Input"/>
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
@@ -21,8 +21,8 @@ def fractional_anisotropy(image):
     
     fa_filter = itk.FractionalAnisotropyImageFilter[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
     
-    itk_tensor = medipy.itk.medipy_image_to_itk_image(tensor, False)
-    fa_filter.SetInput(0,itk_tensor)
+    itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
+    fa_filter.SetInput(0,itk_image)
     fa_filter.Update()
     itk_output = fa_filter.GetOutput(0)
     output = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
@@ -33,15 +33,15 @@ def mean_diffusivity(image):
     """ Compute the mean diffusivity from a second order symmetric tensor field.
     
         <gui>
-            <item name="images" type="Image" label="Input"/>
+            <item name="image" type="Image" label="Input"/>
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
     """
     
     md_filter = itk.MeanDiffusivityImageFilter[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
-    itk_tensor = medipy.itk.medipy_image_to_itk_image(tensor, False)
-    md_filter.SetInput(0,itk_tensor)
+    itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
+    md_filter.SetInput(0,itk_image)
     md_filter.Update()
     itk_output = md_filter.GetOutput(0)
     output = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)

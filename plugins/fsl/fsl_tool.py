@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -20,10 +20,11 @@ class FSLTool(object):
         FSLOUTPUTTYPE can be specified in the environment or in the wrapper.
         If both are defined, the definition from the wrapper will override the
         one from the environment. FSLOUTPUTTYPE must be one of :
-          * NIFTI_PAIR
-          * NIFTI
-          * NIFTI_GZ
-          * NIFTI_PAIR_GZ
+        
+        * NIFTI_PAIR
+        * NIFTI
+        * NIFTI_GZ
+        * NIFTI_PAIR_GZ
     """
     
     _suffixes = {

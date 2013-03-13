@@ -193,11 +193,16 @@ class Image(Observable):
         
         return numpy.dot(self._index_to_physical_matrix, index)+self._origin
     
-    def physical_to_index(self, physical):
-        """ Transform a physical coordinate to an index coordinate.
+    def physical_to_index(self, physical, round=False):
+        """ Transform a physical coordinate to an index coordinate. If ``round``
+            is ``True``, the index will be rounded and cast to the nearest 
+            integer value, otherwise it will be kept as a floating-point value.
         """
         
-        return numpy.dot(self._physical_to_index_matrix, physical-self._origin)
+        index = numpy.dot(self._physical_to_index_matrix, physical-self._origin)
+        if round :
+            index = index.round().astype(int)
+        return index
     
     ##############
     # Properties #

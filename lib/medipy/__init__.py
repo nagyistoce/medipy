@@ -11,9 +11,13 @@
 # http://www.sourceware.org/bugzilla/show_bug.cgi?id=12453
 import uuid
 
+# If expat is loaded too late, WrapITK causes crashes when an exception is 
+# raised. See https://issues.itk.org/jira/browse/HISTITK-834
+import xml.parsers.expat
+
 import ConfigParser
 import imp
-import new
+import marshal
 import os
 import sys
 
@@ -38,28 +42,41 @@ class Importer(object):
             self.plugins_path.extend(global_path_getter())
     
     def find_module(self, fullname, path=None):
-        if not fullname.startswith("medipy.") :
-            # Not a medipy module, use default load
-            return
-        plugin = fullname.split(".")[1]
-        for directory in self.plugins_path :
-            if plugin in os.listdir(directory) :
-                return self
+        # Find the items from ``path`` which are rooted in self.plugins_path
+        plugins_path = []
+        for p in (path or []) :
+            ancestors = [os.path.commonprefix([p, x])
+                         for x in self.plugins_path]
+            plugins_path.extend([x for x in ancestors 
+                                 if x in self.plugins_path])
+        
+        # If no such path exist and fullname is not a top-level medipy plugin,
+        # it is not our job to load it
+        if len(plugins_path)==0 and not fullname.startswith("medipy.") :
+            return None
+        
+        # Check if we can find fullname in our plugins search paths.
+        plugin_path = self._get_search_path(fullname, 
+                                            plugins_path or self.plugins_path)
+        # We manage fullname iff we cound find such a path
+        return self if plugin_path is not None else None 
     
     def load_module(self, fullname):
-        try :
-            path = self.plugins_path
-            for level, package in enumerate(fullname.split(".")[1:]) :
-                file, pathname, description = imp.find_module(package, path)
-                path = [pathname]
-                intermediate = ".".join(fullname.split(".")[1:level+2])
-                module = imp.load_module(intermediate, file, pathname, description)
-                # Add the module with the correct name to sys.modules
-                sys.modules["medipy.{0}".format(module.__name__)] = module
-        except :
-            raise
+        module = sys.modules.setdefault(fullname, imp.new_module(fullname))
+        
+        code, filename = self._get_code(fullname)
+        
+        if self._is_package(fullname) :
+            module.__path__ = []
+            module.__file__ = filename
+            module.__package__ = fullname
         else :
-            return module
+            module.__file__ = filename
+            module.__package__ = fullname.rpartition(".")[0]
+        
+        exec(code, module.__dict__)
+        
+        return module
     
     #####################
     # Private interface #
@@ -82,6 +99,73 @@ class Importer(object):
                 ]
         
         return global_plugins_path
+    
+    def _get_search_path(self, fullname, plugins_path=None):
+        """ Return the first path from ``plugins_path`` (or ``self.plugins_path``
+            if ``plugins_path`` is None) that contains the plugin ``fullname``.
+            If no such path exists, return None.
+        """
+        
+        if plugins_path is None :
+            plugins_path = self.plugins_path
+        
+        path = None
+        for directory in plugins_path :
+            plugin_path = os.path.join(directory, *fullname.split(".")[1:])
+            candidates = []
+            if os.path.isdir(plugin_path) :
+                candidates = [os.path.join(plugin_path, "__init__"+suffix)
+                              for suffix in [".py", ".pyc"]]
+            else :
+                candidates = [plugin_path+suffix for suffix in [".py", ".pyc"]]
+            if any(os.path.isfile(x) for x in candidates) :
+                path = directory
+                break
+        return path
+    
+    def _get_code(self, fullname):
+        """ Return the code object associated with the plugin ``fullname``.
+        """
+        
+        path = os.path.join(self._get_search_path(fullname), 
+                            *fullname.split(".")[1:])
+        
+        if os.path.isdir(path) :
+            path = os.path.join(path, "__init__")
+        
+        if os.path.isfile(path+".py") :
+            path += ".py"
+            source = True
+        elif os.path.isfile(path+".pyc") :
+            path += ".pyc"
+            source = False
+        
+        code = None
+        
+        if source :
+            with open(path, "rU") as f :
+                source = f.read()
+                code = compile(source, path, "exec")
+        else :
+            with open(path, "rb") as f :
+                # Check the magic number
+                magic = f.read(4)
+                if magic != imp.get_magic() :
+                    return None
+                # Skip timestamp
+                f.read(4)
+                # Load the code
+                code = marshal.load(f)
+
+        return code, path
+    
+    def _is_package(self, fullname):
+        """ Test whether the plugin ``fullname`` is a package.
+        """
+        
+        path = os.path.join(self._get_search_path(fullname), 
+                            *fullname.split(".")[1:])
+        return os.path.isdir(path)
 
 # Only include importer if we are not in a frozen app (e.g. py2exe), otherwise
 # this messes up the regular modules import

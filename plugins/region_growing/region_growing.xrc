@@ -3,7 +3,6 @@
   <object class="wxPanel" name="root">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
-      
       <object class="sizeritem">
         <object class="wxFlexGridSizer">
           <object class="sizeritem">
@@ -34,6 +33,12 @@
               <object class="sizeritem">
                 <object class="medipy.gui.control.Bool" name="new_destination_layer"/>
                 <flag>wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>(new)</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
               </object>
             </object>
           </object>
@@ -84,6 +89,13 @@
           <growablecols>1</growablecols>
         </object>
         <flag>wxEXPAND</flag>
+      </object>
+      
+      <object class="sizeritem">
+        <object class="wxButton" name="accept">
+          <label>Accept</label>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
       </object>
     </object>
   </object>

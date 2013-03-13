@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import math
@@ -210,8 +210,11 @@ class FloatInterval(wx.PyPanel, Observable) :
         real_length = float(self._range[1]-self._range[0])
         
         # Control range, normalized between 0 and 1
-        normalized_range = ((self._value[0]-self._range[0])/real_length,
-                            (self._value[1]-self._range[0])/real_length)
+        if real_length != 0 :
+            normalized_range = ((self._value[0]-self._range[0])/real_length,
+                                (self._value[1]-self._range[0])/real_length)
+        else :
+            normalized_range = (0,0)
         
         # Range in screen coordinates
         if self._orientation == wx.VERTICAL :

@@ -64,6 +64,10 @@ def to_axis_aligned_ras_space(image):
     original_direction = image.direction
     
     direction = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
+    if (direction==medipy.base.coordinate_system.RAS).all() :
+        # No need to reorient
+        return
+    
     itk_direction = numpy.fliplr(numpy.flipud(direction))
     itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
     
@@ -104,7 +108,7 @@ def data(datasets):
     dtype = sample_dataset.pixel_array.dtype
     for dataset in datasets :
         if "rescale_slope" in dataset or "rescale_intercept" in dataset :
-            dtype = float
+            dtype = numpy.float32
             break
     array = numpy.ndarray(shape, dtype=dtype)
     
@@ -187,12 +191,14 @@ def metadata(datasets, skipped_tags="default"):
                 name = str(key)
         else :
             private_creator, tag = key
-            if private_creator in private_dictionaries :
+            if private_creator.value in private_dictionaries :
                 tag = "{0:04x}xx{1:02x}".format(tag.group, tag.element%0x100)
-                name = private_dictionaries[private_creator].get(
+                name = private_dictionaries[private_creator.value].get(
                     tag, ("", "", "", "", str(tag)))[4]
             else :
-                name = str(key)
+                name = str(tag)
+            # Make sure name is not empty
+            name = name or str(tag)
         
         named_result[name] = value
     result = named_result
