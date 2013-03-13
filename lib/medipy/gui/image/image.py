@@ -19,6 +19,25 @@ from medipy.gui.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
 
 from slice import Slice
 
+def display(*args, **kwargs) :
+    """ Display an image in a modal dialog. All parameters are passed to the
+        image constructor
+    """
+    
+    app = wx.GetApp()
+    if app is None :
+        app = wx.PySimpleApp()
+    
+    dialog = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+    gui_image = medipy.gui.image.Image(dialog, *args, **kwargs)
+    
+    sizer = wx.BoxSizer()
+    sizer.Add(gui_image, 1, wx.EXPAND)
+    dialog.SetSizer(sizer)
+    sizer.SetSizeHints(dialog)
+    
+    dialog.ShowModal()
+
 def get_informations(image):
     """ Return the informations to be displayed on image.
     """
