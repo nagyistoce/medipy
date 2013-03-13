@@ -8,7 +8,7 @@
 
 from medipy.gui.image.contour_layer import ContourLayer
 from crosshair import Crosshair
-from medipy.gui.image.image import Image
+from medipy.gui.image.image import Image, display
 from medipy.gui.image.image_grid import ImageGrid
 from medipy.gui.image.image_layer import ImageLayer
 from medipy.gui.image.import_raw_dialog import ImportRawDialog
