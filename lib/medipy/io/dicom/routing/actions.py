@@ -151,6 +151,9 @@ class ModifyDataSet(Action):
         else :
             modifications = self.modifications
         
+        if not modifications :
+            return
+        
         # Check that Original Attributes Sequence (0400, 0561) is not in the
         # modifications dictionary
         original_attributes_sequence = [
