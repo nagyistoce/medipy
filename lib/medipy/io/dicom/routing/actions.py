@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import datetime
 import os
 import threading
 import zlib
@@ -73,6 +74,122 @@ class EmptyElement(Action) :
             dataset[self.tag] = []
         else :
             dataset[self.tag] = ""
+
+class ModifyDataSet(Action):
+    """ Modify a dataset, storing the modifications in Original Attributes 
+        Sequence (0400, 0561).
+    
+        * ``modifications`` can be either a dictionary mapping tags (numerical
+          or named) to their modified values, or a callable object. In the 
+          latter case, the object is called with the dataset as its only 
+          argument, and must return a dictionary mapping tags to their modified
+          values. Original Attributes Sequence (0400, 0561) MUST NOT be present
+          in the dictionary
+        * ``source`` : the source that provided the SOP Instance prior to the 
+          removal or replacement of the values. For example, this might be the 
+          Institution from which imported SOP Instances were received.
+        * ``system`` : identification of the system which removed and/or 
+          replaced the attributes.
+        * ``reason`` : reason for the attribute modification, must be one of the 
+          following :
+        
+          * ``"COERCE"`` : replace values of attributes such as Patient Name, 
+            ID,  Accession Number, for example, during import of media from an 
+            external institution, or reconciliation against a master patient 
+            index.
+          * ``"CORRECT"`` : replace incorrect values, such as Patient Name or 
+            ID, for example, when incorrect worklist item was chosen or 
+            operator input error.
+        * ``modification_datetime`` : date and time the attributes were removed 
+          and/or replaced. If not specified, ``datetime.datetime.now()`` is used.
+        
+        Example with a dictionary : ::
+        
+            >>> dataset = medipy.io.dicom.DataSet()
+            >>> dataset.patients_name = "Doe^John"
+            >>> dataset.series_description = "3D T1 SPGR 180 slices 1mm"
+            >>> action = ModifyDataSet({"series_description": "T1_3D"}, "source", "system", "COERCE")
+            >>> action(dataset)
+            >>> dataset.series_description.value
+            'T1_3D'
+        
+        Example with a callable : ::
+        
+            >>> def modify_series_description(dataset) :
+            ...     series_description = dataset.get(
+            ...         "series_description", medipy.io.dicom.LO(None)).value
+            ...     if series_description == "3D T1 SPGR 180 slices 1mm" :
+            ...         return { "series_description" : "T1_3D" }
+            ...     else :
+            ...         return {}
+            >>> dataset = medipy.io.dicom.DataSet()
+            >>> dataset.patients_name = "Doe^John"
+            >>> dataset.series_description = "3D T1 SPGR 180 slices 1mm"
+            >>> action = ModifyDataSet(modify_series_description, "source", "system", "COERCE")
+            >>> action(dataset)
+            >>> dataset.series_description.value
+            'T1_3D'
+    """
+    
+    def __init__(self, modifications, source, system, reason, modification_datetime=None):
+        self.modifications = modifications
+        self.source = source
+        self.system = system
+        self.reason = reason
+        self.modification_datetime = modification_datetime
+    
+    def __call__(self, dataset):
+        # Check that reason is a defined value
+        if self.reason not in ["COERCE", "CORRECT"] :
+            raise medipy.base.Exception(
+                "Reason must be one of \"COERCE\" or \"CORRECT\", "
+                "{0!r} found".format(self.reason))
+        
+        # Get the modifications dictionary if we got a function
+        if callable(self.modifications) :
+            modifications = self.modifications(dataset)
+        else :
+            modifications = self.modifications
+        
+        # Check that Original Attributes Sequence (0400, 0561) is not in the
+        # modifications dictionary
+        original_attributes_sequence = [
+            medipy.io.dicom.Tag(0x0400, 0x0561), (0x0400,0x0561), 0x04000561,
+            "original_attributes_sequence"]
+        if set(modifications.keys()).intersection(original_attributes_sequence) :
+            raise medipy.base.Exception("Original Attributes Sequence (0400, 0561) "
+                                        "may not be modified")
+        
+        # Set the modification datetime if not specified
+        if self.modification_datetime is None :
+            modification_datetime = datetime.datetime.now()
+        else :
+            modification_datetime = self.modification_datetime
+        # Format it to the DICOM DT VR
+        modification_datetime = modification_datetime.strftime("%Y%m%d" "%H%M%S")
+        
+        # Modify the attributes, storing the old values in modified_attributes
+        # if necessary.
+        modified_attributes = medipy.io.dicom.DataSet()
+        for tag, value in modifications.items() :
+            if tag in dataset :
+                modified_attributes[tag] = dataset[tag]
+            dataset[tag] = value
+        
+        # Preserve Original Attributes Sequence (0400, 0561) if needed
+        if "original_attributes_sequence" in dataset :
+            modified_attributes.original_attributes_sequence = dataset.original_attributes_sequence
+        
+        # Create the Original Attributes Sequence (0400,0561) and store it in the
+        # dataset
+        original_attributes = medipy.io.dicom.DataSet()
+        original_attributes.source_of_previous_values = self.source
+        original_attributes.attribute_modification_datetime = modification_datetime
+        original_attributes.modifying_system = self.system
+        original_attributes.reason_for_the_attribute_modification = self.reason
+        
+        original_attributes.modified_attributes_sequence = [modified_attributes]
+        dataset.original_attributes_sequence = [original_attributes]
 
 class SaveDataSet(Action):
     """ Save the dataset to a file. 

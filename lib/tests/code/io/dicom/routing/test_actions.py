@@ -48,6 +48,32 @@ class TestActions(unittest.TestCase):
         
         self.assertTrue("language_code_sequence" in self.dataset)
         self.assertEqual(self.dataset.language_code_sequence.value, [])
+    
+    def test_modify_dataset_dict(self):
+        dataset = medipy.io.dicom.DataSet()
+        dataset.patients_name = "Doe^John"
+        dataset.series_description = "3D T1 SPGR 180 slices 1mm"
+        action = medipy.io.dicom.routing.ModifyDataSet(
+            {"series_description": "T1_3D"}, "source", "system", "COERCE")
+        action(dataset)
+        self.assertEqual(dataset.series_description.value, "T1_3D")
+    
+    def test_modify_dataset_callable(self):
+        def modify_series_description(dataset) :
+            series_description = dataset.get(
+                "series_description", medipy.io.dicom.LO(None)).value
+            if series_description == "3D T1 SPGR 180 slices 1mm" :
+                return { "series_description" : "T1_3D" }
+            else :
+                return {}
+        
+        dataset = medipy.io.dicom.DataSet()
+        dataset.patients_name = "Doe^John"
+        dataset.series_description = "3D T1 SPGR 180 slices 1mm"
+        action = medipy.io.dicom.routing.ModifyDataSet(
+            modify_series_description, "source", "system", "COERCE")
+        action(dataset)
+        self.assertEqual(dataset.series_description.value, "T1_3D")
 
 if __name__ == "__main__" :
     unittest.main()
