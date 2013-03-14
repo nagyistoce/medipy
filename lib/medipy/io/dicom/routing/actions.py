@@ -222,7 +222,7 @@ class SaveDataSet(Action):
         instance = dataset.get("sop_instance_uid", medipy.io.dicom.UI("")).value
         
         if self.mode == "flat" :
-            filename = "{0:X}".format(zlib.crc32(patient+study+series+instance))
+            filename = "{0:X}".format(zlib.crc32(patient+study+series+instance)&0xffffffff)
         elif self.mode == "hierarchical" :
             filename = os.path.join("{0:X}".format(zlib.crc32(patient)&0xffffffff),
                                     "{0:X}".format(zlib.crc32(study)&0xffffffff),
