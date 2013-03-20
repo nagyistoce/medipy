@@ -6,11 +6,10 @@
 # for details.
 ##########################################################################
 
-import multiprocessing.dummy
+import multiprocessing
 
 import medipy.base
 import medipy.io.dicom
-import medipy.io.dicom.split
 import query as query_module
 
 def load(query, connection, retrieve, *args) :
@@ -31,7 +30,7 @@ def load(query, connection, retrieve, *args) :
             query.patients_name = "Doe^John"
             query.series_description = "T1 3D 1mm"
 
-            image = load_image(query, connection, "WADO", "http://www.example.com/wado")
+            image = medipy.network.dicom.image_io.load(query, connection, "WADO", "http://www.example.com/wado")
     """
 
     # Make sure we retrieve the SOP Instance UID
@@ -54,12 +53,9 @@ def load(query, connection, retrieve, *args) :
     elif retrieve == "MOVE" :
         raise NotImplementedError()
     elif retrieve == "WADO" :
-        wado_url = args[0]
-        def worker(dataset) :
-            return medipy.network.dicom.wado.get(wado_url, dataset)
-        pool = multiprocessing.dummy.Pool(2*multiprocessing.cpu_count())
-        async_results = [pool.apply_async(worker, (result,)) 
-                         for result in query_results]
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        async_results = [pool.apply_async(_wado, (args[0], wado_query)) 
+                         for wado_query in query_results]
         pool.close()
         pool.join()
         datasets = [x.get() for x in async_results]
@@ -74,3 +70,5 @@ def load(query, connection, retrieve, *args) :
 
     return medipy.io.dicom.image(stacks[0])
 
+def _wado(url, query) :
+    return medipy.network.dicom.wado.get(url, query)
