@@ -16,6 +16,7 @@
         * :class:`DeleteElement`
         * :class:`EmptyElement`
         * :class:`ModifyDataSet`
+        * :class:`RestoreDataSet`
         * :class:`SaveDataSet`
     
     The following example modifies datasets if they match the criteria, and
@@ -41,13 +42,13 @@
 """
 
 from actions import (Action, SetElement, DeleteElement, EmptyElement, 
-                     ModifyDataSet, SaveDataSet)
+                     ModifyDataSet, RestoreDataSet, SaveDataSet)
 from conditions import (Condition, AlwaysTrue, AlwaysFalse, And, Or, Not,
                         ElementMatch)
 from Rule import Rule
 
 __all__ = [
     "Action", "SetElement", "DeleteElement", "EmptyElement", "ModifyDataSet", 
-    "SaveDataSet", "Condition", "AlwaysTrue", "AlwaysFalse", "And", "Or", "Not",
-    "ElementMatch", "Rule"
+    "RestoreDataSet", "SaveDataSet", "Condition", "AlwaysTrue", "AlwaysFalse", 
+    "And", "Or", "Not", "ElementMatch", "Rule"
 ]
