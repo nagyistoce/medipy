@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="bet_panel">
+    <object class="wxFlexGridSizer">
+      <cols>2</cols>
+      <rows>2</rows>
+      <growablecols>1</growablecols>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Intensity range : </label>
+        </object>
+        <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.FloatInterval" name="intensity_range"/>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="display_intensity_range"/>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="estimate_intensity_range">
+              <label>Estimate</label>
+            </object>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Center of gravity : </label>
+        </object>
+        <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          
+          <object class="sizeritem">
+            <object class="wxButton" name="show_cog">
+              <label>Show</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="estimate_cog">
+              <label>Estimate</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="set_cog_to_cursor">
+              <label>Set to cursor position</label>
+            </object>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>1</option>
+      </object>
+      
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Local threshold : </label>
+        </object>
+        <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.Float" name="local_threshold"/>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Smoothness : </label>
+        </object>
+        <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.Int" name="smoothness"/>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

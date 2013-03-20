@@ -1,0 +1,127 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="annotations_panel">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Position : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="position"/>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Label : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="label"/>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Shape : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="shape"/>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Size : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.Float" name="size"/>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Color : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxButton" name="color">
+                  <size>20,20</size>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="spacer">
+                <size>30</size>
+              </object>
+              <object class="sizeritem">
+                <object class="wxCheckBox" name="filled">
+                  <label>Filled</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Comment : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_TOP</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="comment">
+              <style>wxTE_MULTILINE</style>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <cols>2</cols>
+          <rows>0</rows>
+          <growablecols>1</growablecols>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxListBox" name="annotations"/>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="add">
+              <bitmap stock_id="wxART_ADD_BOOKMARK"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="delete">
+              <bitmap stock_id="wxART_DEL_BOOKMARK"/>
+            </object>
+          </object>
+          <object class="spacer">
+            <size>25</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="load">
+              <bitmap stock_id="wxART_FILE_OPEN"/>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBitmapButton" name="save">
+              <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+            </object>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+</resource>
