@@ -23,7 +23,18 @@ class Action(object):
         raise NotImplementedError()
 
 class SetElement(Action):
-    """ Set an element in the dataset, inserting it if it does not exist.
+    """ Set an element in the dataset. If the element is not present, it will 
+        be inserted : ::
+    
+            >>> dataset = medipy.io.dicom.DataSet()
+            >>> dataset.patients_name = "Brouchard^Georges"
+            >>> set_patients_name = medipy.io.dicom.routing.SetElement("patients_name", "Doe^John")
+            >>> set_patients_name(dataset)
+            >>> dataset.patients_name.value
+            'Doe^John'
+        
+        This overwrites the element. If you want to keep track of modifications,
+        use :class:`ModifyDataSet`.
     """
     
     def __init__(self, tag, value):
@@ -34,8 +45,15 @@ class SetElement(Action):
         dataset[self.tag] = self.value
 
 class DeleteElement(Action) :
-    """ Remove an element from a dataset. If the element is not in the dataset,
-        nothing happens.
+    """ Remove an element from a dataset. If the element is not in the dataset, 
+        nothing happens.::
+        
+            >>> dataset = medipy.io.dicom.DataSet()
+            >>> dataset.patients_name = "Brouchard^Georges"
+            >>> delete_patients_name = medipy.io.dicom.routing.DeleteElement("patients_name")
+            >>> delete_patients_name(dataset)
+            >>> "patients_name" in dataset
+            False
     """
     
     def __init__(self,tag):
@@ -46,10 +64,18 @@ class DeleteElement(Action) :
             del dataset[self.tag]
 
 class EmptyElement(Action) :
-    """ Set an element in the dataset to an empty value. If the element is not
-        present in the dataset, it is inserted.
+    """ Set an element in the dataset to an empty value. If the element is not 
+        present in the dataset, it is inserted. The VR of the tag MUST NOT be 
+        one of AT, FL, FD, SL, SS, UL, US. ::
         
-        The VR of the tag MUST NOT be one of AT, FL, FD, SL, SS, UL, US
+            >>> dataset = medipy.io.dicom.DataSet()
+            >>> dataset.patients_name = "Brouchard^Georges"
+            >>> clear_patients_name = medipy.io.dicom.routing.EmptyElement("patients_name")
+            >>> clear_patients_name(dataset)
+            >>> "patients_name" in dataset
+            True
+            >>> dataset.patients_name.value
+            ''
     """
     
     def __init__(self, tag, vr=None):
@@ -108,8 +134,8 @@ class ModifyDataSet(Action):
             >>> dataset = medipy.io.dicom.DataSet()
             >>> dataset.patients_name = "Doe^John"
             >>> dataset.series_description = "3D T1 SPGR 180 slices 1mm"
-            >>> action = ModifyDataSet({"series_description": "T1_3D"}, "source", "system", "COERCE")
-            >>> action(dataset)
+            >>> modify = medipy.io.dicom.routing.ModifyDataSet({"series_description": "T1_3D"}, "source", "system", "COERCE")
+            >>> modify(dataset)
             >>> dataset.series_description.value
             'T1_3D'
         
@@ -125,8 +151,8 @@ class ModifyDataSet(Action):
             >>> dataset = medipy.io.dicom.DataSet()
             >>> dataset.patients_name = "Doe^John"
             >>> dataset.series_description = "3D T1 SPGR 180 slices 1mm"
-            >>> action = ModifyDataSet(modify_series_description, "source", "system", "COERCE")
-            >>> action(dataset)
+            >>> modify = medipy.io.dicom.routing.ModifyDataSet(modify_series_description, "source", "system", "COERCE")
+            >>> modify(dataset)
             >>> dataset.series_description.value
             'T1_3D'
     """
@@ -193,6 +219,79 @@ class ModifyDataSet(Action):
         
         original_attributes.modified_attributes_sequence = [modified_attributes]
         dataset.original_attributes_sequence = [original_attributes]
+
+class RestoreDataSet(Action):
+    """ Restore the original attributes of a dataset that has been modified by
+        :class:`ModifyDataSet`. The values of ``source``, ``system``, and 
+        ``reason`` must match those passed to :class:`ModifyDataSet` for the
+        restore operation to succeed. ``modification_datetime`` will be checked
+        only if it is not ``None`` (its default value). :: 
+        
+            >>> dataset = medipy.io.dicom.DataSet()
+            >>> dataset.series_description = "3D T1 SPGR 180 slices 1mm"
+            >>> modify = medipy.io.dicom.routing.ModifyDataSet({"series_description": "T1_3D"}, "source", "system", "COERCE")
+            >>> modify(dataset)
+            >>> restore = medipy.io.dicom.routing.RestoreDataSet("source", "system", "COERCE")
+            >>> restore(dataset)
+            >>> dataset.series_description.value
+            '3D T1 SPGR 180 slices 1mm'
+            >>> "original_attributes_sequence" in dataset
+            False
+    """
+    
+    def __init__(self, source, system, reason, modification_datetime=None):
+        self.source = source
+        self.system = system
+        self.reason = reason
+        self.modification_datetime = modification_datetime
+    
+    def __call__(self, dataset):
+        if "original_attributes_sequence" not in dataset :
+            # Nothing to do
+            return
+        
+        # Check that reason is a defined value
+        if self.reason not in ["COERCE", "CORRECT"] :
+            raise medipy.base.Exception(
+                "Reason must be one of \"COERCE\" or \"CORRECT\", "
+                "{0!r} found".format(self.reason))
+        
+        original_attributes = dataset.original_attributes_sequence.value[0]
+        
+        # Check that modifications parameters match
+        source = original_attributes.source_of_previous_values.value
+        if source != self.source :
+            raise medipy.base.Exception(
+                "Cannot restore attributes with source {0!r}: "
+                "{1!r} expected".format(source, self.source))
+        
+        system = original_attributes.modifying_system.value
+        if system != self.system :
+            raise medipy.base.Exception(
+                "Cannot restore attributes with system {0!r}: "
+                "{1!r} expected".format(system, self.system)) 
+        
+        reason = original_attributes.reason_for_the_attribute_modification.value
+        if reason != self.reason :
+            raise medipy.base.Exception(
+                "Cannot restore attributes with reason {0!r}: "
+                "{1!r} expected".format(reason, self.reason))
+        
+        modification_datetime = original_attributes.attribute_modification_datetime.value
+        if self.modification_datetime and modification_datetime != self.modification_datetime :
+            raise medipy.base.Exception(
+                "Cannot restore attributes with modification date time {0!r}: "
+                "{1!r} expected".format(modification_datetime, self.modification_datetime))
+        
+        # Restore the attributes
+        modified_attributes = original_attributes.modified_attributes_sequence.value[0]
+        for key, value in modified_attributes.items() :
+            dataset[key] = value
+        
+        if "original_attributes_sequence" in modified_attributes :
+            dataset.original_attributes_sequence = modified_attributes.original_attributes_sequence
+        else :
+            del dataset["original_attributes_sequence"]
 
 class SaveDataSet(Action):
     """ Save the dataset to a file. 
