@@ -29,6 +29,8 @@ def display(*args, **kwargs) :
         app = wx.PySimpleApp()
     
     dialog = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+    if "size" not in kwargs :
+        kwargs["size"] = (400,400)
     gui_image = medipy.gui.image.Image(dialog, *args, **kwargs)
     
     sizer = wx.BoxSizer()
@@ -151,7 +153,6 @@ class Image(wx.Panel, PropertySynchronized):
         ##################
         
         wx.Panel.__init__(self, parent, *args, **kwargs)
-        self.SetMinSize((400,400))
         # Explicitely pass size to RWI to propagate it correctly
         self._rwi = wxVTKRenderWindowInteractor(self, wx.ID_ANY, size=self.GetSize())
         self._rwi.Enable(1)
