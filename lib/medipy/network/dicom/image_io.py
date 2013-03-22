@@ -8,12 +8,17 @@
 
 import multiprocessing
 
+import numpy
+
 import medipy.base
 import medipy.io.dicom
 import query as query_module
 
-def load(query, connection, retrieve, *args) :
-    """ Load an image from a DICOM node using the given query.
+def load(connection, query, retrieve) :
+    """ Load an image from a DICOM node using the given query. The query must
+        return a single serie. If the serie contains several stacks, a list of 
+        images is returned ; otherwise an image is returned.
+        
         The value of ``retrieve`` can be one of the following :
 
         * ``"GET"`` : the datasets corresponding to the query results are
@@ -21,21 +26,27 @@ def load(query, connection, retrieve, *args) :
         * ``"MOVE"`` : the datasets corresponding to the query results are
           retrieved using C-MOVE. The extra argument will contain the 
           destination AE title.
-        * an URL : the datasets corresponding to the query results are 
-          retrieved using WADO. The extra argument will contain the WADO URL.
+        * ``("WADO", url)`` : the datasets corresponding to the query results are 
+          retrieved using WADO, using the given URL.
 
         Usage example using WADO retrieval : ::
 
             query = medipy.io.dicom.DataSet()
             query.patients_name = "Doe^John"
             query.series_description = "T1 3D 1mm"
+            
+            retrieve = ("WADO", "http://www.example.com/wado")
 
-            image = medipy.network.dicom.image_io.load(query, connection, "WADO", "http://www.example.com/wado")
+            image = medipy.network.dicom.image_io.load(connection, query, retrieve)
     """
 
     # Make sure we retrieve the SOP Instance UID
     if "sop_instance_uid" not in query :
-        query.sop_instance_uid = None
+        new_query = medipy.io.dicom.DataSet()
+        new_query.update(query)
+        new_query.sop_instance_uid = None
+        
+        query = new_query
 
     query_results = query_module.relational(connection, "patient", "patient", query)
 
@@ -48,27 +59,37 @@ def load(query, connection, retrieve, *args) :
     if len(series_uids) > 1 :
         raise medipy.base.Exception("Only one series must match query")
 
-    if retrieve == "GET" :
+    pool = multiprocessing.Pool()
+
+    if retrieve[0] == "GET" :
         raise NotImplementedError()
-    elif retrieve == "MOVE" :
+    elif retrieve[0] == "MOVE" :
         raise NotImplementedError()
-    elif retrieve == "WADO" :
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        async_results = [pool.apply_async(_wado, (args[0], wado_query)) 
-                         for wado_query in query_results]
-        pool.close()
-        pool.join()
-        datasets = [x.get() for x in async_results]
+    elif retrieve[0] == "WADO" :
+        
+        async_results = [pool.apply_async(medipy.network.dicom.wado.get, 
+                                          (retrieve[1], wado_query)) 
+                         for wado_query in query_results]    
     else :
         raise medipy.base.Exception("Unknown retrieve mode {0!r}".format(retrieve))
 
+    pool.close()
+    pool.join()
+    
+    datasets = [x.get() for x in async_results]
+
     stacks = medipy.io.dicom.stacks(datasets)
+    
     if len(stacks) == 0 :
         raise medipy.base.Exception("No stack matching query")
-    elif len(stacks) > 1 :
-        raise medipy.base.Exception("Only one stack must match query")
+    
+    pool = multiprocessing.Pool()
+    async_results = [pool.apply_async(medipy.io.dicom.image, (stack,))
+                     for stack in stacks]
+    pool.close()
+    pool.join()
 
-    return medipy.io.dicom.image(stacks[0])
-
-def _wado(url, query) :
-    return medipy.network.dicom.wado.get(url, query)
+    if len(stacks) == 1 :
+        return async_results[0].get()
+    else :
+        return [x.get() for x in async_results]
