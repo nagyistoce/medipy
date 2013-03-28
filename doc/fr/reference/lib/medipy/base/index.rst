@@ -7,6 +7,7 @@ The following sub-modules are also documented :
          
     array
     coordinate_system
+    rotation
 
 ----
 
