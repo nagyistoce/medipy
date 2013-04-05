@@ -139,22 +139,31 @@ def quaternion_to_matrix(quaternion) :
     r""" Combination of quaternion_to_axis_angle and axis_angle_to_matrix
          The following equalities are used to obtain this :
          
-         theta = 2 acos(qr)
-         <=> q_r = cos(theta/2)
+         .. math ::
          
-         cos(theta) = 2*cos^2(theta/2)-1
-                    = 2*q_r^2-1
+             \theta = 2 acos(q_r) \Leftrightarrow q_r = \cos(\theta/2)
+         
+         .. math ::
+         
+             \begin{matrix}
+                 \cos(\theta) & = & 2*\cos^2(\theta/2)-1 \\
+                              & = & 2*q_r^2-1
+             \end{matrix}
          
          For the diagonal terms, we have :
-         cos(theta)+omega_x^2*(1-cos(theta)) 
-             = cos(theta)+q_i^2/sin^2(theta/2)*(1-cos(theta))
-             = cos(theta)+q_i^2/sin^2(theta/2)*(2*sin^2(theta/2))
-             = cos(theta)+2*q_i^2
-             = 2*q_r^2-1+2*q_i^2 (q is unit-length, so 1=q_r^2+q_i^2+q_j^2+q_k^2)
-             = q_r^2+q_i^2-(q_r^2+q_i^2+q_j^2+q_k^2-q_r-q_i)
-             = q_r^2+q_i^2-q_j^2-q_k^2
          
-         For the off_diagonal terms, we have :
+         .. math ::
+             \begin{matrix}
+                 \cos(\theta)+\omega_x^2*(1-\cos(\theta)) 
+                     & = & \cos(\theta)+q_i^2/\sin^2(\theta/2)*(1-\cos(\theta)) \\
+                     & = & \cos(\theta)+q_i^2/\sin^2(\theta/2)*(2*\sin^2(\theta/2)) \\
+                     & = & \cos(\theta)+2*q_i^2 \\
+                     & = & 2*q_r^2-1+2*q_i^2 (q is unit-length, so 1=q_r^2+q_i^2+q_j^2+q_k^2) \\
+                     & = & q_r^2+q_i^2-(q_r^2+q_i^2+q_j^2+q_k^2-q_r-q_i) \\
+                     & = & q_r^2+q_i^2-q_j^2-q_k^2
+             \end{matrix}
+         
+         For the off-diagonal terms, we have :
          
          .. math ::
          
@@ -164,6 +173,7 @@ def quaternion_to_matrix(quaternion) :
                                       & = & 2*q_k*\cos \frac{theta}{2} \\
                                       & = & 2*q_k*q_r
              \end{matrix}
+         
          and :
          
          .. math ::
@@ -172,6 +182,7 @@ def quaternion_to_matrix(quaternion) :
                  \omega_x*\omega_y*(1-\cos \theta) & = & q_i*q_j/\sin^2 \frac{\theta}{2}*(1-\cos \theta) \\
                                                    & = & q_i*q_j/\sin^2 \frac{\theta}{2}*(2*\sin^2 \frac{\theta}{2}) \\
                                                    & = & 2*q_i*q_j
+         
          Hence :
          
          .. math ::
