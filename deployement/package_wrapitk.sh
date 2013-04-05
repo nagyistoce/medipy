@@ -71,6 +71,14 @@ WRAP_vector_double:BOOL=OFF
 WRAP_vector_float:BOOL=ON
 EOF
 
+GCC_VERSION=`gcc -dumpversion`
+GCC_VERSION=`echo $GCC_VERSION | awk -F "." '$1 > 4 || $2 > 4 { print 4.4 }'`
+if [ $GCC_VERSION ]
+then
+    export CC=gcc-${GCC_VERSION}
+    export CXX=g++-${GCC_VERSION}
+fi
+
 # Problem with libuuid detection on Ubuntu 12.04
 if test -e /lib/x86_64-linux-gnu/libuuid.so.1 -a ! -e /usr/lib/x86_64-linux-gnu/libuuid.so
 then
