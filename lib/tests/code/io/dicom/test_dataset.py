@@ -77,6 +77,13 @@ class TestDataSet(unittest.TestCase):
         self.dataset.transfer_syntax_uid = medipy.io.dicom.UI(None)
         
         numpy.testing.assert_equal(self.dataset.pixel_array, array)
+    
+    def test_constructor_parameters(self):
+        dataset = medipy.io.dicom.DataSet(patients_name="Doe^John")
+        self.assertTrue("patients_name" in dataset)
+        self.assertTrue(0x00100010 in dataset)
+        self.assertTrue(isinstance(dataset.patients_name, medipy.io.dicom.PN))
+        self.assertEqual(dataset.patients_name.value, "Doe^John")
 
 if __name__ == '__main__':
     unittest.main()
