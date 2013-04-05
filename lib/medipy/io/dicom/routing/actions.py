@@ -85,7 +85,7 @@ class EmptyElement(Action) :
             if tag is not None :
                 tag = medipy.io.dicom.Tag(tag)
         else :
-            tag = Tag(tag)
+            tag = medipy.io.dicom.Tag(tag)
         
         self.tag = tag
         if vr is None :
