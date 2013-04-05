@@ -32,10 +32,12 @@ class DataSet(dict):
         used to get or set the Data Element's value.
     """
     
-    def __init__(self, include_header=True):
+    def __init__(self, include_header=True, **kwargs):
         dict.__init__(self, {})
         if include_header :
             self.header = DataSet(include_header=False)
+        for key, value in kwargs.items() :
+            self[key] = value
         self.normalized = False
     
     def tags(self):
