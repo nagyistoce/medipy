@@ -6,12 +6,9 @@ swig_link_libraries(spectral_analysis ${ITK_LIBS})
 install_swig_python_module(spectral_analysis)
 
 set(instantiations )
-set(vector_images )
 foreach(type ${WRAP_ITK_REAL})
     foreach(dimension ${WRAP_ITK_DIMS})
         set(instantiations ${instantiations} "${type}${dimension}")
-        set(images ${images} "I${type}${dimension}")
-        set(vector_images ${vector_images} "VI${type}${dimension}")
     endforeach()
 endforeach()
 
