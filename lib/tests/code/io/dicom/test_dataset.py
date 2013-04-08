@@ -84,6 +84,12 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(0x00100010 in dataset)
         self.assertTrue(isinstance(dataset.patients_name, medipy.io.dicom.PN))
         self.assertEqual(dataset.patients_name.value, "Doe^John")
+    
+    def test_set_default(self):
+        self.dataset.setdefault("patients_name", "Smithee^Alan")
+        self.assertEqual(self.dataset.patients_name.value, "Doe^John")
+        self.dataset.setdefault("patients_birth_date", "19690401")
+        self.assertEqual(self.dataset.patients_birth_date.value, "19690401")
 
 if __name__ == '__main__':
     unittest.main()
