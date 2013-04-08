@@ -222,6 +222,14 @@ class DataSet(dict):
         tag = self._get_tag(key)
         return dict.get(self, tag, default)
     
+    def setdefault(self, key, value=None):
+        """ Access to an item using a numerical or named tag.
+        """
+        
+        if key not in self:
+            self[key] = value
+        return self[key]
+    
     ###################
     # Misc. functions #
     ###################
