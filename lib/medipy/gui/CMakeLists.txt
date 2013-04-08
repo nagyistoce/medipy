@@ -1,13 +1,8 @@
-add_subdirectory("annotations")
-add_subdirectory("base")
-add_subdirectory("brushes")
-add_subdirectory("control")
-add_subdirectory("dicom")
-add_subdirectory("function_gui_builder")
-add_subdirectory("image")
-add_subdirectory("io")
-add_subdirectory("shapes")
-add_subdirectory("xrc_wrapper")
+set(subdirectories annotations base brushes control dicom function_gui_builder
+                   image io shapes xrc_wrapper)
+foreach(subdirectory ${subdirectories})
+    add_subdirectory("${subdirectory}")
+endforeach()
 
 file(GLOB files "*.py")
 install_py_files(${files})
