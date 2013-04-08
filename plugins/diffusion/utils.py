@@ -13,7 +13,7 @@
 import numpy as np
 import medipy.base
 
-from _spectral_analysis import spectral_analysis
+from spectral_analysis import spectral_analysis
 
 def generate_image_sampling(image,step=(1,1,1)) :
     """ Generate seeds to init tractographu
