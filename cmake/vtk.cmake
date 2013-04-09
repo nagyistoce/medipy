@@ -34,8 +34,6 @@ macro(vtk_python_module name sources)
         set(vtk_python_libraries ${vtk_python_libraries} ${lib}PythonD)
     endforeach()
     
-    message("VTK libraries: ${VTK_LIBRARIES}")
-    message("VTK Python libraries: ${vtk_python_libraries}")
     target_link_libraries(${name} ${VTK_LIBRARIES} ${vtk_python_libraries})
     set_target_properties(${name} PROPERTIES PREFIX "")
 endmacro(vtk_python_module)
