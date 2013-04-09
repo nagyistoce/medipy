@@ -78,8 +78,28 @@ def IntensityNormalisationForRegisteredImages_gui(imsrc, imref, mask_imsrc=None,
  
  
     imres=medipy.base.Image(shape=imsrc.shape, dtype=imsrc.dtype)
-    imres.copy_information(imsrc)
     
     medipy.medimax.traitement.IntensityNormalisationForRegisteredImages(imsrc, imref, imres, mask_imsrc,mask_imref, dicoMethodNormalisation[method])
     
+    
     return imres
+
+#-------------------------------------------------------------
+#  Correct Dark Bright Alternation of slices
+#-------------------------------------------------------------
+
+def ChamferDistance_GUI(imdeb) :
+    """
+  Computer chamfer distance transform
+    <gui>
+        <item name ="imdeb" type="Image" label="Input image"/>
+        <item name ="imres" type="Image" label="Output image" initializer="output=True" role="return"/>
+    </gui>
+
+    """ 
+    imres=medipy.base.Image(shape=imdeb.shape, dtype=imdeb.dtype)
+    imres.copy_information(imdeb)
+    medipy.medimax.traitement.imx_chamfer_distance_3d_p(imdeb,imres)
+    
+    return imres
+    
