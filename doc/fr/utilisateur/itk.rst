@@ -14,8 +14,7 @@ Construction d'un paquet
 
 Si aucun paquet n'existe pour votre distribution, nous avons publié deux scripts
 permettant de créer des paquets ``.deb`` pour ITK et WrapITK.
-`CMake <http://www.cmake.org/>`_ et 
-`fakeroot <http://fakeroot.alioth.debian.org/>`_ sont nécessaires pour la 
+`fakeroot <http://fakeroot.alioth.debian.org/>`_ est nécessaire pour la 
 construction des paquets.
 
 Pour ces deux scripts, la variable d'environnement ``MAINTAINER`` doit être 
