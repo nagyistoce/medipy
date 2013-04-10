@@ -20,7 +20,7 @@ commandes suivantes réalisent cette procédure.
 **Bilbiothèques** ::
 
     sudo apt-get install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
-        python-nifti python-docutils python-wxtools
+        python-nifti python-docutils python-wxtools uuid-dev
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
 
@@ -34,7 +34,7 @@ Ubuntu 10.04 LTS (Lucid Lynx)
 **Bilbiothèques** ::
 
     sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
-        python-nifti python-docutils python-wxtools
+        python-nifti python-docutils python-wxtools uuid-dev
 
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
