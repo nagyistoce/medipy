@@ -15,19 +15,29 @@ macro(vtk_python_module name sources)
     set(wrappers )
     VTK_WRAP_PYTHON3(${name} wrappers "${sources}")
     
-    # Fix the module name in the Init file
-#    add_custom_command(
-#        OUTPUT ${name}InitModified.cxx
-#        DEPENDS ${name}Init.cxx
-#        COMMAND python -c 
-#            "import sys; open(sys.argv[2], 'w').write(open(sys.argv[1]).read().replace('lib${name}', '${name}'))" 
-#            ${name}Init.cxx ${name}InitModified.cxx
-#        VERBATIM
-#    )
+    if("${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}" STRLESS "5.3")
+        message("---------------------------------- OLD VTK")
+        # Fix the module name in the Init file
+        add_custom_command(
+            OUTPUT ${name}InitModified.cxx
+            DEPENDS ${name}Init.cxx
+            COMMAND python -c 
+                "import sys; open(sys.argv[2], 'w').write(open(sys.argv[1]).read().replace('lib${name}', '${name}'))" 
+                ${name}Init.cxx ${name}InitModified.cxx
+            VERBATIM
+        )
+        set(init_file ${name}InitModified.cxx)
+        
+        # Old versions of VTK (Ubuntu 10.04, Debian 5.0) do not define VTK_LIBRARIES
+        set(VTK_LIBRARIES vtkCommon vtkFiltering vtkGenericFiltering vtkGraphics
+                          vtkHybrid vtkImaging vtkInfovis vtkIO vtkParallel
+                          vtkRendering vtkViews vtkVolumeRendering vtkWidgets)
+    else()
+        set(init_file ${name}Init.cxx)
+    endif()
 
     # Build the module using the modified Init file
-    #python_add_module(${name} ${sources} ${wrappers} ${name}InitModified.cxx)
-    python_add_module(${name} ${sources} ${wrappers} ${name}Init.cxx)
+    python_add_module(${name} ${sources} ${wrappers} ${init_file})
     
     set(vtk_python_libraries)
     foreach(lib ${VTK_LIBRARIES})
