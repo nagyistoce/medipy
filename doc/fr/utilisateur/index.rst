@@ -8,4 +8,3 @@ Guide de l'utilisateur
     itk
     paquets_ubuntu
     paquets_debian
-    compilation_prerequis
