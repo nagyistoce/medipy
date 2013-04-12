@@ -15,8 +15,7 @@ macro(vtk_python_module name sources)
     set(wrappers )
     VTK_WRAP_PYTHON3(${name} wrappers "${sources}")
     
-    if("${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}" STRLESS "5.3")
-        message("---------------------------------- OLD VTK")
+    if("${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}" STRLESS "5.5")
         # Fix the module name in the Init file
         add_custom_command(
             OUTPUT ${name}InitModified.cxx
