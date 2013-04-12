@@ -34,7 +34,7 @@ Ubuntu 10.04 LTS (Lucid Lynx)
 **Bilbiothèques** ::
 
     sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
-        python-nifti python-docutils python-wxtools uuid-dev
+        python-nifti python-docutils python-wxtools uuid-dev libxml2-dev
 
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
