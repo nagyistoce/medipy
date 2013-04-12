@@ -1,5 +1,0 @@
-Import('env')
-
-env = env.Clone()
-
-env["CPPPATH"].append("../../")
