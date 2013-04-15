@@ -111,9 +111,20 @@ DCMTKToPython
 
     if(count > 1)
     {
+        python_value = PyList_New(count);
+        
+        for(unsigned long i=0; i<count; ++i)
+        {
+            Float64 value;
+            ds->getFloat64(value, i);
+            PyList_SetItem(python_value, i, PyFloat_FromDouble(value));
+        }
     }
     else
     {
+        Float64 value;
+        ds->getFloat64(value, 0);
+        python_value = PyFloat_FromDouble(value);
     }
     
     return python_value;
@@ -143,14 +154,26 @@ DCMTKToPython
 ::_to_python<EVR_IS>(DcmObject * element) const
 {
     PyObject * python_value = NULL;
+    
     DcmIntegerString * is = dynamic_cast<DcmIntegerString*>(element);
     unsigned long count = is->getVM();
 
     if(count > 1)
     {
+        python_value = PyList_New(count);
+        
+        for(unsigned long i=0; i<count; ++i)
+        {
+            Sint32 value;
+            is->getSint32(value, i);
+            PyList_SetItem(python_value, i, PyInt_FromLong(value));
+        }
     }
     else
     {
+        Sint32 value;
+        is->getSint32(value, 0);
+        python_value = PyInt_FromLong(value);
     }
     
     return python_value;
