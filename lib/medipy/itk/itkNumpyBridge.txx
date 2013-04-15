@@ -178,7 +178,7 @@ NumpyBridge<TImage>
     PyArrayObject* array = NULL;
     try
     {
-        PyArrayObject* array = Self::GetPyArrayObject(obj);
+        array = Self::GetPyArrayObject(obj);
     }
     catch(...)
     {
@@ -259,7 +259,6 @@ NumpyBridge<TImage>
         throw std::runtime_error("Cannot convert a non C-contiguous array");
     }
     // Check that array and image types match
-    PyArrayType const py_type = Self::GetPyType();
     if(array->descr->type_num != Self::GetPyType())
     {
         std::cout << "array: " << array->descr->type_num << " "
@@ -268,7 +267,7 @@ NumpyBridge<TImage>
     }
     // Check that array and image dimensions match
     ImagePointer image = TImage::New();
-    unsigned int arrayDimension=0;
+    int arrayDimension=0;
     if(image->GetNameOfClass() == std::string("Image"))
     {
         arrayDimension = TImage::GetImageDimension();

@@ -12,7 +12,6 @@
 #include <sstream>
 
 #include <Python.h>
-#include <boost/python.hpp>
 
 #include <numpy/arrayobject.h>
 
