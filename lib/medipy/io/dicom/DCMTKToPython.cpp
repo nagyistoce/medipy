@@ -20,7 +20,9 @@ PyObject *
 DCMTKToPython
 ::operator()(DcmObject * dataset)
 {
-    PyObject * python_dataset;
+    PyObject* args = PyTuple_New(0);
+    PyObject* python_dataset = PyObject_CallObject(this->_medipy_io_dicom_DataSet, args);
+    Py_DECREF(args);
     
     DcmObject * it = NULL;
     while(NULL != (it = dataset->nextInContainer(it)))
@@ -347,15 +349,15 @@ DCMTKToPython
     
     if(dcmtk_vr == EVR_SQ)
     {
-        DcmSequenceOfItems * sequence = dynamic_cast<DcmSequenceOfItems*>(element);
-        PyObject * python_sequence;
+        python_value = PyList_New(0);
         
+        DcmSequenceOfItems * sequence = dynamic_cast<DcmSequenceOfItems*>(element);
         DcmObject * sequence_it = NULL;
         while(NULL != (sequence_it = sequence->nextInContainer(sequence_it)))
         {
             DCMTKToPython converter;
             PyObject * item_value = converter(sequence_it);
-            // TODO
+            PyList_Append(python_value, item_value);
         }
     }
     else if(element->getLength() == 0)
@@ -412,8 +414,8 @@ DCMTKToPython
     
     // Build the value
     std::map<DcmEVR, PyObject *>::const_iterator const vr_it = 
-        this->_medipy_vr.find(dcmtk_vr);
-    if(vr_it==this->_medipy_vr.end())
+        this->_medipy_io_dicom_vr.find(dcmtk_vr);
+    if(vr_it==this->_medipy_io_dicom_vr.end())
     {
         throw std::runtime_error(std::string("Unknown MediPy VR:") + vr_name);
     }
