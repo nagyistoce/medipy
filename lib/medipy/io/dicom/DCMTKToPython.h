@@ -36,7 +36,8 @@ private :
         typedef OFCondition (DcmElement::*Type)(TValue &, unsigned long);
     };
     
-    std::map<DcmEVR, PyObject *> _medipy_vr;
+    std::map<DcmEVR, PyObject *> _medipy_io_dicom_vr;
+    PyObject * _medipy_io_dicom_DataSet;
     PyObject * _medipy_io_dicom_Tag;
     
     /// @brief Convert data from a DICOM element to Python.
@@ -73,5 +74,7 @@ private :
      */
     void _add_element(DcmObject * element, PyObject * python_dataset) const;
 };
+
+#include "DCMTKToPython.txx"
 
 #endif // _96c8515b_6fb2_41fc_94d1_a1b3df5cadea
