@@ -11,7 +11,7 @@ link_directories(${ITK_LIBRARY_DIRS})
 # Build "parse" Python module
 add_definitions(-DHAVE_CONFIG_H)
 swig_python_module(dataset_io 
-    dataset_io.i dataset_io.cpp DataSetBridge.cpp DCMTKToPython.cpp)
+    dataset_io.i dataset_io.cpp DataSetBridge.cpp DCMTKToPython.cpp PythonToDCMTK.cpp)
 swig_link_libraries(dataset_io "itkgdcm" ${DCMTK_LIBRARIES})
 install_swig_python_module(dataset_io)
 
