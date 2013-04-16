@@ -12,6 +12,10 @@
 #include <stdexcept>
 #include <string>
 
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/dcmdata/dctk.h>
+#include <dcmtk/ofstd/ofcond.h>
+
 #include <gdcmBinEntry.h>
 #include <gdcmDocEntry.h>
 #include <gdcmDocument.h>
@@ -19,33 +23,22 @@
 #include <Python.h>
 
 #include "DataSetBridge.h"
+#include "DCMTKToPython.h"
 
 PyObject* read(std::string const & filename)
 {
-    gdcm::Document document;
-    document.SetFileName(filename);
-    document.Load();
-
-    if(!document.IsReadable())
+    OFCondition condition;
+    
+    DcmFileFormat reader;
+    condition = reader.loadFile(filename.c_str());
+    if(condition.bad())
     {
         PyErr_SetString(PyExc_Exception, ("Cannot parse "+filename).c_str());
         return NULL;
     }
-
-    // Load /all/ binary entries
-    gdcm::DocEntry* entry = document.GetFirstEntry();
-    while(entry != NULL)
-    {
-        gdcm::BinEntry* bin_entry = dynamic_cast<gdcm::BinEntry*>(entry);
-        if(bin_entry != NULL)
-        {
-            document.LoadEntryBinArea(bin_entry);
-        }
-        entry = document.GetNextEntry();
-    }
-
-    DataSetBridge data_set_bridge(&document);
-    return data_set_bridge.to_python();
+    
+    DCMTKToPython converter;
+    return converter(reader.getDataset());
 }
 
 unsigned int ComputeGroup0002Length(gdcm::DocEntrySet & document)
