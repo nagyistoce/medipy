@@ -9,6 +9,21 @@
 #include <dcmtk/dcmdata/dctk.h>
 
 template<typename TValue>
+PyObject *
+DCMTKToPython
+::_to_python_number(TValue const & value, DcmEVR const & valid_vr) const
+{
+    if(valid_vr == EVR_FD || valid_vr == EVR_FL)
+    {
+        return PyFloat_FromDouble(value);
+    }
+    else
+    {
+        return PyInt_FromLong(value);
+    }
+}
+
+template<typename TValue>
 PyObject * 
 DCMTKToPython
 ::_to_python_number(DcmElement * element, 
@@ -16,7 +31,7 @@ DCMTKToPython
 {
     PyObject * python_value = NULL;
     
-    DcmEVR const vr(element->getVR());
+    DcmEVR const vr(DcmVR(element->getVR()).getValidEVR());
     
     unsigned long count = element->getVM();
     if(count > 1)
@@ -27,14 +42,7 @@ DCMTKToPython
             TValue value;
             (element->*getter)(value, i);
             
-            if(vr == EVR_FD || vr == EVR_FL)
-            {
-                PyList_SetItem(python_value, i, PyFloat_FromDouble(value));
-            }
-            else
-            {
-                PyList_SetItem(python_value, i, PyInt_FromLong(value));
-            }
+            PyList_SetItem(python_value, i, this->_to_python_number<TValue>(value, vr));
         }
     }
     else
@@ -42,14 +50,7 @@ DCMTKToPython
         TValue value;
         (element->*getter)(value, 0);
         
-        if(vr == EVR_FD || vr == EVR_FL)
-        {
-            python_value = PyFloat_FromDouble(value);
-        }
-        else
-        {
-            python_value = PyInt_FromLong(value);
-        }
+        python_value = this->_to_python_number<TValue>(value, vr);
     }
     
     return python_value;

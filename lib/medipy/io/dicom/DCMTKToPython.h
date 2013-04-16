@@ -12,6 +12,7 @@
 #include <Python.h>
 
 #include <map>
+#include <string>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
@@ -27,18 +28,30 @@ public :
     ~DCMTKToPython();
     DCMTKToPython & operator=(DCMTKToPython const & other);
     
+    /// @brief Return the Specific Character Set.
+    std::string const & get_specific_character_set() const;
+    
+    /// @brief Set the Specific Character Set.
+    void set_specific_character_set(std::string const & charset);
+    
+    /// @brief Convert the DCMTK dataset to a MediPy DataSet.
     PyObject * operator()(DcmObject * dataset);
 
 private :
-    template<typename TValue>
-    struct ElementValueGetter
-    {
-        typedef OFCondition (DcmElement::*Type)(TValue &, unsigned long);
-    };
-    
+    /// @brief Map from DCMTK VR to MediPy VR class.
     std::map<DcmEVR, PyObject *> _medipy_io_dicom_vr;
+    
+    /// @brief MediPy DataSet class.
     PyObject * _medipy_io_dicom_DataSet;
+    
+    /// @brief MediPy Tag class.
     PyObject * _medipy_io_dicom_Tag;
+    
+    /// @brief Specific Character Set.
+    std::string _specific_character_set;
+    
+    /// @brief Python encoding equivalent to the Specific Character Set.
+    std::string _python_encoding;
     
     /// @brief Convert data from a DICOM element to Python.
     template<DcmEVR VVR>
@@ -50,6 +63,9 @@ private :
      * This is used for AE, AS, CS, DA, DT, LO, LT, PN, SH, ST, TM, UI, UT
      */
     PyObject * _to_python_text(DcmByteString * element, bool use_utf8) const;
+    
+    /// @brief Convert data from a text DICOM element to Python.
+    PyObject * _to_python_text(OFString const & value, DcmEVR const & vr, bool use_utf8) const;
     
     /**
      * @brief Convert data from a binary DICOM element to Python.
@@ -67,8 +83,13 @@ private :
     PyObject * _to_python_number(DcmElement * element, 
                                  OFCondition (DcmElement::*getter)(TValue &, unsigned long)) const;
     
+    /// @brief Convert data from a numeric DICOM element to Python.
+    template<typename TValue>
+    PyObject * _to_python_number(TValue const & value, DcmEVR const & valid_vr) const;
+    
     /**
-     * @brief 
+     * @brief Add the DCMTK element to the Python DataSet.
+     * 
      * Since _to_bson is specialized and instantiated in _add_element,
      * this function must be declared after the the specializations.
      */

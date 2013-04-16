@@ -10,11 +10,169 @@
 
 #include <Python.h>
 
+#include <map>
 #include <stdexcept>
 #include <string>
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
+
+DCMTKToPython
+::DCMTKToPython()
+: _medipy_io_dicom_vr(), _medipy_io_dicom_DataSet(NULL), _medipy_io_dicom_Tag(NULL)
+{
+    PyObject* modules = PyImport_GetModuleDict(); // Borrowed reference
+    PyObject* medipy = PyMapping_GetItemString(modules, const_cast<char*>("medipy")); // New reference
+    PyObject* medipy_io = PyObject_GetAttrString(medipy, "io"); // New reference
+    PyObject* medipy_io_dicom = PyObject_GetAttrString(medipy_io, "dicom"); // New reference
+    
+    this->_medipy_io_dicom_DataSet = PyObject_GetAttrString(medipy_io_dicom, "DataSet"); // New reference
+    this->_medipy_io_dicom_Tag = PyObject_GetAttrString(medipy_io_dicom, "Tag"); // New reference
+    
+    // New references
+    this->_medipy_io_dicom_vr[EVR_AE] = PyObject_GetAttrString(medipy_io_dicom, "AE");
+    this->_medipy_io_dicom_vr[EVR_AS] = PyObject_GetAttrString(medipy_io_dicom, "AS");
+    this->_medipy_io_dicom_vr[EVR_AT] = PyObject_GetAttrString(medipy_io_dicom, "AT");
+    this->_medipy_io_dicom_vr[EVR_CS] = PyObject_GetAttrString(medipy_io_dicom, "CS");
+    this->_medipy_io_dicom_vr[EVR_DA] = PyObject_GetAttrString(medipy_io_dicom, "DA");
+    this->_medipy_io_dicom_vr[EVR_DS] = PyObject_GetAttrString(medipy_io_dicom, "DS");
+    this->_medipy_io_dicom_vr[EVR_DT] = PyObject_GetAttrString(medipy_io_dicom, "DT");
+    this->_medipy_io_dicom_vr[EVR_FD] = PyObject_GetAttrString(medipy_io_dicom, "FD");
+    this->_medipy_io_dicom_vr[EVR_FL] = PyObject_GetAttrString(medipy_io_dicom, "FL");
+    this->_medipy_io_dicom_vr[EVR_IS] = PyObject_GetAttrString(medipy_io_dicom, "IS");
+    this->_medipy_io_dicom_vr[EVR_LO] = PyObject_GetAttrString(medipy_io_dicom, "LO");
+    this->_medipy_io_dicom_vr[EVR_LT] = PyObject_GetAttrString(medipy_io_dicom, "LT");
+    this->_medipy_io_dicom_vr[EVR_OB] = PyObject_GetAttrString(medipy_io_dicom, "OB");
+    this->_medipy_io_dicom_vr[EVR_OF] = PyObject_GetAttrString(medipy_io_dicom, "OF");
+    this->_medipy_io_dicom_vr[EVR_OW] = PyObject_GetAttrString(medipy_io_dicom, "OW");
+    this->_medipy_io_dicom_vr[EVR_PN] = PyObject_GetAttrString(medipy_io_dicom, "PN");
+    this->_medipy_io_dicom_vr[EVR_SH] = PyObject_GetAttrString(medipy_io_dicom, "SH");
+    this->_medipy_io_dicom_vr[EVR_SQ] = PyObject_GetAttrString(medipy_io_dicom, "SQ");
+    this->_medipy_io_dicom_vr[EVR_SL] = PyObject_GetAttrString(medipy_io_dicom, "SL");
+    this->_medipy_io_dicom_vr[EVR_SS] = PyObject_GetAttrString(medipy_io_dicom, "SS");
+    this->_medipy_io_dicom_vr[EVR_ST] = PyObject_GetAttrString(medipy_io_dicom, "ST");
+    this->_medipy_io_dicom_vr[EVR_TM] = PyObject_GetAttrString(medipy_io_dicom, "TM");
+    this->_medipy_io_dicom_vr[EVR_UI] = PyObject_GetAttrString(medipy_io_dicom, "UI");
+    this->_medipy_io_dicom_vr[EVR_UL] = PyObject_GetAttrString(medipy_io_dicom, "UL");
+    this->_medipy_io_dicom_vr[EVR_UN] = PyObject_GetAttrString(medipy_io_dicom, "UN");
+    this->_medipy_io_dicom_vr[EVR_US] = PyObject_GetAttrString(medipy_io_dicom, "US");
+    this->_medipy_io_dicom_vr[EVR_UT] = PyObject_GetAttrString(medipy_io_dicom, "UT");
+    
+    Py_DECREF(medipy_io_dicom);
+    Py_DECREF(medipy_io);
+    Py_DECREF(medipy);
+}
+
+DCMTKToPython
+::DCMTKToPython(DCMTKToPython const & other)
+: _medipy_io_dicom_vr(other._medipy_io_dicom_vr), 
+  _medipy_io_dicom_DataSet(other._medipy_io_dicom_DataSet), 
+  _medipy_io_dicom_Tag(other._medipy_io_dicom_Tag)
+{
+    for(std::map<DcmEVR, PyObject *>::iterator it=this->_medipy_io_dicom_vr.begin();
+        it!=this->_medipy_io_dicom_vr.end(); ++it)
+    {
+        Py_XINCREF(it->second);
+    }
+    Py_XINCREF(this->_medipy_io_dicom_DataSet);
+    Py_XINCREF(this->_medipy_io_dicom_Tag);
+    
+    this->set_specific_character_set(other.get_specific_character_set());
+}
+
+DCMTKToPython
+::~DCMTKToPython()
+{
+    for(std::map<DcmEVR, PyObject *>::iterator it=this->_medipy_io_dicom_vr.begin();
+        it!=this->_medipy_io_dicom_vr.end(); ++it)
+    {
+        Py_XDECREF(it->second);
+    }
+    Py_XDECREF(this->_medipy_io_dicom_DataSet);
+    Py_XDECREF(this->_medipy_io_dicom_Tag);
+}
+
+DCMTKToPython &
+DCMTKToPython
+::operator=(DCMTKToPython const & other)
+{
+    if(this != &other)
+    {
+        for(std::map<DcmEVR, PyObject *>::iterator it=this->_medipy_io_dicom_vr.begin();
+            it!=this->_medipy_io_dicom_vr.end(); ++it)
+        {
+            Py_XDECREF(it->second);
+        }
+        Py_XDECREF(this->_medipy_io_dicom_DataSet);
+        Py_XDECREF(this->_medipy_io_dicom_Tag);
+        
+        this->_medipy_io_dicom_vr = other._medipy_io_dicom_vr;
+        this->_medipy_io_dicom_DataSet = other._medipy_io_dicom_DataSet;
+        this->_medipy_io_dicom_Tag = other._medipy_io_dicom_Tag;
+        
+        for(std::map<DcmEVR, PyObject *>::iterator it=this->_medipy_io_dicom_vr.begin();
+            it!=this->_medipy_io_dicom_vr.end(); ++it)
+        {
+            Py_XDECREF(it->second);
+        }
+        Py_XINCREF(this->_medipy_io_dicom_DataSet);
+        Py_XINCREF(this->_medipy_io_dicom_Tag);
+        
+        this->set_specific_character_set(other.get_specific_character_set());
+    }
+    return *this;
+}
+
+std::string const &
+DCMTKToPython
+::get_specific_character_set() const
+{
+    return this->_specific_character_set;
+}
+
+void
+DCMTKToPython
+::set_specific_character_set(std::string const & charset)
+{
+    if(charset != this->get_specific_character_set())
+    {
+        if(charset == "") this->_python_encoding = "ascii";
+        else if(charset == "ISO_IR 100") this->_python_encoding = "latin_1";
+        else if(charset == "ISO_IR 101") this->_python_encoding = "iso8859_2";
+        else if(charset == "ISO_IR 109") this->_python_encoding = "iso8859_3";
+        else if(charset == "ISO_IR 110") this->_python_encoding = "iso8859_4";
+        else if(charset == "ISO_IR 144") this->_python_encoding = "iso8859_5";
+        else if(charset == "ISO_IR 127") this->_python_encoding = "iso8859_6";
+        else if(charset == "ISO_IR 126") this->_python_encoding = "iso8859_7";
+        else if(charset == "ISO_IR 138") this->_python_encoding = "iso8859_8";
+        else if(charset == "ISO_IR 148") this->_python_encoding = "iso8859_9";
+        else if(charset == "ISO_IR 13") this->_python_encoding = "iso2022_jp";
+        // CP874 seems to be a superset of TIS-620/ISO-IR-166 (e.g. presence of 
+        // the euro sign in the CP874 at an unassigned place of TIS-620), but we
+        // should get away with it.
+        else if(charset == "ISO_IR 166") this->_python_encoding = "cp874";
+        // Single-byte character sets with code extensions (Table C.12-3)
+        // ISO 2022 IR 6
+        // ISO 2022 IR 100
+        // ISO 2022 IR 101
+        // ISO 2022 IR 109
+        // ISO 2022 IR 110
+        // ISO 2022 IR 144
+        // ISO 2022 IR 127
+        // ISO 2022 IR 126
+        // ISO 2022 IR 138
+        // ISO 2022 IR 148
+        // ISO 2022 IR 113
+        // ISO 2022 IR 166
+        // Multi-byte character sets without code extensions (Table C.12-4)
+        // ISO 2022 IR 87 // Kanji
+        // ISO 2022 IR 159 // Supplementary Kanji
+        // ISO 2022 IR 149 // Hangul, Hanja
+        // Multi-byte character sets without code extensions (Table C.12-5)
+        else if(charset == "ISO_IR 192") this->_python_encoding = "utf_8";
+        else if(charset == "GB18030") this->_python_encoding = "gb18030";
+    }
+}
 
 PyObject *
 DCMTKToPython
@@ -30,6 +188,10 @@ DCMTKToPython
         if(it->getTag() == DCM_SpecificCharacterSet)
         {
             // Specific Character Set: setup internal iconv converter
+            DcmCodeString * specific_character_set = dynamic_cast<DcmCodeString*>(it);
+            char* value;
+            specific_character_set->getString(value);
+            this->set_specific_character_set(value);
         }
         
         if(it->getETag() == 0)
@@ -317,11 +479,98 @@ DCMTKToPython
  * End of specializations of DCMTKToPython::_to_python for the different VRs.
  ******************************************************************************/
 
+#define TRY_DECODE(begin, size, encoding, python_value) \
+    if(python_value==NULL) \
+    { \
+        /* Avoid propagating the error. */ \
+        PyErr_Clear(); \
+        python_value = PyUnicode_Decode(begin, size, encoding, "strict"); \
+    }
+
+PyObject *
+DCMTKToPython
+::_to_python_text(OFString const & value, DcmEVR const & vr, bool use_utf8) const
+{
+    // Explicit size is necessary due to the presence of NUL.
+    // NUL is used to pad UI
+    static OFString const whitespace(" \0", 2);
+    
+    PyObject * python_value = NULL;
+    
+    std::string::size_type first=0;
+    std::string::size_type size=0;
+
+    std::string::size_type const last = value.find_last_not_of(whitespace);
+    
+    if(last != std::string::npos)
+    {
+        if(vr != "LT" && vr != "ST" && vr != "UT")
+        {
+            // Leading spaces are significant for LT, ST, and UT
+            first = value.find_first_not_of(whitespace);
+            if(first == std::string::npos)
+            {
+                first = 0;
+            }
+        }
+        size = (last-first)+1;
+    }
+    
+    char const * begin = value.c_str()+first;
+    
+    if(use_utf8)
+    {
+        TRY_DECODE(begin, size, this->_python_encoding.c_str(), python_value);
+        TRY_DECODE(begin, size, "ascii", python_value);
+        TRY_DECODE(begin, size, "latin_1", python_value);
+        TRY_DECODE(begin, size, "iso8859_2", python_value);
+        TRY_DECODE(begin, size, "iso8859_3", python_value);
+        TRY_DECODE(begin, size, "iso8859_4", python_value);
+        TRY_DECODE(begin, size, "iso8859_5", python_value);
+        TRY_DECODE(begin, size, "iso8859_6", python_value);
+        TRY_DECODE(begin, size, "iso8859_7", python_value);
+        TRY_DECODE(begin, size, "iso8859_8", python_value);
+        TRY_DECODE(begin, size, "iso8859_9", python_value);
+        TRY_DECODE(begin, size, "iso2022_jp", python_value);
+        TRY_DECODE(begin, size, "utf_8", python_value);
+        TRY_DECODE(begin, size, "gb18030", python_value);
+    }
+    else
+    {
+        python_value = PyString_FromStringAndSize(begin, size);
+    }
+    
+    return python_value;
+}
+
+#undef TRY_DECODE
+
 PyObject *
 DCMTKToPython
 ::_to_python_text(DcmByteString * element, bool use_utf8) const
 {
+    DcmEVR const vr = element->getVR();
+    
     PyObject * python_value = NULL;
+    
+    unsigned long count = element->getVM();
+    
+    if(count>1)
+    {
+        python_value = PyList_New(count);
+        for(unsigned long i=0; i<count; ++i)
+        {
+            OFString value;
+            element->getOFString(value, i);
+            PyList_SetItem(python_value, i, this->_to_python_text(value, vr, use_utf8));
+        }
+    }
+    else
+    {
+        OFString value;
+        element->getOFString(value, 0);
+        python_value = this->_to_python_text(value, vr, use_utf8);
+    }
     
     return python_value;
 }
@@ -365,7 +614,7 @@ void
 DCMTKToPython
 ::_add_element(DcmObject * element, PyObject * python_dataset) const
 {
-    DcmEVR const dcmtk_vr(element->getVR());
+    DcmEVR const dcmtk_vr(DcmVR(element->getVR()).getValidEVR());
     char const * const vr_name = DcmVR(dcmtk_vr).getValidVRName();
 
     PyObject * python_value = NULL;
@@ -378,7 +627,7 @@ DCMTKToPython
         DcmObject * sequence_it = NULL;
         while(NULL != (sequence_it = sequence->nextInContainer(sequence_it)))
         {
-            DCMTKToPython converter;
+            DCMTKToPython converter(*this);
             PyObject * item_value = converter(sequence_it);
             PyList_Append(python_value, item_value);
         }
@@ -394,16 +643,11 @@ DCMTKToPython
         if(dcmtk_vr == EVR_AT) { python_value = this->_to_python<EVR_AT>(element); }
         if(dcmtk_vr == EVR_CS) { python_value = this->_to_python<EVR_CS>(element); }
         if(dcmtk_vr == EVR_DA) { python_value = this->_to_python<EVR_DA>(element); }
-        if(dcmtk_vr == EVR_DT) { python_value = this->_to_python<EVR_DT>(element); }
         if(dcmtk_vr == EVR_DS) { python_value = this->_to_python<EVR_DS>(element); }
+        if(dcmtk_vr == EVR_DT) { python_value = this->_to_python<EVR_DT>(element); }
         if(dcmtk_vr == EVR_FD) { python_value = this->_to_python<EVR_FD>(element); }
         if(dcmtk_vr == EVR_FL) { python_value = this->_to_python<EVR_FL>(element); }
         if(dcmtk_vr == EVR_IS) { python_value = this->_to_python<EVR_IS>(element); }
-        if(dcmtk_vr == EVR_LO) { python_value = this->_to_python<EVR_LO>(element); }
-        if(dcmtk_vr == EVR_LT) { python_value = this->_to_python<EVR_LT>(element); }
-        if(dcmtk_vr == EVR_OB) { python_value = this->_to_python<EVR_OB>(element); }
-        if(dcmtk_vr == EVR_OF) { python_value = this->_to_python<EVR_OF>(element); }
-        if(dcmtk_vr == EVR_OW) { python_value = this->_to_python<EVR_OW>(element); }
         if(dcmtk_vr == EVR_LO) { python_value = this->_to_python<EVR_LO>(element); }
         if(dcmtk_vr == EVR_LT) { python_value = this->_to_python<EVR_LT>(element); }
         if(dcmtk_vr == EVR_OB) { python_value = this->_to_python<EVR_OB>(element); }
@@ -425,7 +669,7 @@ DCMTKToPython
     
     if(python_value == NULL)
     {
-        throw std::runtime_error(std::string("Unhandled VR:") + vr_name);
+        throw std::runtime_error(std::string("Unhandled VR: ") + DcmVR(dcmtk_vr).getVRName());
     }
 
     // Build the tag
