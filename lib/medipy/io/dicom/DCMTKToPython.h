@@ -53,6 +53,9 @@ private :
     /// @brief Python encoding equivalent to the Specific Character Set.
     std::string _python_encoding;
     
+    /// @brief Add the DCMTK element to the Python DataSet.
+    void _add_element(DcmObject * element, PyObject * python_dataset) const;
+    
     /// @brief Convert data from a DICOM element to Python.
     template<DcmEVR VVR>
     PyObject * _to_python(DcmObject * element) const;
@@ -60,7 +63,7 @@ private :
     /**
      * @brief Convert data from a text DICOM element to Python.
      *
-     * This is used for AE, AS, CS, DA, DT, LO, LT, PN, SH, ST, TM, UI, UT
+     * This is used for AE, AS, CS, DA, DT, LO, LT, PN, SH, ST, TM, UI and UT.
      */
     PyObject * _to_python_text(DcmByteString * element, bool use_utf8) const;
     
@@ -70,14 +73,14 @@ private :
     /**
      * @brief Convert data from a binary DICOM element to Python.
      *
-     * This is used for OB, OF, OW, UN
+     * This is used for OB, OF, OW and UN.
      */
     PyObject * _to_python_binary(DcmElement * element) const;
 
     /**
      * @brief Convert data from a numeric DICOM element to Python.
      *
-     * This is used for FD, FL, SL, SS, UL, US
+     * This is used for FD, FL, SL, SS, UL and US.
      */
     template<typename TValue>
     PyObject * _to_python_number(DcmElement * element, 
@@ -86,14 +89,6 @@ private :
     /// @brief Convert data from a numeric DICOM element to Python.
     template<typename TValue>
     PyObject * _to_python_number(TValue const & value, DcmEVR const & valid_vr) const;
-    
-    /**
-     * @brief Add the DCMTK element to the Python DataSet.
-     * 
-     * Since _to_bson is specialized and instantiated in _add_element,
-     * this function must be declared after the the specializations.
-     */
-    void _add_element(DcmObject * element, PyObject * python_dataset) const;
 };
 
 #include "DCMTKToPython.txx"
