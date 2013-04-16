@@ -138,6 +138,8 @@ DCMTKToPython
 {
     if(charset != this->get_specific_character_set())
     {
+        this->_specific_character_set = charset;
+        
         if(charset == "") this->_python_encoding = "ascii";
         else if(charset == "ISO_IR 100") this->_python_encoding = "latin_1";
         else if(charset == "ISO_IR 101") this->_python_encoding = "iso8859_2";
