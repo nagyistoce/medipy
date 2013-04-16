@@ -19,7 +19,8 @@
 
 DCMTKToPython
 ::DCMTKToPython()
-: _medipy_io_dicom_vr(), _medipy_io_dicom_DataSet(NULL), _medipy_io_dicom_Tag(NULL)
+: _medipy_io_dicom_vr(), _medipy_io_dicom_DataSet(NULL), 
+  _medipy_io_dicom_Tag(NULL), _specific_character_set(""), _python_encoding("")
 {
     PyObject* modules = PyImport_GetModuleDict(); // Borrowed reference
     PyObject* medipy = PyMapping_GetItemString(modules, const_cast<char*>("medipy")); // New reference
@@ -67,7 +68,8 @@ DCMTKToPython
 ::DCMTKToPython(DCMTKToPython const & other)
 : _medipy_io_dicom_vr(other._medipy_io_dicom_vr), 
   _medipy_io_dicom_DataSet(other._medipy_io_dicom_DataSet), 
-  _medipy_io_dicom_Tag(other._medipy_io_dicom_Tag)
+  _medipy_io_dicom_Tag(other._medipy_io_dicom_Tag),
+  _specific_character_set(""), _python_encoding("")
 {
     for(std::map<DcmEVR, PyObject *>::iterator it=this->_medipy_io_dicom_vr.begin();
         it!=this->_medipy_io_dicom_vr.end(); ++it)
