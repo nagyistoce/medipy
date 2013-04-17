@@ -6,17 +6,17 @@
  * for details.
  ************************************************************************/
 
-/*******************************************************************************/	
-/*!	   \file:		distance_3d.c
+/*******************************************************************************/   
+/*!    \file:       distance_3d.c
 ***
-***		project:	Imagix 2.01
-***			
+***     project:    Imagix 2.01
+***         
 ***
-***		\brief description:    Calcul de la distance interimage
-***	
-***	
-***	Copyright (c) 1993, ULP-IPB Strasbourg.
-***	All rights are reserved.
+***     \brief description:    Calcul de la distance interimage
+*** 
+*** 
+*** Copyright (c) 1993, ULP-IPB Strasbourg.
+*** All rights are reserved.
 ***
 ***
 ********************************************************************************/
@@ -35,10 +35,10 @@
 #include "noyau/mani_3d.h"
 #include "recalage/erreur_recalage.h"
 
-#define	NB_CLASSES_WOODS_3D 250
-//#define	NB_CLASSES_IM_3D 250
-#define	NB_CLASSES_IM_3D 256
-#define	NB_CLASSES_CR_3D 251
+#define NB_CLASSES_WOODS_3D 250
+//#define   NB_CLASSES_IM_3D 250
+#define NB_CLASSES_IM_3D 256
+#define NB_CLASSES_CR_3D 251
 #define EPS 1e-6
 
 /*******************************************************************************
@@ -49,10 +49,10 @@
 /*! \ingroup     DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_quad_3d(im1,im2)                                        
-*/  																  
+*/                                                                    
 /*!    erreur quadratique moyenne entre deux images
-		\param im1, im2 : les 2 images 
-		\retval l'erreur quadratic
+        \param im1, im2 : les 2 images 
+        \retval l'erreur quadratic
 *******************************************************************************/
 double erreur_quad_3d(ptr_distance_param dist_param)
 {
@@ -93,11 +93,11 @@ end_func:
 /*! \ingroup     DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_quad_robust_geman_3d(im1,im2)                                        
-*/  																  
+*/                                                                    
 /*!    erreur quadratique moyenne robuste entre deux images.
 **    Utilisation estimateur robuste Geman Mc Clure
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur quadratic
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur quadratic
 *******************************************************************************/
 double erreur_quad_robust_geman_3d(ptr_distance_param dist_param)
  {
@@ -240,10 +240,10 @@ end_func:
 /*! \ingroup DistanceFonction @{ */
 /*******************************************************************************
 **     erreur_woods_3d(im1,im2)                                         
-*/  																  
-/*!    erreur de woods entre deux images 	   
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur de woods
+*/                                                                    
+/*!    erreur de woods entre deux images       
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur de woods
 *******************************************************************************/
 double erreur_woods_3d(ptr_distance_param dist_param)
 {
@@ -330,10 +330,10 @@ end_func:
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_woods_robust_3d(im1,im2)                                         
-*/  																  
-/*!    erreur de woods robuste entre deux images (cf. article de C. Nikou)	   
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur de woods
+*/                                                                    
+/*!    erreur de woods robuste entre deux images (cf. article de C. Nikou)     
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur de woods
 *******************************************************************************/
 double erreur_woods_robust_3d(ptr_distance_param dist_param)
 {
@@ -443,10 +443,10 @@ end_func:
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_IM_3d(im1,im2)                                         
-*/  																  
-/*!    erreur information mutuelle  	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur d'information mut.
+*/                                                                    
+/*!    erreur information mutuelle        
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IM_3d(ptr_distance_param dist_param)
 {
@@ -550,10 +550,10 @@ end_func:
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_entropie_conjointe_simple_3d(im1,im2)                                         
-*/  																  
-/*!    erreur entropie conjointe par sommation de voxels 	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur d'entropie conjointe.
+*/                                                                    
+/*!    erreur entropie conjointe par sommation de voxels      
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur d'entropie conjointe.
 *******************************************************************************/
 double erreur_entropie_conjointe_simple_3d(ptr_distance_param dist_param)
 {
@@ -569,10 +569,10 @@ double erreur_entropie_conjointe_simple_3d(ptr_distance_param dist_param)
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_IM_simple_3d(im1,im2)                                         
-*/  																  
-/*!    erreur information mutuelle la plus simple a calculer 	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur d'information mut.
+*/                                                                    
+/*!    erreur information mutuelle la plus simple a calculer      
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IM_simple_3d(ptr_distance_param dist_param)
 {
@@ -588,10 +588,10 @@ double erreur_IM_simple_3d(ptr_distance_param dist_param)
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_IM_Normalisee_Studholme_simple_3d(im1,im2)                                         
-*/  																  
-/*!    erreur information mutuelle la plus simple a calculer 	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur d'information mut.
+*/                                                                    
+/*!    erreur information mutuelle la plus simple a calculer      
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IM_Normalisee_Studholme_simple_3d(ptr_distance_param dist_param)
 {
@@ -607,10 +607,10 @@ double erreur_IM_Normalisee_Studholme_simple_3d(ptr_distance_param dist_param)
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_IM_Normalisee_Maes1_simple_3d(im1,im2)                                         
-*/  																  
-/*!    erreur information mutuelle la plus simple a calculer 	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur d'information mut.
+*/                                                                    
+/*!    erreur information mutuelle la plus simple a calculer      
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IM_Normalisee_Maes1_simple_3d(ptr_distance_param dist_param)
 {
@@ -626,10 +626,10 @@ double erreur_IM_Normalisee_Maes1_simple_3d(ptr_distance_param dist_param)
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_IM_Normalisee_Maes2_simple_3d(im1,im2)                                         
-*/  																  
-/*!    erreur information mutuelle la plus simple a calculer 	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur d'information mut.
+*/                                                                    
+/*!    erreur information mutuelle la plus simple a calculer      
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IM_Normalisee_Maes2_simple_3d(ptr_distance_param dist_param)
 {
@@ -646,10 +646,10 @@ double erreur_IM_Normalisee_Maes2_simple_3d(ptr_distance_param dist_param)
 /*! \ingroup DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_CR_3d(im1,im2)                                         
-*/  																  
-/*!    erreur rapport de correlation de Ayache  	  
-		\param im1, im2 : les 2 images 
-		\retval double : l'erreur dde rapport de correlation
+*/                                                                    
+/*!    erreur rapport de correlation de Ayache        
+        \param im1, im2 : les 2 images 
+        \retval double : l'erreur dde rapport de correlation
 *******************************************************************************/
 double erreur_CR_3d(ptr_distance_param dist_param)
 {
@@ -710,16 +710,16 @@ double erreur_CR_3d(ptr_distance_param dist_param)
     if (im2MRI[i][j][k]<=0) cl2=0;
     else cl2=MINI((nbcl*im2MRI[i][j][k])/max+1, nbcl);
 
-	  //on ne fait le calcul que sur la zone de recouvrement des 2 images
-	  if ((cl1>EPS)&&(cl2>0))
-	  {
-	   nbVoxelsCommuns+=1.0;
-	   moyenneTot += cl1;
-	   varianceTot += (cl1*cl1);
-	   nbVoxelsParClasse[cl2] += 1.0;
-	   moyennesParClasse[cl2] += cl1;
-	   variancesParClasse[cl2] += (cl1*cl1);
-	  }
+      //on ne fait le calcul que sur la zone de recouvrement des 2 images
+      if ((cl1>EPS)&&(cl2>0))
+      {
+       nbVoxelsCommuns+=1.0;
+       moyenneTot += cl1;
+       varianceTot += (cl1*cl1);
+       nbVoxelsParClasse[cl2] += 1.0;
+       moyennesParClasse[cl2] += cl1;
+       variancesParClasse[cl2] += (cl1*cl1);
+      }
 
    }
 
@@ -771,8 +771,8 @@ end_func:
 **     erreur_Woods_vraie_3d(im1,im2,champ,donnees_VP)
 */
 /*!    l'erreur critere de Woods, la vraie... 
-		\param im1, im2 : les 2 images
-		\retval double : l'erreur dde rapport de correlation
+        \param im1, im2 : les 2 images
+        \retval double : l'erreur dde rapport de correlation
 *******************************************************************************/
 double erreur_Woods_vraie_3d(ptr_distance_param dist_param)
 {
@@ -886,8 +886,8 @@ end_func:
 **     erreur_woods_robust2_3d(im1,im2,champ,donnees_VP,points_calcules,weights)
 */
 /*!    le critere de Woods modifiee par estimation robuste
-		\param im1, im2 : les 2 images
-		\retval double : l'erreur 
+        \param im1, im2 : les 2 images
+        \retval double : l'erreur 
 *******************************************************************************/
 double erreur_woods_robust2_3d(ptr_distance_param dist_param)
 {
@@ -1086,8 +1086,8 @@ end_func:
 **     erreur_quad_robust2_3d(im1,im2,champ,donnees_VP,points_calcules,weights)
 */
 /*!    l'erreur quadratique ponderee pour estimation robuste
-		\param im1, im2 : les 2 images
-		\retval double : l'erreur
+        \param im1, im2 : les 2 images
+        \retval double : l'erreur
 *******************************************************************************/
 double erreur_quad_robust2_3d(ptr_distance_param dist_param)
 {
@@ -1161,8 +1161,8 @@ end_func:
 **     erreur_CR_robust_3d(im1,im2,champ,donnees_VP,points_calcules,weights)
 */
 /*!    le critere de Woods modifiee par estimation robuste
-		\param im1, im2 : les 2 images
-		\retval double : l'erreur
+        \param im1, im2 : les 2 images
+        \retval double : l'erreur
 *******************************************************************************/
 double erreur_CR_robust_3d(ptr_distance_param dist_param)
 {
@@ -1362,10 +1362,10 @@ end_func:
 **     erreur_entropie_conjointe_VP_3d(Imreca, Imref, champ, donnees_VP)
 */
 /*!    erreur entropie conjointe volume partiel
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_entropie_conjointe_VP_3d(ptr_distance_param dist_param)
 {
@@ -1383,10 +1383,10 @@ double erreur_entropie_conjointe_VP_3d(ptr_distance_param dist_param)
 **     erreur_IM_VP_3d(Imreca, Imref, champ, donnees_VP)
 */
 /*!    erreur information mutuelle volume partiel
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IM_VP_3d(ptr_distance_param dist_param)
 {
@@ -1404,10 +1404,10 @@ double erreur_IM_VP_3d(ptr_distance_param dist_param)
 **     erreur_IMNS_VP_3d(Imreca, Imref, champ, donnees_VP)
 */
 /*!    erreur information mutuelle normalisee de studholme volume partiel
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IMNS_VP_3d(ptr_distance_param dist_param)
 {
@@ -1425,10 +1425,10 @@ double erreur_IMNS_VP_3d(ptr_distance_param dist_param)
 **     erreur_IMNM1_VP_3d(Imreca, Imref, champ, donnees_VP)
 */
 /*!    erreur information mutuelle normalisee de Maes 1 volume partiel
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IMNM1_VP_3d(ptr_distance_param dist_param)
 {
@@ -1446,10 +1446,10 @@ double erreur_IMNM1_VP_3d(ptr_distance_param dist_param)
 **     erreur_IMNM2_VP_3d(Imreca, Imref, champ, donnees_VP)
 */
 /*!    erreur information mutuelle normalisee de Maes 2 volume partiel
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double erreur_IMNM2_VP_3d(ptr_distance_param dist_param)
 {
@@ -1606,10 +1606,10 @@ end_func:
 */
 /*!    calcul de la distance se basant sur l'information mutuelle simple
     \param im_type: le type de distance utilisee
-		\param im1, im2 : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param im1, im2 : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double calcul_info_mutuelle_3d(IM3DTYPE im_type, ptr_distance_param dist_param)
 {
@@ -1682,10 +1682,10 @@ end_func:
 */
 /*!    calcul de la distance se basant sur l'information calculee avec le volume partiel
     \param im_type: le type de distance utilisee
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 //double calcul_info_mutuelle_VP_3d(IM3DTYPE im_type, grphic3d *Imreca, grphic3d *Imref, field3d *champ, VP_histos * donnees_VP, ERREUR_RECALAGE *err)
 double calcul_info_mutuelle_VP_3d(IM3DTYPE im_type, ptr_distance_param dist_param)
@@ -1751,8 +1751,8 @@ end_func:
 /*!    calcul de l'information mutuelle telle que proposee par Collignonn et al
        a partir des entropies des images et de l'entropie conjointe
     \param entropie_conjointe: l'entropie conjointe
-		\param entropie1, entropie2 : les entropies des images
-		\retval double : l'information mutuelle
+        \param entropie1, entropie2 : les entropies des images
+        \retval double : l'information mutuelle
 *******************************************************************************/
 double calcul_IM(double entropie_conjointe, double entropie1, double entropie2)
 {
@@ -1769,8 +1769,8 @@ double calcul_IM(double entropie_conjointe, double entropie1, double entropie2)
 /*!    calcul de l'information mutuelle normalisee de Studholme
        a partir des entropies des images et de l'entropie conjointe
     \param entropie_conjointe: l'entropie conjointe
-		\param entropie1, entropie2 : les entropies des images
-		\retval double : l'information mutuelle
+        \param entropie1, entropie2 : les entropies des images
+        \retval double : l'information mutuelle
 *******************************************************************************/
 double calcul_IMNS(double entropie_conjointe, double entropie1, double entropie2)
 {
@@ -1789,8 +1789,8 @@ double calcul_IMNS(double entropie_conjointe, double entropie1, double entropie2
 /*!    calcul de l'information mutuelle normalisee de Maes 1
        a partir des entropies des images et de l'entropie conjointe
     \param entropie_conjointe: l'entropie conjointe
-		\param entropie1, entropie2 : les entropies des images
-		\retval double : l'information mutuelle
+        \param entropie1, entropie2 : les entropies des images
+        \retval double : l'information mutuelle
 *******************************************************************************/
 double calcul_IMNM1(double entropie_conjointe, double entropie1, double entropie2)
 {
@@ -1809,8 +1809,8 @@ double calcul_IMNM1(double entropie_conjointe, double entropie1, double entropie
 /*!    calcul de l'information mutuelle normalisee de Maes 2
        a partir des entropies des images et de l'entropie conjointe
     \param entropie_conjointe: l'entropie conjointe
-		\param entropie1, entropie2 : les entropies des images
-		\retval double : l'information mutuelle
+        \param entropie1, entropie2 : les entropies des images
+        \retval double : l'information mutuelle
 *******************************************************************************/  
 double calcul_IMNM2(double entropie_conjointe, double entropie1, double entropie2)
 {
@@ -1826,10 +1826,10 @@ double calcul_IMNM2(double entropie_conjointe, double entropie1, double entropie
 */
 /*!   calcul de l'histogramme conjoint en comptant le nombre de 
       pixels dans chaque case et divisant par le nombre total de pixels
-	    \param Imreca, im2 : les 2 images
-		\param histo_joint : le tableau de l'histo alloue
-		\param nbcl1, nbcl2 : le nombre de classes d'histo pour chaque image
-		\param max1, max2 : les valeurs max des pixels dans chaque image
+        \param Imreca, im2 : les 2 images
+        \param histo_joint : le tableau de l'histo alloue
+        \param nbcl1, nbcl2 : le nombre de classes d'histo pour chaque image
+        \param max1, max2 : les valeurs max des pixels dans chaque image
 *******************************************************************************/
 void calcul_histo_conjoint_simple(grphic3d *im1, grphic3d *im2, double **histo_conjoint, int nbcl1, int nbcl2, int max1, int max2, ERREUR_RECALAGE *err)
 {
@@ -1911,10 +1911,10 @@ end_func:
 **    calcul_histos_marginaux(histo_conjoint,histo1,histo2,nbcl1,nbcl2)
 */
 /*!   calcul de l'histogramme d'une image
-	    \param im : l'image
-		\param histo : le tableau de l'histo alloue
-		\param nbcl : le nombre de classes d'histo pour l'image
-		\param max : la valeur max des pixels dans l'image
+        \param im : l'image
+        \param histo : le tableau de l'histo alloue
+        \param nbcl : le nombre de classes d'histo pour l'image
+        \param max : la valeur max des pixels dans l'image
 *******************************************************************************/
 void calcul_histos_marginaux(double **histo_conjoint, double *histo1, double *histo2, int nbcl1, int nbcl2, double nbVoxelsHorsOverlap)
 {
@@ -1947,10 +1947,10 @@ void calcul_histos_marginaux(double **histo_conjoint, double *histo1, double *hi
 **    calcul_entropie_conjointe(histo_conjoint,nbcl1,nbcl2)
 */
 /*!   calcul de l'entropie conjointe a partir de l'histo conjoint.
-	  On assume que l'histogramme est normalise par le nombre de pixels.
-		\param histo_joint : l'histo conjoint
-		\param nbcl1, nbcl2 : le nombre de classes d'histo pour chaque image
-		\retval double : l'entropie conjointe calculee
+      On assume que l'histogramme est normalise par le nombre de pixels.
+        \param histo_joint : l'histo conjoint
+        \param nbcl1, nbcl2 : le nombre de classes d'histo pour chaque image
+        \retval double : l'entropie conjointe calculee
 *******************************************************************************/
 double calcul_entropie_conjointe(double **histo_conjoint, int nbcl1, int nbcl2, double nbVoxelsOverlap)
 {
@@ -1976,9 +1976,9 @@ double calcul_entropie_conjointe(double **histo_conjoint, int nbcl1, int nbcl2, 
 **    calcul_entropie(histo,nbcl,nbPixels)
 */
 /*!   calcul de l'entropie a partir de l'histogramme
-		\param histo : l'histogramme
-		\param nbcl : le nombre de classe d'histo pour l'image
-		\retval double : l'entropie calculee
+        \param histo : l'histogramme
+        \param nbcl : le nombre de classe d'histo pour l'image
+        \retval double : l'entropie calculee
 *******************************************************************************/
 double calcul_entropie(double *histo, int nbcl, double nbVoxelsOverlap)
 {
@@ -2000,10 +2000,10 @@ double calcul_entropie(double *histo, int nbcl, double nbVoxelsOverlap)
 */
 /*!
 **    fonction de calcul de l'histogramme conjoint pour le volume partiel
-**	\param imreca : image a recaler
-**	\param champ : le champ
+**  \param imreca : image a recaler
+**  \param champ : le champ
 **  \param donnees_VP : structure ou mettre les donnees calculees
-**	\retval int : 1 en cas de succes, 0 dans le cas contraire
+**  \retval int : 1 en cas de succes, 0 dans le cas contraire
 *******************************************************************************/
 int calcul_histogrammes_VP(ptr_distance_param dist_param)
 {
@@ -2172,7 +2172,7 @@ end_func:
 **    mise a jour de l'histogramme conjoint en fonction des donnees relatives au pixels
 **    courants dans imref et imreca transformee
 **
-**	\param pixelRef : valeur du pixel courant dans imref
+**  \param pixelRef : valeur du pixel courant dans imref
 **  \param donnees_VP : structure ou mettre les donnees calculees
 **  \param v : tableau des valeurs des voisins du pixel courant dans imreca transformee
 **  \param w : tableau des poids affectes aux valeurs des voisins du pixel courant dans imreca transformee
@@ -2180,7 +2180,7 @@ end_func:
 **              aux voisins du pixel courant dans imreca transformee
 **  \param xrel, yrel, zrel : distances des coordonnees du pixel courant dans imreca transformee
 **                            a celles de son voisin du coin inferieur
-**	\retval int : 1 en cas de succes, 0 dans le cas contraire
+**  \retval int : 1 en cas de succes, 0 dans le cas contraire
 *******************************************************************************/
 void update_histogrammes_VP(int pixelRef, VP_histos * donnees_VP, TYPEMRI3D *v, double *w, double xrel, double yrel, double zrel)
 {
@@ -2207,10 +2207,10 @@ void update_histogrammes_VP(int pixelRef, VP_histos * donnees_VP, TYPEMRI3D *v, 
 /*!
 **    fonction de calcul des histogrammes utilises dans le calcul du gradient
 **    pour le volume partiel
-**	\param imreca : image a recaler
-**	\param champ : le champ
+**  \param imreca : image a recaler
+**  \param champ : le champ
 **  \param donnees_VP : structure ou mettre les donnees calculees
-**	\retval int : 1 en cas de succes, 0 dans le cas contraire
+**  \retval int : 1 en cas de succes, 0 dans le cas contraire
 *******************************************************************************/
 int calcul_histogrammes_gradient_VP(grphic3d *Imreca, grphic3d *Imref, field3d *champ, VP_histos * donnees_VP, ERREUR_RECALAGE *err)
 //int calcul_histogrammes_gradient_VP(ptr_distance_param dist_param)
@@ -2375,7 +2375,7 @@ end_func:
 **    mise a jour de l'histogramme conjoint en fonction des donnees relatives au pixels
 **    courants dans imref et imreca transformee
 **
-**	\param pixelRef : valeur du pixel courant dans imref
+**  \param pixelRef : valeur du pixel courant dans imref
 **  \param donnees_VP : structure ou mettre les donnees calculees
 **  \param v : tableau des valeurs des voisins du pixel courant dans imreca transformee
 **  \param dw : tableau des poids affectes aux valeurs des voisins du pixel courant dans imreca transformee
@@ -2384,7 +2384,7 @@ end_func:
 **  \param p : coordonnees du point courant dans imreca transformee
 **  \param xrel, yrel, zrel : distances des coordonnees du pixel courant dans imreca transformee
 **                            a celles de son voisin du coin inferieur
-**	\retval int : 1 en cas de succes, 0 dans le cas contraire
+**  \retval int : 1 en cas de succes, 0 dans le cas contraire
 *******************************************************************************/
 void update_histogrammes_gradient_VP(int pixelRef, VP_histos * donnees_VP, TYPEMRI3D *v, double dw[8][3], int *p, double xrel, double yrel, double zrel)
 {
@@ -2418,10 +2418,10 @@ void update_histogrammes_gradient_VP(int pixelRef, VP_histos * donnees_VP, TYPEM
 /*!    calcul de la distance se basant sur l'information mutuelle calculee avec le volume partiel et
 **     un choix de points de calculs aleatoires
     \param im_type: le type de distance utilisee
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double calcul_info_mutuelle_VP_stochastique_3d(IM3DTYPE im_type, ptr_distance_param dist_param)
 {
@@ -2777,10 +2777,10 @@ void update_histogrammes_VP_stochastique(VP_histos * donnees_VP, TYPEMRI3D *vRef
 /*!    calcul de la distance se basant sur l'information mutuelle
 **     calculee avec la methode des BSplines
     \param im_type: le type de distance utilisee
-		\param Imreca, Imref : les 2 images
-		\param champ : le champ de deformation
-		\param donnees_VP : structure contenant les donnees pour le volume partiel
-		\retval double : l'erreur d'information mut.
+        \param Imreca, Imref : les 2 images
+        \param champ : le champ de deformation
+        \param donnees_VP : structure contenant les donnees pour le volume partiel
+        \retval double : l'erreur d'information mut.
 *******************************************************************************/
 double calcul_info_mutuelle_BSpline_3d(IM3DTYPE im_type, ptr_distance_param dist_param)
 {
@@ -2876,10 +2876,10 @@ end_func:
 **    fonction de calcul de l'histogramme conjoint pour la methode de construction par des BSplines
 **    ici on utilise les BSplines cubiques
 **
-**	\param imreca : image a recaler
-**	\param champ : le champ
+**  \param imreca : image a recaler
+**  \param champ : le champ
 **  \param donnees_VP : structure ou mettre les donnees calculees
-**	\retval int : 1 en cas de succes, 0 dans le cas contraire
+**  \retval int : 1 en cas de succes, 0 dans le cas contraire
 *******************************************************************************/
 int calcul_histogramme_BSpline(grphic3d *Imreca, grphic3d *Imref, field3d *champ, double **histo_conjoint, int nbclReca, int nbclRef, int maxReca, int maxRef)
 {
@@ -3024,7 +3024,7 @@ int calcul_histogramme_BSpline(grphic3d *Imreca, grphic3d *Imref, field3d *champ
 **    renvoie le max de l'energie basee sur l'info mutuelle selon les nbs de classes utilisees
 **
 **  \param im_type: type d'energie utilisee
-**	\param nbcl1, nbcl2 : les nombres de classes pour le calcul de l'entropie conjointe
+**  \param nbcl1, nbcl2 : les nombres de classes pour le calcul de l'entropie conjointe
 *******************************************************************************/
 double max_erreur_info_mutuelle(IM3DTYPE im_type, int nbcl1, int nbcl2)
 {
@@ -3050,9 +3050,9 @@ double max_erreur_info_mutuelle(IM3DTYPE im_type, int nbcl1, int nbcl2)
 **    calcul le nombre de classes de valeurs de voxels utilises pour les calcul d'energie selon la resolution de l'image
 **
 **  \param nb_classes_max: nombre de classes a la resolution min
-**	\param wdth, hght, dpth : dimensions des images
-**	\param max1, max2 : valeurs max des images
-**	\param nbcl1, nbcl2 : nbs de classes calcules
+**  \param wdth, hght, dpth : dimensions des images
+**  \param max1, max2 : valeurs max des images
+**  \param nbcl1, nbcl2 : nbs de classes calcules
 *******************************************************************************/
 int calcul_nb_classes(int wdth, int hght, int dpth, int max1, int max2, int *nbcl1, int *nbcl2)
 {
@@ -3074,8 +3074,8 @@ int calcul_nb_classes(int wdth, int hght, int dpth, int max1, int max2, int *nbc
 **    "A global optimisation method for robust affine registration of brain image"
 **
 **  \param image: l'image consideree
-**	\param max_image : la valeur max de l'image
-**	\retval : le nb de classes calcule
+**  \param max_image : la valeur max de l'image
+**  \retval : le nb de classes calcule
 *******************************************************************************/
 int imx_calculer_nombre_de_classes_3d_p(grphic3d *image, int *max_image)
 {
@@ -3138,11 +3138,11 @@ int imx_calculer_nombre_de_classes_3d_p(grphic3d *image, int *max_image)
 **    allocation memoire de la structure devant contenir les donnees necessaires
 **    aux calculs lies au volume partiel
 **
-**	\param imreca : image a recaler
-**	\param Imref : image de reference
+**  \param imreca : image a recaler
+**  \param Imref : image de reference
 **  \param minimisation_par_gradient : indique si on utilise une methode de minimisation
 **         uilisant le gradient
-**	\retval : la structure allouee
+**  \retval : la structure allouee
 *******************************************************************************/
 VP_histos * cr_VP_histos(grphic3d *Imreca, grphic3d *Imref,bool minimisation_par_gradient)
 {
@@ -3203,7 +3203,7 @@ VP_histos * cr_VP_histos(grphic3d *Imreca, grphic3d *Imref,bool minimisation_par
 **    liberation memoire de la structure devant contenir les donnees necessaires
 **    aux calculs lies au volume partiel
 **
-**	\param donnees_VP_ptr : pointeur sur la structure a liberer
+**  \param donnees_VP_ptr : pointeur sur la structure a liberer
 *******************************************************************************/
 void free_VP_histos(VP_histos **donnees_VP_ptr)
 {
@@ -3238,53 +3238,54 @@ void free_VP_histos(VP_histos **donnees_VP_ptr)
 /*!                                                                        
 **       \brief choix de la fonction de cout                                    
 **
-**		ouvre une boite de dialogue pour le choix de la fonction de cout
-** 		\retval int : le numero de la fonction de cout
-**			- Quadratict -> 0
-**			- Quadratic Robust -> 1
-**			- woods -> 2
-**			- woods robust -> 3
-**			- etc ...
-**			
+**      ouvre une boite de dialogue pour le choix de la fonction de cout
+**      \retval int : le numero de la fonction de cout
+**          - Quadratict -> 0
+**          - Quadratic Robust -> 1
+**          - woods -> 2
+**          - woods robust -> 3
+**          - etc ...
+**          
 *******************************************************************************/
 int imx_query_erreur_type_3D()
 {
-	char *query[100];
-	query[0]="Quadratic";
-	query[1]="Quadratic Robust";
-	query[2]="woods";
-	query[3]="woods robust";
-	query[4]="IM Old";
-	query[5]="IM";
-	query[6]="IM Normalisee Studholme";
-	query[7]="IM Normalisee Maes1";
-	query[8]="IM Normalisee Maes2";
-	query[9]="Entropie conjointe";
-	query[10]="Correlation ratio";
-	query[11]="IM (VP)";
-	query[12]="IM Normalisee Studholme (VP)";
-	query[13]="IM Normalisee Maes1 (VP)";
-	query[14]="IM Normalisee Maes2 (VP)";
-	query[15]="Entropie conjointe (VP)";
-	query[16]="vrai critere de Woods";
-	query[17]="critere de Woods robuste 2";
-	query[18]="Quadratic Robust 2";
-	query[19]="IM VP stochastique";
-	query[20]="correlation ratio robuste";
-	query[21]="IM BSpline";
- 	query[22]="IM Regionelle";
- 	query[23]="coefficient de correlation";
-	query[24]="\0";
-	query[25]=NULL;
-	return GETV_QCM("Distance",(char **)query);
+    char *query[100];
+    query[0]="Quadratic";
+    query[1]="Quadratic Robust";
+    query[2]="woods";
+    query[3]="woods robust";
+    query[4]="IM Old";
+    query[5]="IM";
+    query[6]="IM Normalisee Studholme";
+    query[7]="IM Normalisee Maes1";
+    query[8]="IM Normalisee Maes2";
+    query[9]="Entropie conjointe";
+    query[10]="Correlation ratio";
+    query[11]="IM (VP)";
+    query[12]="IM Normalisee Studholme (VP)";
+    query[13]="IM Normalisee Maes1 (VP)";
+    query[14]="IM Normalisee Maes2 (VP)";
+    query[15]="Entropie conjointe (VP)";
+    query[16]="vrai critere de Woods";
+    query[17]="critere de Woods robuste 2";
+    query[18]="Quadratic Robust 2";
+    query[19]="IM VP stochastique";
+    query[20]="correlation ratio robuste";
+    query[21]="IM BSpline";
+    query[22]="IM Regionelle";
+    query[23]="coefficient de correlation";
+    query[24]="Plan de symetrie";
+    query[25]="\0";
+    query[26]=NULL;
+    return GETV_QCM("Distance",(char **)query);
 }
 
 /*------------------------------------------------*/
 /*!
-**	\brief determine la fonction d'erreur
+**  \brief determine la fonction d'erreur
 **
-**	\param  dist_type : le type de distance choisie
-**	\retval dist_func_t : un pointeur sur la fonction d'erreur
+**  \param  dist_type : le type de distance choisie
+**  \retval dist_func_t : un pointeur sur la fonction d'erreur
 */
 /*------------------------------------------------*/
 
@@ -3319,6 +3320,7 @@ imx_choose_distance_fct(int dist_type)
     case 21: distance=erreur_IM_BSpline_3d;aff_log("IM BSpline ");break;
     case 22: distance=erreur_IM_Region_3d;aff_log("IM Regionelle ");break;
     case 23: distance=erreur_coeff_correlation_d;aff_log("coefficient de correlation ");break;
+    case 24: distance=erreur_quad_plandesymetrie_3d;aff_log("Plan de symetrie ");break;
     default:distance=erreur_quad_3d;aff_log("QUAD ");break;
   }
   return distance;
@@ -3326,32 +3328,32 @@ imx_choose_distance_fct(int dist_type)
 
 double imx_Erreur_3d(int im_src, int im_dst, int err_type)
 {
-	grphic3d *imsrc,*imdst;
-	double res;
-	dist_func_t  func_erreur;
-	ptr_distance_param dist_param=CALLOC(1, distance_param);
+    grphic3d *imsrc,*imdst;
+    double res;
+    dist_func_t  func_erreur;
+    ptr_distance_param dist_param=CALLOC(1, distance_param);
 
-	imsrc = ptr_img_3d(im_src);
-	imdst = ptr_img_3d(im_dst);
-	func_erreur = imx_choose_distance_fct(err_type);
+    imsrc = ptr_img_3d(im_src);
+    imdst = ptr_img_3d(im_dst);
+    func_erreur = imx_choose_distance_fct(err_type);
 
-	dist_param->imreca=imsrc;
-	dist_param->imref=imdst;
-	res = func_erreur(dist_param);
-	FREE(dist_param);
-	return res;
+    dist_param->imreca=imsrc;
+    dist_param->imref=imdst;
+    res = func_erreur(dist_param);
+    FREE(dist_param);
+    return res;
 }
 
 void Erreur_3d()
 {
-	int err_type,im_src,im_dst;
-	double res;
-	im_src = GET_WND3D("image depart");
-	im_dst = GET_WND3D("image resultat");
-	err_type = imx_query_erreur_type_3D();
-	
-	res = imx_Erreur_3d(im_src,im_dst,err_type);
-	printf("ERREUR = %f\n",res);
+    int err_type,im_src,im_dst;
+    double res;
+    im_src = GET_WND3D("image depart");
+    im_dst = GET_WND3D("image resultat");
+    err_type = imx_query_erreur_type_3D();
+    
+    res = imx_Erreur_3d(im_src,im_dst,err_type);
+    printf("ERREUR = %f\n",res);
 }
 
 bool dist_utilisant_VP(dist_func_t distance)
@@ -3648,7 +3650,6 @@ void calcul_edgeness_3d()
 {
  int im_deb,im_res;
  int taille_voisinage;
- int err=0;
 
  //demande des images
  im_deb=GET_PLACE3D("image a traiter");
@@ -3734,11 +3735,11 @@ int im_calcul_edgeness_3d_p(grphic3d *imdeb, grphic3d *imres, int taille_voisina
 /*! \ingroup     DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_ICP_3d(im1,im2)                                        
-*/  																  
+*/                                                                    
 /*!    distance ICP
-		\param im1 : carte de distance 
-					 im2 : image de r�f�rence binaire 
-		\retval ICP
+        \param im1 : carte de distance 
+                     im2 : image de r�f�rence binaire 
+        \retval ICP
 *******************************************************************************/
 double erreur_ICP_3d(ptr_distance_param dist_param)
 {
@@ -3765,11 +3766,11 @@ double erreur_ICP_3d(ptr_distance_param dist_param)
   for (j=0;j<hght;j++)
    for (k=0;k<dpth;k++)
     if (im2MRI[i][j][k]>0)
-		{
+        {
      diff=(double)(im1MRI[i][j][k]);
-		 		 
+                 
      r=r+diff;
-		 Ntot++;
+         Ntot++;
     }
  r=1.0*r/Ntot;
 
@@ -3783,11 +3784,11 @@ end_func:
 /*! \ingroup     DistanceFonction  @{ */
 /*******************************************************************************
 **     erreur_ICP_3d(im1,im2)                                        
-*/  																  
+*/                                                                    
 /*!    distance ICP
-		\param im1 : carte de distance 
-					 im2 : image de r�f�rence binaire 
-		\retval ICP
+        \param im1 : carte de distance 
+                     im2 : image de r�f�rence binaire 
+        \retval ICP
 *******************************************************************************/
 double erreur_ICP_sym_3d(ptr_distance_param dist_param)
 {
@@ -3818,75 +3819,76 @@ seuil = 150*im1->rcoeff;
  }
 
 
-for (i=0;i<dist_param->transfres->nb_param;i++)
-	param[i]=dist_param->transfres->param[i];
+/*for (i=0;i<dist_param->transfres->nb_param;i++)
+    param[i]=dist_param->transfres->param[i];
 
-J=1;
+ 	J=1;
 
 if (dist_param->transfres->typetrans==RIGIDZOOM3D)
-	rigidz_to_affine_3d(param);
-		
+    rigidz_to_affine_3d(param);
+        
 if (dist_param->transfres->typetrans==AFFINEDECOUPLE3D)
-	affine_decouple_to_affine_3d(param);
-		
+    affine_decouple_to_affine_3d(param);
+        
 if ((dist_param->transfres->typetrans==AFFINE3D)||(dist_param->transfres->typetrans==RIGIDZOOM3D)||(dist_param->transfres->typetrans==AFFINEDECOUPLE3D))
   {
-	 double a11,a12,a13,a21,a22,a23,a31,a32,a33;
-	a11=param[0];a12=param[1];a13=param[2];
+     double a11,a12,a13,a21,a22,a23,a31,a32,a33;
+    a11=param[0];a12=param[1];a13=param[2];
   a21=param[3];a22=param[4];a23=param[5];
   a31=param[6];a32=param[7];a33=param[8];
-	
-	J=fabs(a11*(a22*a33-a32*a23)-a21*(a12*a33-a13*a32)+a31*(a12*a23-a22*a13));
-	}
-	
-free(param);	
-	
-if ((J>1.25)||(J<0.8))
-	return(HUGE_VAL);
+    
+    J=fabs(a11*(a22*a33-a32*a23)-a21*(a12*a33-a13*a32)+a31*(a12*a23-a22*a13));
+    }
+    
+free(param);    
+    
+if ((J>8)||(J<0.125))
+    return(HUGE_VAL);
 
+*/
  r1=0.0;
  Ntot=0;
  for (i=0;i<wdth;i++)
   for (j=0;j<hght;j++)
    for (k=0;k<dpth;k++)
     if (im2MRI[i][j][k]>0)
-		{
+        {
      if (im1MRI[i][j][k]<vmin) 
-		  diff=(double)(im1->max_pixel);//return(HUGE_VAL);
-		 else
-		  diff=(double)(im1MRI[i][j][k]-vmin);
-		 		 
+          diff=(double)(im1->max_pixel);//return(HUGE_VAL);
+         else
+          diff=(double)(im1MRI[i][j][k]-vmin);
+                 
      r1=r1+im2MRI[i][j][k]*diff*diff;
-		 
-		 		Ntot++;
+         
+                Ntot++;
     }
-		
-		/*if (Ntot>0)
-		r1=1.0*r1/Ntot;
-		else 
-		r1=0.0;*/
-		
-		r2=0.0;
+        
+        /*if (Ntot>0)
+        r1=1.0*r1/Ntot;
+        else 
+        r1=0.0;*/
+        
+        r2=0.0;
 
-		Ntot=0;
-		for (i=0;i<wdth;i++)
-  	for (j=0;j<hght;j++)
-   	for (k=0;k<dpth;k++)
-			if ((im2->mask->mri[i][j][k]>0)&&(im1->mask->mri[i][j][k]>=maskvmin)&&(im1MRI[i][j][k]>=vmin))
-			{	
-		 	
-			diff=(double)((im1->mask->mri[i][j][k]-maskvmin));
-			
-		 	r2=r2+diff*diff; // /(im1MRI[i][j][k]-vmin+1.0);
-			
-			Ntot++;
-	    }
+        Ntot=0;
+        for (i=0;i<wdth;i++)
+    for (j=0;j<hght;j++)
+    for (k=0;k<dpth;k++)
+            if ((im2->mask->mri[i][j][k]>0)&&(im1->mask->mri[i][j][k]>=maskvmin)&&(im1MRI[i][j][k]>=vmin))
+            {   
+            
+            diff=(double)((im1->mask->mri[i][j][k]-maskvmin));
+            
+            r2=r2+diff*diff; // /(im1MRI[i][j][k]-vmin+1.0);
+            
+            Ntot++;
+        }
 
-		/*if (Ntot>0)
-		r2=1.0*r2/Ntot;
-		else
-		r2=0.0;*/
-		
+        /*if (Ntot>0)
+        r2=1.0*r2/Ntot;
+        else
+        r2=0.0;*/
+        
  r=sqrt(1.0*r1*im1->rcoeff*im1->rcoeff+1.0*r2*im1->mask->rcoeff*im1->mask->rcoeff);
 
 //printf("Eblanc %f  \t Enoir %f \n",r1*im1->rcoeff*im1->rcoeff,r2*im1->mask->rcoeff*im1->mask->rcoeff);
@@ -3895,5 +3897,66 @@ if ((J>1.25)||(J<0.8))
 end_func:
 
  return(r);
+}
+/*! @} */
+
+/*! \ingroup     DistanceFonction  @{ */
+/*******************************************************************************
+**     erreur_quad_plandesymetrie_3d(im1,im2)                                        
+*/                                                                    
+/*!    Fonction de cout pour determiner le plan de symetrie d'une image
+*******************************************************************************/
+double erreur_quad_plandesymetrie_3d(ptr_distance_param dist_param)
+{
+ unsigned int i,j,k, tot;
+ TDimension wdth,hght,dpth;
+ double r=DBL_MAX,diff;//,m1,m2;
+ grphic3d *im1=NULL, *im2=NULL, *im1flipped;
+ TYPEMRI3D ***im1MRI=NULL, ***im2MRI=NULL;
+ ERREUR_RECALAGE *err=NULL;
+
+
+
+ im1=dist_param->imreca; im2=dist_param->imref;
+ im1MRI=im1->mri; im2MRI=im2->mri;
+ err=dist_param->err;
+
+ im1flipped=cr_grphic3d(im1);
+
+
+
+ wdth=im1->width;hght=im1->height;dpth=im1->depth;
+ if ((wdth!=im2->width)||(hght!=im2->height)||(dpth!=im2->depth))
+ {
+  RAISE_ERR_TEXT(err, PB_TAILLES_IMAGES, "tailles d'images differentes dans erreur_quad_3d\n");
+ }
+
+
+
+Miroir_ttaxe_3d_p(im1,im1flipped,1);
+
+ r=0.0;
+ tot=0;
+ for (i=0;i<wdth;i++)
+  for (j=0;j<hght;j++)
+   for (k=0;k<dpth;k++)
+    {
+    if ((im1flipped->mri[i][j][k]==0)&( im1->mri[i][j][k] == 0))
+        tot++;
+    
+     diff=(double)(im1flipped->mri[i][j][k]-im1->mri[i][j][k]);
+     r=r+diff*diff;
+     r=r-2*im1->mri[i][j][k]*im1->mri[i][j][k];
+    }
+ //r=sqrt(r);
+
+
+  if (err!=NULL) *err=NO_ERR;
+end_func:
+
+//liberation memoire  
+ if (im1flipped) free_grphic3d(im1flipped);
+
+return(r);
 }
 /*! @} */
