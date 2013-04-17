@@ -21,7 +21,25 @@ from slice import Slice
 
 def display(*args, **kwargs) :
     """ Display an image in a modal dialog. All parameters are passed to the
-        image constructor
+        image constructor. For example an image with two layers, the bottom one 
+        in grayscale and the top one in rainbow can be displayed as follows : ::
+        
+            import medipy.io
+            import medipy.gui
+            import medipy.gui.image
+            
+            anatomical = medipy.io.load("/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm.nii.gz")
+            atlas = medipy.io.load("/usr/share/fsl/data/atlases/MNI/MNI-maxprob-thr0-1mm.nii.gz")
+            
+            colormap = medipy.gui.Colormap(medipy.gui.colormaps["rainbow"], 
+                None, zero_transparency=True)
+            
+            layers = [
+                {"image": anatomical},
+                {"image": atlas, "colormap": colormap, "opacity": 0.5}
+            ]
+            
+            medipy.gui.image.display(layers=layers)
     """
     
     app = wx.GetApp()
@@ -87,6 +105,35 @@ def get_informations(image):
     return informations
 
 class Image(wx.Panel, PropertySynchronized):
+    """ Synchronized representation of several slices with several layers.
+        
+        When passed to the constructor, layers are specified by a dictionary
+        containing the following keys :
+        
+        * `"image"` : a :class:`medipy.base.Image`, mandatory
+        * `"colormap"` : a :class:`medipy.gui.Colormap`, defaults to None
+        * `"opacity"` : a scalar between `0.0` and `1.0`, defaults to `1.0`
+        
+        For example an image with two layers, the bottom one in grayscale and 
+        the top one in rainbow can be created as follows : ::
+        
+            import medipy.io
+            import medipy.gui
+            import medipy.gui.image
+            
+            anatomical = medipy.io.load("/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm.nii.gz")
+            atlas = medipy.io.load("/usr/share/fsl/data/atlases/MNI/MNI-maxprob-thr0-1mm.nii.gz")
+            
+            colormap = medipy.gui.Colormap(medipy.gui.colormaps["rainbow"], 
+                None, zero_transparency=True)
+            
+            layers = [
+                {"image": anatomical},
+                {"image": atlas, "colormap": colormap, "opacity": 0.5}
+            ]
+            
+            image = medipy.gui.image.Image(parent, layers=layers)
+    """
     
     _viewport = {
         "axial" : (0.0, 0.0, 0.5, 0.5),
@@ -105,7 +152,7 @@ class Image(wx.Panel, PropertySynchronized):
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
                  convention="radiological", crosshair="full", *args, **kwargs):
-        
+                
         if annotations is None :
             annotations = ObservableList()
         
