@@ -11,8 +11,9 @@ link_directories(${ITK_LIBRARY_DIRS})
 # Build "parse" Python module
 add_definitions(-DHAVE_CONFIG_H)
 swig_python_module(dataset_io 
-    dataset_io.i dataset_io.cpp DataSetBridge.cpp DCMTKToPython.cpp PythonToDCMTK.cpp)
-swig_link_libraries(dataset_io "itkgdcm" ${DCMTK_LIBRARIES})
+    dataset_io.i dataset_io.cpp DCMTKToPython.cpp PythonToDCMTK.cpp)
+message("------------------------------------- ${DCMTK_LIBRARIES}")
+swig_link_libraries(dataset_io dcmdsig ${DCMTK_LIBRARIES} oflog wrap pthread)
 install_swig_python_module(dataset_io)
 
 wrap_library("AssembleTilesImageFilter" python)
