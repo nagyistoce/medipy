@@ -35,7 +35,10 @@ PyObject* read(std::string const & filename)
     }
     
     DCMTKToPython converter;
-    return converter(reader.getDataset());
+    PyObject * dataset = converter(reader.getDataset());
+    PyObject_SetAttrString(dataset, "header", converter(reader.getMetaInfo()));
+    
+    return dataset;
 }
 
 void write(PyObject* dataset, std::string const & filename)
