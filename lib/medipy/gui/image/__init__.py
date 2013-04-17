@@ -16,5 +16,5 @@ from medipy.gui.image.layer import Layer
 from medipy.gui.image.layers_panel import LayersPanel
 from medipy.gui.image.slice import Slice
 
-__all__ = ["ContourLayer", "Crosshair", "Image", "ImageGrid", "ImageLayer",
+__all__ = ["ContourLayer", "Crosshair", "display", "Image", "ImageGrid", "ImageLayer",
            "ImportRawDialog", "Layer", "LayersPanel", "Slice"]
