@@ -42,14 +42,49 @@ void write(PyObject* dataset, std::string const & filename)
 {
     PythonToDCMTK converter;
     DcmDataset dcmtk_dataset = converter(dataset);
+    DcmFileFormat writer(&dcmtk_dataset);
+    
+    // Update the writer meta-info with the dataset header, if present
+    if(PyObject_HasAttrString(dataset, "header"))
     {
-        DcmFileFormat writer(&dcmtk_dataset);
-        OFCondition const condition = writer.saveFile(filename.c_str());
-        if(condition.bad())
+        // New reference
+        PyObject * python_header = PyObject_GetAttrString(dataset, "header"); 
+        DcmDataset dcmtk_header = converter(python_header);
+        Py_XDECREF(python_header);
+        
+        DcmObject * it = NULL;
+        while(NULL != (it = dcmtk_header.nextInContainer(it)))
         {
-            std::ostringstream message;
-            message << "Cannot write '" << filename << "': " << condition.text();
-            throw std::runtime_error(message.str());
+            // The DcmMetaInfo takes ownership of the inserted element, hence
+            // the hoop-jumping with clone/dynamic_cast
+            DcmElement * element = dynamic_cast<DcmElement*>(it->clone());
+            if(element == NULL)
+            {
+                throw std::runtime_error("Cannot insert element");
+            }
+            writer.getMetaInfo()->insert(element);
         }
+    }
+
+    // If the transfer syntax is missing, default to Little Endian Explicit VR
+    if(!writer.getMetaInfo()->tagExists(DCM_TransferSyntaxUID))
+    {
+        OFString value;
+        writer.getMetaInfo()->putAndInsertOFStringArray(DCM_TransferSyntaxUID, 
+            DcmXfer(EXS_LittleEndianExplicit).getXferID());
+    }
+    
+    OFString value;
+    writer.getMetaInfo()->findAndGetOFStringArray(DCM_TransferSyntaxUID, value);
+    DcmXfer const transfer_syntax(value.c_str());
+    
+    // Transfer syntax /must/ be specified if it is not present in the dataset.
+    OFCondition const condition = writer.saveFile(
+        filename.c_str(), transfer_syntax.getXfer());
+    if(condition.bad())
+    {
+        std::ostringstream message;
+        message << "Cannot write '" << filename.c_str() << "': " << condition.text();
+        throw std::runtime_error(message.str());
     }
 }
