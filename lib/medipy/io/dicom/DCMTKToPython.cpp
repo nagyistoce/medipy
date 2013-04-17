@@ -690,13 +690,12 @@ DCMTKToPython
     {
         throw std::runtime_error(std::string("Unknown MediPy VR:") + vr_name);
     }
-    PyObject* MediPyVR = vr_it->second;
+    PyObject* MediPyVR = vr_it->second; // Borrowed reference
 
     PyObject* args = Py_BuildValue("(O)", python_value);
     PyObject* typed_value = PyObject_CallObject(MediPyVR, args);
     
     Py_DECREF(args);
-    Py_DECREF(MediPyVR);
     Py_DECREF(python_value);
 
     // Update the dictionary
