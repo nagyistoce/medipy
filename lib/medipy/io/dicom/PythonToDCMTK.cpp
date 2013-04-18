@@ -381,49 +381,36 @@ PythonToDCMTK
 
     if(nested_value != Py_None)
     {
-        if(evr == EVR_SQ)
-        {
-            for(Py_ssize_t index=0; index<PyList_Size(nested_value); ++index)
-            {
-                PythonToDCMTK converter(*this);
-                DcmDataset * dcmtk_item = new DcmDataset(
-                    converter(PyList_GetItem(nested_value, index)));
-                dataset.insertSequenceItem(tag, dcmtk_item);
-            }
-        }
+        if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(nested_value, dataset, tag);
+        else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(nested_value, dataset, tag);
+        // else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(nested_value, dataset, tag);
+        else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(nested_value, dataset, tag);
+        else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(nested_value, dataset, tag);
+        else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(nested_value, dataset, tag);
+        else if(evr == EVR_DT) this->_to_dcmtk<EVR_DT>(nested_value, dataset, tag);
+        else if(evr == EVR_FD) this->_to_dcmtk<EVR_FD>(nested_value, dataset, tag);
+        else if(evr == EVR_FL) this->_to_dcmtk<EVR_FL>(nested_value, dataset, tag);
+        else if(evr == EVR_IS) this->_to_dcmtk<EVR_IS>(nested_value, dataset, tag);
+        else if(evr == EVR_LO) this->_to_dcmtk<EVR_LO>(nested_value, dataset, tag);
+        else if(evr == EVR_LT) this->_to_dcmtk<EVR_LT>(nested_value, dataset, tag);
+        else if(evr == EVR_OB) this->_to_dcmtk<EVR_OB>(nested_value, dataset, tag);
+        else if(evr == EVR_OF) this->_to_dcmtk<EVR_OF>(nested_value, dataset, tag);
+        else if(evr == EVR_OW) this->_to_dcmtk<EVR_OW>(nested_value, dataset, tag);
+        else if(evr == EVR_PN) this->_to_dcmtk<EVR_PN>(nested_value, dataset, tag);
+        else if(evr == EVR_SH) this->_to_dcmtk<EVR_SH>(nested_value, dataset, tag);
+        else if(evr == EVR_SQ) this->_to_dcmtk<EVR_SQ>(nested_value, dataset, tag);
+        else if(evr == EVR_SL) this->_to_dcmtk<EVR_SL>(nested_value, dataset, tag);
+        else if(evr == EVR_SS) this->_to_dcmtk<EVR_SS>(nested_value, dataset, tag);
+        else if(evr == EVR_ST) this->_to_dcmtk<EVR_ST>(nested_value, dataset, tag);
+        else if(evr == EVR_TM) this->_to_dcmtk<EVR_TM>(nested_value, dataset, tag);
+        else if(evr == EVR_UI) this->_to_dcmtk<EVR_UI>(nested_value, dataset, tag);
+        else if(evr == EVR_UL) this->_to_dcmtk<EVR_UL>(nested_value, dataset, tag);
+        else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(nested_value, dataset, tag);
+        else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(nested_value, dataset, tag);
+        else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(nested_value, dataset, tag);
         else
         {
-            if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(nested_value, dataset, tag);
-            else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(nested_value, dataset, tag);
-            // else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(nested_value, dataset, tag);
-            else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(nested_value, dataset, tag);
-            else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(nested_value, dataset, tag);
-            else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(nested_value, dataset, tag);
-            else if(evr == EVR_DT) this->_to_dcmtk<EVR_DT>(nested_value, dataset, tag);
-            else if(evr == EVR_FD) this->_to_dcmtk<EVR_FD>(nested_value, dataset, tag);
-            else if(evr == EVR_FL) this->_to_dcmtk<EVR_FL>(nested_value, dataset, tag);
-            else if(evr == EVR_IS) this->_to_dcmtk<EVR_IS>(nested_value, dataset, tag);
-            else if(evr == EVR_LO) this->_to_dcmtk<EVR_LO>(nested_value, dataset, tag);
-            else if(evr == EVR_LT) this->_to_dcmtk<EVR_LT>(nested_value, dataset, tag);
-            else if(evr == EVR_OB) this->_to_dcmtk<EVR_OB>(nested_value, dataset, tag);
-            else if(evr == EVR_OF) this->_to_dcmtk<EVR_OF>(nested_value, dataset, tag);
-            else if(evr == EVR_OW) this->_to_dcmtk<EVR_OW>(nested_value, dataset, tag);
-            else if(evr == EVR_PN) this->_to_dcmtk<EVR_PN>(nested_value, dataset, tag);
-            else if(evr == EVR_SH) this->_to_dcmtk<EVR_SH>(nested_value, dataset, tag);
-            // SQ is not processed here
-            else if(evr == EVR_SL) this->_to_dcmtk<EVR_SL>(nested_value, dataset, tag);
-            else if(evr == EVR_SS) this->_to_dcmtk<EVR_SS>(nested_value, dataset, tag);
-            else if(evr == EVR_ST) this->_to_dcmtk<EVR_ST>(nested_value, dataset, tag);
-            else if(evr == EVR_TM) this->_to_dcmtk<EVR_TM>(nested_value, dataset, tag);
-            else if(evr == EVR_UI) this->_to_dcmtk<EVR_UI>(nested_value, dataset, tag);
-            else if(evr == EVR_UL) this->_to_dcmtk<EVR_UL>(nested_value, dataset, tag);
-            else if(evr == EVR_UN) this->_to_dcmtk<EVR_UN>(nested_value, dataset, tag);
-            else if(evr == EVR_US) this->_to_dcmtk<EVR_US>(nested_value, dataset, tag);
-            else if(evr == EVR_UT) this->_to_dcmtk<EVR_UT>(nested_value, dataset, tag);
-            else
-            {
-                throw std::runtime_error(std::string("Unhandled VR: ") + vr.getValidVRName());
-            }
+            throw std::runtime_error(std::string("Unhandled VR: ") + vr.getValidVRName());
         }
     }
     else
@@ -607,5 +594,25 @@ PythonToDCMTK
     }
     
     element->putOFStringArray(value);
+    dataset.insert(element);
+}
+
+void 
+PythonToDCMTK
+::_to_sequence(PyObject * python_value, DcmDataset & dataset, DcmSequenceOfItems * element) const
+{
+    if(!PyList_Check(python_value))
+    {
+        throw std::runtime_error("Cannot convert non-list SQ");
+    }
+    for(Py_ssize_t index=0; index<PyList_Size(python_value); ++index)
+    {
+        PythonToDCMTK converter(*this);
+        // DcmSequenceOfItems::append takes ownership of item, hence the new.
+        // Caution : do NOT append a DcmDataset to a DcmSequenceOfItems, but a DcmItem
+        DcmItem * item = new DcmItem(converter(PyList_GetItem(python_value, index)));
+        element->append(item);
+    }
+    
     dataset.insert(element);
 }
