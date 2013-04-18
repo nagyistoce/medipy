@@ -45,7 +45,10 @@ private :
                     DcmElement * element) const;
 
     void _to_number_string(PyObject * python_value, 
-                           DcmDataset & dataset, DcmTag const & tag) const;
+                           DcmDataset & dataset, DcmElement * element) const;
+    
+    void _to_sequence(PyObject * python_value,
+                      DcmDataset & dataset, DcmSequenceOfItems * element) const;
 };
 
 #endif // _30f65a36_44ce_495d_9270_d16009ee2bcf
