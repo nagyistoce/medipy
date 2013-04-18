@@ -31,15 +31,18 @@ private :
                    DcmDataset & dataset, DcmTag const & tag) const;
 
     void _to_text(PyObject * python_value, bool use_utf8, char padding,
-                  DcmDataset & dataset, DcmTag const & tag) const;
+                  DcmDataset & dataset, DcmElement * element) const;
 
-    template<typename TInserter, typename TGetter>
+    template<typename TGetter, typename TInserter>
     void _to_binary(PyObject * python_value, TGetter getter,
-                    DcmDataset & dataset, DcmTag const & tag,
+                    DcmDataset & dataset, DcmElement * element,
                     TInserter inserter) const;
 
-    void _to_raw(PyObject * python_value, DcmDataset & dataset,
-                 DcmTag const & tag) const;
+    void _to_raw_8(PyObject * python_value, DcmDataset & dataset,
+                   DcmElement * element) const;
+    
+    void _to_raw_16(PyObject * python_value, DcmDataset & dataset,
+                    DcmElement * element) const;
 
     void _to_number_string(PyObject * python_value, 
                            DcmDataset & dataset, DcmTag const & tag) const;
