@@ -72,7 +72,6 @@ void write(PyObject* dataset, std::string const & filename)
     // If the transfer syntax is missing, default to Little Endian Explicit VR
     if(!writer.getMetaInfo()->tagExists(DCM_TransferSyntaxUID))
     {
-        OFString value;
         writer.getMetaInfo()->putAndInsertOFStringArray(DCM_TransferSyntaxUID, 
             DcmXfer(EXS_LittleEndianExplicit).getXferID());
     }

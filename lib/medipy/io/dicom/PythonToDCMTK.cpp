@@ -43,12 +43,16 @@ PythonToDCMTK
 {
     DcmDataset dataset;
     
-    PyObject *tag, *value;
-    Py_ssize_t pos = 0;
-    while(PyDict_Next(python_dataset, &pos, &tag, &value))
+    PyObject * tags = PyDict_Keys(python_dataset); // New reference
+    PyList_Sort(tags);
+    for(unsigned int index=0; index<PyList_Size(tags); ++index)
     {
+        PyObject * tag = PyList_GetItem(tags, index);
+        PyObject * value = PyDict_GetItem(python_dataset, tag);
         this->_add_element(tag, value, dataset);
     }
+    
+    Py_DECREF(tags);
     
     return dataset;
 }
