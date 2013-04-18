@@ -61,6 +61,46 @@ PythonToDCMTK
  * Specializations of PythonToDCMTK::_to_dcmtk for the different VRs.
  ******************************************************************************/
 
+template<DcmEVR VVR> struct ElementTrait;
+template<> struct ElementTrait<EVR_AE> { typedef DcmApplicationEntity Type; };
+template<> struct ElementTrait<EVR_AS> { typedef DcmAgeString Type; };
+template<> struct ElementTrait<EVR_AT> { typedef DcmAttributeTag Type; };
+template<> struct ElementTrait<EVR_CS> { typedef DcmCodeString Type; };
+template<> struct ElementTrait<EVR_DA> { typedef DcmDate Type; };
+template<> struct ElementTrait<EVR_DS> { typedef DcmDecimalString Type; };
+template<> struct ElementTrait<EVR_DT> { typedef DcmDateTime Type; };
+template<> struct ElementTrait<EVR_FL> { typedef DcmFloatingPointSingle Type; };
+template<> struct ElementTrait<EVR_FD> { typedef DcmFloatingPointDouble Type; };
+template<> struct ElementTrait<EVR_IS> { typedef DcmIntegerString Type; };
+template<> struct ElementTrait<EVR_LO> { typedef DcmLongString Type; };
+template<> struct ElementTrait<EVR_LT> { typedef DcmLongText Type; };
+template<> struct ElementTrait<EVR_OB> { typedef DcmOtherByteOtherWord Type; };
+template<> struct ElementTrait<EVR_OF> { typedef DcmOtherByteOtherWord Type; };
+template<> struct ElementTrait<EVR_OW> { typedef DcmOtherByteOtherWord Type; };
+template<> struct ElementTrait<EVR_PN> { typedef DcmPersonName Type; };
+template<> struct ElementTrait<EVR_SH> { typedef DcmShortString Type; };
+template<> struct ElementTrait<EVR_SL> { typedef DcmSignedLong Type; };
+template<> struct ElementTrait<EVR_SQ> { typedef DcmSequenceOfItems Type; };
+template<> struct ElementTrait<EVR_SS> { typedef DcmSignedShort Type; };
+template<> struct ElementTrait<EVR_ST> { typedef DcmShortText Type; };
+template<> struct ElementTrait<EVR_TM> { typedef DcmTime Type; };
+template<> struct ElementTrait<EVR_UI> { typedef DcmUniqueIdentifier Type; };
+template<> struct ElementTrait<EVR_UL> { typedef DcmUnsignedLong Type; };
+template<> struct ElementTrait<EVR_UN> { typedef DcmOtherByteOtherWord Type; };
+template<> struct ElementTrait<EVR_US> { typedef DcmUnsignedShort Type; };
+template<> struct ElementTrait<EVR_UT> { typedef DcmUnlimitedText Type; };
+
+template<DcmEVR VVR>
+DcmElement * 
+createElement(DcmTag const & tag)
+{
+    // Set correct VR (useful for private tags)
+    DcmTag newTag(tag);
+    newTag.setVR(VVR);
+    
+    return new typename ElementTrait<VVR>::Type(newTag);
+}
+
 template<>
 void
 PythonToDCMTK
