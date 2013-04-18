@@ -107,7 +107,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_AE>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, ' ', dataset, tag);
+    this->_to_text(python_element, false, ' ', dataset, createElement<EVR_AE>(tag));
 }
 
 template<>
@@ -116,7 +116,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_AS>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, ' ', dataset, tag);
+    this->_to_text(python_element, false, ' ', dataset, createElement<EVR_AS>(tag));
 }
 
 // TODO : AT
@@ -127,7 +127,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_CS>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, ' ', dataset, tag);
+    this->_to_text(python_element, false, ' ', dataset, createElement<EVR_CS>(tag));
 }
 
 template<>
@@ -136,7 +136,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_DA>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, ' ', dataset, tag);
+    this->_to_text(python_element, false, ' ', dataset, createElement<EVR_DA>(tag));
 }
 
 template<>
@@ -145,7 +145,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_DS>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_number_string(python_element, dataset, tag);
+    this->_to_number_string(python_element, dataset, createElement<EVR_DS>(tag));
 }
 
 template<>
@@ -154,7 +154,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_DT>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, ' ', dataset, tag);
+    this->_to_text(python_element, false, ' ', dataset, createElement<EVR_DT>(tag));
 }
 
 template<>
@@ -163,8 +163,8 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_FD>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(python_element, PyFloat_AsDouble, dataset, tag,
-                     &DcmDataset::putAndInsertFloat64);
+    this->_to_binary(python_element, PyFloat_AsDouble, dataset, 
+                     createElement<EVR_FD>(tag), &DcmElement::putFloat64);
 }
 
 template<>
@@ -173,8 +173,8 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_FL>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(python_element, PyFloat_AsDouble, dataset, tag,
-                     &DcmDataset::putAndInsertFloat32);
+    this->_to_binary(python_element, PyFloat_AsDouble, dataset, 
+                     createElement<EVR_FL>(tag), &DcmElement::putFloat32);
 }
 
 template<>
@@ -183,7 +183,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_IS>(PyObject * python_element, DcmDataset & dataset,
                    DcmTag const & tag) const
 {
-    this->_to_number_string(python_element, dataset, tag);
+    this->_to_number_string(python_element, dataset, createElement<EVR_IS>(tag));
 }
 
 template<>
@@ -192,7 +192,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_LO>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, true, ' ', dataset, tag);
+    this->_to_text(python_element, true, ' ', dataset, createElement<EVR_LO>(tag));
 }
 
 template<>
@@ -201,7 +201,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_LT>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, true, ' ', dataset, tag);
+    this->_to_text(python_element, true, ' ', dataset, createElement<EVR_LT>(tag));
 }
 
 template<>
@@ -210,7 +210,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_OB>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_raw(python_element, dataset, tag);
+    this->_to_raw_8(python_element, dataset, createElement<EVR_OB>(tag));
 }
 
 template<>
@@ -219,7 +219,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_OF>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_raw(python_element, dataset, tag);
+    this->_to_raw_8(python_element, dataset, createElement<EVR_OF>(tag));
 }
 
 template<>
@@ -228,7 +228,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_OW>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_raw(python_element, dataset, tag);
+    this->_to_raw_16(python_element, dataset, createElement<EVR_OW>(tag));
 }
 
 template<>
@@ -237,7 +237,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_PN>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, true, ' ', dataset, tag);
+    this->_to_text(python_element, true, ' ', dataset, createElement<EVR_PN>(tag));
 }
 
 template<>
@@ -246,7 +246,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_SH>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, true, ' ', dataset, tag);
+    this->_to_text(python_element, true, ' ', dataset, createElement<EVR_SH>(tag));
 }
 
 template<>
@@ -255,11 +255,19 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_SL>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(python_element, PyInt_AsLong, dataset, tag,
-                     &DcmDataset::putAndInsertSint32);
+    this->_to_binary(python_element, PyInt_AsLong, dataset,
+                     createElement<EVR_SL>(tag), &DcmElement::putSint32);
 }
 
-// SQ is not processed here
+template<>
+void
+PythonToDCMTK
+::_to_dcmtk<EVR_SQ>(PyObject * python_element, DcmDataset & dataset,
+                    DcmTag const & tag) const
+{
+    this->_to_sequence(python_element, dataset, 
+        dynamic_cast<DcmSequenceOfItems*>(createElement<EVR_SQ>(tag)));
+}
 
 template<>
 void
@@ -267,8 +275,8 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_SS>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(python_element, PyInt_AsLong,  dataset, tag,
-                     &DcmDataset::putAndInsertSint16);
+    this->_to_binary(python_element, PyInt_AsLong, dataset,
+                     createElement<EVR_SS>(tag), &DcmElement::putSint16);
 }
 
 template<>
@@ -277,7 +285,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_ST>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, true, ' ', dataset, tag);
+    this->_to_text(python_element, true, ' ', dataset, createElement<EVR_ST>(tag));
 }
 
 template<>
@@ -286,7 +294,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_TM>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, ' ', dataset, tag);
+    this->_to_text(python_element, false, ' ', dataset, createElement<EVR_TM>(tag));
 }
 
 template<>
@@ -295,7 +303,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_UI>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, false, '\0', dataset, tag);
+    this->_to_text(python_element, false, '\0', dataset, createElement<EVR_UI>(tag));
 }
 
 
@@ -305,8 +313,8 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_UL>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(python_element, PyInt_AsLong, dataset, tag,
-                     &DcmDataset::putAndInsertUint32);
+    this->_to_binary(python_element, PyInt_AsLong, dataset,
+                     createElement<EVR_UL>(tag), &DcmElement::putUint32);
 }
 
 template<>
@@ -315,7 +323,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_UN>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_raw(python_element, dataset, tag);
+    this->_to_raw_8(python_element, dataset, createElement<EVR_UN>(tag));
 }
 
 template<>
@@ -324,8 +332,8 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_US>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_binary(python_element, PyInt_AsLong, dataset, tag,
-                     &DcmDataset::putAndInsertUint16);
+    this->_to_binary(python_element, PyInt_AsLong, dataset,
+                     createElement<EVR_US>(tag), &DcmElement::putUint16);
 }
 
 template<>
@@ -334,7 +342,7 @@ PythonToDCMTK
 ::_to_dcmtk<EVR_UT>(PyObject * python_element, DcmDataset & dataset,
                     DcmTag const & tag) const
 {
-    this->_to_text(python_element, true, ' ', dataset, tag);
+    this->_to_text(python_element, true, ' ', dataset, createElement<EVR_UT>(tag));
 }
 
 /*******************************************************************************
@@ -366,6 +374,10 @@ PythonToDCMTK
 
     // Get the value
     PyObject* nested_value = PyObject_GetAttrString(python_value, "value"); // New reference
+    if(nested_value == NULL)
+    {
+        throw std::runtime_error("Cannot access element value");
+    }
 
     if(nested_value != Py_None)
     {
@@ -425,7 +437,7 @@ PythonToDCMTK
 void
 PythonToDCMTK
 ::_to_text(PyObject * python_value, bool use_utf8, char padding,
-           DcmDataset & dataset, DcmTag const & tag) const
+           DcmDataset & dataset, DcmElement * element) const
 {
     std::ostringstream stream;
     stream.imbue(std::locale("C"));
@@ -438,6 +450,7 @@ PythonToDCMTK
             PyObject * python_item = PyList_GetItem(python_value, index);
             if(use_utf8)
             {
+                std::cout << element->getTag() << " " << PyString_AsString(PyObject_Str(python_value)) << std::endl;
                 PyObject * decoded_string = PyUnicode_AsEncodedString(
                     python_item,  "utf-8", "strict");
                 if(decoded_string == NULL)
@@ -484,42 +497,85 @@ PythonToDCMTK
         value += padding;
     }
     
-    dataset.putAndInsertOFStringArray(tag, value);
+    OFCondition const condition = element->putString(value.c_str());
+    if(condition.bad())
+    {
+        throw std::runtime_error(
+            std::string("Cannot convert text element: ")+condition.text());
+    }
+    
+    dataset.insert(element);
 }
 
-template<typename TInserter, typename TGetter>
+template<typename TGetter, typename TInserter>
 void
 PythonToDCMTK
 ::_to_binary(PyObject * python_value, TGetter getter,
-             DcmDataset & dataset, DcmTag const & tag, TInserter inserter) const
+             DcmDataset & dataset, DcmElement * element, TInserter inserter) const
 {
     if(PyList_Check(python_value))
     {
         for(Py_ssize_t index=0; index<PyList_Size(python_value); ++index)
         {
-            (dataset.*inserter)(tag, getter(PyList_GetItem(python_value, index)), index, OFTrue);
+            PyObject * item = PyList_GetItem(python_value, index);
+            
+            OFCondition const condition = (element->*inserter)(getter(item), index);
+            if(condition.bad())
+            {
+                std::ostringstream message;
+                message << "Cannot convert item " << index << " of numeric element "
+                        << element->getTag() 
+                        << " (" << element->getTag().getVR().getValidVRName() << "): "
+                        << condition.text();
+                throw std::runtime_error(message.str());
+            }
         }
     }
     else
     {
-        (dataset.*inserter)(tag, getter(python_value), 0, OFTrue);
+        OFCondition const condition = (element->*inserter)(getter(python_value), 0);
+        if(condition.bad())
+        {
+            std::ostringstream message;
+            message << "Cannot convert numeric element "
+                    << element->getTag() 
+                    << " (" << element->getTag().getVR().getValidVRName() << "): "
+                    << condition.text();
+            throw std::runtime_error(message.str());
+        }
     }
+    
+    dataset.insert(element);
 }
 
 void
 PythonToDCMTK
-::_to_raw(PyObject * python_value, DcmDataset & dataset,
-          DcmTag const & tag) const
+::_to_raw_8(PyObject * python_value, DcmDataset & dataset,
+            DcmElement * element) const
 {
-    unsigned long size = PyString_Size(python_value);
+    unsigned long size = PyString_Size(python_value)/sizeof(Uint8);
     Uint8 const * data = reinterpret_cast<Uint8 const *>(PyString_AsString(python_value));
-    dataset.putAndInsertUint8Array(tag, data, size);
+    
+    element->putUint8Array(data, size);
+    dataset.insert(element);
+}
+
+void
+PythonToDCMTK
+::_to_raw_16(PyObject * python_value, DcmDataset & dataset,
+             DcmElement * element) const
+{
+    unsigned long size = PyString_Size(python_value)/sizeof(Uint16);
+    Uint16 const * data = reinterpret_cast<Uint16 const *>(PyString_AsString(python_value));
+    
+    element->putUint16Array(data, size);
+    dataset.insert(element);
 }
 
 void
 PythonToDCMTK
 ::_to_number_string(PyObject * python_value, DcmDataset & dataset,
-                    DcmTag const & tag) const
+                    DcmElement * element) const
 {
     std::ostringstream stream;
     stream.imbue(std::locale("C"));
@@ -550,5 +606,6 @@ PythonToDCMTK
         value += ' ';
     }
     
-    dataset.putAndInsertOFStringArray(tag, value);
+    element->putOFStringArray(value);
+    dataset.insert(element);
 }
