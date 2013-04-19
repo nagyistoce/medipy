@@ -56,6 +56,9 @@ private :
     /// @brief Add the DCMTK element to the Python DataSet.
     void _add_element(DcmObject * element, PyObject * python_dataset) const;
     
+    /// @brief Convert a DCMTK tag to a Python tag.
+    PyObject * _to_python_tag(DcmTagKey const & dcmtk_tag) const;
+    
     /// @brief Convert data from a DICOM element to Python.
     template<DcmEVR VVR>
     PyObject * _to_python(DcmObject * element) const;

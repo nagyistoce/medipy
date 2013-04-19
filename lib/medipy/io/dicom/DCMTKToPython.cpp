@@ -212,6 +212,19 @@ DCMTKToPython
     return python_dataset;
 }
 
+PyObject *
+DCMTKToPython
+::_to_python_tag(DcmTagKey const & dcmtk_tag) const
+{
+    PyObject* key = Py_BuildValue("(II)", dcmtk_tag.getGroup(), dcmtk_tag.getElement());
+    PyObject* tag_args = Py_BuildValue("(O)", key);
+    PyObject* python_tag = PyObject_CallObject(this->_medipy_io_dicom_Tag, tag_args);
+    Py_DECREF(tag_args);
+    Py_DECREF(key);
+    
+    return python_tag;
+}
+
 /*******************************************************************************
  * Specializations of DCMTKToPython::_to_python for the different VRs.
  ******************************************************************************/
@@ -237,8 +250,30 @@ PyObject *
 DCMTKToPython
 ::_to_python<EVR_AT>(DcmObject * element) const
 {
-    return this->_to_python_number(dynamic_cast<DcmElement*>(element),
-                                   &DcmElement::getUint32);
+    DcmAttributeTag * attribute_tag = dynamic_cast<DcmAttributeTag*>(element);
+    unsigned long const multiplicity = attribute_tag->getVM();
+    
+    PyObject * python_value = NULL;
+    
+    if(multiplicity > 1)
+    {
+        python_value = PyList_New(multiplicity);
+        for(unsigned long position=0; position<multiplicity; ++position)
+        {
+            DcmTagKey dcmtk_tag;
+            attribute_tag->getTagVal(dcmtk_tag, position);
+            PyObject * python_tag = this->_to_python_tag(dcmtk_tag);
+            PyList_SetItem(python_value, position, python_tag);
+        }
+    }
+    else
+    {
+        DcmTagKey dcmtk_tag;
+        attribute_tag->getTagVal(dcmtk_tag, 0);
+        python_value = this->_to_python_tag(dcmtk_tag);
+    }
+    
+    return python_value;
 }
 
 template<>
