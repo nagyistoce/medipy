@@ -3,13 +3,17 @@ add_subdirectory("routing")
 file(GLOB files "*.py")
 install_py_files(${files})
 
-find_package(ITK)
-include_directories(${ITK_INCLUDE_DIRS})
+find_package(DCMTK REQUIRED)
+find_package(ITK REQUIRED)
+include_directories(${DCMTK_INCLUDE_DIRS} ${ITK_INCLUDE_DIRS})
 link_directories(${ITK_LIBRARY_DIRS})
 
 # Build "parse" Python module
-swig_python_module(dataset_io dataset_io.i dataset_io.cpp DataSetBridge.cpp)
-swig_link_libraries(dataset_io "itkgdcm")
+add_definitions(-DHAVE_CONFIG_H)
+swig_python_module(dataset_io 
+    dataset_io.i dataset_io.cpp DCMTKToPython.cpp PythonToDCMTK.cpp)
+message("------------------------------------- ${DCMTK_LIBRARIES}")
+swig_link_libraries(dataset_io dcmdsig ${DCMTK_LIBRARIES} oflog wrap pthread)
 install_swig_python_module(dataset_io)
 
 wrap_library("AssembleTilesImageFilter" python)
