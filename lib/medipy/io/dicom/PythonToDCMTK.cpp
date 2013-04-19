@@ -119,7 +119,33 @@ PythonToDCMTK
     this->_to_text(python_element, false, ' ', dataset, createElement<EVR_AS>(tag));
 }
 
-// TODO : AT
+template<>
+void
+PythonToDCMTK
+::_to_dcmtk<EVR_AT>(PyObject * python_element, DcmDataset & dataset,
+                    DcmTag const & tag) const
+{
+    DcmAttributeTag * dcmtk_element = 
+        dynamic_cast<DcmAttributeTag*>(createElement<EVR_AT>(tag));
+    if(PyList_Check(python_element))
+    {
+        for(Py_ssize_t index=0; index<PyList_Size(python_element); ++index)
+        {
+            PyObject * python_tag = PyList_GetItem(python_element, index);
+            unsigned long const numeric_tag = PyLong_AsLong(python_tag);
+            DcmTagKey const tag(numeric_tag>>16, numeric_tag&0xffff);
+            dcmtk_element->putTagVal(tag, index);
+        }
+    }
+    else
+    {
+        PyObject * python_tag = python_element;
+        unsigned long const numeric_tag = PyLong_AsLong(python_tag);
+        DcmTagKey const tag(numeric_tag>>16, numeric_tag&0xffff);
+        dcmtk_element->putTagVal(tag, 0);
+    }
+    dataset.insert(dcmtk_element);
+}
 
 template<>
 void
@@ -383,7 +409,7 @@ PythonToDCMTK
     {
         if(evr == EVR_AE) this->_to_dcmtk<EVR_AE>(nested_value, dataset, tag);
         else if(evr == EVR_AS) this->_to_dcmtk<EVR_AS>(nested_value, dataset, tag);
-        // else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(nested_value, dataset, tag);
+        else if(evr == EVR_AT) this->_to_dcmtk<EVR_AT>(nested_value, dataset, tag);
         else if(evr == EVR_CS) this->_to_dcmtk<EVR_CS>(nested_value, dataset, tag);
         else if(evr == EVR_DA) this->_to_dcmtk<EVR_DA>(nested_value, dataset, tag);
         else if(evr == EVR_DS) this->_to_dcmtk<EVR_DS>(nested_value, dataset, tag);
