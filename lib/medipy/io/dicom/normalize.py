@@ -395,6 +395,14 @@ def mosaic(dataset):
                                         number_of_tiles, columns)
     array = array.transpose((1,3,0,2))
     array = array.reshape(rows, columns, number_of_tiles**2)
+
+    # Get the "base" origin of the tiles (i.e. origin of the first tile), cf.
+    # http://nipy.sourceforge.net/nibabel/dicom/dicom_mosaic.html#dicom-orientation-for-mosaic
+    md = numpy.asarray((dataset.rows.value, dataset.columns.value))
+    rd = numpy.asarray((rows, columns))
+    R = numpy.fliplr(numpy.asarray(dataset.image_orientation_patient.value).reshape(2,3).T)
+    Q = R*dataset.pixel_spacing.value
+    origin = dataset.image_position_patient.value + numpy.dot(Q, (md-rd)/2.)
     
     result = []
     for i in range(number_of_images_in_mosaic) :
@@ -407,7 +415,7 @@ def mosaic(dataset):
         frame.rows = US(rows)
         frame.columns = US(columns)
         
-        frame.image_position_patient = DS(dataset.image_position_patient.value+i*slice_normal_vector)
+        frame.image_position_patient = DS(origin+i*slice_normal_vector)
         
         # Pixel Data
         row_begin = i*rows
