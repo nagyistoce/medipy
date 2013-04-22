@@ -14,6 +14,8 @@
 #include <ostream>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkIndent.h>
+#include <vnl/vnl_cross.h>
+#include <vnl/vnl_vector.h>
 
 namespace itk
 {
@@ -22,7 +24,12 @@ template<typename TCoordRep>
 Plane<TCoordRep>
 ::Plane()
 {
-    this->ComputeOriginAndNormal();
+    this->m_Origin.Fill(0);
+    this->m_Normal.Fill(0);
+    this->m_Normal[2]=1;
+    this->m_UnitNormal = this->m_Normal;
+    
+    this->Compute3Points();
 }
 
 template<typename TCoordRep>
@@ -244,62 +251,43 @@ void
 Plane<TCoordRep>
 ::Compute3Points()
 {
-    // Get an axis from the plane : compute cross products between X, Y, Z axes
-    // and the normal, find the "best" axis using the maximum absolute value of
-    // the dot products.
-    VectorType x_cross; 
-    x_cross[0] = 0; x_cross[1] = -this->m_Normal[2]; x_cross[2] = this->m_Normal[1];
-    VectorType y_cross; 
-    y_cross[0] = this->m_Normal[2]; y_cross[1] =  0; y_cross[2] = -this->m_Normal[0];
-    VectorType z_cross; 
-    z_cross[0] = -this->m_Normal[1]; z_cross[1] = this->m_Normal[0]; z_cross[2] = 0;
-
-    VectorType x; x[0] = 1; x[1] = 0; x[2] = 0;
-    VectorType y; y[0] = 0; y[1] = 1; y[2] = 0;
-    VectorType z; z[0] = 0; z[1] = 0; z[2] = 1;
-
-    TCoordRep const x_dot = std::abs(x*this->m_Normal);
-    TCoordRep const y_dot = std::abs(y*this->m_Normal);
-    TCoordRep const z_dot = std::abs(z*this->m_Normal);
-    VectorType v1;
-    if(x_dot > y_dot)
+    typedef vnl_vector_fixed<TCoordRep, 3> VnlVector;
+    
+    // Compute the cross products between each axis (X, Y, Z) and the unit normal
+    // to determine the longest one : this will be the first vector of the plane.
+    // Using any axis at random might lead to degenerate plane vectors.
+    VnlVector const unit_normal = this->m_UnitNormal.GetVnlVector();
+    VnlVector v1;
+    TCoordRep squared_magnitude=0;
+    for(unsigned int d=0; d<3; ++d)
     {
-        if(x_dot > z_dot)
+        VnlVector axis(0.);
+        axis[d] = 1;
+        
+        VnlVector cross_product = vnl_cross_3d(unit_normal, axis);
+        TCoordRep const cross_product_squared_magnitude = cross_product.squared_magnitude();
+        if(cross_product_squared_magnitude > squared_magnitude)
         {
-            v1 = x_cross;
-        }
-        else
-        {
-            v1 = z_cross;
-        }
-    }
-    else
-    {
-        if(y_dot > z_dot)
-        {
-            v1 = y_cross;
-        }
-        else
-        {
-            v1 = z_cross;
+            v1 = cross_product;
+            squared_magnitude = cross_product_squared_magnitude;
         }
     }
     
-    // Get a second axis : cross product of normal and v1
-    VectorType v2;
-    v2[0] = this->m_Normal[1]*v1[2]-this->m_Normal[2]*v1[1];
-    v2[1] = this->m_Normal[2]*v1[0]-this->m_Normal[0]*v1[2];
-    v2[2] = this->m_Normal[0]*v1[1]-this->m_Normal[1]*v1[0];
+    // Get the second plane axis : cross product of the unit normal and v1;
+    VnlVector const v2 = vnl_cross_3d(unit_normal, v1);
     
     this->m_P1 = this->m_Origin;
-    this->m_P2 = this->m_Origin+v1;
-    this->m_P3 = this->m_Origin+v2;
+    std::transform(this->m_Origin.Begin(), this->m_Origin.End(), v1.begin(), 
+        this->m_P2.Begin(), std::plus<TCoordRep>());
+    std::transform(this->m_Origin.Begin(), this->m_Origin.End(), v2.begin(), 
+        this->m_P3.Begin(), std::plus<TCoordRep>());
 }
 
 template<typename TCoordRep>
 std::ostream & operator<<(std::ostream & os, Plane<TCoordRep> const & plane)
 {
     plane.Print(os);
+    return os;
 }
 
 } // namespace itk
