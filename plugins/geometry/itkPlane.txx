@@ -45,6 +45,7 @@ Plane<TCoordRep>
 ::Plane(PointType const & origin, VectorType const & normal)
 : m_Origin(origin), m_Normal(normal)
 {
+    this->m_UnitNormal = this->m_Normal/this->m_Normal.GetNorm();
     this->Compute3Points();
 }
 
