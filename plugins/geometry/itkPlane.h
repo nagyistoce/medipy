@@ -50,34 +50,34 @@ public :
     virtual ~Plane();
 
     /** @brief Return the first point defining the plane. */
-    PointType GetP1() const;
+    PointType const & GetP1() const;
     
     /** @brief Set the first point defining the plane. */
     void SetP1(PointType const & P1);
 
     /** @brief Return the second point defining the plane. */
-    PointType GetP2() const;
+    PointType const & GetP2() const;
     
     /** @brief Set the second point defining the plane. */
     void SetP2(PointType const & P2);
     
     /** @brief Return the third point defining the plane. */
-    PointType GetP3() const;
+    PointType const & GetP3() const;
     
     /** @brief Set the third point defining the plane. */
     void SetP3(PointType const & P3);
 
     /** @brief Return the origin of the plane. */
-    PointType GetOrigin() const;
+    PointType const & GetOrigin() const;
     
     /** @brief Set the origin of the plane. */
     void SetOrigin(PointType const & origin);
 
     /** @brief Return the normal to the plane. */
-    VectorType GetNormal() const;
+    VectorType const & GetNormal() const;
     
     /** @brief Return the unit normal to the plane. */
-    VectorType GetUnitNormal() const;
+    VectorType const & GetUnitNormal() const;
     
     /** @brief Set the normal to the plane. */
     void SetNormal(VectorType const & normal);
