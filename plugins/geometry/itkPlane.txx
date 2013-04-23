@@ -80,7 +80,7 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
-typename Plane<TCoordRep>::PointType
+typename Plane<TCoordRep>::PointType const & 
 Plane<TCoordRep>
 ::GetP1() const
 {
@@ -97,7 +97,7 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
-typename Plane<TCoordRep>::PointType
+typename Plane<TCoordRep>::PointType const & 
 Plane<TCoordRep>
 ::GetP2() const
 {
@@ -114,7 +114,7 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
-typename Plane<TCoordRep>::PointType
+typename Plane<TCoordRep>::PointType const & 
 Plane<TCoordRep>
 ::GetP3() const
 {
@@ -131,7 +131,7 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
-typename Plane<TCoordRep>::PointType
+typename Plane<TCoordRep>::PointType const &
 Plane<TCoordRep>
 ::GetOrigin() const
 {
@@ -148,7 +148,7 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
-typename Plane<TCoordRep>::VectorType
+typename Plane<TCoordRep>::VectorType const &
 Plane<TCoordRep>
 ::GetNormal() const
 {
@@ -156,7 +156,7 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
-typename Plane<TCoordRep>::VectorType
+typename Plane<TCoordRep>::VectorType const &
 Plane<TCoordRep>
 ::GetUnitNormal() const
 {
