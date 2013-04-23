@@ -29,6 +29,8 @@ Plane<TCoordRep>
     this->m_Normal[2]=1;
     this->m_UnitNormal = this->m_Normal;
     
+    this->m_ReflectionTransform = TransformType::New();
+    
     this->Compute3Points();
 }
 
@@ -37,6 +39,7 @@ Plane<TCoordRep>
 ::Plane(PointType const & P1, PointType const & P2, PointType const & P3)
 : m_P1(P1), m_P2(P2), m_P3(P3)
 {
+    this->m_ReflectionTransform = TransformType::New();
     this->ComputeOriginAndNormal();
 }
 
@@ -45,6 +48,7 @@ Plane<TCoordRep>
 ::Plane(PointType const & origin, VectorType const & normal)
 : m_Origin(origin), m_Normal(normal)
 {
+    this->m_ReflectionTransform = TransformType::New();
     this->m_UnitNormal = this->m_Normal/this->m_Normal.GetNorm();
     this->Compute3Points();
 }
@@ -54,6 +58,7 @@ Plane<TCoordRep>
 ::Plane(Self const & other)
 : m_P1(other.m_P1), m_P2(other.m_P2), m_P3(other.m_P3)
 {
+    this->m_ReflectionTransform = TransformType::New();
     this->ComputeOriginAndNormal();
 }
 
@@ -187,12 +192,19 @@ Plane<TCoordRep>
 }
 
 template<typename TCoordRep>
+typename Plane<TCoordRep>::TransformType::Pointer const &
+Plane<TCoordRep>
+::GetReflectionTransform() const
+{
+    return this->m_ReflectionTransform;
+}
+
+template<typename TCoordRep>
 typename Plane<TCoordRep>::PointType
 Plane<TCoordRep>
 ::Reflect(PointType const & p) const
 {
-    TCoordRep const distance = this->GetDistance(p);
-    return p-2*distance*this->m_UnitNormal;
+    return this->m_ReflectionTransform->TransformPoint(p);
 }
 
 template<typename TCoordRep>
@@ -249,6 +261,8 @@ Plane<TCoordRep>
     this->m_Normal[1] = v1[2]*v2[0]-v1[0]*v2[2];
     this->m_Normal[2] = v1[0]*v2[1]-v1[1]*v2[0];
     this->m_UnitNormal = this->m_Normal/this->m_Normal.GetNorm();
+    
+    this->ComputeReflectionTransform();
 }
 
 template<typename TCoordRep>
@@ -286,6 +300,41 @@ Plane<TCoordRep>
         this->m_P2.Begin(), std::plus<TCoordRep>());
     std::transform(this->m_Origin.Begin(), this->m_Origin.End(), v2.begin(), 
         this->m_P3.Begin(), std::plus<TCoordRep>());
+    
+    this->ComputeReflectionTransform();
+}
+
+template<typename TCoordRep>
+void
+Plane<TCoordRep>
+::ComputeReflectionTransform()
+{
+    // The reflection matrix for a plane passing through the origin is I-2NN^{T},
+    // where N is the unit normal. Let T be the matrix that translates any point
+    // of the plane to the origin ; the reflection matrix is then 
+    // T^{-1}(I-2NN^{T})T
+    
+    typename TransformType::MatrixType reflection;
+    
+    reflection.Fill(0);
+    for(unsigned int r=0; r<3; ++r)
+    {
+        for(unsigned int c=0; c<3; ++c)
+        {
+            // Term for -2NN^{T}
+            TCoordRep term = -2*this->m_UnitNormal[r]*this->m_UnitNormal[c];
+            if(r == c)
+            {
+                // Identity matrix
+                term = 1+term;
+            }
+            reflection(r,c) = term;
+        }
+    }
+    
+    this->m_ReflectionTransform->SetIdentity();
+    this->m_ReflectionTransform->SetMatrix(reflection);
+    this->m_ReflectionTransform->SetCenter(this->m_Origin);
 }
 
 template<typename TCoordRep>

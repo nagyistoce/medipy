@@ -9,6 +9,7 @@
 #ifndef _e0bbd6a0_294b_46f1_bba8_950e538493f8
 #define _e0bbd6a0_294b_46f1_bba8_950e538493f8
 
+#include <itkAffineTransform.h>
 #include <itkPoint.h>
 
 namespace itk
@@ -30,6 +31,7 @@ public :
 
     typedef Point<TCoordRep, 3> PointType;
     typedef typename PointType::VectorType VectorType;
+    typedef itk::AffineTransform<TCoordRep, 3> TransformType;
 
     /** @brief Create an un-initialized plane. */
     Plane();
@@ -85,6 +87,9 @@ public :
     /** @brief Return the signed distance from a point to the plane. */
     typename PointType::CoordRepType GetDistance(PointType const & p) const;
     
+    /** @brief Return the transformation performing a reflection with respect to the plane. */
+    typename TransformType::Pointer const & GetReflectionTransform() const;
+    
     /** @brief Return the reflection of a point with respect to the plane. */
     PointType Reflect(PointType const & p) const;
 
@@ -111,12 +116,17 @@ private :
     PointType m_Origin;
     VectorType m_Normal;
     VectorType m_UnitNormal;
+    
+    typename TransformType::Pointer m_ReflectionTransform;
 
     /** @brief Update the origin and normal using P1, P2, and P3. */
     void ComputeOriginAndNormal();
     
     /** @brief Update P1, P1, and P3 usig the origin and the normal. */
     void Compute3Points();
+    
+    /** @brief Update P1, P1, and P3 usig the origin and the normal. */
+    void ComputeReflectionTransform();
 };
 
 template<typename TCoordRep>
