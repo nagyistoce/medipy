@@ -61,10 +61,14 @@ typename Plane<TCoordRep>::Self const &
 Plane<TCoordRep>
 ::operator=(Self const & other)
 {
-    this->m_P1 = other.GetP1();
-    this->m_P2 = other.GetP2();
-    this->m_P3 = other.GetP3();
-    this->ComputeOriginAndNormal();
+    if(this != &other)
+    {
+        this->m_P1 = other.GetP1();
+        this->m_P2 = other.GetP2();
+        this->m_P3 = other.GetP3();
+        this->ComputeOriginAndNormal();
+    }
+    return *this;
 }
 
 template<typename TCoordRep>
