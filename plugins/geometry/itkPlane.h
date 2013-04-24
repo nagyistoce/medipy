@@ -21,7 +21,7 @@ namespace itk
  * A 3D plane can be specified either by three points or by an origin and a 
  * normal.
  */
-template<typename TCoordRep=float>
+template<typename TCoordRep=double>
 class Plane
 {
 public :

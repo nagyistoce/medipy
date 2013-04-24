@@ -2,7 +2,7 @@ file(GLOB files "*.py")
 install_py_files(${files})
 
 wrap_library("MediPyGeometry" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base)
+    set(WRAPPER_LIBRARY_DEPENDS Base Transforms)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon ITKStatistics)
     
     wrap_module("itkPlane")
