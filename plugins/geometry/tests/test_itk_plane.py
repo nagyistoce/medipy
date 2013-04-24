@@ -35,13 +35,13 @@ class TestItkPlane(unittest.TestCase) :
         p1, p2, p3 = (1, 0, 0), (0,1,0), (0,0,1)
         plane = itk.Plane[itk.F](p1, p2, p3)
         
-        numpy.testing.assert_almost_equal(plane.GetDistance((0,0,0)), -(3**0.5)/3)
+        numpy.testing.assert_array_almost_equal(plane.GetDistance((0,0,0)), -(3**0.5)/3)
     
     def test_reflect(self) :
         p1, p2, p3 = (1, 0, 0), (0,1,0), (0,0,1)
         plane = itk.Plane[itk.F](p1, p2, p3)
         
-        numpy.testing.assert_almost_equal(plane.Reflect((0,0,0)), 3*[2./3.])
+        numpy.testing.assert_array_almost_equal(plane.Reflect((0,0,0)), 3*[2./3.])
 
 if __name__ == "__main__" :
     unittest.main()
