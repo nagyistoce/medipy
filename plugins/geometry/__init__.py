@@ -1,3 +1,5 @@
+import symmetry_plane
+
 import os.path
 import medipy.itk
 
