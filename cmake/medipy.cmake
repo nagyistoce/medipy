@@ -1,3 +1,6 @@
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR})
+
+include("cmake/cython.cmake")
 include("cmake/itk.cmake")
 include("cmake/python.cmake")
 include("cmake/vtk.cmake")
