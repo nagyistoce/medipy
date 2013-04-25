@@ -11,7 +11,11 @@ foreach(swig_module ${swig_modules})
     install_swig_python_module(${swig_module})
 endforeach()
 
-# TODO : fiber_clustering.pyx
+find_package(Cython)
+if(CYTHON_FOUND)
+    include(UseCython)
+    medipy_cython_add_module(fiber_clustering fiber_clustering.pyx)
+endif()
 
 # TODO : check ITK filters
 

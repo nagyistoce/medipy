@@ -98,8 +98,8 @@ def fiber_polydata(T,C) :
     """ Construct the vtk polydata 
     """
 
-    clusters_skel = np.ones((len(T),))
-    clusters = np.ones((len(T),))
+    clusters_skel = numpy.ones((len(T),))
+    clusters = numpy.ones((len(T),))
     nb_clusters = len(C.keys())
     flag = False
     if C!={} :
@@ -191,7 +191,7 @@ def streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_t
     return final_fibers,C
 
 
-def streamline_tractography_(model,seeds=None,step=1.0,thr_fa=0.2,thr_angle=np.pi,rk4=False):
+def streamline_tractography_(model,seeds=None,step=1.0,thr_fa=0.2,thr_angle=numpy.pi,rk4=False):
     """ Streamline 2nd order tensor tractography """
 
     if seeds==None :
