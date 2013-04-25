@@ -46,9 +46,9 @@ def spatial_voxel_parameter_estimation(tensor,w_size_plane=3,w_size_depth=3,mask
 
     if mask==None :
         mask = medipy.base.Image(data=np.zeros((1,1,1),dtype=np.single))
-        medipy.diffusion.dtiParamItk(log_tensor,mean,var,mask,w_size_plane,w_size_depth,False)
+        medipy.diffusion.parameter_estimation(log_tensor,mean,var,mask,w_size_plane,w_size_depth,False)
     else :
-        medipy.diffusion.dtiParamItk(log_tensor,mean,var,mask,w_size_plane,w_size_depth,True)
+        medipy.diffusion.parameter_estimation(log_tensor,mean,var,mask,w_size_plane,w_size_depth,True)
     var.data = np.sqrt( var.data/6.0 ) # compute standard deviation
     mean.image_type = "tensor_2"
 

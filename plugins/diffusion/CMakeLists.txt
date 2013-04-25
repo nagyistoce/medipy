@@ -1,9 +1,19 @@
 file(GLOB files "*.py" "gui/*.py")
 install_py_files(${files})
 
-swig_python_module(spectral_analysis spectral_analysis.i spectral_analysis.cpp)
-swig_link_libraries(spectral_analysis ${ITK_LIBS})
-install_swig_python_module(spectral_analysis)
+# The underlying filters are VectorImage->VectorImage, and 
+# itk::ImageToImageFilter is not wrapped for this case. Simple Swig modules are
+# created to solve this.
+set(swig_modules parameter_estimation spectral_analysis)
+foreach(swig_module ${swig_modules})
+    swig_python_module(${swig_module} ${swig_module}.i ${swig_module}.cpp)
+    swig_link_libraries(${swig_module} ${ITK_LIBS})
+    install_swig_python_module(${swig_module})
+endforeach()
+
+# TODO : fiber_clustering.pyx
+
+# TODO : check ITK filters
 
 set(instantiations )
 foreach(type ${WRAP_ITK_REAL})
