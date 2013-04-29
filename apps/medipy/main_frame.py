@@ -142,8 +142,7 @@ class MainFrame(medipy.gui.base.Frame):
         self.SetTitle(wx.GetApp().GetAppName())
         
         # Bind events
-        self.ui.menu_treectrl.Bind(wx.EVT_TREE_SEL_CHANGED, 
-                                   self.OnMenuTreeCtrlSelChanged)
+        self.ui.menu_treectrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.set_function_ui)
         self.ui.image_grid.add_observer("active", self._on_active_image)
         
         # Fill function menu
@@ -358,6 +357,54 @@ class MainFrame(medipy.gui.base.Frame):
         
         entry = "{0}.{1}".format(tool_class.__module__, tool_class.__name__)
         self._preferences.set("Display/Tools/left", entry)
+        
+    def set_function_ui(self, *args, **kwargs) :
+        
+        if isinstance(args[0], wx.Event) :
+            function_or_panel = self.ui.menu_treectrl.GetPyData(evt.GetItem())
+            self.set_function_ui(function_or_panel)
+        else :
+            function_or_panel = args[0]
+            
+            # Destroy existing UI
+            if self._current_ui is not None :
+                if isinstance(self.current_ui, medipy.gui.function_gui_builder.FunctionGUIBuilder) :
+                    self.current_ui.remove_observer("new_image", 
+                        self.on_function_gui_builder_new_image)
+                    self.current_ui.remove_observer("replace_image", 
+                        self.on_function_gui_builder_new_image)
+                
+                if hasattr(self._current_ui, "Close") :
+                    self._current_ui.Close() 
+                self.ui.function_ui_sizer.Clear(True)
+                del self._current_ui
+            
+            # Create UI for current item data
+            if function_or_panel is not None : 
+                if inspect.isfunction(function_or_panel) :
+                    function_gui=medipy.gui.function_gui_builder.FunctionGUIBuilder(
+                        self.ui.function_ui_panel, function_or_panel, self.images, 
+                        wx.GetApp().viewer_3ds, "function_parameters")
+                    if self.images :
+                        for control in function_gui.controls.values() :
+                            if isinstance(control, medipy.gui.control.Coordinates) :
+                                control.image = self.ui.image_grid[self.ui.image_grid.active]
+                    
+                    function_gui.add_observer("new_image", self.on_function_gui_builder_new_image)
+                    function_gui.add_observer("replace_image", self.on_function_gui_builder_replace_image)
+                    
+                    self._current_ui = function_gui
+                    self.ui.function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
+                    self.ui.function_ui_sizer.Layout()
+                else :
+                    ui = function_or_panel(self.ui.function_ui_panel)
+                    if hasattr(ui, "image") and self.images :
+                        ui.image = self.ui.image_grid[self.ui.image_grid.active]
+                    self._current_ui = ui
+                    self.ui.function_ui_sizer.Add(ui, 1, wx.EXPAND)
+                    self.ui.function_ui_sizer.Layout()
+            else : 
+                self._current_ui = None
         
     ##############
     # Properties #
@@ -603,48 +650,7 @@ class MainFrame(medipy.gui.base.Frame):
     
     def OnContrast(self, dummy):
         self.set_image_tool(medipy.gui.image.mouse_tools.WindowLevel)
-    
-    def OnMenuTreeCtrlSelChanged(self, evt):
-        # Destroy existing UI
-        if self._current_ui is not None :
-            if isinstance(self.current_ui, medipy.gui.function_gui_builder.FunctionGUIBuilder) :
-                self.current_ui.remove_observer("new_image", self.on_function_gui_builder_new_image)
-                self.current_ui.remove_observer("replace_image", self.on_function_gui_builder_new_image)
-            
-            if hasattr(self._current_ui, "Close") :
-                self._current_ui.Close() 
-            self.ui.function_ui_sizer.Clear(True)
-            del self._current_ui
         
-        # Create UI for current item data
-        item_data = self.ui.menu_treectrl.GetPyData(evt.GetItem())
-        if item_data is not None : 
-            if inspect.isfunction(item_data) :
-                function = item_data
-                function_gui=medipy.gui.function_gui_builder.FunctionGUIBuilder(
-                    self.ui.function_ui_panel, function, self.images, 
-                    wx.GetApp().viewer_3ds, "function_parameters")
-                if self.images :
-                    for control in function_gui.controls.values() :
-                        if isinstance(control, medipy.gui.control.Coordinates) :
-                            control.image = self.ui.image_grid[self.ui.image_grid.active]
-                
-                function_gui.add_observer("new_image", self.on_function_gui_builder_new_image)
-                function_gui.add_observer("replace_image", self.on_function_gui_builder_replace_image)
-                
-                self._current_ui = function_gui
-                self.ui.function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
-                self.ui.function_ui_sizer.Layout()
-            else :
-                ui = item_data(self.ui.function_ui_panel)
-                if hasattr(ui, "image") and self.images :
-                    ui.image = self.ui.image_grid[self.ui.image_grid.active]
-                self._current_ui = ui
-                self.ui.function_ui_sizer.Add(ui, 1, wx.EXPAND)
-                self.ui.function_ui_sizer.Layout()
-        else : 
-            self._current_ui = None
-    
     def OnCrosshairFull(self, dummy):
         self.crosshair = "full"
     
