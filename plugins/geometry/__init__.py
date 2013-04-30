@@ -1,3 +1,4 @@
+import origin
 import symmetry_plane
 
 import os.path
