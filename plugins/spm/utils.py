@@ -26,7 +26,9 @@ def find(matlab=None, matlab_path=None):
     if matlab_path :
         script = "addpath({0});".format(matlab_path)+script
 
-    command = [matlab or "matlab", "-r", script]
+    command = [matlab or "matlab", 
+               "-nodisplay", "-nosplash", "-nojvm", 
+               "-r", script]
     
     try :
         process = subprocess.Popen(command, stdout=subprocess.PIPE)
