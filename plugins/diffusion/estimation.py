@@ -11,11 +11,20 @@ import medipy.itk
 import medipy.base
 import numpy as np
 
-def least_squares(limages,accu):
+def least_squares(limages, accu="First"):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
         in the list) and a set of float diffusion weighted images (on shell, 
-        i.e. one bval).
+        i.e. one bval). The ``accu`` parameter is used to specify the way to
+        estimate the tensor on series containing serveral accumulation ; it can
+        take following values : 
+        
+        * ``"First"`` (default value) : the first image with a b-value of 0 is
+          used as a reference image.
+        * ``"Mean"`` : the mean of all images with a b-value of 0 is computed
+          and used as a reference image.
+        * ``"Overall Mean"`` : the gradients directions are paired over all 
+          accumulations, and the mean images are computed for all directions.
         
         All images must have the same shape and the same dtype, and must 
         contain diffusion metadata.

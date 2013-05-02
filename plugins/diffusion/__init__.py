@@ -10,3 +10,5 @@ from spectral_analysis import spectral_analysis
 import scalars
 import tractography
 import utils
+
+__all__ = ["spectral_analysis"]
