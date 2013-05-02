@@ -35,7 +35,9 @@ def least_squares(limages,accu):
     images = [x.astype(x.dtype) for x in limages]
 
     # reference must be at the begining of the diffusion images list
-    bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue for image in images]
+    bval = [
+        image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value 
+        for image in images]
     if 0 in bval :
         nb_ref = bval.count(0)
         argb = np.argsort(bval)
@@ -104,7 +106,8 @@ def least_squares(limages,accu):
         InputImage, OutputImage]
     
     estimation_filter = EstimationFilter.New()
-    estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value)
+    estimation_filter.SetBVal(float(
+        images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value))
     for cnt,image in enumerate(images) :
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         estimation_filter.SetInput(cnt,itk_image)
