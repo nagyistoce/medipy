@@ -6,6 +6,7 @@ The following sub-modules are also documented :
 .. toctree::
     
     estimation
+    scalars
 
 ----
 
