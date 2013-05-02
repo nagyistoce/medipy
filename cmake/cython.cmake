@@ -4,10 +4,9 @@ if(CYTHON_FOUND)
     
     function(medipy_cython_add_module _name )
         cython_add_module(${_name} ${ARGN})
-
-        file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
-        get_filename_component(destination ${destination} PATH)
-        set_target_properties(${_name} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${destination})
+        # Install the module in the same directory as its source file
+        set_target_properties(${_name} 
+            PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endfunction()
 
 endif()
