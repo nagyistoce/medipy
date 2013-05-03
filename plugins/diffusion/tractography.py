@@ -14,7 +14,6 @@ from medipy.base import Object3D
 import medipy.itk
 
 import fiber_clustering
-from utils import length, generate_image_sampling
 
 def streamline_tractography_gui(model,*args,**kwargs) :
     """ Streamline 2nd order tensor tractography 
@@ -154,9 +153,9 @@ def streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_t
         seed_spacing = 2.0*model.spacing
 
     if mask==None :
-        seeds = generate_image_sampling(model,step=seed_spacing)
+        seeds = _generate_image_sampling(model,step=seed_spacing)
     else :
-        seeds = generate_image_sampling(model,step=seed_spacing,mask=mask)
+        seeds = _generate_image_sampling(model,step=seed_spacing,mask=mask)
     ndim = len(model.shape)
 
     tractography_filter = itk.StreamlineTractographyAlgorithm[itk.VectorImage[itk.F,ndim], itk.Image[itk.F,ndim]].New()
@@ -181,7 +180,7 @@ def streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_t
 
     final_fibers = []
     for fiber in fibers :
-        if length(fiber,step)>=thr_length :
+        if _length(fiber,step)>=thr_length :
             final_fibers.append(fiber)
 
     C = {}
@@ -195,7 +194,7 @@ def streamline_tractography_(model,seeds=None,step=1.0,thr_fa=0.2,thr_angle=nump
     """ Streamline 2nd order tensor tractography """
 
     if seeds==None :
-            seeds = generate_image_sampling(model,step=(1,1,1))
+            seeds = _generate_image_sampling(model,step=(1,1,1))
     print len(seeds)
 
     tractography_filter = itk.StreamlineTractographyAlgorithm[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
@@ -225,7 +224,7 @@ def save_fibers(fibers,fout,step=None,thr_length=0.0,ensemble=1) :
 
     for fiber in fibers :
 
-        if length(fiber,step)>=thr_length :
+        if _length(fiber,step)>=thr_length :
             nb_points = fiber.shape[0]
             scalars = vtk.vtkFloatArray()
             points= vtk.vtkPoints()
@@ -249,3 +248,38 @@ def save_fibers(fibers,fout,step=None,thr_length=0.0,ensemble=1) :
     writer.SetFileName(fout)
     writer.SetInput(fusion.GetOutput())
     writer.Update()
+
+def _generate_image_sampling(image,step=(1,1,1),mask=None) :
+    """ Generate seeds to init tractographu
+    step is expressed in mm
+    """
+
+    spacing = image.spacing
+    shape = image.shape*spacing
+    origin = image.origin[::-1]
+    Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
+    X = X.flatten()
+    Y = Y.flatten()
+    Z = Z.flatten()
+    seeds = []
+    if mask==None :
+        for i,j,k in zip(X,Y,Z) :
+            seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
+    else :
+        for i,j,k in zip(X,Y,Z) :
+            point = np.cast[int](np.floor(np.array([k,j,i])/spacing))
+            if mask[tuple(point)]==1 :
+                seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
+    return np.asarray(seeds)
+
+def _length(xyz, constant_step=None):
+    """ Euclidean length of track line in mm 
+    """
+    if constant_step==None :
+        if xyz.shape[0] < 2 :
+            return 0
+        else :
+            dists = np.sqrt((np.diff(xyz, axis=0)**2).sum(axis=1))
+            return np.sum(dists)
+    else :
+        return (xyz.shape[0]-1)*constant_step

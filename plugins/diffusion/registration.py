@@ -12,13 +12,10 @@ import itertools
 import numpy
 from scipy import ndimage
 import medipy.medimax.recalage
-from medipy.diffusion.utils import gradient_itk, invert_itk, spectral_decomposition, compose_spectral, log_transformation, exp_transformation
+from medipy.diffusion.utils import spectral_decomposition, compose_spectral, log_transformation, exp_transformation
 import medipy.base
 import medipy.io
 from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
-
-
-
 
 ############
 # Fiber
@@ -199,7 +196,7 @@ def ppd_tensor_trf(model_wrap,F) :
     # delV: ref->wrap
     # I1(p1)-A->I2(p2)
     # T1(p1)-A-1->I1(p1)
-    A = invert_itk(numpy.ascontiguousarray(A))
+    A = _invert_itk(numpy.ascontiguousarray(A))
 
     # apply PPD
     return ppd(model_wrap,A)
@@ -287,39 +284,38 @@ def jacobian_from_trf_field(trf_field):
     J = numpy.zeros(trf_field.shape+(3,3),dtype=numpy.single)
 
     # compute Jx <- dx
-    g = gradient_itk(trf_field[...,0])
+    g = _gradient_itk(trf_field[...,0])
     J[...,0,0] = g[...,0] #df1/dx
     J[...,0,1] = g[...,1] #df1/dy
     J[...,0,2] = g[...,2] #df1/dz
     # compute Jy <- dy
-    g = gradient_itk(trf_field[...,1])
+    g = _gradient_itk(trf_field[...,1])
     J[...,1,0] = g[...,0]
     J[...,1,1] = g[...,1]
     J[...,1,2] = g[...,2]
     # compute Jz <- dz
-    g = gradient_itk(trf_field[...,2])
+    g = _gradient_itk(trf_field[...,2])
     J[...,2,0] = g[...,0]
     J[...,2,1] = g[...,1]
     J[...,2,2] = g[...,2]
 
     return J
 
+def _gradient_itk(im):
+    """ Compute the gradient of an image
+    """
+    im_i = medipy.base.Image(data=np.ascontiguousarray(im), data_type="scalar")
+    grad = medipy.base.Image(data=np.zeros(im.shape+(3,),dtype=np.single), data_type="vector")
+    medipy.diffusion.itkutils.gradient(im_i,grad)
 
-if __name__ == '__main__':
+    return grad
 
-    fdata1 = "/home/grigis/data/SOM/01/data_fsl_eddy.nii.gz"
-    fdata2 = "/home/grigis/data/SOM/02/data_fsl_eddy.nii.gz"
-    ftrf = "/home/grigis/data/SOM/affnl.trf"
+def _invert_itk(M):
+    """ Invert 3 by 3 Matrix at each voxel of M 
+    """
+    M = M.reshape(M.shape[:3]+(9,))
+    M_i = medipy.base.Image(data=M, data_type="vector")
+    medipy.diffusion.dtiInvMatrix(M_i)
+    M = M_i.data.reshape(M.shape[:3]+(3,3))
 
-    images2 = medipy.io.io.load_serie(fdata2)
-    model2 = ls_SecondOrderSymmetricTensorEstimation_(images2)
-
-    imgEigVal,imgEigVec = spectral_decomposition(model2)
-    imgEigVec.data = imgEigVec.data.reshape(imgEigVec.shape+(3,3))
-    t2 = compose_spectral(imgEigVec,imgEigVal)
-
-    images1 = medipy.io.io.load_serie(fdata1)
-    model1 = ls_SecondOrderSymmetricTensorEstimation_(images1)
-
-    model2_registered = apply_tensor_trf(model1,model2,ftrf)
-
+    return M

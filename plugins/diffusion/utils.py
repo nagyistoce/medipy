@@ -13,7 +13,8 @@
 import numpy as np
 import medipy.base
 
-from spectral_analysis import spectral_analysis
+import itkutils
+import spectral_analysis
 
 def log_transformation(dt6,epsi=1e-5) :
     """ Compute Log tensors
@@ -32,105 +33,25 @@ def exp_transformation(dt6) :
     imgEigVal.data = np.exp(imgEigVal.data)
     return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal),origin=dt6.origin,spacing=dt6.spacing,direction=dt6.direction,data_type="vector",image_type="tensor_2")
 
-def gradient_itk(im):
-    """ Compute the gradient of an image
+def spectral_decomposition(image):
+    """ Spectral decomposition of a DTI image. Return the eigenvalues and 
+        eigenvectors of the tensor field.
     """
-    im_i = medipy.base.Image(data=np.ascontiguousarray(im), data_type="scalar")
-    grad = medipy.base.Image(data=np.zeros(im.shape+(3,),dtype=np.single), data_type="vector")
-    medipy.diffusion.gradient(im_i,grad)
+    
+    shape = image.shape
 
-    return grad
-
-def invert_itk(M):
-    """ Invert 3 by 3 Matrix at each voxel of M 
-    """
-    M = M.reshape(M.shape[:3]+(9,))
-    M_i = medipy.base.Image(data=M, data_type="vector")
-    medipy.diffusion.dtiInvMatrix(M_i)
-    M = M_i.data.reshape(M.shape[:3]+(3,3))
-
-    return M
-
-def generate_image_sampling(image,step=(1,1,1),mask=None) :
-    """ Generate seeds to init tractographu
-    step is expressed in mm
-    """
-
-    spacing = image.spacing
-    shape = image.shape*spacing
-    origin = image.origin[::-1]
-    Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
-    X = X.flatten()
-    Y = Y.flatten()
-    Z = Z.flatten()
-    seeds = []
-    if mask==None :
-        for i,j,k in zip(X,Y,Z) :
-            seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
-    else :
-        for i,j,k in zip(X,Y,Z) :
-            point = np.cast[int](np.floor(np.array([k,j,i])/spacing))
-            if mask[tuple(point)]==1 :
-                seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
-    return np.asarray(seeds)
-
-def length(xyz, constant_step=None):
-    """ Euclidean length of track line in mm 
-    """
-    if constant_step==None :
-        if xyz.shape[0] < 2 :
-            return 0
-        else :
-            dists = np.sqrt((np.diff(xyz, axis=0)**2).sum(axis=1))
-            return np.sum(dists)
-    else :
-        return (xyz.shape[0]-1)*constant_step
-
-
-
-def voxel_parameters(tensor,w_size_plane=3,w_size_depth=3,mask=None):
-    shape = tensor.shape
-    mean = medipy.base.Image(data=np.zeros(shape[:3]+(6,),dtype=np.single),data_type="vector")
-    var = medipy.base.Image(data=np.zeros(shape[:3]+(1,),dtype=np.single),data_type="vector")
-    if mask==None :
-        mask = medipy.base.Image(data=np.zeros((1,1,1),dtype=np.single))
-        medipy.diffusion.parameter_estimation(tensor,mean,var,mask,w_size_plane,w_size_depth,False)
-    else :
-        medipy.diffusion.parameter_estimation(tensor,mean,var,mask,w_size_plane,w_size_depth,True)
-    var.data = np.sqrt( var.data/6.0 ) # compute standard deviation
-
-    return mean,var,w_size_plane*w_size_plane*w_size_depth
-
-
-def spectral_decomposition(slice_tensor):
-    shape = slice_tensor.shape
-
-    eigVal = medipy.base.Image(data=np.zeros(shape+(3,),dtype=np.single),data_type="vector")
+    eigVal = medipy.base.Image(data=np.zeros(shape+(3,),dtype=image.dtype),
+                               data_type="vector")
     eigVal_itk = medipy.itk.medipy_image_to_itk_image(eigVal, False)
     
-    eigVec = medipy.base.Image(data=np.zeros(shape+(9,),dtype=np.single),data_type="vector")
+    eigVec = medipy.base.Image(data=np.zeros(shape+(9,),dtype=image.dtype),
+                               data_type="vector")
     eigVec_itk = medipy.itk.medipy_image_to_itk_image(eigVec, False)
     
-    itk_tensors = medipy.itk.medipy_image_to_itk_image(slice_tensor, False)
-    spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
+    itk_tensors = medipy.itk.medipy_image_to_itk_image(image, False)
+    spectral_analysis.spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
 
     return eigVal,eigVec
-
-
-
-def decompose_tensor(tensor):
-    #outputs multiplicity as well so need to unique
-    eigenvals, eigenvecs = np.linalg.eig(tensor)
-
-    #need to sort the eigenvalues and associated eigenvectors
-    order = eigenvals.argsort()[::-1]
-    eigenvecs = eigenvecs[:, order]
-    eigenvals = eigenvals[order]
-
-    #Forcing negative eigenvalues to 0
-    eigenvals = np.maximum(eigenvals, 0)
-
-    return eigenvals, eigenvecs
 
 def dti6to33(dt6):
     """ Full second order symmetric tensor from the six independent components.
