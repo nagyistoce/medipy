@@ -1,10 +1,36 @@
-##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg
-# Distributed under the terms of the CeCILL-B license, as published by
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
-# for details.
-##########################################################################
+# This file contains code from DiPy (http://nipy.sourceforge.net/dipy/index.html),
+# released under the following license.
+#
+# Copyright (c) 2009-2010, dipy developers
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+# 
+#     * Redistributions of source code must retain the above copyright
+#        notice, this list of conditions and the following disclaimer.
+# 
+#     * Redistributions in binary form must reproduce the above
+#        copyright notice, this list of conditions and the following
+#        disclaimer in the documentation and/or other materials provided
+#        with the distribution.
+# 
+#     * Neither the name of the dipy developers nor the names of any
+#        contributors may be used to endorse or promote products derived
+#        from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cimport cython
 
@@ -195,18 +221,6 @@ def length(xyz, along=False):
         return np.cumsum(dists)
     return np.sum(dists)
 
-
-
-
-
-
-
-
-
-
-
-
-
 def most_similar_track_mam(tracks,metric='avg'):    
     ''' Find the most similar track in a bundle 
     using distances calculated from Zhang et. al 2008. 
@@ -395,24 +409,6 @@ cdef inline void min_distances(size_t t1_len,
         min_t1t2[t1_pi]=sqrt(min_t1t2[t1_pi])
     for t2_pi from 0<= t2_pi < t2_len:
         min_t2t1[t2_pi]=sqrt(min_t2t1[t2_pi])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def cut_plane(tracks,ref):
     ''' Extract divergence vectors and points of intersection 
@@ -618,26 +614,6 @@ cdef inline void cnormalized_3vec(float *vec_in, float *vec_out):
     for i in range(3):
         vec_out[i] = vec_in[i] / norm
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def mam_distances(xyz1,xyz2,t,metric='all'):
     ''' Min/Max/Mean Average Minimume Distance between tracks xyz1 and xyz2
     
@@ -725,7 +701,3 @@ def mam_distances(xyz1,xyz2,t,metric='all'):
         return np.max((mean_t2t1,mean_t1t2))
     else :
         ValueError('Wrong argument for metric')
-
-
-
-        
