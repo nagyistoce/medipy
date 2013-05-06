@@ -28,6 +28,8 @@ wrap_library("MediPyDiffusion" python)
     set(WRAPPER_LIBRARY_DEPENDS Base IO)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
     
+    find_swig_library_files("TractographyAlgorithm")
+    
     # IO : (no input) -> VectorImage
     foreach(filter "Tensor2ImageFileReader" "Tensor2ImageFileWriter")
         wrap_module("itk${filter}")
