@@ -26,7 +26,7 @@ namespace itk
  *   ISBI 2011, p. 285--288
  *   DOI: 10.1109/ISBI.2011.5872407
  */
-template<typename TInputImage, typename TCoordRep=float>
+template<typename TInputImage, typename TCoordRep=double>
 class SymmetryPlaneCalculator : public Object
 {
 public:

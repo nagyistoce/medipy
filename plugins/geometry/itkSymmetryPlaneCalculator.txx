@@ -11,6 +11,7 @@
 
 #include "itkSymmetryPlaneCalculator.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include <itkBinaryThresholdImageFilter.h>
@@ -130,7 +131,10 @@ SymmetryPlaneCalculator<TInputImage, TCoordRep>
         binary_image->TransformPhysicalPointToIndex(p3, i3);
         
         // Find the two indices in i1 which are equal to 0 (or very close)
-        // Use the other one as the fixed index
+        // Use the other one as the fixed index. Initialize the values to avoid
+        // a compile-time warning.
+        fixed_index_min = 0;
+        fixed_index_max = 1;
         for(unsigned d1=0; d1<TInputImage::ImageDimension; ++d1)
         {
             bool largest=true;
@@ -185,7 +189,6 @@ SymmetryPlaneCalculator<TInputImage, TCoordRep>
     
     for(int fixed_index=fixed_index_min; fixed_index<fixed_index_max; ++fixed_index)
     {
-#ifdef _OPENMP
         // OpenMP does not allow float variables for parallel loops, let's
         // pre-compute them
         std::vector<float> v3_values;
@@ -193,7 +196,6 @@ SymmetryPlaneCalculator<TInputImage, TCoordRep>
         {
             v3_values.push_back(v3);
         }
-#endif
 
         // Move first point
         for(float v1=v1_min[fixed_index]; v1<v1_max[fixed_index]; v1+=voxelStep)
@@ -220,18 +222,12 @@ SymmetryPlaneCalculator<TInputImage, TCoordRep>
                 p2[index] = region.GetIndex()[index];
                 
                 // Move third point, using the previously-computed array of 
-                // values when compiling with OpenMP
-#ifdef _OPENMP
+                // values
                 #pragma omp parallel for shared(best_plane, best_metric)
-                for(int i=0; i<v3_values.size(); ++i)
+                for(unsigned int i=0; i<v3_values.size(); ++i)
                 {
-                    float const v3 = v3_values[i];
-#else
-                for(float v3=v3_min[fixed_index]; v3<v3_max[fixed_index]; v3+=voxelStep)
-                {
-#endif
                     typename BinaryImageType::PointType p3;
-                    p3[fixed_index] = v3;
+                    p3[fixed_index] = v3_values[i];
                     
                     int index = (fixed_index+1)%3;
                     p3[index] = region.GetIndex()[index]+region.GetSize()[index]-1;

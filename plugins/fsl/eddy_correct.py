@@ -22,7 +22,7 @@ class EddyCorrect(FSLTool):
 
     def __init__(self, input=None, reference_no=None, *args, **kwargs):
         
-        super(EDDY, self).__init__(*args, **kwargs)
+        FSLTool.__init__(self, *args, **kwargs)
         
         self.input = input
         base_name = os.path.splitext(self.input)[0]
