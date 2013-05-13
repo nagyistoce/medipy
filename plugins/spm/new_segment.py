@@ -30,20 +30,23 @@ class NewSegment(Tool):
     
     class Channel(Tool.Config):
         """ Processing channel (e.g. T1 or PD), containing
-              * Volumes
-              * Bias regularisation ; usual values are 
-                * 0 (no regularisation),
-                * 0.00001 (extremely light regularisation)
-                * 0.0001 (very light regularisation)
-                * 0.001 (light regularisation)
-                * 0.01 (medium regularisation
-                * 0.1 (heavy regularisation)
-                * 1 (very heavy regularisation)
-                * 10 (extremely heavy regularisation)
-              * Bias FWHM in mm ; usual values are 30-150 in 10 mm steps, or 
-                infinity
-              * Save Bias Corrected ; options to save the bias field and the
-                bias-corrected image
+        
+            * Volumes
+            * Bias regularisation ; usual values are 
+              
+              * 0 (no regularisation),
+              * 0.00001 (extremely light regularisation)
+              * 0.0001 (very light regularisation)
+              * 0.001 (light regularisation)
+              * 0.01 (medium regularisation
+              * 0.1 (heavy regularisation)
+              * 1 (very heavy regularisation)
+              * 10 (extremely heavy regularisation)
+
+            * Bias FWHM in mm ; usual values are 30-150 in 10 mm steps, or 
+              infinity
+            * Save Bias Corrected ; options to save the bias field and the
+              bias-corrected image
         """
         
         def __init__(self, vols=None, biasreg=0.0001, biasfwhm=60, 
@@ -67,12 +70,13 @@ class NewSegment(Tool):
     
     class Tissue(Tool.Config):
         """ Tissue class, containing :
-              * Tissue probability map
-              * Number of gaussians
-              * Native space ; options to save the tissue class image in the
-                original or DARTEL imported space
-              * Warped Tissue ; options to the the tissue class image in the
-                normalized space, with and without modulation
+        
+            * Tissue probability map
+            * Number of gaussians
+            * Native space ; options to save the tissue class image in the
+              original or DARTEL imported space
+            * Warped Tissue ; options to the the tissue class image in the
+              normalized space, with and without modulation
         """
         
         def __init__(self, tpm, ngaus=2, save_native=True, save_dartel=False,
@@ -101,15 +105,18 @@ class NewSegment(Tool):
     
     class Warp(Tool.Config):
         """ Warping options, containing :
-              * Warping regularisation
-              * Affine regularisation ; can be 
-                * ICBM space template - European brains ("mni")
-                * ICBM space template - East Asian brains ("eastern")
-                * Average sized template ("subj")
-                * No regularisation ("none")
-              * Sampling distance
-              * Deformation field writing, where the forward field normalises
-                an image to the MNI space
+        
+            * Warping regularisation
+            * Affine regularisation ; can be 
+
+              * ICBM space template - European brains ("mni")
+              * ICBM space template - East Asian brains ("eastern")
+              * Average sized template ("subj")
+              * No regularisation ("none")
+
+            * Sampling distance
+            * Deformation field writing, where the forward field normalises
+              an image to the MNI space
         """
         
         def __init__(self, reg=4, affreg="mni", samp=3, 

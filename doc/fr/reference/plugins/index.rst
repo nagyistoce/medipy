@@ -8,4 +8,5 @@ Liste des plugins :
     :maxdepth: 3
 
     fsl
+    spm
     torque
