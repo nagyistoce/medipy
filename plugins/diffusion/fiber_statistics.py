@@ -1,10 +1,10 @@
 
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import medipy.base
@@ -490,37 +490,3 @@ def cut_polydata(hits) :
   
     glyph.Update()
     return glyph.GetOutput()
-
-
-
-if __name__ == '__main__':
-    import itk
-    import vtk
-    import medipy.diffusion
-    import tensor
-    from medipy.base import Image
-
-    cutoff = 14
-    pv_thr = 0.90
-    spacing = (1,1,1)
-    data = np.zeros((10,10,10,6),dtype=np.single)
-    data[:,:,:] = (10,0,0,1,0,1)
-    model = Image(data=data,spacing=spacing,data_type="vector")
-    T,C = tensor.streamline_tractography(model,step=1.0,thr_fa=0.2,thr_angle=np.pi,thr_length=0,propagation_type="Euler",clustering_type="Fast",thr_clustering=1)
-    tensor.skeleton(T,C)
-    print "nb fibre =", len(T)
-    print "nb cluster =", len(C)
-
-    C_hits = bundle_cross_sections(T,C,nb_samples=None)
-    N_hits = bundle_cross_sections_voxel(C_hits,spacing,cutoff,pv_thr)
-    print "\nnb hits =", len(C_hits), len(N_hits)
-    print "nb cuts =", len(C_hits[0]['indices']), len(N_hits[0]['indices'])
-
-    dataset = tensor.fiber_polydata(T,C)
-    cut_dataset = cut_polydata(C_hits)
-
-    writer = vtk.vtkPolyDataWriter()
-    writer.SetFileName("/home/grigis/Bureau/fibers_test.vtk")
-    writer.SetInput(cut_dataset)
-    writer.Update()
-
