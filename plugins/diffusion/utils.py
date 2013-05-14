@@ -16,6 +16,28 @@ import medipy.base
 import itkutils
 import spectral_analysis
 
+def get_diffusion_information(image) :
+    """ Return the diffusion information from the ``image`` metadata. The 
+        diffusion information is a dictionary and may contain the following keys :
+        
+        * ``"diffusion_bvalue"``
+        * ``"diffusion_gradient_orientation"``
+    """
+    
+    result = {}
+    if "mr_diffusion_sequence" in image.metadata :
+        mr_diffusion = image.metadata["mr_diffusion_sequence"][0]
+        if "diffusion_bvalue" in mr_diffusion :
+            result["diffusion_bvalue"] = mr_diffusion.diffusion_bvalue.value
+        if "diffusion_gradient_direction_sequence" in mr_diffusion :
+            diffusion_gradient_direction = mr_diffusion.\
+                diffusion_gradient_direction_sequence.value[0]
+            if "diffusion_gradient_orientation" in diffusion_gradient_direction :
+                result["diffusion_gradient_orientation"] = \
+                    diffusion_gradient_direction.diffusion_gradient_orientation.value
+    
+    return result
+
 def log_transformation(dt6,epsi=1e-5) :
     """ Compute Log tensors
     """
