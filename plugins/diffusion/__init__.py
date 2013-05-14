@@ -9,5 +9,3 @@ import io
 import scalars
 import tractography
 import utils
-
-__all__ = ["spectral_analysis"]
