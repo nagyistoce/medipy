@@ -13,264 +13,235 @@ import vtk
 from medipy.base import Object3D 
 import medipy.itk
 
-import fiber_clustering
+from fiber_clustering import local_skeleton_clustering, most_similar_track_mam
 
-def streamline_tractography_gui(model,*args,**kwargs) :
-    """ Streamline 2nd order tensor tractography 
-
-    <gui>
-        <item name="model" type="Image" label="Input"/>
-        <item name="step" type="Float" initializer="0.5" label="Propagation step"/>
-        <item name="seed_spacing" type="Float" initializer="1.0" label="Seeds spacing (mm)"/>
-        <item name="thr_fa" type="Float" initializer="0.2" label="FA threshold"/>
-        <item name="thr_angle" type="Float" initializer="1.04" label="Angle threshold"/>
-        <item name="thr_length" type="Float" initializer="50.0" label="Length threshold"/>
-        <item name="thr_clustering" type="Float" initializer="20.0" label="Threshold in clustering"/>
-        <item name="propagation_type" type="Enum" initializer="('Euler', 'Runge Kutta 4')" label="Choose propagation order"/>
-        <item name="clustering_type" type="Enum" initializer="('None', 'Fast')" label="Choose the clustering strategy"/>
-        <item name="output" type="Object3D" role="return" label="Output"/>
-    </gui>
+def streamline(model, step=0.5, minimum_fa=0.2, maximum_angle=numpy.pi/3, 
+               minimum_length=50, propagation_type="Euler", seed_spacing=None, 
+               mask=None) :
+    """ Deterministic streamline propagation algorithm, return a list of tracks,
+        where a track is a list of points in physical coordinates.
+    
+        * ``model`` : tensor field
+        * ``step`` : propagation step
+        * ``minimum_fa`` : minimum fractional anisotropy value allowed for
+          propagation
+        * ``maximum_angle`` : minimum angle value (in radians) allowed for
+          propagation
+        * ``minimum_length`` : minimum fiber length, in physical units
+        * ``propagation_type`` : propagation criterion, may be either ``"Euler"``
+          or ``"RungeKuttaOrder4"``
+        * ``seed_spacing`` : spacing between seeds in physical units, defaults
+          to ``2*model.spacing``
+        * ``mask`` : optional mask to restrict seeding
     """
 
-    step = kwargs['step']
-    thr_fa = kwargs['thr_fa']
-    thr_angle = kwargs['thr_angle']
-    thr_length = kwargs['thr_length']
-    propagation_type = kwargs['propagation_type']
-    clustering_type = kwargs['clustering_type']
-    thr_clustering = kwargs['thr_clustering']
-    seed_spacing = kwargs['seed_spacing']
+    if seed_spacing is None : 
+        seed_spacing = model.ndim*(2.0,)
+    seeds = _generate_image_sampling(model, seed_spacing, mask)
 
-    T,C = streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering,(seed_spacing,seed_spacing,seed_spacing))
-    vtk_polydata = fiber_polydata(T,C)
-    output = Object3D(vtk_polydata,"Streamline Tractography")
+    itk_model = medipy.itk.medipy_image_to_itk_image(model, False)
 
-    return output
+    ScalarImage = itk.Image[itk.template(itk_model)[1]]
+    tractography_filter = itk.StreamlineTractographyAlgorithm[
+        itk_model, ScalarImage].New()
+    
+    tractography_filter.SetInputModel(itk_model)
+    for seed in seeds:
+        tractography_filter.AppendSeed(seed[::-1])
+    tractography_filter.SetStepSize(step)
+    tractography_filter.SetUseRungeKuttaOrder4(propagation_type=="RungeKuttaOrder4")
+    tractography_filter.SetMaximumAngle(maximum_angle)
+    tractography_filter.SetMinimumFA(minimum_fa)
+    
+    tractography_filter.Update()
 
-def skeleton_gui(model,*args,**kwargs) :
-    """ Skeleton of the white matter fibersStreamline 2nd order tensor tractography 
+    fibers = []
+    for i in range(tractography_filter.GetNumberOfFibers()) :
+        fiber = tractography_filter.GetOutputFiberAsPyArray(i)
+        if _length(fiber,step)>=minimum_length :
+            fibers.append(fiber)
+    
+    return fibers
 
-    <gui>
-        <item name="model" type="Image" label="Input"/>
-        <item name="step" type="Float" initializer="0.5" label="Propagation step"/>
-        <item name="seed_spacing" type="Float" initializer="1.0" label="Seeds spacing (mm)"/>
-        <item name="thr_fa" type="Float" initializer="0.2" label="FA threshold"/>
-        <item name="thr_angle" type="Float" initializer="1.04" label="Angle threshold"/>
-        <item name="thr_length" type="Float" initializer="50.0" label="Length threshold"/>
-        <item name="thr_clustering" type="Float" initializer="20.0" label="Threshold in clustering"/>
-        <item name="propagation_type" type="Enum" initializer="('Euler', 'Runge Kutta 4')" label="Choose propagation order"/>
-        <item name="clustering_type" type="Enum" initializer="('Fast',)" label="Choose the clustering strategy"/>
-        <item name="output" type="Object3D" role="return" label="Output"/>
-    </gui>
+def skeleton(fibers, clusters, metric="avg") :
+    """ Update each cluster with its skeleton, i.e. the most similar fiber it
+        contains. 
     """
 
-    step = kwargs['step']
-    thr_fa = kwargs['thr_fa']
-    thr_angle = kwargs['thr_angle']
-    thr_length = kwargs['thr_length']
-    propagation_type = kwargs['propagation_type']
-    clustering_type = kwargs['clustering_type']
-    thr_clustering = kwargs['thr_clustering']
-    seed_spacing = kwargs['seed_spacing']
+    for cluster in clusters.values():
+        bundle = [fibers[index] for index in cluster['indices']]
+        skeleton_index = most_similar_track_mam(bundle, metric)[0]
+        cluster['skel'] = cluster['indices'][skeleton_index]
 
-    T,C = streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering,(seed_spacing,seed_spacing,seed_spacing))
-    skeleton(T,C)
-    vtk_polydata = fiber_polydata(T,C)
-    output = Object3D(vtk_polydata,"Fiber Skeleton")
-
-    return output
-
-def skeleton(T,C) :
-    """ Skeleton of the white matter fibersStreamline 2nd order tensor tractography 
+def create_object_3d(fibers, clusters=None) :
+    """ Build an :class:`~medipy.base.Object3D` containing the ``fibers``. If 
+        ``clusters`` is not ``None``, it must be a dictionary mapping the index
+        of a cluster to the cluster information (TODO : describe this structure).
+        If the clusters information is available the point data of the Object3D
+        will have scalar field called ``"cluster"`` ; this field will contain 
+        the index of the cluster which the fiber belongs to. 
     """
-
-    for key in C.keys():
-        N = C[key]['N']
-        bundle_indices = C[key]['indices']
-        B = []
-        for indice in bundle_indices:
-            B.append(T[indice])
-        s,si = medipy.diffusion.fiber_clustering.most_similar_track_mam(B,metric='avg') 
-        C[key]['skel'] = bundle_indices[s]  
-
-def fiber_polydata(T,C) : 
-    """ Construct the vtk polydata 
-    """
-
-    clusters_skel = numpy.ones((len(T),))
-    clusters = numpy.ones((len(T),))
-    nb_clusters = len(C.keys())
-    flag = False
-    if C!={} :
-        flag = 'skel' in C[C.keys()[0]].keys()
-    for cnt,c in enumerate(C.keys()) :
-        indices = C[c]['indices']
-        for i in indices :
-            clusters[i] = float(cnt)/ float(nb_clusters)  
-    if flag :
-        for cnt,c in enumerate(C.keys()) :
-            indice = C[c]['skel']
-            clusters_skel[indice] = 0.0
+    
+    if clusters :
+        fiber_to_cluster_id = {}
+        skeleton_fibers = set()
+        have_skeleton = False
+        for cluster_id, cluster_info in clusters.items() :
+            for fiber_index in cluster_info["indices"] :
+                fiber_to_cluster_id[fiber_index] = cluster_id
+            if "skel" in cluster_info :
+                have_skeleton = True
+                skeleton_fibers.add(cluster_info["skel"])
 
     fusion = vtk.vtkAppendPolyData()
 
-    for cluster,cluster_skel,fiber in zip(clusters,clusters_skel,T) :
+    for fiber_index, fiber in enumerate(fibers) :
         nb_points = fiber.shape[0]
-        scalars = vtk.vtkFloatArray()
-        scalars.SetName("cluster")
-        scalars_skel = vtk.vtkFloatArray()
-        scalars_skel.SetName("skeleton")
+        
+        if clusters :
+            cluster = vtk.vtkFloatArray()
+            cluster.SetName("cluster")
+            
+            skeleton = vtk.vtkFloatArray()
+            skeleton.SetName("skeleton")
+        
         points= vtk.vtkPoints()
         line = vtk.vtkCellArray()
         line.InsertNextCell(nb_points)
-
         for i in range(nb_points):
-            z,y,x = fiber[i]
-            points.InsertPoint(i,(x,y,z))
-            scalars.InsertTuple1(i,cluster)
-            scalars_skel.InsertTuple1(i,cluster_skel)
+            points.InsertPoint(i, fiber[i][::-1])
             line.InsertCellPoint(i)
+            if clusters :
+                cluster.InsertTuple1(i, fiber_to_cluster_id[fiber_index])
+                skeleton.InsertTuple1(i, 0 if fiber_index in skeleton_fibers else 1)
 
         polydata = vtk.vtkPolyData()
         polydata.SetPoints(points)
-        if flag :
-            polydata.GetPointData().AddArray(scalars)
-            polydata.GetPointData().AddArray(scalars_skel)
-        else :
-            polydata.GetPointData().SetScalars(scalars)  
+        if clusters :
+            if have_skeleton :
+                polydata.GetPointData().AddArray(cluster)
+                polydata.GetPointData().AddArray(skeleton)
+            else :
+                polydata.GetPointData().SetScalars(cluster)
         polydata.SetLines(line) 
 
         fusion.AddInput(polydata)
   
     fusion.Update()
-    return fusion.GetOutput()
+    
+    return Object3D(fusion.GetOutput(), "Fibers")
 
-def streamline_tractography(model,step,thr_fa,thr_angle,thr_length,propagation_type,clustering_type,thr_clustering,seed_spacing=None,mask=None) :
-    """ Streamline 2nd order tensor tractography 
+def streamline_gui(model, step, minimum_fa, maximum_angle, minimum_length, 
+                   propagation_type, seed_spacing, mask, 
+                   clustering, maximum_cluster_distance) :
+    """ Deterministic streamline propagation algorithm.
+    
+        <gui>
+            <item name="model" type="Image" label="Input"/>
+            <item name="step" type="Float" initializer="0.5" 
+                  label="Propagation step"/>
+            <item name="minimum_fa" type="Float" initializer="0.2" 
+                  label="Minimum FA"/>
+            <item name="maximum_angle" type="Float"
+                  initializer="numpy.pi/3" label="Maximum angle"/>
+            <item name="minimum_length" type="Float" initializer="50" 
+                  label="Minimum length"/>
+            <item name="propagation_type" type="Enum" 
+                  initializer="('Euler', 'Runge Kutta 4')" 
+                  label="Propagation type"/>
+            <item name="seed_spacing" type="Array" 
+                  initializer="float, 3, 3, (2,2,2)" label="Seed spacing"/>
+            <item name="mask" type="Image" 
+                  initializer="value=None, may_be_empty=True, may_be_empty_checked=True"
+                  label="Mask"/>
+            <item name="clustering" type="Enum" initializer="(None, 'Fast')"
+                  label="Clustering"/>
+            <item name="maximum_cluster_distance" type="Float" initializer="20"
+                  label="Maximum cluster distance"/>
+            <item name="output" type="Object3D" role="return" label="Output"/>
+        </gui>
+    """
+    
+    fibers = streamline(model, step, minimum_fa, maximum_angle, minimum_length, 
+                        propagation_type, seed_spacing, mask)
+    
+    if clustering is None :
+        clusters = {}
+    elif clustering == "Fast" :
+        clusters = local_skeleton_clustering(fibers, maximum_cluster_distance)
+    else :
+        raise medipy.base.Exception("Unknown clustering mode: {0!r}".format(clustering))
+    
+    return create_object_3d(fibers, clusters)
+
+def skeleton_gui(model, step, minimum_fa, maximum_angle, minimum_length, 
+                 propagation_type, seed_spacing, mask, 
+                 clustering, maximum_cluster_distance) :
+    """ Skeleton of the white matter fibersStreamline 2nd order tensor tractography 
+
+        <gui>
+            <item name="model" type="Image" label="Input"/>
+            <item name="step" type="Float" initializer="0.5" 
+                  label="Propagation step"/>
+            <item name="minimum_fa" type="Float" initializer="0.2" 
+                  label="Minimum FA"/>
+            <item name="maximum_angle" type="Float"
+                  initializer="numpy.pi/3" label="Maximum angle"/>
+            <item name="minimum_length" type="Float" initializer="50" 
+                  label="Minimum length"/>
+            <item name="propagation_type" type="Enum" 
+                  initializer="('Euler', 'Runge Kutta 4')" 
+                  label="Propagation type"/>
+            <item name="seed_spacing" type="Array" 
+                  initializer="float, 3, 3, (2,2,2)" label="Seed spacing"/>
+            <item name="mask" type="Image" 
+                  initializer="value=None, may_be_empty=True, may_be_empty_checked=True"
+                  label="Mask"/>
+            <item name="clustering" type="Enum" initializer="('Fast',)"
+                  label="Clustering"/>
+            <item name="maximum_cluster_distance" type="Float" initializer="20"
+                  label="Maximum cluster distance"/>
+            <item name="output" type="Object3D" role="return" label="Output"/>
+        </gui>
     """
 
-    if seed_spacing==None : 
-        seed_spacing = 2.0*model.spacing
-
-    if mask==None :
-        seeds = _generate_image_sampling(model,step=seed_spacing)
+    fibers = streamline(model, step, minimum_fa, maximum_angle, minimum_length, 
+                        propagation_type, seed_spacing, mask)
+    
+    if clustering is None :
+        clusters = {}
+    elif clustering == "Fast" :
+        clusters = local_skeleton_clustering(fibers, maximum_cluster_distance)
     else :
-        seeds = _generate_image_sampling(model,step=seed_spacing,mask=mask)
-    ndim = len(model.shape)
-
-    tractography_filter = itk.StreamlineTractographyAlgorithm[itk.VectorImage[itk.F,ndim], itk.Image[itk.F,ndim]].New()
-
-    itk_model = medipy.itk.medipy_image_to_itk_image(model, False)
-    tractography_filter.SetInputModel(itk_model)
-    for seed in seeds:
-        tractography_filter.AppendSeed(seed)
-    tractography_filter.SetStepSize(step)
-    if propagation_type=="Euler" :
-        tractography_filter.SetUseRungeKuttaOrder4(False)
-    else :
-        tractography_filter.SetUseRungeKuttaOrder4(True)
-    tractography_filter.SetThresholdAngle(thr_angle)
-    tractography_filter.SetThresholdFA(thr_fa)
-    tractography_filter.Update()
-
-    nb_fiber = tractography_filter.GetNumberOfFibers()
-    fibers = []
-    for i in range(nb_fiber) :
-        fibers.append(tractography_filter.GetOutputFiberAsPyArray(i))
-
-    final_fibers = []
-    for fiber in fibers :
-        if _length(fiber,step)>=thr_length :
-            final_fibers.append(fiber)
-
-    C = {}
-    if clustering_type=='Fast' :
-        C = medipy.diffusion.fiber_clustering.local_skeleton_clustering(final_fibers, d_thr=thr_clustering)
-
-    return final_fibers,C
-
-
-def streamline_tractography_(model,seeds=None,step=1.0,thr_fa=0.2,thr_angle=numpy.pi,rk4=False):
-    """ Streamline 2nd order tensor tractography """
-
-    if seeds==None :
-            seeds = _generate_image_sampling(model,step=(1,1,1))
-    print len(seeds)
-
-    tractography_filter = itk.StreamlineTractographyAlgorithm[itk.VectorImage[itk.F,3], itk.Image[itk.F,3]].New()
-
-    itk_model = medipy.itk.medipy_image_to_itk_image(model, False)
-    tractography_filter.SetInputModel(itk_model)
-    for seed in seeds:
-        tractography_filter.AppendSeed(seed)
-    tractography_filter.SetStepSize(step)
-    tractography_filter.SetUseRungeKuttaOrder4(rk4)
-    tractography_filter.SetThresholdAngle(thr_angle)
-    tractography_filter.SetThresholdFA(thr_fa)
-    tractography_filter.Update()
-
-    nb_fiber = tractography_filter.GetNumberOfFibers()
-    fibers = []
-    for i in range(nb_fiber) :
-        fibers.append(tractography_filter.GetOutputFiberAsPyArray(i))
-    print [ fiber.shape for fiber in fibers]
-
-    save_fibers(fibers,fout="/home/grigis/Bureau/fibers_test.vtk",step=step,thr_length=50.0)
-
-
-def save_fibers(fibers,fout,step=None,thr_length=0.0,ensemble=1) :
-
-    fusion = vtk.vtkAppendPolyData()
-
-    for fiber in fibers :
-
-        if _length(fiber,step)>=thr_length :
-            nb_points = fiber.shape[0]
-            scalars = vtk.vtkFloatArray()
-            points= vtk.vtkPoints()
-            line = vtk.vtkCellArray()
-            line.InsertNextCell(nb_points)
-
-            for i in range(nb_points):
-                z,y,x = fiber[i]
-                points.InsertPoint(i,(x,y,z))
-                scalars.InsertTuple1(i,ensemble)
-                line.InsertCellPoint(i)
-
-            polydata = vtk.vtkPolyData()
-            polydata.SetPoints(points)
-            polydata.GetPointData().SetScalars(scalars)
-            polydata.SetLines(line) 
-
-            fusion.AddInput(polydata)
-
-    writer = vtk.vtkPolyDataWriter()
-    writer.SetFileName(fout)
-    writer.SetInput(fusion.GetOutput())
-    writer.Update()
+        raise medipy.base.Exception("Unknown clustering mode: {0!r}".format(clustering))
+    
+    skeleton(fibers, clusters)
+    
+    return create_object_3d(fibers, clusters)
 
 def _generate_image_sampling(image,step=(1,1,1),mask=None) :
-    """ Generate seeds to init tractographu
-    step is expressed in mm
+    """ Generate seeds in physical space to initialize tractography. ``step`` is
+        expressed in continuous index coordinates and in numpy order
     """
 
-    spacing = image.spacing
-    shape = image.shape*spacing
-    origin = image.origin[::-1]
-    Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
-    X = X.flatten()
-    Y = Y.flatten()
-    Z = Z.flatten()
-    seeds = []
-    if mask==None :
-        for i,j,k in zip(X,Y,Z) :
-            seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
+    begin = image.ndim*(0,)
+    end = numpy.subtract(image.shape, 1)
+    
+    grid = numpy.mgrid[[slice(b,e,s) for b,e,s in zip(begin, end, step)]]
+    
+    if mask is None :
+        seeds = grid.reshape(3, -1).T
     else :
-        for i,j,k in zip(X,Y,Z) :
-            point = np.cast[int](np.floor(np.array([k,j,i])/spacing))
-            if mask[tuple(point)]==1 :
-                seeds.append(np.array([i+origin[0],j+origin[1],k+origin[2]]))
-    return np.asarray(seeds)
+        seeds = []
+        for seed in grid.reshape(3, -1).T :
+            point = image.index_to_physical(seed)
+            index = tuple(mask.physical_to_index(point).round().astype(int))
+            if mask.is_inside(index) and mask[index] != 0 :
+                seeds.append(seed)
+    
+    seeds = [image.index_to_physical(seed) for seed in seeds]
+    
+    return seeds
 
 def _length(xyz, constant_step=None):
     """ Euclidean length of track line in mm 
@@ -279,7 +250,7 @@ def _length(xyz, constant_step=None):
         if xyz.shape[0] < 2 :
             return 0
         else :
-            dists = np.sqrt((np.diff(xyz, axis=0)**2).sum(axis=1))
-            return np.sum(dists)
+            dists = numpy.sqrt((numpy.diff(xyz, axis=0)**2).sum(axis=1))
+            return numpy.sum(dists)
     else :
         return (xyz.shape[0]-1)*constant_step
