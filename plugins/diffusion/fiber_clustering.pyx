@@ -62,16 +62,15 @@ def local_skeleton_clustering(tracks, d_thr=10):
     ''' Used in the HBM2010 abstract
     "Fast Dimensionality Reduction for Brain Tractography Clustering" by E.Garyfallidis et.al
 
-    Parameters
-    -----------
-    tracks: sequence
-        of tracks as arrays, shape (N1,3) .. (Nm,3)
+    Parameters :
+    
+    * tracks: sequence of tracks as arrays, shape (N1,3) .. (Nm,3)
+    * d_thr: float, average euclidean distance threshold
 
-    d_thr: float, average euclidean distance threshold
-
-    Returns
-    --------
-    C: dict '''
+    Return a dictionary with one entry per cluster. Each value contains the 
+    indices of the fibers in the cluster (``"indices"``) and the number of fibers
+    in the cluster (``"indices"``).
+    '''
 
     cdef :
         cnp.ndarray[cnp.float32_t, ndim=2] track
