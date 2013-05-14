@@ -52,6 +52,7 @@ lib/medipy/io/PyArrayIOPython.cpp
 lib/medipy/io/dicom/AssembleTilesImageFilterPython.cpp
 lib/medipy/io/dicom/dataset_io.py
 plugins/diffusion/fiber_clustering.c
+plugins/diffusion/itkutils.py
 plugins/diffusion/parameter_estimation.py
 plugins/diffusion/spectral_analysis.py
 plugins/medimax/detection/detection.py
