@@ -1,61 +1,70 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
-
 import itk
+import numpy
+
+import medipy.base
 import medipy.itk
-import numpy as np
-from medipy.base import Image
-from medipy.diffusion.utils import spectral_decomposition, exp_transformation, log_transformation
-from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
+from utils import (spectral_decomposition, exp_transformation, 
+                   log_transformation, get_diffusion_information)
 
+def spatial_voxel_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=None):
+    """ Neighborhood-based estimation of the mean and standard deviation of 
+        second-order tensors.
 
-def spatial_voxel_parameter_estimation_gui(images,*args,**kwargs) :
-    """ Spatial parameter estimation.
-
-    <gui>
-        <item name="images" type="ImageSerie" label="Input diffusion data"/>
-        <item name="size_plane" type="Int" initializer="3" label="Neighborhood plane size"/>
-        <item name="size_depth" type="Int" initializer="3" label="Neighborhood depth size"/>
-        <item name="mean" type="Image" initializer="output=True" role="return" label="Mean tensor image"/>
-        <item name="var" type="Image" initializer="output=True" role="return" label="Variance image"/>
-    </gui>
-    """    
-    size_plane = kwargs['size_plane']
-    size_depth = kwargs['size_depth']
-
-    model = ls_SecondOrderSymmetricTensorEstimation_(images)
-    mean,var,N = spatial_voxel_parameter_estimation(model,size_plane,size_depth)
-    # zero at the image edges == ellispoid display break
-    mean = exp_transformation(mean)
-    var.data[np.isnan(var.data)] = 0.0
-    var.data[np.where(var.data>1.0)] = 0.0
-
-    return mean,var
-
-def spatial_voxel_parameter_estimation(tensor,w_size_plane=3,w_size_depth=3,mask=None):
-
-    mean = medipy.base.Image(data=np.zeros(tensor.shape+(6,),dtype=np.single),spacing=tensor.spacing,origin=tensor.origin,direction=tensor.direction,data_type="vector")
-    var = medipy.base.Image(data=np.zeros(tensor.shape+(1,),dtype=np.single),spacing=tensor.spacing,origin=tensor.origin,direction=tensor.direction,data_type="vector")
+        <gui>
+            <item name="tensor" type="Image" label="DWI data"/>
+            <item name="size_plane" type="Int" initializer="3" 
+                  label="Neighborhood plane size"/>
+            <item name="size_depth" type="Int" initializer="3" 
+                  label="Neighborhood depth size"/>
+            <item name="mask" type="Image" 
+                  initializer="may_be_empty=True, may_be_empty_checked=True" 
+                  label="Mask"/>
+            <item name="mean" type="Image" initializer="output=True" 
+                  role="return" label="Mean image"/>
+            <item name="stdev" type="Image" initializer="output=True" 
+                  role="return" label="Standard deviation image"/>
+        </gui>
+    """
+    
     log_tensor = log_transformation(tensor)
-
-    if mask==None :
-        mask = medipy.base.Image(data=np.zeros((1,1,1),dtype=np.single))
-        medipy.diffusion.parameter_estimation(log_tensor,mean,var,mask,w_size_plane,w_size_depth,False)
-    else :
-        medipy.diffusion.parameter_estimation(log_tensor,mean,var,mask,w_size_plane,w_size_depth,True)
-    var.data = np.sqrt( var.data/6.0 ) # compute standard deviation
+    log_tensor_itk = medipy.itk.medipy_image_to_itk_image(log_tensor, False)
+    
+    mask_itk = None
+    if mask :
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+    
+    estimation_filter = itk.ParameterEstimationImageFilter[
+        log_tensor_itk, log_tensor_itk, itk.Image[itk.template(log_tensor_itk)[1]]].New(
+        Input=log_tensor_itk, SizePlane=size_plane, SizeDepth=size_depth)
+    if mask :
+        estimation_filter.SetMask(mask_itk)
+    estimation_filter()
+    
+    mean_itk = estimation_filter.GetMeanImage()
+    mean = medipy.itk.itk_image_to_medipy_image(mean_itk, None, True)
     mean.image_type = "tensor_2"
+    mean = exp_transformation(mean)
+    
+    variance_itk = estimation_filter.GetVarianceImage()
+    variance = medipy.itk.itk_image_to_medipy_image(variance_itk, None, True)
+    # Clamp the variance to compute standard deviation without errors
+    variance[variance<0] = 0
+    variance[numpy.isnan(variance)] = 0
+    # Compute standard deviation
+    variance.data = numpy.sqrt(variance.data/6.0) 
 
-    return mean,var,w_size_plane*w_size_plane*w_size_depth
+    return mean, variance
 
-
-def bootstrap_parameter_estimation_gui(images,*args,**kwargs) :
+def bootstrap_parameter_estimation_gui(images, size_plane=3, size_depth=3, 
+                                       nb_bootstrap=10, bootstrap_type="spatial") :
     """ Local or Spatial bootstrap parameter estimation.
 
     <gui>
@@ -67,60 +76,49 @@ def bootstrap_parameter_estimation_gui(images,*args,**kwargs) :
         <item name="mean" type="Image" initializer="output=True" role="return" label="Mean tensor image"/>
         <item name="var" type="Image" initializer="output=True" role="return" label="Variance image"/>
     </gui>
-    """    
-    bootstrap_type = kwargs['bootstrap_type']
-    size_plane = kwargs['size_plane']
-    size_depth = kwargs['size_depth']
-    nb_bootstrap = kwargs['nb_bootstrap']
+    """
 
     mean,var = bootstrap_parameter_estimation(images,bootstrap_type,size_plane,size_depth,nb_bootstrap)
-    # zero at the image edges == ellispoid display break
-    mean = exp_transformation(mean)
-    var.data[np.isnan(var.data)] = 0.0
-    var.data[np.where(var.data>1.0)] = 0.0
+    var.data[numpy.isnan(var.data)] = 0.0
+    var.data[numpy.where(var.data>1.0)] = 0.0
 
     return mean,var
 
 def bootstrap_parameter_estimation(images,bootstrap_type,size_plane,size_depth,nb_bootstrap) :
 
-    ndim = len(images[0].shape)
-    estimation_filter = itk.BootstrapParameterEstimationImageFilter[itk.Image[itk.F,ndim], itk.VectorImage[itk.F,ndim]].New()
-    estimation_filter.SetBVal(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue)
-    estimation_filter.SetNumberOfBootstrap(nb_bootstrap)
-    estimation_filter.SetSizePlane(size_plane)
-    estimation_filter.SetSizeDepth(size_depth)
-    if bootstrap_type=='spatial' :
-        estimation_filter.SetUseSpatialBootstrap(True)
-    else :
-        estimation_filter.SetUseSpatialBootstrap(False)
+    ScalarImage = itk.Image[itk.F, images[0].ndim]
+    VectorImage = itk.VectorImage[itk.F, images[0].ndim]
+    EstimationFilter = itk.BootstrapParameterEstimationImageFilter[ScalarImage, VectorImage]
+    
+    estimation_filter = EstimationFilter.New(
+        BVal=float(get_diffusion_information(images[1])["diffusion_bvalue"]),
+        NumberOfBootstrap=nb_bootstrap, SizePlane=size_plane, 
+        SizeDepth=size_depth, UseSpatialBootstrap=(bootstrap_type=='spatial'))
 
     for cnt,image in enumerate(images) :
-        image.data = np.cast[np.single](image.data)
+        image.data = numpy.cast[numpy.single](image.data)
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
-        grad = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence[0].diffusion_gradient_orientation
-        itk_grad = itk.Point[itk.F,3]()
-        itk_grad[0] = float(grad[0])
-        itk_grad[1] = float(grad[1])
-        itk_grad[2] = float(grad[2])
+        grad = get_diffusion_information(image)["diffusion_gradient_orientation"]
         estimation_filter.SetInput(cnt,itk_image)
-        estimation_filter.SetGradientDirection(cnt,itk_grad)
+        estimation_filter.SetGradientDirection(cnt,grad.tolist())
 
     estimation_filter.Update()
 
     itk_mean = estimation_filter.GetOutput(0)
-    itk_var = estimation_filter.GetOutput(1)
     mean = medipy.itk.itk_image_to_medipy_image(itk_mean,None,True)
-    var = medipy.itk.itk_image_to_medipy_image(itk_var,None,True)
     mean.image_type = "tensor_2"
+    mean = exp_transformation(mean)
+    
+    itk_var = estimation_filter.GetOutput(1)
+    var = medipy.itk.itk_image_to_medipy_image(itk_var,None,True)
+    # The variance image must be a VectorImage to be fed to the ITK filter, but
+    # is really a scalar image
+    var.data = var.data.reshape(images[0].shape)
+    var.data_type = "scalar"
 
     return mean,var
 
-
-
-
-
-
-def spatial_voxel_test_gui(tensor1,tensor2,*args,**kwargs):
+def spatial_voxel_test_gui(tensor1,tensor2, size_plane, size_depth, test_flag) :
     """Multivariate Statistical Tests at a voxel level.
 
     <gui>
@@ -136,27 +134,31 @@ def spatial_voxel_test_gui(tensor1,tensor2,*args,**kwargs):
     spacing = tensor1.spacing
     origin = tensor1.origin
     direction = tensor1.direction
-    M1,S1,N1 = spatial_voxel_parameter_estimation(tensor1,kwargs['size_plane'],kwargs['size_depth'])
-    M2,S2,N2 = spatial_voxel_parameter_estimation(tensor2,kwargs['size_plane'],kwargs['size_depth'])
-    T,s,df = dtiLogTensorTestAS(kwargs['test_flag'],M1.data,M2.data,S1.data.squeeze(),S2.data.squeeze(),N1,N2,spacing,origin,direction)
-    output = T
-    return output
+    M1,S1 = spatial_voxel_parameter_estimation(tensor1,size_plane,size_depth)
+    M2,S2 = spatial_voxel_parameter_estimation(tensor2,size_plane,size_depth)
+    
+    N1 = size_plane*size_plane*size_depth
+    N2 = N1
+    
+    T,s,df = _dtiLogTensorTestAS(test_flag, M1, M2, S1, S2, N1, N2)
+    
+    return T
 
 
-def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
+def _dtiLogTensorTestAS(test_flag, M1, M2, S1, S2, N1, N2):
     """ Computes voxel-wise test statistics for two groups
     Source: Armin Schwatzman, "RANDOM ELLIPSOIDS AND FALSE DISCOVERY RATES: STATISTICS FOR DIFFUSION TENSOR IMAGING" June 2006
 
     Input:
     test_flag:	'unrestricted': 	H0: M1=M2
                 'eiginvalues': 		H0: both groups have the same eigenvalues, with possible different unknown eigenvectors
-    M1,M2:		(Z,Y,X,6):	        arrays of mean log tensors for each group
-    S1,S2:		(Z,Y,X):		    arrays of the standard deviations for each group
+    M1,M2:		(Z,Y,X,6):	        images of mean tensors for each group
+    S1,S2:		(Z,Y,X):		    images of the standard deviations for each group
     N1,N2:				            number of subjects in each groups
 
     Output:
-    T:		    (Z,Y,X):		    array of test statistics
-    s		    (Z,Y,X):		    standard deviation
+    T:		    (Z,Y,X):		    image of test statistics
+    s		    (Z,Y,X):		    image of standard deviation
 	df:				                degrees of freedom of the distribution """
 
     # Define some constants
@@ -164,40 +166,45 @@ def dtiLogTensorTestAS(test_flag,M1,M2,S1,S2,N1,N2,spacing,origin,direction):
     q = 6
     p = 3
     df = []
+    
+    # Transform the mean images to the Log domain
+    log_M1 = log_transformation(M1)
+    log_M2 = log_transformation(M2)
 
     # Test statistics
     if test_flag=='unrestricted':
-        T = N1*N2/N * np.sum( ((M1 - M2)**2),3 ) # chi2(q)
-        sign = np.sign( np.sum( (M1 - M2),3 ) )
+        T = N1*N2/N * numpy.sum( ((log_M1.data - log_M2.data)**2),3 ) # chi2(q)
+        sign = numpy.sign( numpy.sum( (log_M1.data - log_M2.data),3 ) )
         df.insert(0,q)
         df.insert(1,q*(N-2))
     elif test_flag=='eigenvalues':
-        L1,V1 = spectral_decomposition(Image(data=M1,data_type="vector"))
-        L2,V2 = spectral_decomposition(Image(data=M2,data_type="vector"))
-        L1 = L1.data
-        L2 = L2.data
-        T = N1*N2/N * np.sum( (L1 - L2)**2,3 ) # chi2(p)
-        sign = np.sign( np.sum( (L1 - L2),3 ) )
+        L1,V1 = spectral_decomposition(log_M1)
+        L2,V2 = spectral_decomposition(log_M2)
+        T = N1*N2/N * numpy.sum( (L1.data - L2.data)**2,3 ) # chi2(p)
+        sign = numpy.sign( numpy.sum( (L1.data - L2.data),3 ) )
         df.insert(0,p)
         df.insert(1,q*(N-2))
     else:
         raise medipy.base.Exception("Unknown test flag : %s"%(test_flag,))
 
     # Variance
-    s = ( (N1-1)*S1**2 + (N2-1)*S2**2 )/(N-2)
+    s = ( (N1-1)*S1.data**2 + (N2-1)*S2.data**2 )/(N-2)
 
     # Statistic
     #T = df[1]/df[0] * T/(q*(N-2)*s)
-    index = np.where(s!=0)
-    temp = np.zeros(T.shape,dtype=np.single)
+    index = numpy.where(s!=0)
+    temp = numpy.zeros(T.shape,dtype=numpy.single)
     temp[index] = df[1]/df[0] * T[index]/(q*(N-2)*s[index])
     T = temp
 
-    s = np.sqrt(s)
+    s = numpy.sqrt(s)
 
-    T[np.isnan(T)] = -1
-    T[np.isinf(T)] = -1
+    T[numpy.isnan(T)] = -1
+    T[numpy.isinf(T)] = -1
 
-    return Image(data=sign*T,spacing=spacing,origin=origin,direction=direction),Image(data=s,spacing=spacing,origin=origin,direction=direction),df
+    T = medipy.base.Image(data=sign*T, 
+        spacing=M1.spacing, origin=M1.origin, direction=M1.direction)
+    s = medipy.base.Image(data=s, 
+        spacing=M1.spacing, origin=M1.origin, direction=M1.direction)
 
-
+    return T, s, df
