@@ -4,7 +4,7 @@ install_py_files(${files})
 # The underlying filters are VectorImage->VectorImage, and 
 # itk::ImageToImageFilter is not wrapped for this case. Simple Swig modules are
 # created to solve this.
-set(swig_modules itkutils parameter_estimation spectral_analysis)
+set(swig_modules itkutils spectral_analysis)
 foreach(swig_module ${swig_modules})
     swig_python_module(${swig_module} ${swig_module}.i ${swig_module}.cpp)
     swig_link_libraries(${swig_module} ${ITK_LIBS})
@@ -75,6 +75,13 @@ wrap_library("MediPyDiffusion" python)
             end_wrap_class()
         end_wrap_module()
     endforeach()
+    
+    # ParameterEstimation : Vector -> (VectorImage, Image) (float,3) only
+    wrap_module("itkParameterEstimationImageFilter")
+        wrap_class("itk::ParameterEstimationImageFilter" POINTER)
+            wrap_template("VIF3VIF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}")
+        end_wrap_class()
+    end_wrap_module()
     
     # Bootstrap : Image -> VectorImage, (float,3) only
     wrap_module("itkBootstrapParameterEstimationImageFilter")

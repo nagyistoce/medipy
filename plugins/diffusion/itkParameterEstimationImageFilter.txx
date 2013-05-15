@@ -1,176 +1,200 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * for details.
  ************************************************************************/
 
-#ifndef _ParameterEstimationImageFilter_txx
-#define _ParameterEstimationImageFilter_txx
+#ifndef _73aa1937_258f_46fd_9080_4783e5971991
+#define _73aa1937_258f_46fd_9080_4783e5971991
 
 #include "itkParameterEstimationImageFilter.h"
 
-#include "itkVectorImage.h"
-#include "itkImageRegionIteratorWithIndex.h"
-
-#include <vnl/vnl_vector_fixed.h>
-#include <math.h>
+#include <itkImageRegionIteratorWithIndex.h>
+#include <itkNeighborhood.h>
 
 namespace itk
 {
 
-template<typename TInputImage, typename TOutputImage>
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
+TMeanImage const *
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
+::GetMeanImage() const
+{
+    return dynamic_cast<TMeanImage const *>(this->ProcessObject::GetOutput(0));
+}
+
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
+TVarianceImage const *
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
+::GetVarianceImage() const
+{
+    return dynamic_cast<TVarianceImage const *>(this->ProcessObject::GetOutput(1));
+}
+
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
 ::ParameterEstimationImageFilter()
 {
-    this->m_SizePlane = 3;
-    this->m_SizeDepth = 3;
+    this->SetSizePlane(3);
+    this->SetSizeDepth(3);
+    this->SetMask(NULL);
 
     this->SetNumberOfRequiredOutputs(2);
     this->SetNthOutput(0,this->MakeOutput(0));
     this->SetNthOutput(1,this->MakeOutput(1));
-
-    this->masked = false;
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
 void
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
-::AllocateOutputs()
-{
-    typename OutputImageType::Pointer outputPtr_mean;
-    typename OutputImageType::Pointer outputPtr_var;
-
-    outputPtr_mean = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput(0) );
-    outputPtr_var = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput(1) );
-
-    if ( outputPtr_mean ) {
-        outputPtr_mean->SetBufferedRegion( outputPtr_mean->GetRequestedRegion() );
-        outputPtr_mean->SetVectorLength(6);
-        outputPtr_mean->Allocate();
-    }
-    if ( outputPtr_var ) {
-        outputPtr_var->SetBufferedRegion( outputPtr_var->GetRequestedRegion() );
-        outputPtr_var->SetVectorLength(1);
-        outputPtr_var->Allocate();
-    }
-}
-
-template<typename TInputImage, typename TOutputImage>
-void
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     Superclass::PrintSelf(os,indent);
-}
-
-template<typename TInputImage, typename TOutputImage>
-void
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
-::SetMask(MaskType *m)
-{
-    this->mask = m;
-    this->masked = true;
-}
-
-template<typename TInputImage, typename TOutputImage>
-typename ParameterEstimationImageFilter<TInputImage, TOutputImage>::MaskType*
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
-::GetMask() const
-{
-    return this->mask;
-}
-
-template<typename TInputImage, typename TOutputImage>
-void 
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
-::BeforeThreadedGenerateData()
-{
-    this->size = this->GetInput(0)->GetLargestPossibleRegion().GetSize();
-    this->shift_plane = (this->m_SizePlane-1)/2;
-    this->shift_depth = (this->m_SizeDepth-1)/2;
-    this->m_NumberOfElements = this->m_SizeDepth*this->m_SizePlane*this->m_SizePlane;
-    if (!this->masked) {
-        this->mask = MaskType::New();
-        this->mask->SetRegions( this->GetInput(0)->GetLargestPossibleRegion() );
-        this->mask->Allocate();
-        this->mask->FillBuffer(1);
+    os << indent << "Size in plane: " << this->GetSizePlane() << "\n";
+    os << indent << "Size in depth: " << this->GetSizeDepth() << "\n";
+    os << indent << "Mask: \n";
+    if(this->m_Mask.IsNull())
+    {
+        os << indent.GetNextIndent() << "None\n";
+    }
+    else
+    {
+        this->m_Mask->Print(os, indent.GetNextIndent());
     }
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
+DataObject::Pointer 
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
+::MakeOutput(unsigned int index)
+{
+    DataObject::Pointer output;
+    
+    if(index == 0)
+    {
+        output = TMeanImage::New().GetPointer();
+    }
+    else if(index == 1)
+    {
+        output = TVarianceImage::New().GetPointer();
+    }
+    else
+    {
+        std::cerr << "No output " << index << std::endl;
+        output = NULL;
+    }
+    
+    return output.GetPointer();
+}
+
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
+void
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
+::AllocateOutputs()
+{
+    typename TMeanImage::Pointer mean_image = dynamic_cast<TMeanImage*>(
+        this->ProcessObject::GetOutput(0));
+    if(mean_image) 
+    {
+        mean_image->SetBufferedRegion(mean_image->GetRequestedRegion());
+        mean_image->SetVectorLength(6);
+        mean_image->Allocate();
+    }
+    
+    typename TVarianceImage::Pointer variance_image = dynamic_cast<TVarianceImage*>(
+        this->ProcessObject::GetOutput(1));
+    if(variance_image)
+    {
+        variance_image->SetBufferedRegion(variance_image->GetRequestedRegion());
+        variance_image->Allocate();
+    }
+}
+
+template<typename TTensorImage, typename TMeanImage, typename TVarianceImage>
 void 
-ParameterEstimationImageFilter<TInputImage, TOutputImage>
+ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
 {
-    const unsigned int VectorLength = 6;
+    typedef typename TTensorImage::PixelType InputTensorType;
+    typedef typename TMeanImage::PixelType OutputTensorType;
+    
+    typename TTensorImage::ConstPointer tensor_image = this->GetInput();
+    typename TTensorImage::RegionType const tensor_region = 
+        tensor_image->GetLargestPossibleRegion();
+        
+    typename TMeanImage::Pointer mean_image = dynamic_cast<TMeanImage*>(
+        this->ProcessObject::GetOutput(0));
+    mean_image->FillBuffer(0);
+    typename TVarianceImage::Pointer variance_image = dynamic_cast<TVarianceImage*>(
+        this->ProcessObject::GetOutput(1));
+    variance_image->FillBuffer(0);
 
-    typename OutputImageType::Pointer output_mean = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
-    typename OutputImageType::Pointer output_var = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(1));
+    // Build the neighborhood
+    typedef itk::Neighborhood<typename TTensorImage::PixelType, 
+        TTensorImage::ImageDimension> NeighborhoodType;
+    NeighborhoodType neighborhood;
+    
+    typename NeighborhoodType::SizeType neighborhood_size;
+    neighborhood_size[0]=(this->m_SizePlane-1)/2; 
+    neighborhood_size[1]=(this->m_SizePlane-1)/2; 
+    neighborhood_size[2]=(this->m_SizeDepth-1)/2;
+    neighborhood.SetRadius(neighborhood_size);
 
-    ImageRegionConstIteratorWithIndex< OutputImageType > it(output_mean, outputRegionForThread);
-    it.GoToBegin();
+    typedef ImageRegionConstIteratorWithIndex<TMeanImage> IteratorType;
+    for(IteratorType it(mean_image, outputRegionForThread); !it.IsAtEnd(); ++it)
+    {
+        typename TMeanImage::IndexType const & idx = it.GetIndex();
 
-    while( !it.IsAtEnd() ) {
-        typename OutputImageType::IndexType idx = it.GetIndex();
-
-        if (this->mask->GetPixel(idx)==1) {
-            typename OutputImageType::IndexType idx_;
-
-            // test if the neigborhood is correct
-            if ( ((idx[2]-this->shift_depth)>=0) && ((idx[1]-this->shift_plane)>=0) && ((idx[0]-this->shift_plane)>=0) && 
-                 ((idx[2]+this->shift_depth)<size[2]) && ((idx[1]+this->shift_plane)<size[1]) && ((idx[0]+this->shift_plane)<size[0]) ) {
-
-                // init mean and variance
-                vnl_vector_fixed<float, VectorLength> temp_mean;
-                temp_mean.fill(0);
-                float temp_var = 0;
-	
-                // first compute the mean
-                for (int kk=idx[2]-this->shift_depth; kk<=idx[2]+this->shift_depth; kk++) {
-                    for (int jj=idx[1]-this->shift_plane; jj<=idx[1]+this->shift_plane; jj++) {
-                        for (int ii=idx[0]-this->shift_plane; ii<=idx[0]+this->shift_plane; ii++) {
-                            idx_[0]=ii; idx_[1]=jj; idx_[2]=kk;
-                            InputPixelType const tensor = this->GetInput(0)->GetPixel(idx_);
-                            for (unsigned int l=0; l<VectorLength; l++) { temp_mean[l] += (float)tensor[l]/(float)this->m_NumberOfElements; }
-                        }
-                    }
-                }
-
-                // return the mean
-                OutputPixelType mean = output_mean->GetPixel(idx);
-                for (unsigned int l=0; l<VectorLength; l++) { mean[l] = (OutputValueType)temp_mean[l]; }
-
-                // then compute the variance
-                for (int kk=idx[2]-this->shift_depth; kk<=idx[2]+this->shift_depth; kk++) {
-                    for (int jj=idx[1]-this->shift_plane; jj<=idx[1]+this->shift_plane; jj++) {
-                        for (int ii=idx[0]-this->shift_plane; ii<=idx[0]+this->shift_plane; ii++) {
-                            idx_[0]=ii; idx_[1]=jj; idx_[2]=kk;
-                            InputPixelType const tensor = this->GetInput(0)->GetPixel(idx_);
-                            temp_var += ((float)tensor[0] - temp_mean[0])*((float)tensor[0] - temp_mean[0])/(float)this->m_NumberOfElements
-                                     + ((float)tensor[3] - temp_mean[3])*((float)tensor[3] - temp_mean[3])/(float)this->m_NumberOfElements
-                                     + ((float)tensor[5] - temp_mean[5])*((float)tensor[5] - temp_mean[5])/(float)this->m_NumberOfElements 
-                                     + 2.0*((float)tensor[1] - temp_mean[1])*((float)tensor[1] - temp_mean[1])/(float)this->m_NumberOfElements
-                                     + 2.0*((float)tensor[2] - temp_mean[2])*((float)tensor[2] - temp_mean[2])/(float)this->m_NumberOfElements
-                                     + 2.0*((float)tensor[4] - temp_mean[4])*((float)tensor[4] - temp_mean[4])/(float)this->m_NumberOfElements;
-                        }
-                    }
-                }
-
-                // return the variance
-			    OutputPixelType var = output_var->GetPixel(idx);
-                var[0] = (OutputValueType)temp_var;
-
+        // Skip pixels that are outside the mask or whose neighborhood is not 
+        // fully inside the region
+        bool skip=false;
+        if(!this->m_Mask.IsNull() && this->m_Mask->GetPixel(idx)==0) 
+        {
+            skip=true;
+        }
+        for(unsigned int i=0; i<neighborhood.Size() && !skip; ++i)
+        {
+            if(!tensor_region.IsInside(idx+neighborhood.GetOffset(i)))
+            {
+                skip=true;
             }
         }
-        ++it;
+        if(skip)
+        {
+            continue;
+        }
+        
+        // first compute the mean
+        OutputTensorType mean = mean_image->GetPixel(idx);
+        mean.Fill(0.);
+        for(unsigned int i=0; i<neighborhood.Size(); ++i)
+        {
+            InputTensorType const & tensor = tensor_image->GetPixel(
+                idx+neighborhood.GetOffset(i));
+            mean += tensor/neighborhood.Size();
+        }
+
+        // then compute the variance
+        typename TVarianceImage::PixelType variance = 0.;
+        for(unsigned int i=0; i<neighborhood.Size(); ++i)
+        {
+            InputTensorType const & tensor = tensor_image->GetPixel(
+                idx+neighborhood.GetOffset(i));
+            variance += (
+                (tensor[0] - mean[0])*(tensor[0] - mean[0]) +
+                (tensor[3] - mean[3])*(tensor[3] - mean[3]) +
+                (tensor[5] - mean[5])*(tensor[5] - mean[5]) +
+                2.0*(tensor[1] - mean[1])*(tensor[1] - mean[1]) +
+                2.0*(tensor[2] - mean[2])*(tensor[2] - mean[2]) +
+                2.0*(tensor[4] - mean[4])*(tensor[4] - mean[4])
+            )/neighborhood.Size();
+        }
+        variance_image->SetPixel(idx, variance);
     }
 }
 
-
 }
 
-#endif
-
-							
+#endif // _73aa1937_258f_46fd_9080_4783e5971991
