@@ -150,9 +150,19 @@ ParameterEstimationImageFilter<TTensorImage, TMeanImage, TVarianceImage>
         // Skip pixels that are outside the mask or whose neighborhood is not 
         // fully inside the region
         bool skip=false;
-        if(!this->m_Mask.IsNull() && this->m_Mask->GetPixel(idx)==0) 
+        if(!this->m_Mask.IsNull()) 
         {
-            skip=true;
+            typename TTensorImage::PointType point; 
+            mean_image->TransformIndexToPhysicalPoint(idx, point);
+            
+            typename MaskType::IndexType mask_index;
+            this->m_Mask->TransformPhysicalPointToIndex(point, mask_index);
+            
+            if(!this->m_Mask->GetLargestPossibleRegion().IsInside(mask_index) || 
+               this->m_Mask->GetPixel(mask_index) == 0)
+            {
+                skip=true;
+            }
         }
         for(unsigned int i=0; i<neighborhood.Size() && !skip; ++i)
         {
