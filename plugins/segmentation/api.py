@@ -5,3 +5,4 @@ from change_detection import (
 from label import (label_connected_components, order_connected_components, 
                    largest_connected_component)
 from skull import skull
+from skull import skull_T1_IR

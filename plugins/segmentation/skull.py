@@ -59,3 +59,17 @@ def skull(input):
     output.copy_information(input)
     return output
     
+def skull_T1_IR(input):
+    """ Segment the skull, using an algorithm from Medimax
+        
+        <gui>
+            <item name="input" type="Image" label="Input"/>
+            <item name="output" type="Image" initializer="output=True" 
+                role="return" label="Output"/>
+        </gui>
+    """
+    output=input.astype(input.dtype)
+    output.data[output.data>=0]=-100
+    output.copy_information(input)
+    return output
+    

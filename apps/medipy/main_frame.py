@@ -361,7 +361,7 @@ class MainFrame(medipy.gui.base.Frame):
     def set_function_ui(self, *args, **kwargs) :
         
         if isinstance(args[0], wx.Event) :
-            function_or_panel = self.ui.menu_treectrl.GetPyData(evt.GetItem())
+            function_or_panel = self.ui.menu_treectrl.GetPyData(args[0].GetItem())
             self.set_function_ui(function_or_panel)
         else :
             function_or_panel = args[0]
