@@ -1,19 +1,16 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * for details.
  ************************************************************************/
 
-
-#ifndef _itkParameterEstimationImageFilter_h
-#define _itkParameterEstimationImageFilter_h
-
+#ifndef _63915978_9892_4957_a7ab_d27e2eedbd6e
+#define _63915978_9892_4957_a7ab_d27e2eedbd6e
 
 #include <itkImageToImageFilter.h>
 #include <itkSmartPointer.h>
-
 
 namespace itk
 {
@@ -24,17 +21,18 @@ namespace itk
  * 
  */
 
-template<typename TInputImage, typename TOutputImage>
-class ParameterEstimationImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+template<typename TTensorImage, typename TMeanImage=TTensorImage, 
+    typename TVarianceImage=itk::Image<
+        typename TTensorImage::PixelType::ValueType, TTensorImage::ImageDimension> >
+class ParameterEstimationImageFilter : 
+    public ImageToImageFilter<TTensorImage, TVarianceImage>
 {
 public :
     /** Standard class typedefs. */
     typedef ParameterEstimationImageFilter Self;
-    typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+    typedef ImageToImageFilter<TTensorImage, TVarianceImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
-
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
     /** Method for creation through the object factory. */
     itkNewMacro(Self);
@@ -42,41 +40,47 @@ public :
     /** Run-time type information (and related methods). */
     itkTypeMacro(ParameterEstimationImageFilter, ImageToImageFilter);
 
-    /** Useful typedefs */
-    typedef typename Superclass::InputImageType     InputImageType;
-    typedef typename Superclass::OutputImageType    OutputImageType;
-    typedef typename TOutputImage::PixelType        OutputPixelType;
-    typedef typename TInputImage::PixelType         InputPixelType;
-    typedef typename InputPixelType::ValueType      InputValueType;
-    typedef typename OutputPixelType::ValueType     OutputValueType;
-    typedef Image<float, 3>                         MaskType;
+    typedef itk::Image<typename TTensorImage::PixelType::ValueType, 
+                       TTensorImage::ImageDimension> MaskType;
 
-    /** Accessors */
-    itkSetMacro(SizePlane, unsigned int);
+    /** @brief Return the size of the neighborhood in the plane direction. */
     itkGetConstMacro(SizePlane, unsigned int);
-    itkSetMacro(SizeDepth, unsigned int);
+    /** @brief Set the size of the neighborhood in the plane direction, default to 3. */
+    itkSetMacro(SizePlane, unsigned int);
+    
+    /** @brief Return the size of the neighborhood in the normal direction. */
     itkGetConstMacro(SizeDepth, unsigned int);
-    itkGetConstMacro(NumberOfElements, unsigned int);
-    void SetMask(MaskType *m);
-    MaskType* GetMask() const;
+    /** @brief Set the size of the neighborhood in the normal direction, default to 3. */
+    itkSetMacro(SizeDepth, unsigned int);
+    
+    /** @brief Return the mask. */
+    itkGetConstObjectMacro(Mask, MaskType);
+    /** @brief Set the mask, default to NULL (no mask is used). */
+    itkSetObjectMacro(Mask, MaskType);
+    
+    /** @brief Return the mean image. */
+    TMeanImage const * GetMeanImage() const;
+    
+    /** @brief Return the variance image. */
+    TVarianceImage const * GetVarianceImage() const;
 
 protected :
+    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+    
     ParameterEstimationImageFilter();
     ~ParameterEstimationImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
+    DataObject::Pointer MakeOutput(unsigned int index);
     void AllocateOutputs();
-    void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
 
 private :
     unsigned int m_SizePlane;
     unsigned int m_SizeDepth;
-    unsigned int m_NumberOfElements;
-    unsigned int shift_plane;
-    unsigned int shift_depth;
-    typename InputImageType::SizeType size;
-    bool masked;
-    MaskType::Pointer mask;
+    typename MaskType::Pointer m_Mask;
+    
+    ParameterEstimationImageFilter(const Self &); //purposely not implemented
+    void operator=(const Self &);  //purposely not implemented
 };
 
 }
@@ -85,5 +89,4 @@ private :
 #include "itkParameterEstimationImageFilter.txx"
 #endif
 
-#endif 
-
+#endif // _63915978_9892_4957_a7ab_d27e2eedbd6e
