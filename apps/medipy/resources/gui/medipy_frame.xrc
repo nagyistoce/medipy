@@ -250,8 +250,22 @@
       <object class="wxNotebook" name="notebook">
         <object class="notebookpage">
           <object class="wxSplitterWindow" name="left_splitter">
-            <object class="wxTreeCtrl" name="menu_treectrl">
-              <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
+            
+            <object class="wxPanel">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxTextCtrl" name="search_tab"/>
+                  <flag>wxEXPAND</flag>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTreeCtrl" name="menu_treectrl">
+                    <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
+                  </object>
+                  <option>1</option>
+                  <flag>wxEXPAND</flag>
+                </object>
+              </object>
             </object>
             <object class="wxPanel" name="function_ui_panel"/>
             <orientation>horizontal</orientation>
