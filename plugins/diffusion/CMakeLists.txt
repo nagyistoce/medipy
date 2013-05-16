@@ -76,10 +76,19 @@ wrap_library("MediPyDiffusion" python)
         end_wrap_module()
     endforeach()
     
-    # ParameterEstimation : Vector -> (VectorImage, Image) (float,3) only
-    wrap_module("itkParameterEstimationImageFilter")
-        wrap_class("itk::ParameterEstimationImageFilter" POINTER)
-            wrap_template("VIF3VIF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}")
+    # DWIStatistics : Vector -> (VectorImage, Image) (float,3) for Spatial
+    # and Image -> ( VectorImage, Image)(float,3) only for Bootstrap
+    wrap_module("itkDWIStatisticsImageFilter")
+        wrap_class("itk::DWIStatisticsImageFilter" POINTER)
+            wrap_template("VIF3VIF3IF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+            wrap_template("IF3VIF3IF3IF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+        end_wrap_class()
+    end_wrap_module()
+    
+    # SpatialDWIStatistics : Vector -> (VectorImage, Image) (float,3) only
+    wrap_module("itkSpatialDWIStatisticsImageFilter")
+        wrap_class("itk::SpatialDWIStatisticsImageFilter" POINTER)
+            wrap_template("VIF3VIF3IF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
         end_wrap_class()
     end_wrap_module()
     
