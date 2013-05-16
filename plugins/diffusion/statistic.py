@@ -36,16 +36,19 @@ def spatial_voxel_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=
     
     log_tensor = log_transformation(tensor)
     log_tensor_itk = medipy.itk.medipy_image_to_itk_image(log_tensor, False)
+    ScalarImage = itk.Image[itk.template(log_tensor_itk)[1]]
     
     mask_itk = None
+    MaskImage = ScalarImage
     if mask :
         mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+        MaskImage = mask_itk.__class__
     
-    estimation_filter = itk.ParameterEstimationImageFilter[
-        log_tensor_itk, log_tensor_itk, itk.Image[itk.template(log_tensor_itk)[1]]].New(
+    estimation_filter = itk.SpatialDWIStatisticsImageFilter[
+        log_tensor_itk, log_tensor_itk, ScalarImage, MaskImage].New(
         Input=log_tensor_itk, SizePlane=size_plane, SizeDepth=size_depth)
     if mask :
-        estimation_filter.SetMask(mask_itk)
+        estimation_filter.SetMaskImage(mask_itk)
     estimation_filter()
     
     mean_itk = estimation_filter.GetMeanImage()
@@ -53,38 +56,31 @@ def spatial_voxel_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=
     mean.image_type = "tensor_2"
     mean = exp_transformation(mean)
     
-    variance_itk = estimation_filter.GetVarianceImage()
-    variance = medipy.itk.itk_image_to_medipy_image(variance_itk, None, True)
-    # Clamp the variance to compute standard deviation without errors
-    variance[variance<0] = 0
-    variance[numpy.isnan(variance)] = 0
-    # Compute standard deviation
-    variance.data = numpy.sqrt(variance.data/6.0) 
+    standard_deviation_itk = estimation_filter.GetStandardDeviationImage()
+    standard_deviation = medipy.itk.itk_image_to_medipy_image(standard_deviation_itk, None, True)
+    
+    return mean, standard_deviation
 
-    return mean, variance
-
-def bootstrap_parameter_estimation_gui(images, size_plane=3, size_depth=3, 
-                                       nb_bootstrap=10, bootstrap_type="spatial") :
+def bootstrap_parameter_estimation(images, size_plane=3, size_depth=3, 
+                                   nb_bootstrap=10, bootstrap_type="spatial") :
     """ Local or Spatial bootstrap parameter estimation.
 
-    <gui>
-        <item name="images" type="ImageSerie" label="Input diffusion data"/>
-        <item name="size_plane" type="Int" initializer="3" label="Neighborhood plane size (for spatial bootstrap only)"/>
-        <item name="size_depth" type="Int" initializer="3" label="Neighborhood depth size (for spatial bootstrap only)"/>
-        <item name="nb_bootstrap" type="Int" initializer="10" label="Number of bootstrap samples"/>
-        <item name="bootstrap_type" type="Enum" initializer="('spatial', 'local')" label="Choose bootstrap strategy"/>
-        <item name="mean" type="Image" initializer="output=True" role="return" label="Mean tensor image"/>
-        <item name="var" type="Image" initializer="output=True" role="return" label="Variance image"/>
-    </gui>
+        <gui>
+            <item name="images" type="ImageSerie" label="Input diffusion data"/>
+            <item name="size_plane" type="Int" initializer="3" 
+                  label="Neighborhood plane size (for spatial bootstrap only)"/>
+            <item name="size_depth" type="Int" initializer="3" 
+                  label="Neighborhood depth size (for spatial bootstrap only)"/>
+            <item name="nb_bootstrap" type="Int" initializer="10" 
+                  label="Number of bootstrap samples"/>
+            <item name="bootstrap_type" type="Enum" 
+                  initializer="('spatial', 'local')" label="Choose bootstrap strategy"/>
+            <item name="mean" type="Image" initializer="output=True" 
+                  role="return" label="Mean tensor image"/>
+            <item name="var" type="Image" initializer="output=True" 
+                  role="return" label="Variance image"/>
+        </gui>
     """
-
-    mean,var = bootstrap_parameter_estimation(images,bootstrap_type,size_plane,size_depth,nb_bootstrap)
-    var.data[numpy.isnan(var.data)] = 0.0
-    var.data[numpy.where(var.data>1.0)] = 0.0
-
-    return mean,var
-
-def bootstrap_parameter_estimation(images,bootstrap_type,size_plane,size_depth,nb_bootstrap) :
 
     ScalarImage = itk.Image[itk.F, images[0].ndim]
     VectorImage = itk.VectorImage[itk.F, images[0].ndim]
