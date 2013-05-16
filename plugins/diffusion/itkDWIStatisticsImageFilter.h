@@ -1,3 +1,11 @@
+/*************************************************************************
+ * MediPy - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
 #ifndef _2dd8b74d_fbaf_4ee0_ac0b_e4e910c4f229
 #define _2dd8b74d_fbaf_4ee0_ac0b_e4e910c4f229
 
