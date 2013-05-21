@@ -275,3 +275,25 @@ def linear_interpolator(moving):
         MovingImageType = moving
     
     return itk.LinearInterpolateImageFunction[MovingImageType, itk.D].New()
+
+def resample_itk(image,ratio=0.5) : 
+    """ Resample an image """
+
+    image_itk = medipy.itk.medipy_image_to_itk_image(image, False)
+    transform = itk.IdentityTransform[itk.D,3].New()  
+    shape = image_itk.GetLargestPossibleRegion().GetSize()
+    for i in range(shape.GetSizeDimension()) :
+        shape.SetElement(i,int(shape.GetElement(i)*0.5))
+    spacing = image_itk.GetSpacing()
+    for i in range(spacing.GetNumberOfComponents()) :
+        spacing.SetElement(i,int(spacing.GetElement(i)*(1./ratio)))
+    resample = itk.ResampleImageFilter[image_itk, image_itk].New(
+        Transform=transform, Input=image_itk, 
+        Size=tuple(shape), 
+        OutputOrigin=image_itk.GetOrigin(), OutputSpacing=spacing,
+        OutputDirection=image_itk.GetDirection(), DefaultPixelValue=0)
+    resample()
+    
+    itk_output = resample[0]
+    resample = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+    return resample

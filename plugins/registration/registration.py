@@ -68,6 +68,25 @@ def registration_gui(fixed, moving, registration_type, optimization_type, optimi
 
     return output
 
+def registration_nl(fixed, moving, optimization_strategy, nb_levels, max_iter, std) :
+    """ Non Linear registration
+        
+        <gui>
+            <item name="fixed" type="Image" label="Fixed Image"/>
+            <item name="moving" type="Image" label="Moving Image"/>
+            <item name="optimization_strategy" type="Enum" initializer="('Normal', 'Multi Resolution')" label="Optimization Strategy" />
+            <item name="nb_levels" type="Int" initializer="3" label="Number of Levels in the Pyramid" tooltip="Main parameter (1 &lt;= nb_levels &lt;= 5)"/>
+            <item name="max_iter" type="Int" initializer="300" label="Maximum number of iterations"/>
+            <item name="std" type="Int" initializer="4" label="Std for smoothing"/>
+            <item name="output" type="Image" initializer="output=True" role="return" label="Output1"/>
+        </gui>
+    """
+
+    interpolator = linear_interpolator(moving)
+    output,field = level_set_registration(fixed, moving, interpolator, max_iterations=300, std_smoothing=4)
+
+    return output
+
 def histogram_matching(fixed, moving, levels, match_points) :
     """ Histogram Matching
         
@@ -143,7 +162,7 @@ def multi_resolution_registration(fixed, moving, metric, transform, optimizer, i
     
     return final_transform
 
-def level_set_registration(fixed, moving, interpolator) :
+def level_set_registration(fixed, moving, interpolator, max_iterations=300, std_smoothing=4) :
 
     fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
     moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)
@@ -157,14 +176,42 @@ def level_set_registration(fixed, moving, interpolator) :
     registration.Update()
 
     warper = itk.WarpImageFilter[moving_itk, moving_itk, transformation_field_type].New(
-        Input=moving_itk,
-        Interpolator=interpolator, OutputSpacing=fixed_itk.GetSpacing(),
-        OutputOrigin=fixed_itk.GetOrigin(),DeformationField=registration.GetOutput())
+        DeformationField=registration.GetOutput(), Input=moving_itk,
+        OutputOrigin=fixed_itk.GetOrigin(), OutputSpacing=fixed_itk.GetSpacing(),
+        OutputDirection=fixed_itk.GetDirection(), 
+        Interpolator=interpolator)
     warper()
 
     itk_output = warper[0]
-    output = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
-    return output
+    resample = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+    return resample, registration.GetOutput()
+
+#def level_set_multi_registration(fixed, moving, interpolator, nb_levels=3) :
+#   """ MultiResolutionPDEDeformableRegistration not wraped yet """
+
+#    fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
+#    moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)
+#    transformation_field_type = itk.Image[itk.Vector[itk.F,3],3]
+
+#    filter = itk.LevelSetMotionRegistrationFilter[fixed_itk, moving_itk, transformation_field_type].New()
+
+
+#    registration = itk.MultiResolutionPDEDeformableRegistration[fixed_itk, moving_itk, transformation_field_type].New(
+#        RegistrationFilter=filter, NumberOfLevels=nb_levels,
+#        FixedImage=fixed_itk, MovingImage=moving_itk)
+#    registration.SetNumberOfIterations((10,20,50,50))
+#    registration.Update()    
+
+#    warper = itk.WarpImageFilter[moving_itk, moving_itk, transformation_field_type].New(
+#        DeformationField=registration.GetOutput(), Input=moving_itk,
+#        OutputOrigin=fixed_itk.GetOrigin(), OutputSpacing=fixed_itk.GetSpacing(),
+#        OutputDirection=fixed_itk.GetDirection(), 
+#        Interpolator=interpolator)
+#    warper()
+
+#    itk_output = warper[0]
+#    resample = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
+#    return resample, registration.GetOutput()
 
     
 def apply_transform(fixed, moving, transform, interpolator) :
