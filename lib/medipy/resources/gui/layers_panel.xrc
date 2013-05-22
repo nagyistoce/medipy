@@ -69,6 +69,83 @@
         <border>5</border>
       </object>
       <object class="sizeritem">
+        <object class="wxStaticBoxSizer">
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Layer :  </label>
+                </object>
+                <option>1</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="layer_value">
+                  <value>1</value>
+                </object>
+                <option>1</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxSlider" name="layer_slider"/>
+                <option>2</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <option>0</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Speed :</label>
+                </object>
+                <option>1</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxTextCtrl" name="speed_value">
+                  <value>1</value>
+                </object>
+                <option>1</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxSlider" name="speed_slider"/>
+                <option>2</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <option>0</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <label>Cine Mod</label>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxBitmapButton" name="play"/>
+                <option>0</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBitmapButton" name="stop"/>
+                <option>0</option>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+            <option>0</option>
+            <flag>wxEXPAND</flag>
+          </object>
+        </object>
+        <option>0</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
         <object class="wx.CheckListBox" name="layers"/>
         <option>1</option>
         <flag>wxBOTTOM|wxEXPAND</flag>
