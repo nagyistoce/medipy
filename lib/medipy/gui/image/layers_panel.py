@@ -36,10 +36,18 @@ class LayersPanel(medipy.gui.base.Panel):
             self.delete = None
             self.move_up = None
             self.move_down = None
-            
+
+            self.layer_value = None
+            self.layer_slider = None
+            self.speed_value = None
+            self.speed_slider = None
+            self.play = None
+            self.stop = None
+           
             self.controls = ["colormaps", "transparent_background", "opacity",
                              "cut_low", "display_range", "cut_high", "layers",
-                             "load", "delete", "move_up", "move_down"]
+                             "load", "delete", "move_up", "move_down","layer_value",
+                             "layer_slider","speed_value","speed_slider","play","stop"]
         
         def from_window(self, window, names):
             medipy.gui.base.UI.from_window(self, window, names)
@@ -57,6 +65,9 @@ class LayersPanel(medipy.gui.base.Panel):
         
         self._image = None
         self._current_layer = 0
+        self._timer = wx.Timer() #
+        self._delay = None #
+        self._status = "stop" #
         # User interface
         self.ui = LayersPanel.UI()
         
@@ -67,6 +78,18 @@ class LayersPanel(medipy.gui.base.Panel):
                     medipy.gui.xrc_wrapper.FloatIntervalXMLHandler()]
         medipy.gui.base.Panel.__init__(self, xrc_file, "layers_panel", 
             wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
+        self.ui.layer_slider.SetRange(0,1)
+        self.ui.speed_slider.SetRange(1,15)
+
+        # Resources
+        self._play_bitmap = wx.Bitmap(medipy.base.find_resource(
+            os.path.join("resources", "gui", "media-playback-start.png")))
+        self._pause_bitmap = wx.Bitmap(medipy.base.find_resource(
+            os.path.join("resources", "gui", "media-playback-pause.png")))
+        stop_bitmap = wx.Bitmap(medipy.base.find_resource(
+            os.path.join("resources", "gui", "media-playback-stop.png")))
+        self.ui.play.SetBitmapLabel(self._play_bitmap)
+        self.ui.stop.SetBitmapLabel(stop_bitmap)
         
         # Events
         self.ui.colormaps.Bind(wx.EVT_CHOICE, self.OnColormaps)
@@ -81,6 +104,39 @@ class LayersPanel(medipy.gui.base.Panel):
         self.ui.delete.Bind(wx.EVT_BUTTON, self.OnDelete)
         self.ui.move_up.Bind(wx.EVT_BUTTON, self.OnMoveUp)
         self.ui.move_down.Bind(wx.EVT_BUTTON, self.OnMoveDown)
+
+        self._timer.Bind(wx.EVT_TIMER, self.OnTimer) #
+        self.ui.layer_value.Bind(wx.EVT_TEXT, self.on_layer_value) #
+        self.ui.layer_slider.Bind(wx.EVT_SLIDER, self.on_layer_slider) #
+        self.ui.speed_value.Bind(wx.EVT_TEXT, self.on_speed_value) #
+        self.ui.speed_slider.Bind(wx.EVT_SLIDER, self.on_speed_slider) #
+        self.ui.play.Bind(wx.EVT_BUTTON, self.OnPlayPauseClicked) #
+        self.ui.stop.Bind(wx.EVT_BUTTON, self.OnStopClicked) #
+        self._set_fps(self.ui.speed_value.GetValue())
+
+    def play(self):
+        if self._image is not None and len(self._image.layers)>1 :
+            layer = (self._current_layer+1)%len(self._image.layers)
+            self.select_layer(layer)       
+            self._set_fps(self.ui.speed_value.GetValue())
+            self._timer.Start(self._delay)
+        self._status = "play"
+        self.ui.play.SetBitmapLabel(self._pause_bitmap)
+    
+    def pause(self):
+        self._timer.Stop()
+        self._status = "pause"
+        self.ui.play.SetBitmapLabel(self._play_bitmap)
+    
+    def stop(self):
+        self._timer.Stop()
+        if self._image is not None and len(self._image.layers)>1 :
+            for i in range(self._image.number_of_layers) :
+                self._image.set_layer_visibility(i, False)
+            self.select_layer(0)
+            self._image.render()
+        self._status = "stop"
+        self.ui.play.SetBitmapLabel(self._play_bitmap)
     
     def select_layer(self, index):
         """ Select the current layer in the layers list, update the GUI.
@@ -109,6 +165,13 @@ class LayersPanel(medipy.gui.base.Panel):
                 if colormap.data == other_colormap :
                     colormap_name = name
                     break
+
+        if len(self._image.layers)>1 :
+            self.ui.layer_slider.SetRange(1,len(self._image.layers))
+            for i in range(len(self._image.layers)) :
+                self._image.set_layer_visibility(i, False)
+            self._image.set_layer_visibility(self._current_layer, True)
+            self._image.render()
         
         image = self._image.get_layer_image(self._current_layer)
         
@@ -280,6 +343,7 @@ class LayersPanel(medipy.gui.base.Panel):
         index = len(self._image.layers)-wx_index-1
         self._image.set_layer_visibility(index, visibility)
         self._image.render()
+        self.ui.layer_value.SetValue(str(index+1))
     
     def OnLoad(self, dummy):
         """ Called when the load button is clicked.
@@ -379,3 +443,59 @@ class LayersPanel(medipy.gui.base.Panel):
             self.image.add_observer("layer_visibility", self.on_layer_visibility)
         else :
             self.ui.delete.Disable()
+
+    def OnTimer(self, event):
+        layer = (self._current_layer+1)%len(self._image.layers)
+        self.ui.layer_value.SetValue(str(layer+1))
+        self.select_layer(layer) 
+  
+    def OnPlayPauseClicked(self, event):
+        if self._status in ["pause", "stop"] :
+            self.play()
+        else :
+            self.pause()
+    
+    def OnStopClicked(self, event):
+        self.stop()
+
+    def on_layer_value(self, event) :
+        value = self.ui.layer_value.GetValue()
+        if len(value)>0 :
+            index = int(value)
+            if index<=self.ui.layer_slider.GetMax() :
+                self.ui.layer_slider.SetValue(index)
+            else :
+                index = self.ui.layer_slider.GetMax()
+                self.ui.layer_value.SetValue(str(index))
+            if self._image is not None :
+                self.select_layer(index-1)
+
+    def on_layer_slider(self, event):
+        self.ui.layer_value.SetValue(str(self.ui.layer_slider.GetValue()))
+        if self._image is not None :
+            self.select_layer(self.ui.layer_slider.GetValue()-1)
+
+    def on_speed_value(self, event) :
+        value = self.ui.speed_value.GetValue()
+        if len(value)>0 :
+            index = int(value)
+            if index<=self.ui.speed_slider.GetMax() :
+                self.ui.speed_slider.SetValue(index)
+            else :
+                index = self.ui.speed_slider.GetMax()
+                self.ui.speed_value.SetValue(str(index))
+            self._set_fps(index)
+
+    def on_speed_slider(self, event):
+        self.ui.speed_value.SetValue(str(self.ui.speed_slider.GetValue()))
+        self._set_fps(self.ui.speed_slider.GetValue())
+    
+    #####################
+    # Private interface #
+    #####################
+    
+    def _set_fps(self, fps):
+        self._delay = 1000. / float(fps)
+        if self._timer.IsRunning() :
+            self._timer.Start(self._delay)
+    
