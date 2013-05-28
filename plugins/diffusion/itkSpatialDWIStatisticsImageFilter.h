@@ -62,6 +62,7 @@ protected :
     SpatialDWIStatisticsImageFilter();
     ~SpatialDWIStatisticsImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
+    void BeforeThreadedGenerateData();
     void ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, int);
 
 private :

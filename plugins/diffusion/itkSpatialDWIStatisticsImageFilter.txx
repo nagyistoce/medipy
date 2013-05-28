@@ -45,6 +45,21 @@ template<typename TInputImage, typename TMeanImage,
 void 
 SpatialDWIStatisticsImageFilter<TInputImage, TMeanImage, 
                                 TStandardDeviationImage, TMaskImage>
+::BeforeThreadedGenerateData()
+{
+    typename TMeanImage::Pointer mean_image = 
+        dynamic_cast<TMeanImage*>(this->ProcessObject::GetOutput(0));
+    mean_image->FillBuffer(0);
+    typename TStandardDeviationImage::Pointer standard_deviation_image = 
+        dynamic_cast<TStandardDeviationImage*>(this->ProcessObject::GetOutput(1));
+    standard_deviation_image->FillBuffer(0);
+}
+
+template<typename TInputImage, typename TMeanImage, 
+         typename TStandardDeviationImage, typename TMaskImage>
+void 
+SpatialDWIStatisticsImageFilter<TInputImage, TMeanImage, 
+                                TStandardDeviationImage, TMaskImage>
 ::ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, int)
 {
     typedef typename TInputImage::PixelType InputTensorType;
@@ -58,10 +73,8 @@ SpatialDWIStatisticsImageFilter<TInputImage, TMeanImage,
         
     typename TMeanImage::Pointer mean_image = 
         dynamic_cast<TMeanImage*>(this->ProcessObject::GetOutput(0));
-    mean_image->FillBuffer(0);
     typename TStandardDeviationImage::Pointer standard_deviation_image = 
         dynamic_cast<TStandardDeviationImage*>(this->ProcessObject::GetOutput(1));
-    standard_deviation_image->FillBuffer(0);
 
     // Build the neighborhood
     typedef itk::Neighborhood<typename TInputImage::PixelType, 
