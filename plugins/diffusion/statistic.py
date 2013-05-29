@@ -14,7 +14,7 @@ import medipy.itk
 from utils import (spectral_decomposition, exp_transformation, 
                    log_transformation, get_diffusion_information)
 
-def spatial_voxel_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=None):
+def spatial_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=None):
     """ Neighborhood-based estimation of the mean and standard deviation of 
         second-order tensors.
 
@@ -72,7 +72,7 @@ def bootstrap_parameter_estimation(images, size_plane=3, size_depth=3,
                   label="Neighborhood plane size (spatial bootstrap only)"/>
             <item name="size_depth" type="Int" initializer="3" 
                   label="Neighborhood depth size (spatial bootstrap only)"/>
-            <item name="iterations" type="Int" initializer="200" 
+            <item name="samples_count" type="Int" initializer="200" 
                   label="Number of bootstrap samples"/>
             <item name="bootstrap_type" type="Enum" 
                   initializer="('spatial', 'local')" label="Bootstrap strategy"/>
@@ -110,8 +110,8 @@ def bootstrap_parameter_estimation(images, size_plane=3, size_depth=3,
         image.data = numpy.cast[numpy.single](image.data)
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         grad = get_diffusion_information(image)["diffusion_gradient_orientation"]
-        estimation_filter.SetInput(cnt,itk_image)
-        estimation_filter.SetGradientDirection(cnt, grad)
+        estimation_filter.SetInput(cnt, itk_image)
+        estimation_filter.SetGradientDirection(cnt, numpy.asarray(grad).tolist())
 
     estimation_filter()
 
