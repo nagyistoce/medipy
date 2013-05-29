@@ -45,7 +45,7 @@ namespace itk
 template<typename ModelType, typename MaskType>
 StreamlineTractographyAlgorithm<ModelType, MaskType>
 ::StreamlineTractographyAlgorithm() 
-: Superclass(), m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_ThresholdAngle(M_PI/3.0f), m_ThresholdFA(0.2)
+: Superclass(), m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_MaximumAngle(M_PI/3.0f), m_MinimumFA(0.2)
 {
     m_Calculator.SetDimension(3);
 }
@@ -107,7 +107,7 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
         // Select the best propagation direction
         d1 = SelectClosestDirectionT2(d,d1,stop);
     }
-
+    
     // Track towards the opposite direction
     stop = false;
     nextPoint = seed;
@@ -117,12 +117,12 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
         VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         d2 = SelectClosestDirectionT2(d,d2,stop);
     }
-
+    
     // Concatenate
     std::vector< PointType > points;
     for (unsigned int i=0; i<points2.size()-1; i++) { points.push_back(points2[points2.size()-1-i]); }
     for (unsigned int i=0; i<points1.size(); i++) { points.push_back(points1[i]); }
-
+    
     return points;
 }
 
@@ -182,7 +182,7 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
         double fa = 0.5 * ((ev1-ev2)*(ev1-ev2) + (ev2-ev3)*(ev2-ev3) + (ev3-ev1)*(ev3-ev1)) / (ev1*ev1 + ev2*ev2 + ev3*ev3);
         if (fa>0) { fa = sqrt(fa); }
         else { fa = 0; }
-        if ((float)fa<m_ThresholdFA) {
+        if ((float)fa<m_MinimumFA) {
             stop = true;
         }
     }
@@ -205,7 +205,7 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 
     // Check if the propagation angle is allowed
     float angle = std::acos( std::abs(dotProduct) );
-    if (angle > m_ThresholdAngle) { stop = true; }
+    if (angle > m_MaximumAngle) { stop = true; }
 
     return nextDirection;
 }

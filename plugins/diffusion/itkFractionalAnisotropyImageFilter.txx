@@ -99,7 +99,15 @@ FractionalAnisotropyImageFilter<TInputImage, TOutputImage>
         double ev1 = (double) eigenvalues[0];
         double ev2 = (double) eigenvalues[1];
         double ev3 = (double) eigenvalues[2];
-        double fa = sqrt(0.5 * ((ev1-ev2)*(ev1-ev2) + (ev2-ev3)*(ev2-ev3) + (ev3-ev1)*(ev3-ev1)) / (ev1*ev1 + ev2*ev2 + ev3*ev3));
+        double fa = 0.5 * ((ev1-ev2)*(ev1-ev2) + (ev2-ev3)*(ev2-ev3) + (ev3-ev1)*(ev3-ev1)) / (ev1*ev1 + ev2*ev2 + ev3*ev3);
+        if(fa>0)
+        { 
+            fa = sqrt(fa); 
+        }
+        else
+        {
+            fa = 0;
+        }
         this->GetOutput(0)->SetPixel(it.GetIndex(),(OutputPixelType)fa);
 
         ++it;
