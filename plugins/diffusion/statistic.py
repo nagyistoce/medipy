@@ -19,7 +19,7 @@ def spatial_voxel_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=
         second-order tensors.
 
         <gui>
-            <item name="tensor" type="Image" label="DWI data"/>
+            <item name="tensor" type="Image" label="DTI data"/>
             <item name="size_plane" type="Int" initializer="3" 
                   label="Neighborhood plane size"/>
             <item name="size_depth" type="Int" initializer="3" 
@@ -62,57 +62,68 @@ def spatial_voxel_parameter_estimation(tensor, size_plane=3, size_depth=3, mask=
     return mean, standard_deviation
 
 def bootstrap_parameter_estimation(images, size_plane=3, size_depth=3, 
-                                   nb_bootstrap=10, bootstrap_type="spatial") :
+                                   samples_count=200, bootstrap_type="spatial",
+                                   mask=None) :
     """ Local or Spatial bootstrap parameter estimation.
 
         <gui>
-            <item name="images" type="ImageSerie" label="Input diffusion data"/>
+            <item name="images" type="ImageSerie" label="DWI data"/>
             <item name="size_plane" type="Int" initializer="3" 
-                  label="Neighborhood plane size (for spatial bootstrap only)"/>
+                  label="Neighborhood plane size (spatial bootstrap only)"/>
             <item name="size_depth" type="Int" initializer="3" 
-                  label="Neighborhood depth size (for spatial bootstrap only)"/>
-            <item name="nb_bootstrap" type="Int" initializer="10" 
+                  label="Neighborhood depth size (spatial bootstrap only)"/>
+            <item name="iterations" type="Int" initializer="200" 
                   label="Number of bootstrap samples"/>
             <item name="bootstrap_type" type="Enum" 
-                  initializer="('spatial', 'local')" label="Choose bootstrap strategy"/>
+                  initializer="('spatial', 'local')" label="Bootstrap strategy"/>
+            <item name="mask" type="Image" 
+                  initializer="may_be_empty=True, may_be_empty_checked=True" 
+                  label="Mask"/>
             <item name="mean" type="Image" initializer="output=True" 
                   role="return" label="Mean tensor image"/>
-            <item name="var" type="Image" initializer="output=True" 
-                  role="return" label="Variance image"/>
+            <item name="standard_deviation" type="Image" initializer="output=True" 
+                  role="return" label="Standard deviation image"/>
         </gui>
     """
 
     ScalarImage = itk.Image[itk.F, images[0].ndim]
     VectorImage = itk.VectorImage[itk.F, images[0].ndim]
-    EstimationFilter = itk.BootstrapParameterEstimationImageFilter[ScalarImage, VectorImage]
+    
+    mask_itk = None
+    MaskImage = ScalarImage
+    if mask :
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+        MaskImage = mask_itk.__class__
+    
+    EstimationFilter = itk.BootstrapDWIStatisticsImageFilter[
+        ScalarImage, VectorImage, ScalarImage, MaskImage]
     
     estimation_filter = EstimationFilter.New(
-        BVal=float(get_diffusion_information(images[1])["diffusion_bvalue"]),
-        NumberOfBootstrap=nb_bootstrap, SizePlane=size_plane, 
+        BValue=float(get_diffusion_information(images[1])["diffusion_bvalue"]),
+        SamplesCount=samples_count, SizePlane=size_plane, 
         SizeDepth=size_depth, UseSpatialBootstrap=(bootstrap_type=='spatial'))
 
+    if mask :
+        estimation_filter.SetMaskImage(mask_itk)
+    
     for cnt,image in enumerate(images) :
         image.data = numpy.cast[numpy.single](image.data)
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         grad = get_diffusion_information(image)["diffusion_gradient_orientation"]
         estimation_filter.SetInput(cnt,itk_image)
-        estimation_filter.SetGradientDirection(cnt,grad.tolist())
+        estimation_filter.SetGradientDirection(cnt, grad)
 
-    estimation_filter.Update()
+    estimation_filter()
 
-    itk_mean = estimation_filter.GetOutput(0)
-    mean = medipy.itk.itk_image_to_medipy_image(itk_mean,None,True)
+    mean_itk = estimation_filter.GetMeanImage()
+    mean = medipy.itk.itk_image_to_medipy_image(mean_itk, None, True)
     mean.image_type = "tensor_2"
     mean = exp_transformation(mean)
     
-    itk_var = estimation_filter.GetOutput(1)
-    var = medipy.itk.itk_image_to_medipy_image(itk_var,None,True)
-    # The variance image must be a VectorImage to be fed to the ITK filter, but
-    # is really a scalar image
-    var.data = var.data.reshape(images[0].shape)
-    var.data_type = "scalar"
-
-    return mean,var
+    standard_deviation_itk = estimation_filter.GetStandardDeviationImage()
+    standard_deviation = medipy.itk.itk_image_to_medipy_image(standard_deviation_itk, None, True)
+    
+    return mean, standard_deviation
 
 def spatial_voxel_test_gui(tensor1,tensor2, size_plane, size_depth, test_flag) :
     """Multivariate Statistical Tests at a voxel level.
