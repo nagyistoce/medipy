@@ -49,6 +49,7 @@ public:
     
     typedef TMaskImage MaskImageType;
     typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef typename MaskImageType::ConstPointer MaskImageConstPointer;
     
     /// @brief Run-time type information (and related methods).
     itkTypeMacro(DWIStatisticsImageFilter, ImageToImageFilter);
