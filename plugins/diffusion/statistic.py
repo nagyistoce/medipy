@@ -125,29 +125,29 @@ def bootstrap_parameter_estimation(images, size_plane=3, size_depth=3,
     
     return mean, standard_deviation
 
-def spatial_voxel_test_gui(tensor1,tensor2, size_plane, size_depth, test_flag) :
+def tensor_voxel_test(mean1, standard_deviation1, mean2, standard_deviation2,
+                      size_plane=3, size_depth=3, test_type="unrestricted") :
     """Multivariate Statistical Tests at a voxel level.
 
     <gui>
-        <item name="tensor1" type="Image" label="First time point tensor image"/>
-        <item name="tensor2" type="Image" label="Second time point tensor image"/>
+        <item name="mean1" type="Image" label="Mean image 1"/>
+        <item name="standard_deviation1" type="Image" 
+              label="Standard deviation image 1"/>
+        <item name="mean2" type="Image" label="Mean image 2"/>
+        <item name="standard_deviation2" type="Image" 
+              label="Standard deviation image 2"/>
         <item name="size_plane" type="Int" initializer="3" label="Neighborhood plane size"/>
         <item name="size_depth" type="Int" initializer="3" label="Neighborhood depth size"/>
-        <item name="test_flag" type="Enum" initializer="('unrestricted', 'eigenvalues')" label="Choose test"/>
+        <item name="test_type" type="Enum" initializer="('unrestricted', 'eigenvalues')" label="Test type"/>
         <item name="output" type="Image" initializer="output=True" role="return" label="Output"/>
     </gui> 
     """
     
-    spacing = tensor1.spacing
-    origin = tensor1.origin
-    direction = tensor1.direction
-    M1,S1 = spatial_voxel_parameter_estimation(tensor1,size_plane,size_depth)
-    M2,S2 = spatial_voxel_parameter_estimation(tensor2,size_plane,size_depth)
-    
     N1 = size_plane*size_plane*size_depth
     N2 = N1
     
-    T,s,df = _dtiLogTensorTestAS(test_flag, M1, M2, S1, S2, N1, N2)
+    T,s,df = _dtiLogTensorTestAS(test_type, 
+        mean1, mean2, standard_deviation1, standard_deviation2, N1, N2)
     
     return T
 
