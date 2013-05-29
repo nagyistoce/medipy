@@ -99,12 +99,5 @@ wrap_library("MediPyDiffusion" python)
         end_wrap_class()
     end_wrap_module()
     
-    # Bootstrap : Image -> VectorImage, (float,3) only
-    wrap_module("itkBootstrapParameterEstimationImageFilter")
-        wrap_class("itk::BootstrapParameterEstimationImageFilter" POINTER)
-            wrap_template("IF3VIF3" "${ITKT_IF3}, ${ITKT_VIF3}")
-        end_wrap_class()
-    end_wrap_module()
-    
 end_wrap_library()
 wrap_ikt_post_install("MediPyDiffusion")
