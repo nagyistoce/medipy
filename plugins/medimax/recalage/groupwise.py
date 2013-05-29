@@ -91,6 +91,8 @@ def createSeriesOfWarpedImages(ImageTxtFile,TransfoTxtFile, SerieFilename, imref
     
     if imref == None :
         imref=medipy.io.load(ImageList[0])
+    else : 
+        imef=medipy.io.load(imref)
     
     origin=imref.origin
     direction=imref.direction
@@ -164,6 +166,8 @@ def groupwiseRegistrationFromTxtfile(ImageTxtFile, TransfoIniTxtFile=None, Trans
 wdth_template=256,hght_template=256, dpth_template=256,
 dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None, numberOfFirstImageToProcess=1) :
     
+    
+    numberOfFirstImageToProcess=numberOfFirstImageToProcess-1 # pour etre compatible avec les index des tableaux
     ImageList=fileToListe(ImageTxtFile)
     nb_image=len(ImageList)
 
@@ -245,18 +249,23 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None, numberOfFirst
     imfirst=medipy.io.load(ImageList[0])
     meanImage = medipy.base.Image(dtype=np.float32)
     
-    if numberOfFirstImageToProcess==1 :
+    if numberOfFirstImageToProcess==0 :
         medipy.medimax.recalage.CombineTransfo3d(TransfoIniList[0],resample, TransfoResList[0], 5)
     
     medipy.medimax.recalage.ApplyTransfo3d(imfirst,TransfoResList[0],meanImage,8)
-        
+    
+    imref = medipy.base.Image(dtype=meanImage.dtype)
+    imref.data=np.copy(meanImage.data)
+    imref.copy_information(meanImage)
+         
     for j in range(1,numberOfFirstImageToProcess) :
         im=medipy.io.load(ImageList[j])
         imres=medipy.base.Image(dtype=im.dtype)       
         medipy.medimax.recalage.ApplyTransfo3d(im,TransfoResList[j],imres,8)
         meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, imres, imref, imres).data
    
-    meanImage.data=meanImage.data/float(numberOfFirstImageToProcess)
+    if numberOfFirstImageToProcess>0 :
+        meanImage.data=meanImage.data/float(numberOfFirstImageToProcess)
 
 
 
@@ -265,7 +274,12 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None, numberOfFirst
 
     bsplineTmp=tempfile.mkstemp(".trf")[1]
     
-    for i in range(numberOfFirstImageToProcess,nb_image) :
+    if numberOfFirstImageToProcess==0 :
+        num_deb=1
+    else:
+        num_deb= numberOfFirstImageToProcess
+        
+    for i in range(num_deb,nb_image) :
         
         #------------------------------------------------
         #----       Recalage          -------
@@ -327,19 +341,22 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None, numberOfFirst
         medipy.io.save_serie(im4D, serieOfTemplate) 
     
     # suppression fichiers temporaires
-    os.remove(resample)
-    os.remove(bsplineTmp)
-    os.remove(bsplineTmp.replace('.trf', '.chp'))
-    os.remove(bsplineTmp.replace('.trf', '_reca.trf'))
-    os.remove(bsplineTmp.replace('.trf', '_reca.prm'))
-    os.remove(bsplineTmp.replace('.trf', '_ref.trf'))
-    os.remove(bsplineTmp.replace('.trf', '_ref.prm'))
-    
+    try : 
+        os.remove(resample)
+        os.remove(bsplineTmp)
+        os.remove(bsplineTmp.replace('.trf', '_reca.trf'))
+        os.remove(bsplineTmp.replace('.trf', '_reca.prm'))
+        os.remove(bsplineTmp.replace('.trf', '_ref.trf'))
+        os.remove(bsplineTmp.replace('.trf', '_ref.prm'))
+        os.remove(bsplineTmp.replace('.trf', '.chp'))
+    except :
+        pass 
     
     
 
 if __name__ == "__main__" :
-    #groupwiseRegistrationFromTxtfile("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/tmp/groupwise/listeAffID.txt", "/home/miv/noblet/tmp/groupwise/listeGroupwise.txt",resolution=4,regularisation=0,wdth_template=64,hght_template=64, dpth_template=64, dx_template=4, dy_template=4, dz_template=4)
+    #groupwiseRegistrationFromTxtfile("/home/miv/noblet/tmp/groupwise/listeImage_red.txt", "/home/miv/noblet/tmp/groupwise/listeAffID_red.txt", "/home/miv/noblet/tmp/groupwise/listeGroupwise_red.txt",resolution=4,regularisation=0,wdth_template=64,hght_template=64, dpth_template=64, dx_template=4, dy_template=4, dz_template=4)
+    #groupwiseRegistrationFromTxtfile("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/tmp/groupwise/listeAffID.txt", "/home/miv/noblet/tmp/groupwise/listeGroupwise.txt",resolution=4,regularisation=0,wdth_template=64,hght_template=64, dpth_template=64, dx_template=4, dy_template=4, dz_template=4, numberOfFirstImageToProcess=4)
     #groupwiseAffineRegistration("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/data/MNI_20patients_IPB_128/subject54.ipb", "/home/miv/noblet/tmp/groupwise/listeAff.txt")
     #createSeriesOfWarpedImages("/home/miv/noblet/tmp/groupwise/listeImage.txt", "/home/miv/noblet/tmp/groupwise/listeGroupwise.txt", "/home/miv/noblet/tmp/groupwise/serie.nii.gz")
     #verifSumOfDeformationFields("/home/miv/noblet/tmp/groupwise/listeGroupwise.txt")
