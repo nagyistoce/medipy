@@ -259,11 +259,12 @@
                       <object class="wxStaticBitmap" name="search_bitmap">
                         <bitmap stock_id="wxART_FIND"/>
                       </object>
+                      <flag>wxALIGN_CENTRE_VERTICAL</flag>
                     </object>
                     <object class="sizeritem">
                       <object class="wxTextCtrl" name="search_tab"/>
                       <option>1</option>
-                      <flag>wxEXPAND</flag>
+                      <flag>wxEXPAND|wxALIGN_CENTRE_VERTICAL</flag>
                     </object>
                     <orient>wxHORIZONTAL</orient>
                   </object>
