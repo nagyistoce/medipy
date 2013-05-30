@@ -75,9 +75,10 @@
               <object class="sizeritem">
                 <object class="wxStaticText">
                   <label>Layer :  </label>
+                  <style>wxALIGN_RIGHT</style>
                 </object>
-                <option>1</option>
-                <flag>wxALIGN_CENTRE</flag>
+                <flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+                <border>5</border>
               </object>
               <object class="sizeritem">
                 <object class="wxTextCtrl" name="layer_value">
@@ -101,13 +102,14 @@
               <object class="sizeritem">
                 <object class="wxStaticText">
                   <label>Speed :</label>
+                  <style>wxALIGN_RIGHT</style>
                 </object>
-                <option>1</option>
-                <flag>wxALIGN_CENTRE</flag>
+                <flag>wxRIGHT|wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+                <border>5</border>
               </object>
               <object class="sizeritem">
                 <object class="wxTextCtrl" name="speed_value">
-                  <value>1</value>
+                  <value>5</value>
                 </object>
                 <option>1</option>
                 <flag>wxALIGN_CENTRE</flag>
@@ -122,8 +124,6 @@
             <option>0</option>
             <flag>wxEXPAND</flag>
           </object>
-          <label>Cine Mod</label>
-          <orient>wxVERTICAL</orient>
           <object class="sizeritem">
             <object class="wxBoxSizer">
               <orient>wxHORIZONTAL</orient>
@@ -141,6 +141,8 @@
             <option>0</option>
             <flag>wxEXPAND</flag>
           </object>
+          <label>Cine mode</label>
+          <orient>wxVERTICAL</orient>
         </object>
         <option>0</option>
         <flag>wxEXPAND</flag>
