@@ -39,6 +39,8 @@ DllExport void VisuTrfFile(char *nomfichier, grphic3d *output, int type);
 
 DllExport void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda);
 
+DllExport int warpDeformationField(char *nomfichierTrfSrc, char *nomfichierTrfApply, char *nomfichierTrfRes, int inter_type);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

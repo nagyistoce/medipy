@@ -6962,3 +6962,270 @@ field3d* ch, *chres;
   free_field3d(chres);
 
 }
+
+
+
+/*******************************************************************************
+**   warpDeformationField_menu()                                  
+*/
+/*!                                                                       
+**      Déforme un champ de déformation          
+*******************************************************************************/
+
+void warpDeformationField_menu(void)
+{
+int err=0, inter_type;
+int wdth, hght,dpth;
+char nomfichierRef[PATH_LEN],nomfichierTrf[PATH_LEN], nomfichRes[PATH_LEN],str[PATH_LEN];
+transf3d* transfoRef,*transfo, *transfoRes;
+field3d* chRef,  *chRes;
+
+
+    
+/*fichier contenant la transformation à déformer */
+{
+    sprintf(nomfichierRef,"%s",GET_FILE("Champ a deformer (*.trf) ",&err));
+    
+    if (err)
+        return ;
+    
+    put_file_extension(nomfichierRef,".trf",nomfichierRef);
+
+    if (test_fichier_transf_3d(nomfichierRef) != 1)
+    {
+        PUT_ERROR("This file contains no 3D transformation");
+        return ;
+    }
+}
+    
+
+/*fichier contenant la transformation*/
+{
+    sprintf(nomfichierTrf,"%s",GET_FILE("Transformation (*.trf)",&err));
+    
+    if (err)
+    return ;
+    
+    put_file_extension(nomfichierTrf,".trf",nomfichierTrf);
+
+    if (test_fichier_transf_3d(nomfichierTrf) != 1)
+    {
+    PUT_ERROR("This file contains no 3D transformation");
+    return ;
+    }
+}
+
+/*methode d'interpolation*/
+inter_type = imx_query_interpolation_type_3D(0);
+
+/*nom du fichier resultat*/
+sprintf(str,"File ? in %s",_CurrentPath);
+strcpy(nomfichRes,SAVE_FILE(str,NULL,&err));
+put_file_extension(nomfichRes,".trf",nomfichRes);
+
+
+transfoRef=load_transf_3d(nomfichierRef);
+chRef=transf_to_field_3d(transfoRef,NULL,NULL);
+
+transfo=load_transf_3d(nomfichierTrf);
+
+
+wdth=transfo->width;
+hght=transfo->height;
+dpth=transfo->depth;
+
+chRes=cr_field3d(wdth,  hght,  dpth);
+
+
+warpDeformationField_p(chRef, transfo, chRes, inter_type);
+                       
+transfoRes=field_to_transf_3d(chRes,NULL,NULL);
+transfoRes->dx=chRes->dx;
+transfoRes->dy=chRes->dy;
+transfoRes->dz=chRes->dz;
+
+save_transf_3d(transfoRes,nomfichRes);
+free_transf3d(transfo);
+free_transf3d(transfoRef);
+free_transf3d(transfoRes);
+free_field3d(chRef);
+free_field3d(chRes);
+}
+
+/*******************************************************************************
+**   warpDeformationField_p()                                  
+*/
+/*!                                                                       
+ **     Déforme un champ de déformation          
+ *******************************************************************************/
+void warpDeformationField_p(field3d* chRef, transf3d* transfo, field3d* chRes, int inter_type)
+{
+InterpolationFct inter_fct;
+grphic3d* ux, *uy, *uz, *imtemp;
+int wdth, hght, dpth;
+
+wdth=chRes->width;
+hght=chRes->height;
+dpth=chRes->depth;
+
+chRes->dx=transfo->dx;
+chRes->dy=transfo->dy;
+chRes->dz=transfo->dz;
+
+
+inter_fct = imx_choose_interpolation_fct(inter_type);
+
+imtemp=cr_grphic3d_modif(chRef->width,chRef->height,chRef->depth,0.0,1.0,0);
+
+ux=cr_grphic3d_modif(wdth,hght,dpth,0.0,1.0,0);
+uy=cr_grphic3d_modif(wdth,hght,dpth,0.0,1.0,0);
+uz=cr_grphic3d_modif(wdth,hght,dpth,0.0,1.0,0);
+
+composante_field_to_image_3d(chRef, imtemp, 0);
+imx_apply_transf_3d_p(ux,imtemp, transfo, inter_fct);
+
+composante_field_to_image_3d(chRef, imtemp, 1);
+imx_apply_transf_3d_p(uy, imtemp, transfo, inter_fct);
+
+composante_field_to_image_3d(chRef, imtemp, 2);
+imx_apply_transf_3d_p(uz, imtemp, transfo, inter_fct);
+
+
+images_to_field_3d(ux,uy,uz,chRes);
+
+reorientDeformationField_p(chRes, transfo, chRes);
+
+free_grphic3d(imtemp);
+free_grphic3d(ux);
+free_grphic3d(uy);
+free_grphic3d(uz);
+}
+
+/*******************************************************************************
+**   reorientDeformationField_p()                                  
+*/
+/*!                                                                       
+ **     Réoriente un champ de déformation          
+ *******************************************************************************/
+void reorientDeformationField_p(field3d* chRef, transf3d* transfo, field3d* chRes)
+{
+int wdth, hght, dpth;
+int i,j,k,l;
+field3d* chTemp, *chTransfo;
+double** J, **invJ,  *vec, *res, normvec, normres;
+
+
+
+J= alloc_dmatrix(3,3);
+vec=alloc_dvector(3);
+
+wdth=chRef->width;
+hght=chRef->height;
+dpth=chRef->depth;
+
+if (chRes==chRef)
+    chTemp=cr_field3d(wdth,  hght,  dpth);
+else
+    chTemp=chRes;
+
+chTransfo=transf_to_field_3d(transfo,NULL,NULL);
+
+
+for (i=0; i<wdth; i++)
+for (j=0; j<hght; j++)
+for (k=0; k<dpth; k++)
+    {
+    
+    if ((i==22)&&(j==45)&&(k==16))
+        printf("coucou\n");
+        
+        
+    eval_matrice_jacobienne_3d(chTransfo, i, j, k,  J);
+    invJ=matrix_inversion(J,3);
+
+    vec[0]=chRef->raw[i][j][k].x;
+    vec[1]=chRef->raw[i][j][k].y;
+    vec[2]=chRef->raw[i][j][k].z;
+    
+    normvec=sqrt(vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2]);
+    
+
+    res=matrix_multiply_vector(invJ,3,3,vec);
+    normres=sqrt(res[0]*res[0]+res[1]*res[1]+res[2]*res[2]);
+    
+    if (normres>0)
+        for (l=0; l<3; l++) res[l]=res[l]*normvec/normres;
+    else 
+        for (l=0; l<3; l++) res[l]=0;
+    
+    chTemp->raw[i][j][k].x=res[0];
+    chTemp->raw[i][j][k].y=res[1];
+    chTemp->raw[i][j][k].z=res[2];
+
+    free_dvector(res,3);
+    free_dmatrix(invJ,3,3);
+    }
+
+if (chRes==chRef)
+    {
+    for (i=0; i<wdth; i++)
+    for (j=0; j<hght; j++)
+    for (k=0; k<dpth; k++)
+        {
+        chRes->raw[i][j][k].x=chTemp->raw[i][j][k].x;
+        chRes->raw[i][j][k].y=chTemp->raw[i][j][k].y;
+        chRes->raw[i][j][k].z=chTemp->raw[i][j][k].z;
+        }
+    free_field3d(chTemp);
+    }
+
+free_field3d(chTransfo);
+free_dmatrix(J,3,3);
+free_dvector(vec,3);
+}
+
+
+
+/*******************************************************************************
+**     eval_matrice_jacobienne_3d(ch,i,j,k,mat)             
+**                                                                  
+**     jacobien d'un champ dans une image                             
+*******************************************************************************/
+void eval_matrice_jacobienne_3d(field3d *ch, int i, int j, int k, double** J)
+{
+double J1,J2,J3,J4,J5,J6,J7,J8,J9;
+double filt[5];
+int l;
+vector3d ***data; 
+
+data= ch->raw;
+ 
+filt[1]=0.3326;filt[2]=0.0612;filt[3]=0.015;
+J1=J5=J9=1.0;J2=J3=J4=J6=J7=J8=0.0;
+
+if ((i>=3)&&(i<(ch->width-3))&&(j>=3)&&(j<(ch->height-3))&&(k>=3)&&(k<(ch->depth-3)))
+     for (l=1;l<=3;l++)
+     {
+     J1+=filt[l]*(data[i+l][j][k].x-data[i-l][j][k].x);
+     J2+=filt[l]*(data[i][j+l][k].x-data[i][j-l][k].x);
+     J3+=filt[l]*(data[i][j][k+l].x-data[i][j][k-l].x);
+     J4+=filt[l]*(data[i+l][j][k].y-data[i-l][j][k].y);
+     J5+=filt[l]*(data[i][j+l][k].y-data[i][j-l][k].y);
+     J6+=filt[l]*(data[i][j][k+l].y-data[i][j][k-l].y);
+     J7+=filt[l]*(data[i+l][j][k].z-data[i-l][j][k].z);
+     J8+=filt[l]*(data[i][j+l][k].z-data[i][j-l][k].z);
+     J9+=filt[l]*(data[i][j][k+l].z-data[i][j][k-l].z); 
+     }
+
+J[0][0]=J1;
+J[0][1]=J2;
+J[0][2]=J3;
+J[1][0]=J4;
+J[1][1]=J5;
+J[1][2]=J6;
+J[2][0]=J7;
+J[2][1]=J8;
+J[2][2]=J9;
+
+ }
+
