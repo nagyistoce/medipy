@@ -360,3 +360,29 @@ MEDIMAX_FUNCTION_MACRO(simulationAtrophie,
     lambda : regularisation weighting factor               
 """,,imref, mask, nomfichres, resolf, lambda_reg)
 
+#-------------------------------------------------------------
+#   Apply a transf_3d to a deformation field
+#-------------------------------------------------------------
+
+int warpDeformationField(char *nomfichierTrfSrc, char *nomfichierTrfApply, char *nomfichierTrfRes, int inter_type);
+MEDIMAX_FUNCTION_MACRO(warpDeformationField,
+""" Warp a deformation field according to a .trf file
+
+    nomfichierTrfSrc       : .trf file to warp
+    nomfichierTrfApply  : .trf file to apply
+    nomfichierTrfRes       : resulting .trf file
+    inter_type  : interpolation method
+                    0 : nearest
+                    1 : linear
+                    2 : sin card
+                    3 : quick sin card2
+                    4 : quick sin card3 
+                    5 : bspline 2
+                    6 : bspline 3
+                    7 : bspline 4
+                    8 : bspline 5
+                    9 : label (for labeled image only)
+
+""", , nomfichierTrfSrc, nomfichierTrfApply, nomfichierTrfRes, inter_type)
+
+

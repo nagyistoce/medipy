@@ -6,3 +6,4 @@ from recalage_interface import InvertTransfo3d_GUI
 from recalage_interface import VisuTrfFile_GUI
 from recalage_interface import findSymmetryPlane
 from recalage_interface import AtrophySimulation
+from recalage_interface import warpDeformationField_GUI

@@ -855,3 +855,44 @@ void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int re
 
 
 }
+
+/*******************************************************************************
+**  Combine two trf file
+*******************************************************************************/
+
+int warpDeformationField(char *nomfichierTrfSrc, char *nomfichierTrfApply, char *nomfichierTrfRes, int inter_type)
+{
+int wdth, hght,dpth;
+transf3d* transfoRef,*transfo, *transfoRes;
+field3d* chRef,  *chRes;
+
+   
+transfoRef=load_transf_3d(nomfichierTrfSrc);
+chRef=transf_to_field_3d(transfoRef,NULL,NULL);
+
+transfo=load_transf_3d(nomfichierTrfApply);
+
+
+wdth=transfo->width;
+hght=transfo->height;
+dpth=transfo->depth;
+
+chRes=cr_field3d(wdth,  hght,  dpth);
+
+
+warpDeformationField_p(chRef, transfo, chRes, inter_type);
+                       
+transfoRes=field_to_transf_3d(chRes,NULL,NULL);
+transfoRes->dx=chRes->dx;
+transfoRes->dy=chRes->dy;
+transfoRes->dz=chRes->dz;
+
+save_transf_3d(transfoRes,nomfichierTrfRes);
+free_transf3d(transfo);
+free_transf3d(transfoRef);
+free_transf3d(transfoRes);
+free_field3d(chRef);
+free_field3d(chRes);
+
+}
+

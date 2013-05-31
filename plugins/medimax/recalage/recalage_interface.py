@@ -286,3 +286,23 @@ def AtrophySimulation(imref, mask, nomfichres, resolf, lambda_reg) :
         </gui>
     """ 
     medipy.medimax.recalage.simulationAtrophie(imref, mask, str(nomfichres), resolf, lambda_reg)
+
+#-------------------------------------------------------------
+#  Apply a transf_3d  o a deformation field
+#-------------------------------------------------------------
+
+def warpDeformationField_GUI(nomfichierTrfSrc, nomfichierTrfApply, nomfichierTrfRes, inter_type) :
+    """
+    Warp a deformation field according to a .trf file
+        
+        <gui>
+            <item name="nomfichierTrfSrc" type="File" label="trf file to warp"/>
+            <item name="nomfichierTrfApply" type="File" label="trf file to apply"/>
+            <item name="nomfichierTrfRes" type="String" label="resulting trf file"/>
+            <item name="inter_type" type="Enum" initializer="('Nearest','Linear',
+                'SinCard','QuickSinCard2','QuickSinCard3','Bspline2','Bspline3',
+                'Bspline4','Bspline5','Label')" label="Interpolation method"/> 
+            
+        </gui>
+    """ 
+    medipy.medimax.recalage.warpDeformationField(str(nomfichierTrfSrc),str(nomfichierTrfApply),str(nomfichierTrfRes),InterpolationNumberInMedimax(inter_type))
