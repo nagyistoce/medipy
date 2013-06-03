@@ -1,174 +1,38 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 from __future__ import division
-import multiprocessing
-import itertools
+
 import numpy
 from scipy import ndimage
-import medipy.medimax.recalage
-from medipy.diffusion.utils import spectral_decomposition, compose_spectral, log_transformation, exp_transformation
+
 import medipy.base
-import medipy.io
-from medipy.diffusion.tensor import ls_SecondOrderSymmetricTensorEstimation_
+from medipy.diffusion.utils import (spectral_decomposition, compose_spectral, 
+    log_transformation, exp_transformation)
+import medipy.medimax.recalage
 
-############
-# Fiber
-############
+##########################
+# Transformations fields #
+##########################
 
-def interpolate_field(points,field):
+def load_trf(filename, image, athr=500) :
+    """ Load a .trf transformation field. Field values that are higher than
+        ``athr`` are set to 0.
     """
-    Interpolate (linear) Image instance at arbitrary points in world space   
-    The resampling is done with scipy.ndimage.
-    """
-    
-    #points_voxel = (points-origin)/spacing
-    points_voxel = points.T
+    ux = medipy.base.Image((1), numpy.float32)
+    uy = medipy.base.Image((1), numpy.float32)
+    uz = medipy.base.Image((1), numpy.float32)
+    imSource = medipy.base.Image((1), numpy.float32,
+        image.spacing, image.origin, image.direction)
+    medipy.medimax.recalage.LoadTrfFile(str(filename),ux,uy,uz,imSource)
 
-    comps = []
-    for i in range(3):
-        im_comp = field[:,:,:,i]
-        comp = ndimage.interpolation.map_coordinates(im_comp, points_voxel, order=0, prefilter=False)
-        comps.insert(0,comp)
-
-    return numpy.asarray(comps).T
-
-def apply_transfo(points,transfo):
-    """
-    Apply the transformation to the fiber points.
-    """
-    #transfo = transfo*spacing
-    #points x y z in mm
-    return points + transfo
-
-
-def register_multi(points,field,spacing_wrap,origin_wrap,spacing,origin):
-    """
-    Register a track.
-    """
-    points_voxel = (points-origin_wrap)/spacing_wrap # in index
-    transfo = interpolate_field(points_voxel,field)
-    points_wrap_voxel = apply_transfo(points_voxel,transfo) # in index
-    return points_wrap_voxel*spacing + origin # in physical
-
-def register_multi_(points,field,model_wrap,model_fix):
-    """
-    Register a track.
-    """
-    points_voxel = numpy.asarray( [model_wrap.physical_to_index(point[::-1])[::-1] for point in points] )  # in index
-    transfo = interpolate_field(points_voxel,field)
-    points_wrap_voxel = apply_transfo(points_voxel,transfo) # in index
-    return numpy.asarray( [model_fix.index_to_physical(point[::-1])[::-1] for point in points_wrap_voxel] ) # in physical
-
-def register_star(params):
-    return register_multi(*params)
-
-def register_fibers_wrong(T,ftrf,model_wrap,model,inv=False) :
-
-    if inv :
-        field_backward = load_trf(ftrf,model,athr=100.0)
-    else :
-        field_backward = load_trf(ftrf,model_wrap,athr=100.0)
-
-    pool = multiprocessing.Pool() # Create a group of CPUs to run on
-    asyncResult = pool.map_async(register_star, [a for a in itertools.izip( T,itertools.repeat(field_backward),itertools.repeat(model_wrap.spacing),itertools.repeat(model_wrap.origin),itertools.repeat(model.spacing),itertools.repeat(model.origin) ) ])
-    resultList = asyncResult.get()
-
-    return resultList
-
-
-def register_fibers(fibers,ftrf,model1,model2):
-    field_backward_inv = load_trf(ftrf,model1,athr=100.0)
-    fout = [] 
-    for f in fibers :
-        fout.append(register_multi(f,field_backward_inv,model2.spacing,model2.origin,model1.spacing,model1.origin))
-    return fout
-
-def register_fibers_(fibers,field_backward_inv,model1,model2):
-    fout = [] 
-    for f in fibers :
-        fout.append(register_multi(f,field_backward_inv,model2.spacing,model2.origin,model1.spacing,model1.origin))
-    return fout
-
-
-def invert_trf(fname_aff,fname_nl,fname_inv_aff,fname_inv_nl, fname_inv_affnl, model_wrap) :
-
-    dpthref,hghtref,wdthref = model_wrap.shape
-    dzref,dyref,dxref = model_wrap.spacing
-    dzref = float(dzref)
-    dyref = float(dyref)
-    dxref = float(dxref)
-    medipy.medimax.recalage.InvertTransfo3d(str(fname_aff), str(fname_inv_aff), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
-    medipy.medimax.recalage.InvertTransfo3d(str(fname_nl), str(fname_inv_nl), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
-    medipy.medimax.recalage.CombineTransfo3d(str(fname_inv_nl), str(fname_inv_aff), str(fname_inv_affnl), 5)
-
-def invert_trf_rigid(fname_rigid,fname_inv_rigid, model_wrap) :
-
-    dpthref,hghtref,wdthref = model_wrap.shape
-    dzref,dyref,dxref = model_wrap.spacing
-    dzref = float(dzref)
-    dyref = float(dyref)
-    dxref = float(dxref)
-    medipy.medimax.recalage.InvertTransfo3d(str(fname_rigid), str(fname_inv_rigid), wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
-
-
-#############
-# Voxel
-#############
-
-def apply_tensor_trf_gui(*args,**kwargs) :
-    """ Interpolation + PPD reorientation from a .trf deformation field
-
-    <gui>
-        <item name="fmodel_ref" type="File" label="Reference diffusion image"/>
-        <item name="fmodel_wrap" type="File" label="Diffusion Image to wrap"/>
-        <item name="ftrf" type="File" label="Deformation field"/>
-        <item name="tensor_ref" type="Image" initializer="output=True" role="return" label="Reference tensor"/>
-        <item name="tensor_registered" type="Image" initializer="output=True" role="return" label="Registered tensor"/>
-    </gui>
-    """
-    fmodel_ref = kwargs['fmodel_ref']
-    fmodel_wrap = kwargs['fmodel_wrap']
-    ftrf = kwargs['ftrf']
-
-    images_wrap = medipy.io.io.load_serie(fmodel_wrap)
-    model_wrap = ls_SecondOrderSymmetricTensorEstimation_(images_wrap)
-
-    images_ref = medipy.io.io.load_serie(fmodel_ref)
-    model_ref = ls_SecondOrderSymmetricTensorEstimation_(images_ref)
-    tensor_ref = model_ref
-
-    tensor_registered = apply_tensor_trf(model_ref,model_wrap,ftrf)
- 
-    return tensor_ref,tensor_registered
-
-
-def apply_tensor_trf(model_ref,model_wrap,ftrf) :
-    """ Interpolation + PPD reorientation from a .trf deformation field
-    """
-    field_backward = load_trf(ftrf,model_wrap)
-    log_model_wrap = log_transformation(model_wrap)
-    log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf)
-    model_out = exp_transformation(log_model_out)
-    model_out = ppd_tensor_trf(model_out,field_backward)
-    return model_out
-
-def load_trf(ftrf,model_wrap,athr=500) :
-    """ Load a .trf transformation field
-    """
-    ux = medipy.base.Image(shape=(1), dtype=numpy.float32)
-    uy = medipy.base.Image(shape=(1), dtype=numpy.float32)
-    uz = medipy.base.Image(shape=(1), dtype=numpy.float32)
-
-    imSource = medipy.base.Image(shape=(1), spacing=model_wrap.spacing, origin=model_wrap.origin, direction=model_wrap.direction, dtype=numpy.float32)
-    medipy.medimax.recalage.LoadTrfFile(str(ftrf),ux,uy,uz,imSource)
-
-    field = medipy.base.Image(data=numpy.zeros(ux.shape+(3,),dtype=numpy.single),data_type="vector")
+    field = medipy.base.Image(
+        ux.shape+(3,), numpy.single, data_type="vector")
     field[...,0] = ux.data
     field[...,1] = uy.data
     field[...,2] = uz.data
@@ -177,9 +41,95 @@ def load_trf(ftrf,model_wrap,athr=500) :
 
     return field
 
+def invert_trf(fname_aff,fname_nl,fname_inv_aff,fname_inv_nl, fname_inv_affnl, model_wrap) :
+
+    dpthref,hghtref,wdthref = model_wrap.shape
+    dzref,dyref,dxref = model_wrap.spacing
+    dzref = float(dzref)
+    dyref = float(dyref)
+    dxref = float(dxref)
+    medipy.medimax.recalage.InvertTransfo3d(str(fname_aff), str(fname_inv_aff), 
+        wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+    medipy.medimax.recalage.InvertTransfo3d(str(fname_nl), str(fname_inv_nl), 
+        wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+    medipy.medimax.recalage.CombineTransfo3d(
+        str(fname_inv_nl), str(fname_inv_aff), str(fname_inv_affnl), 5)
+
+def invert_trf_rigid(fname_rigid,fname_inv_rigid, model_wrap) :
+
+    dpthref,hghtref,wdthref = model_wrap.shape
+    dzref,dyref,dxref = model_wrap.spacing
+    dzref = float(dzref)
+    dyref = float(dyref)
+    dxref = float(dxref)
+    medipy.medimax.recalage.InvertTransfo3d(
+        str(fname_rigid), str(fname_inv_rigid), 
+        wdthref, hghtref, dpthref, dxref, dyref, dzref, 0.01)
+
+############
+# Fiber
+############
+
+def interpolate_field(points,field):
+    """ Interpolate (linear) Image instance at arbitrary points in world space.
+        The resampling is done with scipy.ndimage.
+    """
+    
+    points_voxel = points.T
+
+    comps = []
+    for i in range(3):
+        im_comp = field[...,i]
+        comp = ndimage.interpolation.map_coordinates(
+            im_comp, points_voxel, order=0, prefilter=False)
+        comps.insert(0,comp)
+
+    return numpy.asarray(comps).T
+
+def register_multi(points,field,spacing_wrap,origin_wrap,spacing,origin):
+    """
+    Register a track.
+    """
+    points_voxel = (points-origin_wrap)/spacing_wrap # in index
+    transfo = interpolate_field(points_voxel,field)
+    points_wrap_voxel = points_voxel+transfo # in index
+    return points_wrap_voxel*spacing + origin # in physical
+
+def register_fibers(fibers,ftrf,model1,model2):
+    field_backward_inv = load_trf(ftrf,model1,100.0)
+    fout = [] 
+    for f in fibers :
+        f_registered = register_multi(f,field_backward_inv,
+            model2.spacing,model2.origin,
+            model1.spacing,model1.origin)
+        fout.append(f_registered)
+    return fout
+
+#############
+# Voxel
+#############
+
+def apply_tensor_trf(model_ref,model_wrap,ftrf) :
+    """ Apply the deformation field stored in file ``ftrf`` to ``model_wrap``,
+        using the grid of ``model_ref``.
+    
+        <gui>
+            <item name="model_ref" type="Image" label="Reference tensor image" />
+            <item name="model_wrap" type="Image" label="Tensor image to wrap" />
+            <item name="registered" type="Image" initializer="output=True" 
+                  role="return" label="Registered tensor image"/>
+        </gui>
+    """
+    field_backward = load_trf(ftrf,model_wrap)
+    log_model_wrap = log_transformation(model_wrap)
+    log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf)
+    model_out = exp_transformation(log_model_out)
+    model_out = ppd_tensor_trf(model_out,field_backward)
+    return model_out
 
 def ppd_tensor_trf(model_wrap,F) :
-    """ Reorients a DT image using the Preservation of the Principal Direction (PPD) method.
+    """ Return the transform of ``model_wrap`` by the field ``F`` using the 
+        Preservation of the Principal Direction (PPD) method. 
     """
     F[numpy.isnan(F)] = 0.0
 
@@ -202,7 +152,8 @@ def ppd_tensor_trf(model_wrap,F) :
     return ppd(model_wrap,A)
 
 def ppd(dt6,F):
-    """ Implementation of Alexander's preservation of principle direction algorithm. 
+    """ Implementation of Alexander's preservation of principle direction 
+        algorithm. 
     """
 
     imgEigVal,imgEigVec = spectral_decomposition(dt6)
@@ -213,9 +164,9 @@ def ppd(dt6,F):
 
     # n1 = F*v1 
     n1 = numpy.zeros((dimDelV[0],dimDelV[1],dimDelV[2],3),dtype=numpy.single)
-    n1[...,0] = F[...,0,0]*imgEigVec[...,2,0] + F[...,0,1]*imgEigVec[...,2,1] + F[...,0,2]*imgEigVec[...,2,2]
-    n1[...,1] = F[...,1,0]*imgEigVec[...,2,0] + F[...,1,1]*imgEigVec[...,2,1] + F[...,1,2]*imgEigVec[...,2,2] 
-    n1[...,2] = F[...,2,0]*imgEigVec[...,2,0] + F[...,2,1]*imgEigVec[...,2,1] + F[...,2,2]*imgEigVec[...,2,2] 
+    n1[...,0] = numpy.sum(F[...,0,i]*imgEigVec[...,2,i] for i in range(3))
+    n1[...,1] = numpy.sum(F[...,1,i]*imgEigVec[...,2,i] for i in range(3))
+    n1[...,2] = numpy.sum(F[...,2,i]*imgEigVec[...,2,i] for i in range(3))
     # norm(n1)
     normN = numpy.sqrt(n1[...,0]**2 + n1[...,1]**2 + n1[...,2]**2)
     normN = normN + (normN == 0)
@@ -225,9 +176,9 @@ def ppd(dt6,F):
 
     # n2 = F*v2
     n2 = numpy.zeros((dimDelV[0],dimDelV[1],dimDelV[2],3),dtype=numpy.single)
-    n2[...,0] = F[...,0,0]*imgEigVec[...,1,0] + F[...,0,1]*imgEigVec[...,1,1] + F[...,0,2]*imgEigVec[...,1,2]
-    n2[...,1] = F[...,1,0]*imgEigVec[...,1,0] + F[...,1,1]*imgEigVec[...,1,1] + F[...,1,2]*imgEigVec[...,1,2] 
-    n2[...,2] = F[...,2,0]*imgEigVec[...,1,0] + F[...,2,1]*imgEigVec[...,1,1] + F[...,2,2]*imgEigVec[...,1,2] 
+    n2[...,0] = numpy.sum(F[...,0,i]*imgEigVec[...,1,i] for i in range(3))
+    n2[...,1] = numpy.sum(F[...,1,i]*imgEigVec[...,1,i] for i in range(3))
+    n2[...,2] = numpy.sum(F[...,2,i]*imgEigVec[...,1,i] for i in range(3))
 
     # Projecting n2 onto n1-n2 plane: P(n2) = Pn2 = n2 - (n2*n1')*n1
     Pn2 = numpy.zeros((dimDelV[0],dimDelV[1],dimDelV[2],3),dtype=numpy.single)
@@ -255,19 +206,23 @@ def ppd(dt6,F):
     imgEigVec[...,1,:] = Pn2
     imgEigVec[...,0,:] = n3
 
-    return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal), spacing=dt6.spacing, origin=dt6.origin, direction=dt6.direction, data_type="vector", image_type="tensor_2")
-
-     
+    return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal), 
+        spacing=dt6.spacing, origin=dt6.origin, direction=dt6.direction, 
+        data_type="vector", image_type="tensor_2")
 
 def interpolation_tensor_trf(model,model_ref,ftrf):
     """ Linear interpolation of tensor model
     """
     nb_of_components = model._get_number_of_components()
-    output = medipy.base.Image(data=numpy.zeros(model_ref.shape+(nb_of_components,),dtype=numpy.single), spacing=model_ref.spacing, origin=model_ref.origin, direction=model_ref.direction, data_type="vector", image_type="tensor_2")
+    output = medipy.base.Image(model_ref.shape+(nb_of_components,), numpy.single,
+        model_ref.spacing, model_ref.origin, model_ref.direction, 
+        data_type="vector", image_type="tensor_2")
 
     for i in range(nb_of_components):
-        array_in = medipy.base.Image(data=numpy.ascontiguousarray(model[...,i]),spacing=model.spacing,origin=model.origin,direction=model.direction,data_type="scalar")
-        array_out = medipy.base.Image(shape=(1),dtype=numpy.single,data_type="scalar")	
+        array_in = medipy.base.Image(data=numpy.ascontiguousarray(model[...,i]),
+            spacing=model.spacing, origin=model.origin, direction=model.direction,
+            data_type="scalar")
+        array_out = medipy.base.Image((1), numpy.single, data_type="scalar")	
         medipy.medimax.recalage.recalage.ApplyTransfo3d(array_in,str(ftrf),array_out,1)
         output[...,i] = array_out.data
 
@@ -304,8 +259,8 @@ def jacobian_from_trf_field(trf_field):
 def _gradient_itk(im):
     """ Compute the gradient of an image
     """
-    im_i = medipy.base.Image(data=np.ascontiguousarray(im), data_type="scalar")
-    grad = medipy.base.Image(data=np.zeros(im.shape+(3,),dtype=np.single), data_type="vector")
+    im_i = medipy.base.Image(data=numpy.ascontiguousarray(im), data_type="scalar")
+    grad = medipy.base.Image(im.shape+(3,), numpy.single, data_type="vector")
     medipy.diffusion.itkutils.gradient(im_i,grad)
 
     return grad
@@ -315,7 +270,7 @@ def _invert_itk(M):
     """
     M = M.reshape(M.shape[:3]+(9,))
     M_i = medipy.base.Image(data=M, data_type="vector")
-    medipy.diffusion.dtiInvMatrix(M_i)
+    medipy.diffusion.itkutils.dtiInvMatrix(M_i)
     M = M_i.data.reshape(M.shape[:3]+(3,3))
 
     return M
