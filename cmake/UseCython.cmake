@@ -77,6 +77,11 @@ find_package( PythonLibs REQUIRED )
 set( CYTHON_CXX_EXTENSION "cxx" )
 set( CYTHON_C_EXTENSION "c" )
 
+execute_process(
+    COMMAND cython --version
+    OUTPUT_VARIABLE CYTHON_VERSION ERROR_VARIABLE CYTHON_VERSION)
+string(REGEX MATCH "[0-9.]+" CYTHON_VERSION ${CYTHON_VERSION})
+
 # Create a *.c or *.cxx file from a *.pyx file.
 # Input the generated file basename.  The generate file will put into the variable
 # placed in the "generated_file" argument. Finally all the *.py and *.pyx files.
@@ -190,9 +195,13 @@ function( compile_pyx _name generated_file )
     set( no_docstrings_arg "--no-docstrings" )
   endif()
 
-  if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR
-        "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo" )
-      set( cython_debug_arg "--gdb" )
+  # --gdb argument does not exist prior to 0.14
+  if(${CYTHON_VERSION} VERSION_GREATER 0.14 OR 
+     ${CYTHON_VERSION} VERSION_EQUAL 0.14)
+    if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR
+          "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo" )
+        set( cython_debug_arg "--gdb" )
+    endif()
   endif()
 
   # Include directory arguments. 
