@@ -70,6 +70,8 @@ int imx_inverser_transformation_rigidezoom_3d_p(transf3d *transfo_deb, transf3d 
 /************************* CHAMPS -> IMAGES ***********************************/
 int module_field_to_image_3d(field3d *ch, grphic3d *im);
 int composante_field_to_image_3d(field3d *ch, grphic3d *im,int type);
+int images_to_field_3d(grphic3d *ux,grphic3d *uy,grphic3d *uz,field3d *ch);
+
 /********************  GRADIENT D'UNE IMAGE   *********************************/
 int imx_gradient_3d_p(grphic3d *im, field3d *grad, int method, int t);
 /*********************** CARACTERISTIQUES CHAMP *******************************/

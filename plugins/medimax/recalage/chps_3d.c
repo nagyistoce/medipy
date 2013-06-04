@@ -2146,6 +2146,41 @@ int composante_field_to_image_3d(field3d *ch, grphic3d *im, int type)
  }
 
 /*******************************************************************************
+**     images_to_field_3d(ux,uy, uz, ch)            	
+**                                                                  
+**                       
+*******************************************************************************/
+int images_to_field_3d(grphic3d *ux,grphic3d *uy,grphic3d *uz,field3d *ch)
+{
+int i,j,k,wdth,hght,dpth;
+vector3d ***data;
+
+
+if ((ux->width!=uy->width)||(ux->width!=uz->width)||(ux->width!=ch->width)||
+  	(ux->height!=uy->height)||(ux->height!=uz->height)||(ux->height!=ch->height)||
+	(ux->depth!=uy->depth)||(ux->depth!=uz->depth)||(ux->depth!=ch->depth))
+	{
+	printf("Attention, les composantes images et le champs n'ont pas des tailles compatibles !\n");
+	exit(-1);
+	}
+
+wdth=ch->width;hght=ch->height;dpth=ch->depth;
+data=ch->raw;
+  
+
+for (i=0;i<wdth;i++)
+for (j=0;j<hght;j++)
+for (k=0;k<dpth;k++)
+	{
+	data[i][j][k].x=ux->mri[i][j][k]*ux->rcoeff;
+	data[i][j][k].y=uy->mri[i][j][k]*uy->rcoeff;
+	data[i][j][k].z=uz->mri[i][j][k]*uz->rcoeff;
+	}
+  
+  return(1);
+ }
+
+/*******************************************************************************
 **     jacobien_field_to_image_3d(ch,im)                
 **                                                                  
 **     jacobien d'un champ dans une image                             
@@ -7135,10 +7170,7 @@ for (i=0; i<wdth; i++)
 for (j=0; j<hght; j++)
 for (k=0; k<dpth; k++)
     {
-    
-    if ((i==22)&&(j==45)&&(k==16))
-        printf("coucou\n");
-        
+          
         
     eval_matrice_jacobienne_3d(chTransfo, i, j, k,  J);
     invJ=matrix_inversion(J,3);
