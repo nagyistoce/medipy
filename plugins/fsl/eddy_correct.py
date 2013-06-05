@@ -38,6 +38,6 @@ class EddyCorrect(FSLTool):
     def _get_command(self):
         if None in [self.input, self.output, self.reference_no] :
             raise Exception("Input, output, and reference must be specified") 
-        command = ["eddy_correct", self.input, self.output, self.reference_no]
+        command = ["eddy_correct", self.input, self.output, str(self.reference_no)]
                
         return command
