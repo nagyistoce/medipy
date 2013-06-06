@@ -116,6 +116,7 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
         <gui>
             <item name="model_ref" type="Image" label="Reference tensor image" />
             <item name="model_wrap" type="Image" label="Tensor image to wrap" />
+            <item name="ftrf" type="File" label="Deformation field file" />
             <item name="registered" type="Image" initializer="output=True" 
                   role="return" label="Registered tensor image"/>
         </gui>
