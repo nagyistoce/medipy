@@ -3,6 +3,8 @@ import shutil
 import tempfile
 import unittest
 
+import numpy
+
 import medipy.io.dicom
 
 class testDataSetIO(unittest.TestCase):
@@ -52,12 +54,30 @@ class testDataSetIO(unittest.TestCase):
             
             self.assertTrue(tag in dataset2)
             if isinstance(dataset1[tag], medipy.io.dicom.SQ) :
-                self.assertEqual(len(dataset1), len(dataset2))
+                self.assertEqual(len(dataset1[tag].value), len(dataset2[tag].value))
                 for index, sub_dataset1 in enumerate(dataset1[tag].value) :
                     sub_dataset2 = dataset2[tag].value[index]
                     self._compare_datasets(sub_dataset1, sub_dataset2)
             else :
-                self.assertEqual(dataset1[tag].value, dataset2[tag].value)
+                self.assertEqual(dataset1[tag].__class__, dataset2[tag].__class__)
+                
+                value1 = dataset1[tag].value
+                value2 = dataset2[tag].value
+                
+                float_vrs = (
+                    medipy.io.dicom.DS, medipy.io.dicom.FD, medipy.io.dicom.FL)
+                binary_vrs = (
+                    medipy.io.dicom.OB, medipy.io.dicom.OF, medipy.io.dicom.OW,
+                    medipy.io.dicom.UN)
+                
+                if isinstance(dataset1[tag], float_vrs) :
+                    numpy.testing.assert_almost_equal(
+                        value1, value2,
+                        err_msg="Failure for tag {0}".format(tag))
+                elif isinstance(dataset1[tag], binary_vrs) :
+                    numpy.testing.assert_array_equal(value1, value2)
+                else :
+                    self.assertEqual(value1, value2)
         # Check that dataset is included in other_dataset
         for tag in sorted(dataset2) :
             self.assertTrue(tag in dataset1)
