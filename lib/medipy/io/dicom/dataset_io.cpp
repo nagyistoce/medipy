@@ -37,7 +37,8 @@ bool can_read(std::string const & filename)
         {
             result = false;
         }
-        else if(strncmp(signature, DCM_Magic, DCM_MagicLen) != 0)
+        else if(fread(signature, 1, DCM_MagicLen, file) != DCM_MagicLen ||
+                strncmp(signature, DCM_Magic, DCM_MagicLen) != 0)
         {
             result = false;
         }
