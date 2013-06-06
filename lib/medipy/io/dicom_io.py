@@ -24,11 +24,10 @@ class Dicom(IOBase) :
     
     def can_load(self):
         if self._filename is not None and self._stacks is None :
-            try :
-                dataset = medipy.io.dicom.read(self._filename)
-            except medipy.base.Exception :
+            if not medipy.io.dicom.can_read(self._filename) :
                 return False
             else :
+                dataset = medipy.io.dicom.read(self._filename)
                 datasets = medipy.io.dicom.normalize.normalize(dataset)
                 if isinstance(datasets, medipy.io.dicom.DataSet) :
                     datasets = [datasets]

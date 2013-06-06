@@ -96,6 +96,9 @@ def _get_matching_datasets(path, fragment) :
     """ Return the datasets matching the filters defined in fragment
     """
     
+    if not medipy.io.dicom.can_read(path) :
+        return []
+    
     filters = _get_filters(fragment)
     
     dicomdir = medipy.io.dicom.read(path)
