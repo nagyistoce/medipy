@@ -21,6 +21,32 @@
 #include "DCMTKToPython.h"
 #include "PythonToDCMTK.h"
 
+bool can_read(std::string const & filename)
+{
+    bool result = true;
+    
+    FILE* file = fopen(filename.c_str(), "rb");
+    if(file==NULL)
+    {
+        result = false;
+    }
+    else
+    {
+        char signature[4];
+        if(fseek(file, DCM_PreambleLen, SEEK_SET) < 0)
+        {
+            result = false;
+        }
+        else if(strncmp(signature, DCM_Magic, DCM_MagicLen) != 0)
+        {
+            result = false;
+        }
+        fclose(file);
+    }
+    
+    return result;
+}
+
 PyObject* read(std::string const & filename)
 {
     OFCondition condition;

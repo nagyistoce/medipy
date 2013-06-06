@@ -8,7 +8,7 @@
 
 from tag import Tag
 from dataset import DataSet
-from dataset_io import read, write
+from dataset_io import can_read, read, write
 from dicom_series import DicomSeries
 import dictionary
 import encapsulated_document
