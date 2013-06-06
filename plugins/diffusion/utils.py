@@ -13,66 +13,67 @@
 import numpy as np
 import medipy.base
 
-from spectral_analysis import spectral_analysis
+import itkutils
+import spectral_analysis
 
-def generate_image_sampling(image,step=(1,1,1)) :
-    """ Generate seeds to init tractographu
-    step is expressed in mm
+def get_diffusion_information(image) :
+    """ Return the diffusion information from the ``image`` metadata. The 
+        diffusion information is a dictionary and may contain the following keys :
+        
+        * ``"diffusion_bvalue"``
+        * ``"diffusion_gradient_orientation"``
     """
+    
+    result = {}
+    if "mr_diffusion_sequence" in image.metadata :
+        mr_diffusion = image.metadata["mr_diffusion_sequence"][0]
+        if "diffusion_bvalue" in mr_diffusion :
+            result["diffusion_bvalue"] = mr_diffusion.diffusion_bvalue.value
+        if "diffusion_gradient_direction_sequence" in mr_diffusion :
+            diffusion_gradient_direction = mr_diffusion.\
+                diffusion_gradient_direction_sequence.value[0]
+            if "diffusion_gradient_orientation" in diffusion_gradient_direction :
+                result["diffusion_gradient_orientation"] = \
+                    diffusion_gradient_direction.diffusion_gradient_orientation.value
+    
+    return result
 
-    spacing = image.spacing
-    shape = image.shape*spacing
-    Z,Y,X = np.mgrid[1:shape[0]-1:step[0], 1:shape[1]-1:step[1], 1:shape[2]-1:step[2]]
-    X = X.flatten()
-    Y = Y.flatten()
-    Z = Z.flatten()
-    seeds = []
-    for i,j,k in zip(X,Y,Z) :
-        seeds.append((i,j,k))
-    return seeds
-
-def length(xyz, constant_step=None):
-    """ Euclidean length of track line in mm 
+def log_transformation(dt6,epsi=1e-5) :
+    """ Compute Log tensors
     """
-    if constant_step==None :
-        if xyz.shape[0] < 2 :
-            return 0
-        else :
-            dists = np.sqrt((np.diff(xyz, axis=0)**2).sum(axis=1))
-            return np.sum(dists)
-    else :
-        return (xyz.shape[0]-1)*constant_step
+    imgEigVal,imgEigVec = spectral_decomposition(dt6)
+    imgEigVec.data = imgEigVec.data.reshape(imgEigVec.shape+(3,3))
+    imgEigVal.data[np.where(imgEigVal.data<=epsi)] = epsi
+    imgEigVal.data = np.log(imgEigVal.data)  
+    return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal),origin=dt6.origin,spacing=dt6.spacing,direction=dt6.direction,data_type="vector",image_type="tensor_2")
 
+def exp_transformation(dt6) :
+    """ Compute Exp tensor
+    """
+    imgEigVal,imgEigVec = spectral_decomposition(dt6)
+    imgEigVec.data = imgEigVec.data.reshape(imgEigVec.shape+(3,3))
+    imgEigVal.data = np.exp(imgEigVal.data)
+    return medipy.base.Image(data=compose_spectral(imgEigVec,imgEigVal),origin=dt6.origin,spacing=dt6.spacing,direction=dt6.direction,data_type="vector",image_type="tensor_2")
 
-def spectral_decomposition(slice_tensor):
-    shape = slice_tensor.shape
+def spectral_decomposition(image):
+    """ Spectral decomposition of a DTI image. Return the eigenvalues and 
+        eigenvectors of the tensor field.
+    """
+    
+    shape = image.shape
 
-    eigVal = medipy.base.Image(data=np.zeros(shape[:3]+(3,),dtype=np.single),data_type="vector")
+    eigVal = medipy.base.Image(data=np.zeros(shape+(3,),dtype=image.dtype),
+                               data_type="vector")
     eigVal_itk = medipy.itk.medipy_image_to_itk_image(eigVal, False)
     
-    eigVec = medipy.base.Image(data=np.zeros(shape[:3]+(9,),dtype=np.single),data_type="vector")
+    eigVec = medipy.base.Image(data=np.zeros(shape+(9,),dtype=image.dtype),
+                               data_type="vector")
     eigVec_itk = medipy.itk.medipy_image_to_itk_image(eigVec, False)
     
-    itk_tensors = medipy.itk.medipy_image_to_itk_image(slice_tensor, False)
-    spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
+    itk_tensors = medipy.itk.medipy_image_to_itk_image(image, False)
+    spectral_analysis.spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
 
     return eigVal,eigVec
-
-
-
-def decompose_tensor(tensor):
-    #outputs multiplicity as well so need to unique
-    eigenvals, eigenvecs = np.linalg.eig(tensor)
-
-    #need to sort the eigenvalues and associated eigenvectors
-    order = eigenvals.argsort()[::-1]
-    eigenvecs = eigenvecs[:, order]
-    eigenvals = eigenvals[order]
-
-    #Forcing negative eigenvalues to 0
-    eigenvals = np.maximum(eigenvals, 0)
-
-    return eigenvals, eigenvecs
 
 def dti6to33(dt6):
     """ Full second order symmetric tensor from the six independent components.
@@ -114,28 +115,56 @@ def rotation33todt6(dt6,R):
 
     dt6_r = np.zeros(dt6.shape,dtype=np.single)
 
-    dt6_r[:,:,:,0] = R[0,0]*(R[0,0]*dt6[:,:,:,0] + R[0,1]*dt6[:,:,:,1] + R[0,2]*dt6[:,:,:,2])\
-                   + R[0,1]*(R[0,0]*dt6[:,:,:,1] + R[0,1]*dt6[:,:,:,3] + R[0,2]*dt6[:,:,:,4])\
-                   + R[0,2]*(R[0,0]*dt6[:,:,:,2] + R[0,1]*dt6[:,:,:,4] + R[0,2]*dt6[:,:,:,5])
+    dt6_r[...,0] = R[0,0]*(R[0,0]*dt6[...,0] + R[0,1]*dt6[...,1] + R[0,2]*dt6[...,2])\
+                 + R[0,1]*(R[0,0]*dt6[...,1] + R[0,1]*dt6[...,3] + R[0,2]*dt6[...,4])\
+                 + R[0,2]*(R[0,0]*dt6[...,2] + R[0,1]*dt6[...,4] + R[0,2]*dt6[...,5])
 
-    dt6_r[:,:,:,1] = R[1,0]*(R[0,0]*dt6[:,:,:,0] + R[0,1]*dt6[:,:,:,1] + R[0,2]*dt6[:,:,:,2])\
-                   + R[1,1]*(R[0,0]*dt6[:,:,:,1] + R[0,1]*dt6[:,:,:,3] + R[0,2]*dt6[:,:,:,4])\
-                   + R[1,2]*(R[0,0]*dt6[:,:,:,2] + R[0,1]*dt6[:,:,:,4] + R[0,2]*dt6[:,:,:,5])
+    dt6_r[...,1] = R[1,0]*(R[0,0]*dt6[...,0] + R[0,1]*dt6[...,1] + R[0,2]*dt6[...,2])\
+                 + R[1,1]*(R[0,0]*dt6[...,1] + R[0,1]*dt6[...,3] + R[0,2]*dt6[...,4])\
+                 + R[1,2]*(R[0,0]*dt6[...,2] + R[0,1]*dt6[...,4] + R[0,2]*dt6[...,5])
      	
-    dt6_r[:,:,:,2] = R[2,0]*(R[0,0]*dt6[:,:,:,0] + R[0,1]*dt6[:,:,:,1] + R[0,2]*dt6[:,:,:,2])\
-                   + R[2,1]*(R[0,0]*dt6[:,:,:,1] + R[0,1]*dt6[:,:,:,3] + R[0,2]*dt6[:,:,:,4])\
-                   + R[2,2]*(R[0,0]*dt6[:,:,:,2] + R[0,1]*dt6[:,:,:,4] + R[0,2]*dt6[:,:,:,5])
+    dt6_r[...,2] = R[2,0]*(R[0,0]*dt6[...,0] + R[0,1]*dt6[...,1] + R[0,2]*dt6[...,2])\
+                 + R[2,1]*(R[0,0]*dt6[...,1] + R[0,1]*dt6[...,3] + R[0,2]*dt6[...,4])\
+                 + R[2,2]*(R[0,0]*dt6[...,2] + R[0,1]*dt6[...,4] + R[0,2]*dt6[...,5])
 
-    dt6_r[:,:,:,3] = R[1,0]*(R[1,0]*dt6[:,:,:,0] + R[1,1]*dt6[:,:,:,1] + R[1,2]*dt6[:,:,:,2])\
-                   + R[1,1]*(R[1,0]*dt6[:,:,:,1] + R[1,1]*dt6[:,:,:,3] + R[1,2]*dt6[:,:,:,4])\
-                   + R[1,2]*(R[1,0]*dt6[:,:,:,2] + R[1,1]*dt6[:,:,:,4] + R[1,2]*dt6[:,:,:,5])
+    dt6_r[...,3] = R[1,0]*(R[1,0]*dt6[...,0] + R[1,1]*dt6[...,1] + R[1,2]*dt6[...,2])\
+                 + R[1,1]*(R[1,0]*dt6[...,1] + R[1,1]*dt6[...,3] + R[1,2]*dt6[...,4])\
+                 + R[1,2]*(R[1,0]*dt6[...,2] + R[1,1]*dt6[...,4] + R[1,2]*dt6[...,5])
 
-    dt6_r[:,:,:,4] = R[2,0]*(R[1,0]*dt6[:,:,:,0] + R[1,1]*dt6[:,:,:,1] + R[1,2]*dt6[:,:,:,2])\
-                   + R[2,1]*(R[1,0]*dt6[:,:,:,1] + R[1,1]*dt6[:,:,:,3] + R[1,2]*dt6[:,:,:,4])\
-                   + R[2,2]*(R[1,0]*dt6[:,:,:,2] + R[1,1]*dt6[:,:,:,4] + R[1,2]*dt6[:,:,:,5])
+    dt6_r[...,4] = R[2,0]*(R[1,0]*dt6[...,0] + R[1,1]*dt6[...,1] + R[1,2]*dt6[...,2])\
+                 + R[2,1]*(R[1,0]*dt6[...,1] + R[1,1]*dt6[...,3] + R[1,2]*dt6[...,4])\
+                 + R[2,2]*(R[1,0]*dt6[...,2] + R[1,1]*dt6[...,4] + R[1,2]*dt6[...,5])
 
-    dt6_r[:,:,:,5] = R[2,0]*(R[2,0]*dt6[:,:,:,0] + R[2,1]*dt6[:,:,:,1] + R[2,2]*dt6[:,:,:,2])\
-                   + R[2,1]*(R[2,0]*dt6[:,:,:,1] + R[2,1]*dt6[:,:,:,3] + R[2,2]*dt6[:,:,:,4])\
-                   + R[2,2]*(R[2,0]*dt6[:,:,:,2] + R[2,1]*dt6[:,:,:,4] + R[2,2]*dt6[:,:,:,5])
+    dt6_r[...,5] = R[2,0]*(R[2,0]*dt6[...,0] + R[2,1]*dt6[...,1] + R[2,2]*dt6[...,2])\
+                 + R[2,1]*(R[2,0]*dt6[...,1] + R[2,1]*dt6[...,3] + R[2,2]*dt6[...,4])\
+                 + R[2,2]*(R[2,0]*dt6[...,2] + R[2,1]*dt6[...,4] + R[2,2]*dt6[...,5])
 
     return dt6_r
+
+
+def compose_spectral(eigVec, eigVal):
+    """ Recovers a DTI image in dt6 format [Dxx, Dyy, Dzz, Dxy, Dxz, Dyz]
+    """
+
+    tensor = np.zeros(eigVal.shape+(6,),dtype=np.single)
+
+    tensor[...,0] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,0]\
+                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,0]\
+                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,0]
+    tensor[...,3] = eigVec[...,2,1]*eigVal[...,2]*eigVec[...,2,1]\
+                  + eigVec[...,1,1]*eigVal[...,1]*eigVec[...,1,1]\
+                  + eigVec[...,0,1]*eigVal[...,0]*eigVec[...,0,1]
+    tensor[...,5] = eigVec[...,2,2]*eigVal[...,2]*eigVec[...,2,2]\
+                  + eigVec[...,1,2]*eigVal[...,1]*eigVec[...,1,2]\
+                  + eigVec[...,0,2]*eigVal[...,0]*eigVec[...,0,2]
+    tensor[...,1] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,1]\
+                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,1]\
+                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,1]
+    tensor[...,2] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,2]\
+                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,2]\
+                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,2]
+    tensor[...,4] = eigVec[...,2,1]*eigVal[...,2]*eigVec[...,2,2]\
+               	  + eigVec[...,1,1]*eigVal[...,1]*eigVec[...,1,2]\
+                  + eigVec[...,0,1]*eigVal[...,0]*eigVec[...,0,2]	
+
+    return tensor
