@@ -447,6 +447,31 @@ PythonToDCMTK
     Py_DECREF(nested_value);
 }
 
+/** 
+ * @brief Return a Python string containing the UTF-8 encoded version of the 
+ * string or unicode passed to the function.
+ */
+PyObject* _to_utf8(PyObject * data)
+{
+    PyObject * result = NULL;
+    
+    if(PyString_Check(data))
+    {
+        result = data;
+    }
+    else if(PyUnicode_Check(data))
+    {
+        result = PyUnicode_AsEncodedString(data, "utf-8", "strict");
+    }
+    
+    if(result == NULL)
+    {
+        throw std::runtime_error("Could not encode object to UTF-8");
+    }
+    
+    return result;
+}
+
 void
 PythonToDCMTK
 ::_to_text(PyObject * python_value, bool use_utf8, char padding,
@@ -463,13 +488,7 @@ PythonToDCMTK
             PyObject * python_item = PyList_GetItem(python_value, index);
             if(use_utf8)
             {
-                std::cout << element->getTag() << " " << PyString_AsString(PyObject_Str(python_value)) << std::endl;
-                PyObject * decoded_string = PyUnicode_AsEncodedString(
-                    python_item,  "utf-8", "strict");
-                if(decoded_string == NULL)
-                {
-                    throw std::runtime_error("Could not encode Unicode object to UTF-8");
-                }
+                PyObject * decoded_string = _to_utf8(python_item);
                 stream << PyString_AsString(decoded_string);
                 Py_DECREF(decoded_string);
             }
@@ -488,12 +507,7 @@ PythonToDCMTK
     {
         if(use_utf8)
         {
-            PyObject * decoded_string = PyUnicode_AsEncodedString(
-                python_value, "utf-8", "strict");
-            if(decoded_string == NULL)
-            {
-                throw std::runtime_error("Could not encode Unicode object to UTF-8");
-            }
+            PyObject * decoded_string = _to_utf8(python_value);
             stream << PyString_AsString(decoded_string);
             Py_DECREF(decoded_string);
         }
