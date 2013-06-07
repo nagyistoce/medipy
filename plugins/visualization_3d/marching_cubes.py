@@ -6,51 +6,79 @@
 # for details.
 ##########################################################################
 
-from vtk import vtkDiscreteMarchingCubes, vtkMarchingCubes
+import re
+
+import numpy
+from vtk import (vtkDiscreteMarchingCubes, vtkMarchingCubes, vtkMatrix4x4, 
+                 vtkTransform, vtkTransformPolyDataFilter)
 
 from medipy.base import Object3D
 import medipy.vtk
-from medipy.gui import get_colormap_from_name
 
-def marching_cubes(input, isovalue, compute_normals, output):
+def marching_cubes(image, isovalue, compute_normals):
     """ Generate a triangle mesh of the surface using the marching cubes 
         algorithm.
         
         <gui>
-            <item name="input" type="Image" label="Image"/>
+            <item name="image" type="Image" label="Image"/>
             <item name="isovalue" type="Float" initializer="0.5" label="Isovalue"/>
             <item name="compute_normals" type="Bool" initializer="False" label="Compute normals"/>
-            <item name="output" type="Object3D" role="output" label="Output"/>
+            <item name="output" type="Object3D" role="return" label="Output"/>
         </gui>
     """
     
-    vtk_image = medipy.vtk.array_to_vtk_image(input.data, False, input.data_type)
-    marching_cubes = vtkMarchingCubes()
-    marching_cubes.SetInput(vtk_image)
-    marching_cubes.SetValue(0, isovalue)
-    marching_cubes.SetComputeNormals(compute_normals)
-    marching_cubes.Update()
+    return _marching_cubes(image, isovalue, compute_normals, vtkMarchingCubes)
     
-    output.image = input
-    output.dataset = marching_cubes.GetOutput()
-    
-def discrete_marching_cubes(input, isovalue, output):
+def discrete_marching_cubes(image, isovalue, compute_normals):
     """ Generate a triangle mesh of the surface using the discrete marching cubes 
         algorithm.
         
         <gui>
-            <item name="input" type="Image" label="Image"/>
+            <item name="image" type="Image" label="Image"/>
             <item name="isovalue" type="Float" initializer="0.5" label="Isovalue"/>
-            <item name="output" type="Object3D" role="output" label="Output"/>
+            <item name="compute_normals" type="Bool" initializer="False" label="Compute normals"/>
+            <item name="output" type="Object3D" role="return" label="Output"/>
         </gui>
     """
+
+    return _marching_cubes(image, isovalue, compute_normals, vtkDiscreteMarchingCubes)
+
+def _marching_cubes(image, isovalue, compute_normals, Filter) :
+    """ Create an Object3D using vtkMarchingCubes or one of its derived class.
+    """
     
-    vtk_image = medipy.vtk.array_to_vtk_image(input.data, False, input.data_type)
-    marching_cubes = vtkDiscreteMarchingCubes()
-    marching_cubes.SetInput(vtk_image)
-    marching_cubes.SetValue(0, isovalue)
-    marching_cubes.Update()
+    # Run the VTK filter
+    vtk_image = medipy.vtk.array_to_vtk_image(image.data, False, image.data_type)
+    vtk_filter = Filter()
+    vtk_filter.SetInput(vtk_image)
+    vtk_filter.SetValue(0, isovalue)
+    vtk_filter.SetComputeNormals(compute_normals)
+    vtk_filter.Update()
+
+    # Marching cubes result is in index space, convert to physical space
+    polydata = _to_physical_space(image, vtk_filter.GetOutput())
     
-    output.dataset = marching_cubes.GetOutput()
-    output.image = input
+    # Use class name (without VTK prefix) for Object3D name
+    name = " ".join(re.split(r"([A-Z][a-z]+)", vtk_filter.GetClassName())[1::2])
+
+    return Object3D(polydata, name, image)
+
+def _to_physical_space(image, polydata) :
+    """ Transform a ``polydata`` from index space to physical space using the 
+        transformation in ``image``.
+    """
     
+    matrix = numpy.identity(4)
+    matrix[:3,:3] = numpy.dot(numpy.diag(image.spacing), image.direction)[::-1,::-1]
+    matrix[:3,3] = image.origin[::-1]
+    
+    transform = vtkTransform()
+    transform.SetMatrix(matrix.ravel())
+
+    transform_filter = vtkTransformPolyDataFilter()
+    transform_filter.SetTransform(transform)
+    transform_filter.SetInput(polydata)
+    
+    transform_filter.Update()
+    
+    return transform_filter.GetOutput()

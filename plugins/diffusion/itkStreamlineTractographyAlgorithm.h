@@ -73,11 +73,11 @@ class StreamlineTractographyAlgorithm : public TractographyAlgorithm<ModelType, 
         itkSetMacro(StepSize,float);
         itkGetConstMacro(StepSize,float);
 
-        itkSetMacro(ThresholdAngle,float);
-        itkGetConstMacro(ThresholdAngle,float);
+        itkSetMacro(MaximumAngle,float);
+        itkGetConstMacro(MaximumAngle,float);
 
-        itkSetMacro(ThresholdFA,float);
-        itkGetConstMacro(ThresholdFA,float);
+        itkSetMacro(MinimumFA,float);
+        itkGetConstMacro(MinimumFA,float);
 
         itkSetMacro(UseRungeKuttaOrder4,bool);
         itkGetConstMacro(UseRungeKuttaOrder4,bool);
@@ -112,10 +112,10 @@ class StreamlineTractographyAlgorithm : public TractographyAlgorithm<ModelType, 
         float m_StepSize;
         //True if the RK4 method is used or false if the RK0 (Euler) method is used.
         bool m_UseRungeKuttaOrder4;
-        // Allowed angle for propagation.
-        float m_ThresholdAngle;
-        // FA criterion for propagation.
-        float m_ThresholdFA;
+        // Maximum angle allowed for propagation.
+        float m_MaximumAngle;
+        // Minimum FA allowed for propagation.
+        float m_MinimumFA;
         // Calculator to extract principal direction
         CalculatorType m_Calculator;
 };
