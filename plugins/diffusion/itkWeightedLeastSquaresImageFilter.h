@@ -53,13 +53,13 @@ public :
 
     /** Intern types */
     typedef typename TOutputImage::PixelType OutputPixelType;
-    typedef Point<double,3> DirectionType;
+    typedef Point<float,3> DirectionType;
     typedef vnl_matrix<float> BMatrixType;
 
     /** Return the b-bvalue. */
-    itkGetConstMacro(BVal, double);
+    itkGetConstMacro(BVal, float);
     /** Set the b-value. */
-    itkSetMacro(BVal, double);
+    itkSetMacro(BVal, float);
     
     /** Return the nb of iter for WLS estimation. */
     itkGetConstMacro(IterationCount, unsigned int);
@@ -83,7 +83,7 @@ protected :
 
 private :
     std::vector<DirectionType> directions;
-    double m_BVal;
+    float m_BVal;
     unsigned int m_IterationCount;
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
@@ -96,7 +96,7 @@ private :
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSecondOrderSymmetricTensorReconstructionFilter_2Alix.txx"
+#include "itkWeightedLeastSquaresImageFilter.txx"
 #endif
 
 #endif 

@@ -55,7 +55,7 @@ wrap_library("MediPyDiffusion" python)
     endforeach()
     
     # Estimation : Image -> VectorImage
-    foreach(filter "itkWeightedLeastSquaresImageFilter")
+    foreach(filter "WeightedLeastSquaresImageFilter")
         wrap_module("itk${filter}")
             wrap_class("itk::${filter}" POINTER)
                 foreach(instantiation ${instantiations})
