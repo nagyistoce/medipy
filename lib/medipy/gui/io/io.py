@@ -282,12 +282,10 @@ def _separate_dicomdirs(paths):
     non_dicomdirs = []
     
     for path in paths :
-        
-        try :
+        path = str(path)
+        is_dicomdir = False
+        if medipy.io.dicom.can_read(path) :
             dataset = medipy.io.dicom.read(path)
-        except :
-            is_dicomdir = False
-        else :
             is_dicomdir = (dataset.header.get("media_storage_sop_class_uid", None) == 
                            "1.2.840.10008.1.3.10") # Media Storage Directory Storage
         
