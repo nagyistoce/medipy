@@ -69,7 +69,10 @@ class BET(FSLTool):
     
     def _get_brain_mask(self):
         if self.create_brain_mask :
-            return os.path.extsep.join([os.path.splitext(self.input)[0]+"_mask", 
+            base_name = os.path.splitext(self.output)[0]
+            if base_name.endswith(".nii") :
+                base_name = os.path.splitext(base_name)[0]
+            return os.path.extsep.join([base_name+"_mask", 
                                         self._suffixes[self.fsl_environment["FSLOUTPUTTYPE"]]])
         else :
             return None

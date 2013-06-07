@@ -1,8 +1,0 @@
-SConscript('io/SConstruct')
-SConscript('gui/SConstruct')
-
-Import('env')
-
-env = env.Clone()
-
-env["CPPPATH"].append("../")

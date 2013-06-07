@@ -405,10 +405,10 @@ class Layer(medipy.base.Observable) :
             
             changed_origin = numpy.min(corners, 0)
             
-            # Set altitude to 0
-            changed_origin[0] = 0
+            # Convert origin to 3D, set altitude to 0
             changed_origin = medipy.base.array.reshape(changed_origin, (3,),
                 "constant", False, value=0)
+            changed_origin[0] = 0
 
             changed_spacing = numpy.abs(numpy.dot(world_to_slice, 
                                                   self._image.spacing))

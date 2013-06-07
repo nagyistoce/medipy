@@ -205,3 +205,14 @@ DataDocumenter.add_directive_header = add_directive_header
 
 # Import medipy so that plugins can be found
 import medipy
+
+# Remove GUI description from functions
+import re
+def process_docstring(app, what, name, obj, options, lines):
+    if lines :
+        docstring = "\n".join(lines)
+        docstring = re.sub(r"<gui>.*</gui>", "", docstring, flags=re.DOTALL)
+        lines[:] = docstring.split("\n")
+
+def setup(app):
+    app.connect('autodoc-process-docstring', process_docstring)

@@ -8,7 +8,7 @@ import tarfile
 import urllib
     
 # Get the sources, unzip them, delete the archive
-filename,_ = urllib.urlretrieve("http://voxel.dl.sourceforge.net/sourceforge/itk/InsightToolkit-3.14.0.tar.gz")
+filename,_ = urllib.urlretrieve("http://sourceforge.net/projects/itk/files/itk/3.14/InsightToolkit-3.14.0.tar.gz/download")
 archive = tarfile.open(filename)
 archive.extractall()
 archive.close()
@@ -29,6 +29,15 @@ BUILD_EXAMPLES:BOOL=OFF
 ITK_USE_REVIEW:BOOL=ON
 """)
 if sys.platform != "win32" :
+    command = ["gcc", "-dumpversion"]
+    process = subprocess.Popen(command, stdout=subprocess.PIPE)
+    stdout, _ = process.communicate()
+    elements = stdout.split(".")
+    major, minor = int(elements[0]), int(elements[1])
+    if major > 4 or (major == 4 and minor > 4) :
+        cmake_cache.write("CMAKE_C_COMPILER:FILEPATH=gcc-4.4\n")
+        cmake_cache.write("CMAKE_CXX_COMPILER:FILEPATH=g++-4.4\n")
+
     cmake_cache.write("CMAKE_INSTALL_PREFIX:STRING=/usr\n")
 else :
     cmake_cache.write("CMAKE_INSTALL_PREFIX:STRING=C:/Program Files/ITK\n")

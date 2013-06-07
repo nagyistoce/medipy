@@ -19,6 +19,45 @@ from medipy.gui.wxVTKRenderWindowInteractor import wxVTKRenderWindowInteractor
 
 from slice import Slice
 
+def display(*args, **kwargs) :
+    """ Display an image in a modal dialog. All parameters are passed to the
+        image constructor. For example an image with two layers, the bottom one 
+        in grayscale and the top one in rainbow can be displayed as follows : ::
+        
+            import medipy.io
+            import medipy.gui
+            import medipy.gui.image
+            
+            anatomical = medipy.io.load("/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm.nii.gz")
+            atlas = medipy.io.load("/usr/share/fsl/data/atlases/MNI/MNI-maxprob-thr0-1mm.nii.gz")
+            
+            colormap = medipy.gui.Colormap(medipy.gui.colormaps["rainbow"], 
+                None, zero_transparency=True)
+            
+            layers = [
+                {"image": anatomical},
+                {"image": atlas, "colormap": colormap, "opacity": 0.5}
+            ]
+            
+            medipy.gui.image.display(layers=layers)
+    """
+    
+    app = wx.GetApp()
+    if app is None :
+        app = wx.PySimpleApp()
+    
+    dialog = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+    if "size" not in kwargs :
+        kwargs["size"] = (400,400)
+    gui_image = medipy.gui.image.Image(dialog, *args, **kwargs)
+    
+    sizer = wx.BoxSizer()
+    sizer.Add(gui_image, 1, wx.EXPAND)
+    dialog.SetSizer(sizer)
+    sizer.SetSizeHints(dialog)
+    
+    dialog.ShowModal()
+
 def get_informations(image):
     """ Return the informations to be displayed on image.
     """
@@ -66,6 +105,35 @@ def get_informations(image):
     return informations
 
 class Image(wx.Panel, PropertySynchronized):
+    """ Synchronized representation of several slices with several layers.
+        
+        When passed to the constructor, layers are specified by a dictionary
+        containing the following keys :
+        
+        * `"image"` : a :class:`medipy.base.Image`, mandatory
+        * `"colormap"` : a :class:`medipy.gui.Colormap`, defaults to None
+        * `"opacity"` : a scalar between `0.0` and `1.0`, defaults to `1.0`
+        
+        For example an image with two layers, the bottom one in grayscale and 
+        the top one in rainbow can be created as follows : ::
+        
+            import medipy.io
+            import medipy.gui
+            import medipy.gui.image
+            
+            anatomical = medipy.io.load("/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm.nii.gz")
+            atlas = medipy.io.load("/usr/share/fsl/data/atlases/MNI/MNI-maxprob-thr0-1mm.nii.gz")
+            
+            colormap = medipy.gui.Colormap(medipy.gui.colormaps["rainbow"], 
+                None, zero_transparency=True)
+            
+            layers = [
+                {"image": anatomical},
+                {"image": atlas, "colormap": colormap, "opacity": 0.5}
+            ]
+            
+            image = medipy.gui.image.Image(parent, layers=layers)
+    """
     
     _viewport = {
         "axial" : (0.0, 0.0, 0.5, 0.5),
@@ -84,7 +152,7 @@ class Image(wx.Panel, PropertySynchronized):
                  display_coordinates="physical", scalar_bar_visibility = False,
                  orientation_visibility=True, corner_annotations_visibility=False,
                  convention="radiological", crosshair="full", *args, **kwargs):
-        
+                
         if annotations is None :
             annotations = ObservableList()
         
@@ -132,7 +200,8 @@ class Image(wx.Panel, PropertySynchronized):
         ##################
         
         wx.Panel.__init__(self, parent, *args, **kwargs)
-        self._rwi = wxVTKRenderWindowInteractor(self, wx.ID_ANY)
+        # Explicitely pass size to RWI to propagate it correctly
+        self._rwi = wxVTKRenderWindowInteractor(self, wx.ID_ANY, size=self.GetSize())
         self._rwi.Enable(1)
         sizer = wx.BoxSizer()
         sizer.Add(self._rwi, 1, wx.EXPAND|wx.ALL, 3)

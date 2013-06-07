@@ -15,6 +15,8 @@
         * :class:`SetElement`
         * :class:`DeleteElement`
         * :class:`EmptyElement`
+        * :class:`ModifyDataSet`
+        * :class:`RestoreDataSet`
         * :class:`SaveDataSet`
     
     The following example modifies datasets if they match the criteria, and
@@ -23,9 +25,7 @@
         # Get some data sets (e.g. from a PACS)
         datasets = []
         
-        conditions = [
-            medipy.io.dicom.routing.ElementMatch("patients_name", "Doe^John")
-        ]
+        condition = medipy.io.dicom.routing.ElementMatch("patients_name", "Doe^John")
         
         actions = [
             medipy.io.dicom.routing.EmptyElement("patients_name"),
@@ -41,13 +41,14 @@
             rule(dataset)
 """
 
-from actions import Action, SetElement, DeleteElement, EmptyElement, SaveDataSet
+from actions import (Action, SetElement, DeleteElement, EmptyElement, 
+                     ModifyDataSet, RestoreDataSet, SaveDataSet)
 from conditions import (Condition, AlwaysTrue, AlwaysFalse, And, Or, Not,
                         ElementMatch)
 from Rule import Rule
 
 __all__ = [
-    "Action", "SetElement", "DeleteElement", "EmptyElement", "SaveDataSet",
-    "Condition", "AlwaysTrue", "AlwaysFalse", "And", "Or", "Not", "ElementMatch",
-    "Rule"
+    "Action", "SetElement", "DeleteElement", "EmptyElement", "ModifyDataSet", 
+    "RestoreDataSet", "SaveDataSet", "Condition", "AlwaysTrue", "AlwaysFalse", 
+    "And", "Or", "Not", "ElementMatch", "Rule"
 ]
