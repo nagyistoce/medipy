@@ -20,7 +20,8 @@ commandes suivantes réalisent cette procédure.
 **Bilbiothèques** ::
 
     sudo apt-get install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
-        python-nifti python-docutils python-wxtools uuid-dev
+        python-nifti python-docutils python-wxtools uuid-dev libdcmtk2-dev \
+        libwrap0-dev
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
 
@@ -34,24 +35,8 @@ Debian 6.0 (Squeeze)
 **Bilbiothèques** ::
 
     sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
-        python-nifti python-docutils python-wxtools uuid-dev
+        python-nifti python-docutils python-wxtools uuid-dev libdcmtk1-dev \
+        libwrap0-dev
 
-
-ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
-
-Debian 5.0 (Lenny)
-------------------
-
-L'installation de la distribution a été réalisée avec les options par défaut
-pour tasksel (*Desktop environment* et *Base system*).
-
-**Outils** ::
-
-    sudo aptitude install build-essential subversion python-setuptools swig ipython 
-
-**Bilbiothèques** ::
-
-    sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
-        python-nifti python-docutils</code>
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
