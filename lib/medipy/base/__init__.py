@@ -20,6 +20,7 @@ from object_3d import Object3D
 from observable import EventObject, Observable
 from observable_list import ObservableList
 from property_synchronized import PropertySynchronized
+import rotation
 
 __all__ = ["array", "Command", "UndoableCommand", "coordinate_system", "enum", 
            "Enum", "Exception", "find_resource", "History", "Image", 

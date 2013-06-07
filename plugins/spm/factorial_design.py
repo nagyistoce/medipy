@@ -21,11 +21,12 @@ class FactorialDesign(Tool):
     
     class TwoSampleTTest(Tool.Config):
         """ Two-sample t-test, containing :
-              * The scans forming the two groups,
-              * The independance between measurements
-              * The equality of variance between measurements
-              * The grand mean scaling
-              * The ANCOVA-by-factor regressors
+        
+            * The scans forming the two groups,
+            * The independance between measurements
+            * The equality of variance between measurements
+            * The grand mean scaling
+            * The ANCOVA-by-factor regressors
         """
         
         name = "t2"
@@ -71,11 +72,12 @@ class FactorialDesign(Tool):
     
     class Covariate(Tool.Config):
         """ Covariate/nuisance variable, containing :
-              * The name of the covariate
-              * A vector of values
-              * The eventual interaction between the covariate and a chosen
-                experimental factor
-              * The centering method
+        
+            * The name of the covariate
+            * A vector of values
+            * The eventual interaction between the covariate and a chosen
+              experimental factor
+            * The centering method
         """
         
         def __init__(self, name, values, interaction=1, centering=1):
@@ -96,9 +98,10 @@ class FactorialDesign(Tool):
     
     class Masking(Tool.Config):
         """ Masking options, containing :
-              * The type and eventual value of threshold masking
-              * The implicit mask value
-              * The explicit mask image
+        
+            * The type and eventual value of threshold masking
+            * The implicit mask value
+            * The explicit mask image
         """
         
         def __init__(self, threshold_masking=None, threshold_value=None, 
@@ -130,8 +133,9 @@ class FactorialDesign(Tool):
     
     class GlobalCalculation(Tool.Config):
         """ Estimation of the global effects, containing :
-              * The estimation mode
-              * The eventual estimation value
+        
+            * The estimation mode
+            * The eventual estimation value
         """
         
         def __init__(self, mode=None, values=None):
@@ -152,8 +156,9 @@ class FactorialDesign(Tool):
     
     class GlobalNormalization(Tool.Config):
         """ Global normalization options, containing :
-              * The grand mean scaling value
-              * The normalization flag
+        
+            * The grand mean scaling value
+            * The normalization flag
         """
         
         def __init__(self, grand_mean_scaled_value=None, normalization=None):

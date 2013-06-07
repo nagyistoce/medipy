@@ -1,5 +1,0 @@
-import os
-
-apps = []
-for app in apps :
-    SConscript(os.path.join(app, "SConstruct"))

@@ -82,7 +82,6 @@ class Explorer(wx.Panel):
             datasets = self._hierarchy_tree.selected_datasets
             
             self._setup_slider(datasets)
-            self._slider.Enable()
             
             slider_value = self._series_position.get(datasets[0].series_instance_uid.value, 0)
             self._slider.SetValue(slider_value)
@@ -190,7 +189,12 @@ class Explorer(wx.Panel):
             else :
                 slider_max += 1
         
-        self._slider.SetRange(0, slider_max-1)
+        # When minValue == maxValue, SetRange seems to fail on Linux
+        if slider_max == 1 :
+            self._slider.Disable()
+        else :
+            self._slider.Enable()
+            self._slider.SetRange(0, slider_max-1)
 
 def _load_directory_record(record, queue):
     """ Worker function used in Explorer._setup_slider. This function returns

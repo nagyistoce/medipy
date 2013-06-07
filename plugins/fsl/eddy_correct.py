@@ -22,7 +22,7 @@ class EddyCorrect(FSLTool):
 
     def __init__(self, input=None, reference_no=None, *args, **kwargs):
         
-        super(EDDY, self).__init__(*args, **kwargs)
+        FSLTool.__init__(self, *args, **kwargs)
         
         self.input = input
         base_name = os.path.splitext(self.input)[0]
@@ -38,6 +38,6 @@ class EddyCorrect(FSLTool):
     def _get_command(self):
         if None in [self.input, self.output, self.reference_no] :
             raise Exception("Input, output, and reference must be specified") 
-        command = ["eddy_correct", self.input, self.output, self.reference_no]
+        command = ["eddy_correct", self.input, self.output, str(self.reference_no)]
                
         return command

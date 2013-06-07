@@ -16,7 +16,6 @@
 #include <utility>
 
 #include <Python.h>
-#include <boost/python.hpp>
 #include <numpy/arrayobject.h>
 
 #include <noyau/imx_3d.h>
