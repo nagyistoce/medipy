@@ -21,7 +21,7 @@ commandes suivantes réalisent cette procédure.
 
     sudo apt-get install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
         python-nifti python-docutils python-wxtools uuid-dev libdcmtk2-dev \
-        libwrap0-dev
+        libwrap0-dev cython
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
 
@@ -36,7 +36,7 @@ Debian 6.0 (Squeeze)
 
     sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
         python-nifti python-docutils python-wxtools uuid-dev libdcmtk1-dev \
-        libwrap0-dev
+        libwrap0-dev cython
 
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
