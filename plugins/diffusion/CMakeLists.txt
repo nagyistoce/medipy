@@ -54,6 +54,19 @@ wrap_library("MediPyDiffusion" python)
         end_wrap_module()
     endforeach()
     
+    # Estimation : Image -> VectorImage
+    foreach(filter "SecondOrderSymmetricTensorReconstructionFilter_2Alix")
+        wrap_module("itk${filter}")
+            wrap_class("itk::${filter}" POINTER)
+                foreach(instantiation ${instantiations})
+                    wrap_template(
+                        "I${instantiation}VI${instantiation}" 
+                        "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}")
+                endforeach()
+            end_wrap_class()
+        end_wrap_module()
+    endforeach()
+    
     # Scalars : VectorImage -> Image
     foreach(filter "FractionalAnisotropyImageFilter" "MeanDiffusivityImageFilter")
         wrap_module("itk${filter}")
