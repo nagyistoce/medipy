@@ -71,7 +71,7 @@ class testDataSetIO(unittest.TestCase):
                     medipy.io.dicom.UN)
                 
                 if isinstance(dataset1[tag], float_vrs) :
-                    numpy.testing.assert_almost_equal(
+                    numpy.testing.assert_array_almost_equal(
                         value1, value2,
                         err_msg="Failure for tag {0}".format(tag))
                 elif isinstance(dataset1[tag], binary_vrs) :
