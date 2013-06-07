@@ -52,7 +52,8 @@ class MainFrame(medipy.gui.base.Frame):
             self.menu_treectrl = None
             self.function_ui_panel = None
             self.function_ui_sizer = None
-            
+            self.search_tab = None
+          
             self.layers_tab = None
             self.layers = None
             
@@ -65,7 +66,7 @@ class MainFrame(medipy.gui.base.Frame):
             
             self.controls = [
                 "notebook",
-                "menu_treectrl", "function_ui_panel", 
+                "menu_treectrl", "function_ui_panel", "search_tab",
                 "layers_tab", 
                 "annotations_tab",
                 "images_panel"]
@@ -102,6 +103,8 @@ class MainFrame(medipy.gui.base.Frame):
             os.path.join("resources", "gui", "medipy_frame.xrc"))
         medipy.gui.base.Frame.__init__(self, xrc_file, "medipy_frame", 
             [], self.ui, self.ui.controls, parent, *args, **kwargs)
+
+        self.left_menu = left_menu
         
         self._current_ui = None
         self._full_screen_frame = None
@@ -143,10 +146,11 @@ class MainFrame(medipy.gui.base.Frame):
         
         # Bind events
         self.ui.menu_treectrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.set_function_ui)
+        self.ui.search_tab.Bind(wx.EVT_TEXT, self.on_active_search)
         self.ui.image_grid.add_observer("active", self._on_active_image)
         
         # Fill function menu
-        menu_builder.fill_treectrl(left_menu, self.ui.menu_treectrl)
+        menu_builder.fill_treectrl(left_menu, self.ui.menu_treectrl, "")
         
         # Disable item that should not be active when no image is loaded
         for item in self._menus_active_when_image_loaded :
@@ -711,6 +715,11 @@ class MainFrame(medipy.gui.base.Frame):
         index = self.images.index(event.old)
         self.delete_image(index)
         self.insert_image(index, [{"image":event.new}])
+
+    def on_active_search(self, event) :
+        # Search in tree
+        self.ui.menu_treectrl.DeleteAllItems()
+        menu_builder.fill_treectrl(self.left_menu,self.ui.menu_treectrl,self.ui.search_tab.GetValue().lower())
     
     def _on_active_image(self, event):
         # Display active image path in title

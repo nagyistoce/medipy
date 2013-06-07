@@ -25,7 +25,7 @@ def texture_from_depth(object_3d, image, depth, center_of_mass = None):
     
     # Compute the center of mass if necessary
     if center_of_mass is None :
-        center_of_mass = scipy.ndimage.center_of_mass(image)
+        center_of_mass = scipy.ndimage.center_of_mass(image.data)
     
     # Vertices coordinates, as VTK and numpy arrays
     vtk_array = object_3d.dataset.GetPoints().GetData()

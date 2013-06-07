@@ -33,6 +33,18 @@ def load(path, fragment) :
     """ Load an image.
     """
     
+    return _load(path, fragment, medipy.io.load)
+
+def load_serie(path, fragment) :
+    """ Load an image.
+    """
+    
+    return _load(path, fragment, medipy.io.load_serie)
+
+def _load(path, fragment, load_function) :
+    """ Load a serie of images
+    """
+
     # Check arguments
     
     if not os.path.isfile(path) :
@@ -70,8 +82,8 @@ def load(path, fragment) :
     if url is None :
         raise medipy.base.Exception("No serie matching {0} in {1}".format(repr(fragment), repr(path)))
     
-    return medipy.io.load(url)
-    
+    return load_function(url)
+
 def number_of_images(path, fragment) :
     """ Return the number of images.
     """

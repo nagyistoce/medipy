@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -64,17 +64,22 @@ class Importer(object):
     def load_module(self, fullname):
         module = sys.modules.setdefault(fullname, imp.new_module(fullname))
         
-        code, filename = self._get_code(fullname)
-        
-        if self._is_package(fullname) :
-            module.__path__ = []
-            module.__file__ = filename
-            module.__package__ = fullname
+        path = os.path.join(self._get_search_path(fullname), 
+                            *fullname.split(".")[1:])
+        if os.path.isfile(path+".so") :
+            module = imp.load_dynamic(fullname, path+".so")
         else :
-            module.__file__ = filename
-            module.__package__ = fullname.rpartition(".")[0]
-        
-        exec(code, module.__dict__)
+            code, filename = self._get_code(fullname)
+            
+            if self._is_package(fullname) :
+                module.__path__ = []
+                module.__file__ = filename
+                module.__package__ = fullname
+            else :
+                module.__file__ = filename
+                module.__package__ = fullname.rpartition(".")[0]
+            
+            exec(code, module.__dict__)
         
         return module
     
@@ -115,9 +120,9 @@ class Importer(object):
             candidates = []
             if os.path.isdir(plugin_path) :
                 candidates = [os.path.join(plugin_path, "__init__"+suffix)
-                              for suffix in [".py", ".pyc"]]
+                              for suffix in [".py", ".pyc", ".so"]]
             else :
-                candidates = [plugin_path+suffix for suffix in [".py", ".pyc"]]
+                candidates = [plugin_path+suffix for suffix in [".py", ".pyc", ".so"]]
             if any(os.path.isfile(x) for x in candidates) :
                 path = directory
                 break

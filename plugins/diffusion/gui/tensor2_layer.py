@@ -45,7 +45,9 @@ class PrincipalDirectionVoxelPipeline(object):
         
         fa = get_fa(eigenvalues, eigenvectors)
         # Normalize the FA to 1
-        fa /= fa.max()
+        nfa = fa.max()
+        if nfa!=0 :
+            fa /= fa.max()
         
         principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
         principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])

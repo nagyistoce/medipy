@@ -79,13 +79,20 @@ class Object3D(object):
             mapper.SetColorModeToMapScalars()        
             mapper.SetScalarRange(min, max)
             mapper.ScalarVisibilityOn()
+
+    def color_by_point_scalars(self,array_name):
+        self._mapper.SetScalarModeToUsePointData()
+        self._dataset.GetPointData().SetActiveScalars(array_name)
+        self._mapper.ScalarVisibilityOn()
+
+    def point_arrays(self):
+        result = []
+        for i in range(self._dataset.GetPointData().GetNumberOfArrays()) :
+            result.append(self._dataset.GetPointData().GetArray(i).GetName())
+        return result
         
         
-#        def color_by_point_scalars(self, array):
-#            self._mapper.SetScalarModeToUsePointData()
-#            self._dataset.GetPointData().SetActiveScalars(array)
-#            self._mapper.ScalarVisibilityOn()
-#            
+           
 #            self._mapper.SelectColorArray(1)
 #            self._mapper.InterpolateScalarsBeforeMappingOff()
 #        
@@ -98,11 +105,6 @@ class Object3D(object):
 #            self._mapper.SetScalarRange(0, 6)
 #            self._mapper.InterpolateScalarsBeforeMappingOff()
 #        
-#        def point_arrays(self):
-#            result = []
-#            for i in range(self._dataset.GetPointData().GetNumberOfArrays()) :
-#                result.append(self._dataset.GetPointData().GetArray(i).GetName())
-#            return result
 #        
 #        def cell_arrays(self):
 #            result = []
