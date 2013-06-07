@@ -1,9 +1,9 @@
 
 
-#ifndef _itkSecondOrderSymmetricTensorReconstructionFilter_2Alix_txx
-#define _itkSecondOrderSymmetricTensorReconstructionFilter_2Alix_txx
+#ifndef _itkWeightedLeastSquaresImageFilter_txx
+#define _itkWeightedLeastSquaresImageFilter_txx
 
-#include "itkSecondOrderSymmetricTensorReconstructionFilter_2Alix.h"
+#include "itkWeightedLeastSquaresImageFilter.h"
 
 #include <vector>
 
@@ -16,7 +16,7 @@ namespace itk
 
 template<typename TInputImage, typename TOutputImage>
 void
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::AllocateOutputs()
 {
     typename OutputImageType::Pointer outputPtr;
@@ -32,7 +32,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     std::locale C("C");
@@ -54,7 +54,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 unsigned int
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::GetNumberOfGradientDirections() const
 {
     return this->directions.size();
@@ -62,7 +62,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::SetGradientDirection(unsigned int i, DirectionType bvec)
 {
     if (i>=this->directions.size()) {
@@ -72,8 +72,8 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TOutputImage>
-typename SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>::DirectionType const &
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+typename WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>::DirectionType const &
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::GetGradientDirection(unsigned int i) const
 {
     return this->directions[i];
@@ -81,7 +81,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void 
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
 {
     const unsigned int VectorLength = 6;
@@ -107,7 +107,7 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 
 template<typename TInputImage, typename TOutputImage>
 void 
-SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
+WeightedLeastSquaresImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int)
 {
     const InputImagePixelType min_signal = 5;
@@ -157,8 +157,6 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
 
         vnl_vector<float> dt6 = this->invbmatrix*S;
         
-        // changement WLS:
-        //int nb_iter = 5;
         vnl_vector<float> W(nb_dir-1,0.0);
         BMatrixType tmp1;
         tmp1.set_size(VectorLength,VectorLength);
@@ -187,7 +185,6 @@ SecondOrderSymmetricTensorReconstructionFilter_2Alix<TInputImage, TOutputImage>
             itmp1 = vnl_matrix_inverse<float>(tmp1);
             dt6 = itmp1*tmp2;
         }
-        // fin changement WLS
         
         OutputPixelType vec = outputIt.Get();
         std::copy(dt6.begin(), dt6.end(), &vec[0]);
