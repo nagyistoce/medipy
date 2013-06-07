@@ -34,7 +34,7 @@ def weigthed_least_squares(images, nb_iter=None):
     Dimension = images[0].ndim
     InputImage = itk.Image[PixelType, Dimension]
     OutputImage = itk.VectorImage[PixelType, Dimension]
-    EstimationFilter = itk.SecondOrderSymmetricTensorReconstructionFilter_2Alix[
+    EstimationFilter = itk.WeightedLeastSquaresImageFilter[
         InputImage, OutputImage]
     
     estimation_filter = EstimationFilter.New()

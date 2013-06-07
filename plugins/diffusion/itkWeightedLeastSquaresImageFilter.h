@@ -7,8 +7,8 @@
  ************************************************************************/
 
 
-#ifndef _itkSecondOrderSymmetricTensorReconstructionFilter_2Alix_h
-#define _itkSecondOrderSymmetricTensorReconstructionFilter_2Alix_h
+#ifndef _itkWeightedLeastSquaresImageFilter_h
+#define _itkWeightedLeastSquaresImageFilter_h
 
 #include <vector>
 
@@ -20,20 +20,20 @@ namespace itk
 {
 
 /**
- * \class SecondOrderSymmetricTensorReconstructionFilter
- * \brief Least Square Second Order Symmetric Tensor Reconstruction Filter
+ * \class WeightedLeastSquaresImageFilter
+ * \brief Weighted Least Squares Second Order Symmetric Tensor Reconstruction Filter
  * 
  * This filter must have as many input images as it has gradient directions.
  * All inputs are supposed to have the same Region.
  */
 
 template<typename TInputImage, typename TOutputImage>
-class SecondOrderSymmetricTensorReconstructionFilter_2Alix :
+class WeightedLeastSquaresImageFilter :
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public :
     /** Standard class typedefs. */
-    typedef SecondOrderSymmetricTensorReconstructionFilter_2Alix Self;
+    typedef WeightedLeastSquaresImageFilter Self;
     typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
@@ -44,7 +44,7 @@ public :
     itkNewMacro(Self);
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(SecondOrderSymmetricTensorReconstructionFilter_2Alix, ImageToImageFilter);
+    itkTypeMacro(WeightedLeastSquaresImageFilter, ImageToImageFilter);
 
     /** Useful typedefs */
     typedef typename Superclass::InputImageType InputImageType;
@@ -74,8 +74,8 @@ public :
     DirectionType const & GetGradientDirection(unsigned int i) const;
 
 protected :
-    SecondOrderSymmetricTensorReconstructionFilter_2Alix() {}
-    ~SecondOrderSymmetricTensorReconstructionFilter_2Alix() {}
+    WeightedLeastSquaresImageFilter() {}
+    ~WeightedLeastSquaresImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
     void AllocateOutputs();
     void BeforeThreadedGenerateData();
@@ -88,7 +88,7 @@ private :
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
 
-    SecondOrderSymmetricTensorReconstructionFilter_2Alix(Self const &); // purposely not implemented
+    WeightedLeastSquaresImageFilter(Self const &); // purposely not implemented
     Self const & operator=(Self const &); // purposely not implemented
 
 };
