@@ -31,15 +31,15 @@ class Importer(object):
         # searched in order. The first element where the plugin is found is
         # used.
         self.plugins_path = []
+        global_path_getter = getattr(
+            self, "_get_global_path_{0}".format(sys.platform), None)
+        if global_path_getter :
+            self.plugins_path = global_path_getter()
         if "MEDIPY_PLUGINS_PATH" in os.environ :
             self.plugins_path = [
                 x for x in os.environ["MEDIPY_PLUGINS_PATH"].split(os.pathsep)
                 if os.path.isdir(x)
             ]
-        global_path_getter = getattr(
-            self, "_get_global_path_{0}".format(sys.platform), None)
-        if global_path_getter :
-            self.plugins_path.extend(global_path_getter())
     
     def find_module(self, fullname, path=None):
         # Find the items from ``path`` which are rooted in self.plugins_path
