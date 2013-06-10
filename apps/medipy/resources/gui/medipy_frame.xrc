@@ -1,0 +1,305 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxFrame" name="medipy_frame">
+    <object class="wxMenuBar" name="main_menu_bar">
+      <object class="wxMenu" name="file_menu">
+        <label>&amp;File</label>
+        <object class="wxMenuItem" name="open_image">
+          <label>&amp;Open image ...</label>
+          <bitmap stock_id="wxART_FILE_OPEN"/>
+          <accel>Ctrl+O</accel>
+        </object>
+        <object class="wxMenuItem" name="open_image_serie">
+          <label>&amp;Open image serie ...</label>
+          <bitmap stock_id="wxART_FILE_OPEN"/>
+        </object>
+        <object class="wxMenu" name="import_menu">
+          <label>&amp;Import</label>
+          <object class="wxMenuItem" name="open_raw">
+            <label>Open &amp;RAW image</label>
+          </object>
+          <object class="wxMenuItem" name="open_spectro">
+            <label>Open &amp;Spectro image</label>
+          </object>
+          <object class="wxMenuItem" name="from_directory">
+            <label>Import &amp;DICOM directory ...</label>
+            <accel>Ctrl+D</accel>
+          </object>
+          <object class="wxMenuItem" name="from_directory_serie">
+            <label>Import &amp;DICOM serie directory ...</label>
+          </object>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="save_image_as">
+          <label>Save image as ...</label>
+          <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+          <accel>Ctrl+S</accel>
+        </object>
+        <object class="wxMenuItem" name="save_image_serie_as">
+          <label>Save image serie as ...</label>
+          <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="new_viewer_3d">
+          <label>New &amp;3D viewer</label>
+          <accel>Alt+3</accel>
+        </object>
+        <object class="wxMenu" name="screenshot_menu">
+          <label>Screens&amp;hot</label>
+          <object class="wxMenuItem" name="current_image_screenshot">
+            <label>Current image ...</label>
+            <accel>Ctrl+P</accel>
+          </object>
+          <object class="wxMenuItem" name="all_images_screenshot">
+            <label>All images ...</label>
+            <accel>Ctrl+Shift+P</accel>
+          </object>
+          <object class="wxMenuItem" name="whole_window_screenshot">
+            <label>Whole window ...</label>
+            <accel>Ctrl+Alt+P</accel>
+          </object>
+        </object>
+        <object class="wxMenuItem" name="preferences">
+          <label>Preferences ...</label>
+        </object>
+        <object class="wxMenuItem" name="execute_script">
+          <label>E&amp;xecute script ...</label>
+          <accel>Alt+X</accel>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="close_image">
+          <label>&amp;Close image</label>
+          <bitmap stock_id="wxART_CROSS_MARK"/>
+          <accel>Ctrl+W</accel>
+        </object>
+        <object class="wxMenuItem" name="close_all_images">
+          <label>Close all images</label>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="quit">
+          <label>&amp;Quit</label>
+          <bitmap stock_id="wxART_QUIT"/>
+          <accel>Ctrl+Q</accel>
+        </object>
+      </object>
+      <object class="wxMenu" name="edit_menu">
+        <object class="wxMenuItem" name="undo">
+          <label>Undo</label>
+          <accel>Ctrl+Z</accel>
+        </object>
+        <object class="wxMenuItem" name="redo">
+          <label>Redo</label>
+          <accel>Ctrl+Shift+Z</accel>
+        </object>
+        <label>&amp;Edit</label>
+      </object>
+      <object class="wxMenu" name="image_menu">
+        <object class="wxMenuItem" name="reset_view">
+          <label>&amp;Reset view</label>
+          <accel>Ctrl+0</accel>
+        </object>
+        <object class="wxMenuItem" name="full_screen">
+          <label>&amp;Full screen</label>
+          <accel>Ctrl+F</accel>
+        </object>
+        <object class="wxMenuItem" name="cine_image">
+          <label>&amp;Cine image</label>
+          <accel>Ctrl+C</accel>
+        </object>
+        <object class="wxMenuItem" name="show_lut">
+          <label>Show LUT</label>
+          <checkable>1</checkable>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="metadata">
+          <label>&amp;Metadata</label>
+        </object>
+        <object class="wxMenuItem" name="reorient">
+          <label>Re-orient</label>
+        </object>
+        <object class="wxMenuItem" name="informations">
+          <label>Informations</label>
+          <checkable>1</checkable>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenu" name="crosshair">
+          <label>Crosshair</label>
+          <object class="wxMenuItem" name="crosshair_full">
+            <label>Full</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="crosshair_partial">
+            <label>Partial</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="crosshair_none">
+            <label>None</label>
+            <radio>1</radio>
+          </object>
+        </object>
+        <label>&amp;Image</label>
+        <object class="wxMenu" name="slices_menu">
+          <label>Slices</label>
+          <object class="wxMenuItem" name="view_axial">
+            <label>Axial</label>
+            <accel>Alt+A</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="view_coronal">
+            <label>Coronal</label>
+            <accel>Alt+C</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="view_sagittal">
+            <label>Sagittal</label>
+            <accel>Alt+S</accel>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="view_multiplanar">
+            <label>Multiplanar</label>
+            <accel>Alt+M</accel>
+            <radio>1</radio>
+          </object>
+        </object>
+      </object>
+      <object class="wxMenu" name="view_menu">
+        <object class="wxMenu" name="display_coordinates_menu">
+          <object class="wxMenuItem" name="display_coordinates_physical">
+            <label>Physical</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="display_coordinates_nearest_axis_aligned">
+            <label>Nearest axis-aligned</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="display_coordinates_index">
+            <label>Index</label>
+            <radio>1</radio>
+          </object>
+          <label>Display coordinates</label>
+        </object>
+        <object class="wxMenu" name="display_convention_menu">
+          <object class="wxMenuItem" name="display_convention_radiological">
+            <label>Radiological</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="display_convention_neurological">
+            <label>Neurological</label>
+            <radio>1</radio>
+          </object>
+          <label>Display convention</label>
+        </object>
+        <object class="wxMenu" name="synchronize_menu">
+          <object class="wxMenuItem" name="sync_cursor_position">
+            <label>Cursor position</label>
+            <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="sync_center">
+            <label>Image center</label>
+            <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="sync_zoom">
+            <label>Zoom</label>
+            <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="sync_display_range">
+            <label>Window/Level</label>
+            <checkable>1</checkable>
+          </object>
+          <label>Synchronize</label>
+        </object>
+        <object class="wxMenu" name="display_tensors_menu">
+          <object class="wxMenuItem" name="tensor2_display_principal_direction_voxel">
+            <label>Color map</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="tensor2_display_principal_direction_line">
+            <label>Principal direction</label>
+            <radio>1</radio>
+          </object>
+          <object class="wxMenuItem" name="tensor2_display_ellipsoid">
+            <label>Ellipsoid</label>
+            <radio>1</radio>
+          </object>
+          <label>Display tensors</label>
+        </object>
+        <label>View</label>
+      </object>
+    </object>
+    <object class="wxToolBar" name="tools">
+      <object class="tool" name="select">
+        <bitmap>select.png</bitmap>
+        <radio>1</radio>
+        <tooltip>Select (S)</tooltip>
+        <label>Select</label>
+      </object>
+      <object class="tool" name="pan">
+        <bitmap>pan.png</bitmap>
+        <radio>1</radio>
+        <tooltip>Pan (P)</tooltip>
+        <label>Pan</label>
+      </object>
+      <object class="tool" name="contrast">
+        <bitmap>contrast.png</bitmap>
+        <radio>1</radio>
+        <tooltip>Contrast (C)</tooltip>
+        <label>Contrast</label>
+      </object>
+    </object>
+    <object class="wxSplitterWindow" name="main_splitter">
+      <object class="wxNotebook" name="notebook">
+        <object class="notebookpage">
+          <object class="wxSplitterWindow" name="left_splitter">
+            <object class="wxPanel">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticBitmap" name="search_bitmap">
+                        <bitmap stock_id="wxART_FIND"/>
+                      </object>
+                      <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxTextCtrl" name="search_tab"/>
+                      <option>1</option>
+                      <flag>wxEXPAND|wxALIGN_CENTRE_VERTICAL</flag>
+                    </object>
+                    <orient>wxHORIZONTAL</orient>
+                  </object>
+                  <option>0</option>
+                  <flag>wxEXPAND</flag>
+                </object>
+                <object class="sizeritem">
+                  <object class="wxTreeCtrl" name="menu_treectrl">
+                    <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
+                  </object>
+                  <option>1</option>
+                  <flag>wxEXPAND</flag>
+                </object>
+              </object>
+            </object>
+            <object class="wxPanel" name="function_ui_panel"/>
+            <orientation>horizontal</orientation>
+          </object>
+          <label>Functions</label>
+        </object>
+        <object class="notebookpage">
+          <object class="wxPanel" name="layers_tab"/>
+          <label>Layers</label>
+        </object>
+        <object class="notebookpage">
+          <object class="wxPanel" name="annotations_tab"/>
+          <label>Annotations</label>
+        </object>
+      </object>
+      <object class="wxPanel" name="images_panel"/>
+      <orientation>vertical</orientation>
+      <sashpos>250</sashpos>
+    </object>
+    <object class="wxStatusBar" name="status_bar">
+      <style>wxST_SIZEGRIP</style>
+    </object>
+  </object>
+</resource>
