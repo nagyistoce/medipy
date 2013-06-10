@@ -63,7 +63,7 @@ class Dicom(IOBase) :
     ##############
     
     def _set_filename(self, filename):
-        self._filename = filename
+        self._filename = str(filename)
         self._stacks = None
         self._image = None
         self._index = None
