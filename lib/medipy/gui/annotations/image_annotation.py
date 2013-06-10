@@ -154,7 +154,7 @@ class ImageAnnotation(object) :
         # Apparent size of the shape is how high the annotation is above the 
         # slice plane.
         # TODO : should depend on the annotation shape
-        if self.slice_position_world is not None :
+        if None not in [self._annotation.size, self.slice_position_world] :
             # position is in numpy order, slice_position_world in VTK order 
             distance = abs(position[0]-self.slice_position_world[-1])
             self._shape.size = max(0, self._annotation.size-distance)
