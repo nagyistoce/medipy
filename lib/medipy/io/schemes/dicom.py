@@ -137,11 +137,9 @@ def _get_matching_datasets(path, fragment) :
         raise medipy.base.Exception("Cannot find any dataset in \"{0}\"".format(path))
     
     for filename in filenames :
-        try :
-            dataset = medipy.io.dicom.read(filename)
-        except :
-            # Not a DICOM file
+        if not medipy.io.dicom.can_read(str(filename)) :
             continue
+        dataset = medipy.io.dicom.read(str(filename))
         
         match = True
         for tag, value in filters :

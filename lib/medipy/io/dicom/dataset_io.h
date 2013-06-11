@@ -12,6 +12,7 @@
 #include <Python.h>
 #include <string>
 
+bool can_read(std::string const & filename);
 PyObject* read(std::string const & filename);
 void write(PyObject* dataset, std::string const & filename);
 

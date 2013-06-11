@@ -13,3 +13,6 @@ from frame import Frame
 from history_panel import HistoryPanel
 from panel import Panel
 from preferences import Preferences
+
+__all__ = ["Application", "UI", "Dialog", "Frame", "HistoryPanel", "Panel", 
+           "Preferences"]
