@@ -1,5 +1,7 @@
 add_subdirectory("routing")
 
+find_package(WrapITK REQUIRED)
+
 file(GLOB files "*.py")
 install_py_files(${files})
 
@@ -25,6 +27,7 @@ endif()
 swig_link_libraries(dataset_io dcmdsig ${DCMTK_LIBRARIES} wrap pthread)
 install_swig_python_module(dataset_io)
 
+prepare_wrap_library()
 wrap_library("AssembleTilesImageFilter" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
