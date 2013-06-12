@@ -16,13 +16,20 @@
 #include <dcmtk/dcmdata/dctk.h>
 #include <dcmtk/ofstd/ofcond.h>
 
+#include <gdcmReader.h>
+
 #include <Python.h>
 
 #include "DCMTKToPython.h"
+#include "GDCMToPython.h"
 #include "PythonToDCMTK.h"
 
 bool can_read(std::string const & filename)
 {
+    gdcm::Reader reader;
+    reader.SetFileName(filename.c_str());
+    return reader.CanRead();
+    
     bool result = true;
     
     FILE* file = fopen(filename.c_str(), "rb");
@@ -50,20 +57,16 @@ bool can_read(std::string const & filename)
 
 PyObject* read(std::string const & filename)
 {
-    OFCondition condition;
+    gdcm::Reader reader;
+    reader.SetFileName(filename.c_str());
+    reader.Read();
     
-    DcmFileFormat reader;
-    condition = reader.loadFile(filename.c_str());
-    if(condition.bad())
-    {
-        std::ostringstream message;
-        message << "Cannot read '" << filename << "': " << condition.text();
-        throw std::runtime_error(message.str());
-    }
+    GDCMToPython converter;
+    PyObject * header = converter(reader.GetFile().GetHeader());
+    PyObject * dataset = converter(reader.GetFile().GetDataSet());
     
-    DCMTKToPython converter;
-    PyObject * dataset = converter(reader.getDataset());
-    PyObject_SetAttrString(dataset, "header", converter(reader.getMetaInfo()));
+    PyObject_SetAttrString(dataset, "header", header);
+    Py_DECREF(header);
     
     return dataset;
 }
