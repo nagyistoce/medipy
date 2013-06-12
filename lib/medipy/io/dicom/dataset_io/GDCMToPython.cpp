@@ -464,11 +464,16 @@ GDCMToPython
     }
     PyObject* MediPyVR = vr_it->second; // Borrowed reference
 
-    PyObject* args = Py_BuildValue("(O)", value);
-    PyObject* python_element = PyObject_CallObject(MediPyVR, args);
-    
-    Py_DECREF(args);
+    PyObject* python_element = PyObject_CallFunction(MediPyVR, "(O)", value);
     Py_DECREF(value);
+    
+    if(python_element == NULL)
+    {
+        std::ostringstream message;
+        message << "Could not build Python element of VR " << gdcm_vr 
+                << "for tag " << gdcm_element.GetTag();
+        throw std::runtime_error(message.str());
+    }
 
     return python_element;
 }
@@ -477,14 +482,15 @@ PyObject *
 GDCMToPython
 ::operator()(gdcm::Tag const & gdcm_tag) const
 {
-    PyObject* key = Py_BuildValue(
-        "(II)", gdcm_tag.GetGroup(), gdcm_tag.GetElement());
-    PyObject* tag_args = Py_BuildValue("(O)", key);
-    PyObject* python_tag = PyObject_CallObject(
-        this->_medipy_io_dicom_Tag, tag_args);
-    Py_DECREF(tag_args);
-    Py_DECREF(key);
-    
+    PyObject* python_tag = PyObject_CallFunction(
+        this->_medipy_io_dicom_Tag, "(II)", 
+        gdcm_tag.GetGroup(), gdcm_tag.GetElement());
+    if(python_tag == NULL)
+    {
+        std::ostringstream message;
+        message << "Could not create Python tag from " << gdcm_tag;
+        throw std::runtime_error(message.str());
+    }
     return python_tag;
 }
 
@@ -584,7 +590,7 @@ GDCMToPython
     {
         uint16_t e0 = *reinterpret_cast<uint16_t const *>(begin);
         uint16_t e1 = *(1+reinterpret_cast<uint16_t const *>(begin));
-        return Py_BuildValue("(II)", int(e0), int(e1));
+        return PyObject_CallFunction(this->_medipy_io_dicom_Tag, "(II)", e0, e1);
     }
     else if(vr == gdcm::VR::DS)
     {
