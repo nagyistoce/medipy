@@ -583,13 +583,13 @@ GDCMToPython
     }
     else if(vr == gdcm::VR::FD)
     {
-        // TODO : correct 32 bits type
-        return PyFloat_FromDouble(*reinterpret_cast<float const *>(begin));
+        // TODO : correct 64 bits type
+        return PyFloat_FromDouble(*reinterpret_cast<double const *>(begin));
     }
     else if(vr == gdcm::VR::FL)
     {
-        // TODO : correct 64 bits type
-        return PyFloat_FromDouble(*reinterpret_cast<double const *>(begin));
+        // TODO : correct 32 bits type
+        return PyFloat_FromDouble(*reinterpret_cast<float const *>(begin));
     }
     else if(vr == gdcm::VR::IS)
     {
@@ -652,11 +652,11 @@ GDCMToPython
     }
     else if(vr == gdcm::VR::FD)
     {
-        return 4;
+        return 8;
     }
     else if(vr == gdcm::VR::FL)
     {
-        return 8;
+        return 4;
     }
     else if(vr == gdcm::VR::SL)
     {
