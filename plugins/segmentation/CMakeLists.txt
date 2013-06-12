@@ -1,3 +1,5 @@
+find_package(WrapITK REQUIRED)
+
 file(GLOB_RECURSE files "*.py")
 install_py_files(${files})
 
@@ -16,6 +18,7 @@ get_directory_property(include_directories INCLUDE_DIRECTORIES)
 set(include_directories ${include_directories} ${VTK_INCLUDE_DIRS})
 set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "${include_directories}")
 
+prepare_wrap_library()
 wrap_library("MediPySegmentation" python)
     set(WRAPPER_LIBRARY_DEPENDS Base Numerics)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)

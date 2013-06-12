@@ -1,9 +1,12 @@
 add_subdirectory("dicom")
 add_subdirectory("schemes")
 
+find_package(WrapITK REQUIRED)
+
 file(GLOB files "*.py")
 install_py_files(${files})
 
+prepare_wrap_library()
 wrap_library("PyArrayIO" python)
     set(WRAPPER_LIBRARY_DEPENDS Base IO)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
