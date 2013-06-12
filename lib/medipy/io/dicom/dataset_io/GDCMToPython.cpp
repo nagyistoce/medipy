@@ -284,8 +284,11 @@ GDCMToPython
             // Pixel representation: used to determine VR for implicit transfer
             // syntaxes
             char const * value = gdcm_element.GetByteValue()->GetPointer();
-            this->_pixel_representation = 
-                *reinterpret_cast<unsigned short const *>(value);
+            if(value != NULL)
+            {
+                this->_pixel_representation = 
+                    *reinterpret_cast<unsigned short const *>(value);
+            }
         }
         else
         {
@@ -442,6 +445,14 @@ GDCMToPython
         }
     }
     
+    if(value == NULL)
+    {
+        std::ostringstream message;
+        message << "Could not convert data to VR " << gdcm_vr 
+                << "for tag " << gdcm_element.GetTag();
+        throw std::runtime_error(message.str());
+    }
+    
     // Build the value
     VRMap::const_iterator const vr_it = this->_medipy_io_dicom_vr.find(gdcm_vr);
     if(vr_it==this->_medipy_io_dicom_vr.end())
@@ -562,6 +573,10 @@ GDCMToPython
         TRY_DECODE(object, "utf_8");
         TRY_DECODE(object, "gb18030");
 #undef TRY_DECODE
+        if(object == NULL)
+        {
+            throw std::runtime_error("Could not decode string");
+        }
 
         return object;
     }
