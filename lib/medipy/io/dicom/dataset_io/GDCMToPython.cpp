@@ -426,13 +426,18 @@ GDCMToPython
             char const * end = begin+byte_value->GetLength();
             for(unsigned int i=0; i<count; ++i)
             {
-                char const * item_end = begin+this->_get_length(begin, end, gdcm_vr)+1;
+                char const * item_end = begin+this->_get_length(begin, end, gdcm_vr);
                 PyObject* item = this->_to_python_value(begin, item_end, gdcm_vr);
                 PyList_SetItem(value, i, item);
                 // Don't Py_DECREF(python_item) : according to Python doc :
                 // This function “steals” a reference to item and discards a
                 // reference to an item already in the list at the affected position.
                 begin = item_end;
+                if(gdcm::VR::IsASCII(gdcm_vr))
+                {
+                    // Skip the backslash
+                    ++begin;
+                }
             }
         }
     }
