@@ -309,8 +309,13 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None, numberOfFirst
         print("Mise a jour des champs de deformation \n")
         print('#------------------------------------------------\n')
     
+        param=[]
         for j in range(i):
-            medipy.medimax.recalage.CombineTransfo3d(TransfoResList[j],bsplineTmp.replace('.trf','_ref.trf'), TransfoResList[j], 5)
+            param.append([medipy.medimax.recalage.CombineTransfo3d,TransfoResList[j],bsplineTmp.replace('.trf','_ref.trf'), TransfoResList[j], 5])
+         
+        
+        pool = multiprocessing.Pool() # Create a group of CPUs to run on
+        pool.map(lanceMultithreadFunctionWithMultipleParam, [p for p in param]) 
             
         #------------------------------------------------
         #----   Mise a jour de l'image moyenne  -------
@@ -325,12 +330,29 @@ dx_template=1, dy_template=1, dz_template=1, serieOfTemplate=None, numberOfFirst
         meanImage.data=np.copy(imref.data)
         meanImage.copy_information(imref)
         
-        for j in range(1,i+1) :
-            im=medipy.io.load(ImageList[j])
-            imres=medipy.base.Image(dtype=im.dtype)       
-            medipy.medimax.recalage.ApplyTransfo3d(im,TransfoResList[j],imres,8)
-            meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, imres, imref, imres).data
+        #for j in range(1,i+1) :
+        #    im=medipy.io.load(ImageList[j])
+        #    imres=medipy.base.Image(dtype=im.dtype)       
+        #    medipy.medimax.recalage.ApplyTransfo3d(im,TransfoResList[j],imres,8)
+        #    meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, imres, imref, imres).data
    
+   
+        origin=imref.origin
+        direction=imref.direction
+        
+    
+        im4Dtmp=[medipy.base.Image(dtype=imref.dtype, shape=imref.shape)]*(i+1)
+    
+        param=[]
+        for j in range(1,i+1):
+            param.append([createSeriesOfWarpedImagesElementaire,ImageList, TransfoResList, j,  im4Dtmp, origin, direction])
+    
+        pool = multiprocessing.dummy.Pool() # Create a group of CPUs to run on
+        pool.map(lanceMultithreadFunctionWithMultipleParam, [p for p in param]) 
+    
+        for j in range(1,i+1) :
+            meanImage.data=meanImage.data+medipy.intensity.normalization.mean_stdev_normalization(imref, im4Dtmp[j], imref, im4Dtmp[j]).data
+            
         meanImage.data=meanImage.data/float(i+1)
         
         if serieOfTemplate :
