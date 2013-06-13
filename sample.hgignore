@@ -41,7 +41,8 @@ wrap_*.cxx
 wrap_*.xml
 *.mdx
 *.includes
-lib/*Python.py
+*Python.py
+*Config.py
 
 # Module-specific files
 MediPy*Python.cpp
