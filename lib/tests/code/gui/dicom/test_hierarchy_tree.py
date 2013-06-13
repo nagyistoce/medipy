@@ -43,7 +43,7 @@ if sys.platform == "linux2" and "DISPLAY" in os.environ :
             self.frame.Close()
             self.app.Exit()
         
-        def test_content(self):
+        def _test_content(self):
             tempdir = self.extract("brainix.tgz")
             dicomdir = medipy.io.dicom.read(os.path.join(tempdir, "BRAINIX", "DICOMDIR"))
             
