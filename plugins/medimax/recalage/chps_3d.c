@@ -3075,7 +3075,8 @@ int inter_Bspline_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres,int degre)
             }
         }
         free(row1D);
-        
+       
+
         for (i=0;i<wdthField;i++)
             for (j=0;j<hghtField;j++)
                 for (k=0;k<dpthField;k++)
@@ -3283,7 +3284,7 @@ int inter_Bspline_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres,int degre)
                     tmp_res[i][j][k]=vint;
                     }
                 }
-
+	
  //normalisation       
  normaliser_3d(imdeb, imres, tmp_res, wdthField, hghtField,dpthField);
  
