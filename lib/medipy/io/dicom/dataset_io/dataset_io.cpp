@@ -26,10 +26,6 @@
 
 bool can_read(std::string const & filename)
 {
-    gdcm::Reader reader;
-    reader.SetFileName(filename.c_str());
-    return reader.CanRead();
-    
     bool result = true;
     
     FILE* file = fopen(filename.c_str(), "rb");
