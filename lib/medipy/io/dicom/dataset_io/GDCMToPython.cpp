@@ -251,10 +251,8 @@ PyObject *
 GDCMToPython
 ::operator()(gdcm::DataSet const & dataset)
 {
-    PyObject* args = PyTuple_New(0);
-    PyObject* python_dataset = PyObject_CallObject(
-        this->_medipy_io_dicom_DataSet, args);
-    Py_DECREF(args);
+    PyObject* python_dataset = PyObject_CallFunction(
+        this->_medipy_io_dicom_DataSet, "()");
     
     for(gdcm::DataSet::ConstIterator it=dataset.Begin(); it!=dataset.End(); ++it)
     {
@@ -268,11 +266,12 @@ GDCMToPython
         else if(gdcm_tag == 0x00080005)
         {
             // Specific Character Set: setup internal iconv converter
-            char const * value = gdcm_element.GetByteValue()->GetPointer();
-            if(value != NULL)
+            if(gdcm_element.GetByteValue() != NULL && 
+               gdcm_element.GetByteValue()->GetPointer() != NULL)
             {
-                this->set_specific_character_set(
-                    std::string(value, gdcm_element.GetVL()));
+                this->set_specific_character_set(std::string(
+                    gdcm_element.GetByteValue()->GetPointer(), 
+                    gdcm_element.GetVL()));
             }
             else
             {
@@ -283,11 +282,12 @@ GDCMToPython
         {
             // Pixel representation: used to determine VR for implicit transfer
             // syntaxes
-            char const * value = gdcm_element.GetByteValue()->GetPointer();
-            if(value != NULL)
+            if(gdcm_element.GetByteValue() != NULL && 
+               gdcm_element.GetByteValue()->GetPointer() != NULL)
             {
                 this->_pixel_representation = 
-                    *reinterpret_cast<unsigned short const *>(value);
+                    *reinterpret_cast<unsigned short const *>(
+                        gdcm_element.GetByteValue()->GetPointer());
             }
         }
         else
@@ -352,7 +352,20 @@ GDCMToPython
         }
     }
     
-    if(gdcm_vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::UN))
+    if(gdcm_vr != gdcm::VR::INVALID &&
+       (gdcm_element.GetByteValue() == NULL ||
+        gdcm_element.GetByteValue()->GetPointer() == NULL))
+    {
+        if(gdcm_vr != gdcm::VR::SQ)
+        {
+            value = Py_None;
+        }
+        else
+        {
+            value = PyList_New(0);
+        }
+    }
+    else if(gdcm_vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::UN))
     {
         // Return str, to be used as sequence of bytes
         value = PyString_FromStringAndSize(
