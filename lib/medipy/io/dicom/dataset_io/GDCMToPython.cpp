@@ -352,18 +352,11 @@ GDCMToPython
         }
     }
     
-    if(gdcm_vr != gdcm::VR::INVALID &&
+    if(gdcm_vr != gdcm::VR::INVALID && gdcm_vr != gdcm::VR::SQ && 
        (gdcm_element.GetByteValue() == NULL ||
         gdcm_element.GetByteValue()->GetPointer() == NULL))
     {
-        if(gdcm_vr != gdcm::VR::SQ)
-        {
-            value = Py_None;
-        }
-        else
-        {
-            value = PyList_New(0);
-        }
+        value = Py_None;
     }
     else if(gdcm_vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::UN))
     {
