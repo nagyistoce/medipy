@@ -350,6 +350,11 @@ GDCMToPython
             // Bits Allocated
             gdcm_vr = gdcm::VR::OW;
         }
+        else if(gdcm_vr == gdcm::VR::INVALID)
+        {
+            // Could not get VR from dictionary, assume an unknown private tag
+            gdcm_vr = gdcm::VR::OB;
+        }
     }
     
     if(gdcm_vr != gdcm::VR::INVALID && gdcm_vr != gdcm::VR::SQ && 
@@ -357,6 +362,7 @@ GDCMToPython
         gdcm_element.GetByteValue()->GetPointer() == NULL))
     {
         value = Py_None;
+        Py_INCREF(value);
     }
     else if(gdcm_vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::UN))
     {
@@ -421,6 +427,7 @@ GDCMToPython
         if(count == 0)
         {
             value = Py_None;
+            Py_INCREF(value);
         }
         else if(count == 1)
         {
@@ -455,7 +462,7 @@ GDCMToPython
     {
         std::ostringstream message;
         message << "Could not convert data to VR " << gdcm_vr 
-                << "for tag " << gdcm_element.GetTag();
+                << " for tag " << gdcm_element.GetTag();
         throw std::runtime_error(message.str());
     }
     
