@@ -11,25 +11,14 @@ macro(prepare_wrap_library)
     set(CMAKE_CXX_COMPILER g++-4.4)
 endmacro()
 
-macro(WRAP_ITK_INSTALL path)
-    # Overload the WrapITK macro so that we install the files in the same
-    # directory as the regular Python modules
-    foreach(_file ${ARGN})
-        # Install only Python-related files
-        if(NOT (("${_file}" MATCHES ".*\\.i$") OR
-                ("${_file}" MATCHES ".*\\.idx$") OR
-                ("${_file}" MATCHES ".*\\.includes$") OR
-                ("${_file}" MATCHES ".*\\.mdx$") OR
-                ("${_file}" MATCHES ".*\\.swg$")
-          )) 
-            file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
-            get_filename_component(destination ${destination} PATH)
-            install(FILES ${_file} DESTINATION ${destination})
-        endif()
-    endforeach(_file ${ARGN})
-endmacro(WRAP_ITK_INSTALL)
-
 macro(wrap_ikt_post_install library)
+
+    # This is not really post-install, but used to make sure that the module
+    # config file is in the right place.
+    configure_file("${WRAP_ITK_PYTHON_SOURCE_DIR}/ModuleConfig.py.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/${WRAPPER_LIBRARY_NAME}Config.py"
+        @ONLY IMMEDIATE)
+
     # Post-install to make sure that everything is installed in the same 
     # directory as the regular Python modules.
     file(RELATIVE_PATH destination ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/dummy)
@@ -42,7 +31,7 @@ macro(wrap_ikt_post_install library)
             USE_SOURCE_PERMISSIONS)
         file(REMOVE_RECURSE ${CMAKE_INSTALL_PREFIX}/${WRAP_ITK_INSTALL_PREFIX})
     ")
-endmacro(wrap_ikt_post_install)
+endmacro()
 
 macro(find_swig_library_files)
     foreach(module ${ARGN})
