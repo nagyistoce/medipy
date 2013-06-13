@@ -21,7 +21,7 @@ commandes suivantes réalisent cette procédure.
 
     sudo apt-get install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
         python-nifti python-docutils python-wxtools uuid-dev libdcmtk2-dev \
-        libwrap0-dev cython
+        libwrap0-dev cython libgdcm2-dev
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
 
@@ -36,7 +36,7 @@ Ubuntu 10.04 LTS (Lucid Lynx)
 
     sudo aptitude install python-vtk libvtk5-dev python-wxgtk2.8 python-scipy \
         python-nifti python-docutils python-wxtools uuid-dev libxml2-dev \
-        libdcmtk1-dev libwrap0-dev cython
+        libdcmtk1-dev libwrap0-dev cython libgdcm2-dev
 
 
 ITK et WrapITK sont aussi nécessaires : voir :doc:`la page les concernant <itk>`.
