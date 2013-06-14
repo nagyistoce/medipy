@@ -23,9 +23,9 @@ def load(connection, query, retrieve) :
 
         * ``"GET"`` : the datasets corresponding to the query results are
           retrieved using C-GET, no extra argument will be provided.
-        * ``"MOVE"`` : the datasets corresponding to the query results are
-          retrieved using C-MOVE. The extra argument will contain the 
-          destination AE title.
+        * ``("MOVE", destination)`` : the datasets corresponding to the query 
+          results are retrieved using C-MOVE. The extra argument will contain 
+          the destination AE title.
         * ``("WADO", url)`` : the datasets corresponding to the query results are 
           retrieved using WADO, using the given URL.
 
