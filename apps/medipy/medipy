@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+##########################################################################
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
+##########################################################################
+
+import copy
+import logging
+import os
+import sys
+
+import wx
+
+try :
+    from medipy_app import MediPyApp
+    
+    app = MediPyApp( 
+        [[("-m", "--menu-file"), {"dest" : "menu_file", "default" : None,
+                                  "help" : "File containing a menu to display "
+                                           "on the left side. If not specified, "
+                                           "use all plugins in MEDIPY_PLUGINS_PATH",
+                                  "metavar" : "MENU_FILE" }],
+         [("-f", "--file"), {"dest" : "filename", 
+                             "help":"Load script from FILE and run it", 
+                             "metavar":"FILE"}]])
+    
+    if app.options.filename is not None :
+        dialog = wx.ProgressDialog("Loading script",
+                "Loading script ...",
+                style = wx.PD_APP_MODAL|wx.PD_AUTO_HIDE|wx.PD_SMOOTH)
+        dialog.Update(0, 'Loading script ...')
+        dialog.Show()
+        
+        # Pretend we execute the script in its local dir
+        old_path = copy.copy(sys.path)
+        sys.path.insert(0, os.path.dirname(app.options.filename))
+        
+        # Use an empty globals dictionary to avoid memory leak. If using 
+        # globals() instead of {}, any image allocated in globals will be 
+        # referenced by globals() /and/ MediPyApp, and as such will not be 
+        # deleted when MediPyApp.close_image is called
+        execfile(app.options.filename, {})
+        
+        sys.path = old_path
+        
+        dialog.Hide()
+        dialog.Destroy()
+except :
+    import sys
+    import traceback
+    
+    exc_info = sys.exc_info()
+    trace = "".join(traceback.format_exception(*exc_info))
+    
+    logging.error(trace)
+
+    message = "Could not launch MediPy : " + str(exc_info[1])
+    if wx.GetApp() is None :
+        app = wx.PySimpleApp()
+    
+    dialog = wx.Dialog(None, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+    button_sizer = dialog.CreateButtonSizer(wx.OK)
+    dialog.SetTitle("Could not launch MediPy !")
+    
+    traceback_widget = wx.TextCtrl(dialog, value=trace, style=wx.TE_READONLY|wx.TE_MULTILINE)
+    
+    traceback_sizer = wx.BoxSizer(wx.HORIZONTAL)
+    traceback_sizer.Add(wx.StaticText(dialog, label="Traceback : "))
+    traceback_sizer.Add(traceback_widget, 1, flag=wx.EXPAND)
+    
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    
+    sizer.Add(wx.StaticText(dialog, label=message))
+    sizer.Add(traceback_sizer, 1, flag=wx.EXPAND)
+    sizer.Add(button_sizer)
+    
+    dialog.SetSizer(sizer)
+    sizer.SetSizeHints(dialog)
+    
+    dialog.ShowModal()
+else :
+    app.MainLoop()
