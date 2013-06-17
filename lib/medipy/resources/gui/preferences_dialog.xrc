@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="preferences">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxGrid" name="connections"/>
+            <option>4</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>3</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxButton" name="delete">
+              <label>Delete</label>
+            </object>
+            <option>1</option>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="validate">
+              <label>Validate</label>
+            </object>
+            <option>1</option>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="add">
+              <label>Add</label>
+            </object>
+            <option>1</option>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>1</option>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+    </object>
+  </object>
+</resource>
