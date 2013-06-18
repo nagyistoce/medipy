@@ -34,9 +34,10 @@ class QueryDialog(medipy.gui.base.Panel):
             self.preferences = None
             self.selected_connection = None
             self.results = None
+            self.radio = None
                         
             self.controls = ["qu_panel","search","download","directory",
-                "preferences","selected_connection","results"]
+                "preferences","selected_connection","results","radio"]
             
     def __init__(self, parent=None, *args, **kwargs):
         
@@ -65,6 +66,7 @@ class QueryDialog(medipy.gui.base.Panel):
         self.ui.results.Bind(wx.EVT_LIST_ITEM_DESELECTED,self.OnResult)
         self.ui.preferences.Bind(wx.EVT_BUTTON,self.OnPreferences)
         self.ui.selected_connection.Bind(wx.EVT_CHOICE,self.OnChoice)
+        self.ui.radio.Bind(wx.EVT_RADIOBOX,self._update_download)
 
         self._update_download()
         self._update_choice()
@@ -78,7 +80,7 @@ class QueryDialog(medipy.gui.base.Panel):
         fields = preferences.get(self._queries_fields,[])
         
         if fields == []:
-            fields = ['patients_name']
+            fields = ['patients_name','series_description','study_description']
         self.queries.SetRows(len(fields))
                     
         for field in fields:
@@ -209,20 +211,39 @@ class QueryDialog(medipy.gui.base.Panel):
                 datasets = medipy.network.dicom.query.relational(
                     self.connection,"patient","patient",query)
                     
-                #Wado Query Construction
-                save = medipy.io.dicom.routing.SaveDataSet(
-                            str(self.destination.value),mode="hierarchical")
-                    
-                for dataset in datasets:
-                    query_wado = medipy.io.dicom.DataSet(
+                if self.ui.radio.GetSelection()==0:
+                    save = medipy.io.dicom.routing.SaveDataSet(
+                                str(self.destination.value),mode="hierarchical")
+                        
+                    for dataset in datasets:
+                        query_wado = medipy.io.dicom.DataSet(
                             patient_id = dataset.patient_id.value,
                             study_instance_uid = dataset.study_instance_uid.value,
                             series_instance_uid = dataset.series_instance_uid.value,
                             sop_instance_uid = dataset.sop_instance_uid.value)
-                            
-                    dataset_wado = medipy.network.dicom.wado.get(
-                                                    self._wado_url,query_wado)
-                    save(dataset_wado)
+                                
+                        dataset_wado = medipy.network.dicom.wado.get(
+                                                        self._wado_url,query_wado)
+                        save(dataset_wado)
+                else:
+                    images = []
+                    datasets_wado = []
+                    layers = []
+                    for dataset in datasets:
+                        query_wado = medipy.io.dicom.DataSet(
+                            patient_id = dataset.patient_id.value,
+                            study_instance_uid = dataset.study_instance_uid.value,
+                            series_instance_uid = dataset.series_instance_uid.value,
+                            sop_instance_uid = dataset.sop_instance_uid.value)
+                                
+                        datasets_wado.append(medipy.network.dicom.wado.get(
+                                                        self._wado_url,query_wado))
+                        
+                    images.append(medipy.io.dicom.image(datasets_wado))
+                    
+                    for image in images:
+                        layers.append({"image":image})
+                    wx.GetApp().frame.append_image(layers)
         
                
     def OnResult(self, _):
@@ -231,6 +252,7 @@ class QueryDialog(medipy.gui.base.Panel):
     def OnDestination(self, _):
         self._update_download()
     
-    def _update_download(self):
+    def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
-            self.destination.validate() and self.ui.results.GetFirstSelected()!=-1)
+            (self.destination.validate() or self.ui.radio.GetSelection()==1)
+            and self.ui.results.GetFirstSelected()!=-1)

@@ -21,7 +21,6 @@
             <object class="wxButton" name="search">
               <label>Search</label>
             </object>
-            <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
           </object>
         </object>
         <option>1</option>
@@ -77,6 +76,20 @@
             </object>
             <option>1</option>
             <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxRadioBox" name="radio">
+              <dimension>2</dimension>
+              <content>
+                <item>Store </item>
+                <item> View</item>
+              </content>
+              <selection>1</selection>
+              <dimension>2</dimension>
+              <style>wxNO_BORDER|wxRA_SPECIFY_COLS</style>
+            </object>
+            <option>0</option>
+            <flag>wxTOP|wxEXPAND</flag>
           </object>
           <object class="sizeritem">
             <object class="wxButton" name="download">
