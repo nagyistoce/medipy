@@ -530,18 +530,7 @@ class MainFrame(medipy.gui.base.Frame):
     ##################
     # Event handlers #
     ##################    
-    
-    def OnDicomQueryRetrieve(self,dummy):
-    
-        self.query_dlg = wx.Dialog(self,size=(900,500),style=wx.DEFAULT_DIALOG_STYLE)
-        self.query_panel = medipy.gui.network.dicom.QueryDialog(self.query_dlg)
-        sizer = wx.BoxSizer()
-        sizer.Add(self.query_panel, 1, wx.EXPAND)
-        self.query_dlg.SetSizer(sizer)
-        
-        self.query_dlg.ShowModal()
-        self.query_dlg.Destroy()
-    
+
     def OnOpenImage(self, dummy):
         
         images = medipy.gui.io.load(self, multiple=True)
@@ -592,6 +581,17 @@ class MainFrame(medipy.gui.base.Frame):
             image = self.ui.image_grid[-1]
             for index in range(1, len(image.layers)) :
                 image.set_layer_visibility(index, False)
+
+    def OnDicomQueryRetrieve(self,dummy):
+    
+        self.query_dlg = wx.Dialog(self,size=(900,500),style=wx.DEFAULT_DIALOG_STYLE)
+        self.query_panel = medipy.gui.network.dicom.QueryDialog(self.query_dlg)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.query_panel, 1, wx.EXPAND)
+        self.query_dlg.SetSizer(sizer)
+        
+        self.query_dlg.ShowModal()
+        self.query_dlg.Destroy()
     
     def OnSaveImageAs(self, dummy):
         image = self.images[self.ui.image_grid.active]
