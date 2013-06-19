@@ -217,7 +217,7 @@ class QueryDialog(medipy.gui.base.Panel):
             list_queries={}
             if self.ui.results.IsSelected(count) :
                 
-                for column, key in enumerate(self.query_ctrl):
+                for column, key in enumerate(self.fields):
                     if column==0 :
                         list_queries[key] = self.ui.results.GetItemText(count)
                     else :
