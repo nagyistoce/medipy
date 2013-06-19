@@ -16,14 +16,13 @@ import medipy.io.dicom
 import medipy.network.dicom
 import medipy.gui.base
 import medipy.base
-
-import preferences_dialog
+import medipy.gui.network.dicom
 
 class QueryDialog(medipy.gui.base.Panel):
 
     _connections = "network/dicom/connections"
     _current_connection = "network/dicom/current_connection"
-    _queries_fields = "network/dicom/queries_fields"
+    _queries_fields = "network/dicom/queries"
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -35,9 +34,10 @@ class QueryDialog(medipy.gui.base.Panel):
             self.selected_connection = None
             self.results = None
             self.radio = None
+            self.set_queries = None
                         
             self.controls = ["qu_panel","search","download","directory",
-                "preferences","selected_connection","results","radio"]
+                "preferences","selected_connection","results","radio","set_queries"]
             
     def __init__(self, parent=None, *args, **kwargs):
         
@@ -67,6 +67,7 @@ class QueryDialog(medipy.gui.base.Panel):
         self.ui.preferences.Bind(wx.EVT_BUTTON,self.OnPreferences)
         self.ui.selected_connection.Bind(wx.EVT_CHOICE,self.OnChoice)
         self.ui.radio.Bind(wx.EVT_RADIOBOX,self._update_download)
+        self.ui.set_queries.Bind(wx.EVT_BUTTON,self.OnSetQueries)
 
         self._update_download()
         self._update_choice()
@@ -75,15 +76,21 @@ class QueryDialog(medipy.gui.base.Panel):
         self.Show(True)
         
     def _update_queries(self):
-        #Load query preferences
-        preferences = medipy.gui.base.Preferences("MediPy", "UdS")
-        fields = preferences.get(self._queries_fields,[])
+    
+        self.queries.Clear(True)
+        self.query_ctrl = {}
+        self.ui.results.ClearAll()
         
-        if fields == []:
-            fields = ['patients_name','series_description','study_description']
-        self.queries.SetRows(len(fields))
+        #Load query preferences
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        self.fields = preferences.get(self._queries_fields,[])
+        
+        if self.fields == []:
+            self.fields = ['patients_name','series_description','study_description']
+        self.queries.SetRows(len(self.fields))
                     
-        for field in fields:
+        for field in self.fields:
             tag = medipy.io.dicom.dictionary.name_dictionary[field]
             label = medipy.io.dicom.dictionary.data_dictionary[tag][2]
             self.query_ctrl[field] = wx.TextCtrl(self.ui.qu_panel)
@@ -91,7 +98,10 @@ class QueryDialog(medipy.gui.base.Panel):
                     flag=wx.ALIGN_CENTER_VERTICAL)
             self.queries.Add(self.query_ctrl[field],proportion=1,
                     flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            self.ui.results.InsertColumn(0,label,width=150)
+            self.ui.results.InsertColumn(
+                self.ui.results.GetColumnCount(),label,width=150)
+            
+            self.queries.Layout()
         
     def _update_choice(self):
         
@@ -106,6 +116,17 @@ class QueryDialog(medipy.gui.base.Panel):
         
         self.ui.selected_connection.SetSelection(choice)
 
+    def OnSetQueries(self,_):
+        self.quer_dlg = wx.Dialog(self,size=(250,300))
+        self.quer_panel = medipy.gui.network.dicom.SetQueriesDialog(self.quer_dlg)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.quer_panel,1,wx.EXPAND)
+        
+        self.quer_dlg.ShowModal()
+        self.quer_dlg.Destroy()
+        
+        self._update_queries()
+
     def OnChoice(self,_):
         
         preferences = medipy.gui.base.Preferences(
@@ -119,7 +140,7 @@ class QueryDialog(medipy.gui.base.Panel):
        
         self.pref_dlg = wx.Dialog(self,size=(900,400),
                     style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
-        self.pref_panel = preferences_dialog.PreferencesDialog(self.pref_dlg)
+        self.pref_panel = medipy.gui.network.dicom.PreferencesDialog(self.pref_dlg)
         sizer = wx.BoxSizer()
         sizer.Add(self.pref_panel, 1, wx.EXPAND)
         self.pref_dlg.SetSizer(sizer)
@@ -154,9 +175,9 @@ class QueryDialog(medipy.gui.base.Panel):
             else:
                 for dataset in datasets:
                     index = self.ui.results.InsertStringItem(
-                            0,dataset[self.query_ctrl.keys()[0]].value)
+                            0,dataset[self.fields[0]].value)
                             
-                    for column, key in enumerate(self.query_ctrl.keys()[1:]) :
+                    for column, key in enumerate(self.fields[1:]) :
                         self.ui.results.SetStringItem(index,1+column,dataset[key].value)
 
     
@@ -165,7 +186,8 @@ class QueryDialog(medipy.gui.base.Panel):
             A path should be specified with control.Directory
         """
         
-        preferences = medipy.gui.base.Preferences("MediPy", "UdS")
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         list_connections = preferences.get(self._connections, []) 
         
         for row,(description,connection,retrieve,retrieve_data) in enumerate(list_connections):
