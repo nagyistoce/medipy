@@ -11,6 +11,8 @@ import medipy.itk
 import medipy.base
 import numpy as np
 
+from medipy.segmentation import bet
+
 def least_squares(limages, accu="First"):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
@@ -173,5 +175,19 @@ def weighted_least_squares(images, nb_iter=None):
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
     tensors.image_type = "tensor_2"
+    #return tensors
+    
+    #BET masking
+    output_bet = bet(images[0], 0.45)
+    [Tz, Ty, Tx] = output_bet.shape
+    img_tensor_output = medipy.base.Image(tensors.shape, dti="tensor_2")
+    D0 = np.asmatrix(np.zeros((6,1), dtype=img_tensor_output.dtype))
+    for x in range(Tx):
+        for y in range(Ty):
+            for z in range(Tz):
+                if output_bet[z,y,x] == 0.0:
+                    img_tensor_output[z,y,x] = D0.T
+                else:
+                    img_tensor_output[z,y,x] = tensors[z,y,x]
 
-    return tensors
+    return img_tensor_output
