@@ -55,6 +55,8 @@ class PreferencesDialog(medipy.gui.base.Panel):
         self.ui.connections.SetDefaultColSize(180)
         self.ui.connections.CreateGrid(0,7)
         self.ui.connections.SetColFormatNumber(1)
+        self.ui.connections.SetColSize(1,80)
+        self.ui.connections.SetColSize(5,80)
         
         attr = wx.grid.GridCellAttr()
         attr.SetRenderer(wx.grid.GridCellEnumRenderer(str(self.retrieve)))

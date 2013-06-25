@@ -53,11 +53,19 @@
           <object class="sizeritem">
             <object class="wxChoice" name="selected_connection">
               <content>
-                <item/>
+                <item></item>
               </content>
+              <style>wxCB_SORT</style>
             </object>
             <option>1</option>
             <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="ssh">
+              <label>SSH</label>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+            <border>0</border>
           </object>
           <object class="sizeritem">
             <object class="wxButton" name="preferences">
@@ -81,8 +89,17 @@
           <object class="sizeritem">
             <object class="wxStaticText">
               <label>Set path directory :</label>
+              <font>
+                <size>11</size>
+                <style>normal</style>
+                <weight>normal</weight>
+                <underlined>0</underlined>
+                <family>default</family>
+                <face>Ubuntu</face>
+                <encoding>UTF-8</encoding>
+              </font>
             </object>
-            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+            <flag>wxALIGN_BOTTOM</flag>
           </object>
           <object class="sizeritem">
             <object class="wxPanel" name="directory">
@@ -91,7 +108,7 @@
               </object>
             </object>
             <option>1</option>
-            <flag>wxEXPAND</flag>
+            <flag>wxEXPAND|wxALIGN_BOTTOM</flag>
           </object>
           <object class="sizeritem">
             <object class="wxRadioBox" name="radio">
@@ -104,13 +121,14 @@
               <dimension>2</dimension>
               <style>wxNO_BORDER|wxRA_SPECIFY_COLS</style>
             </object>
-            <option>0</option>
-            <flag>wxTOP|wxEXPAND</flag>
+            <option>1</option>
+            <flag>wxALIGN_BOTTOM</flag>
           </object>
           <object class="sizeritem">
             <object class="wxButton" name="download">
               <label>Download</label>
             </object>
+            <flag>wxALIGN_BOTTOM</flag>
           </object>
           <orient>wxHORIZONTAL</orient>
         </object>
