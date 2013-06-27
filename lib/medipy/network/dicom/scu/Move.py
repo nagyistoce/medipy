@@ -34,11 +34,10 @@ class Move(SCU):
         
         # Create a temporary directory for query files and results
         temporary_directory = tempfile.mkdtemp()
-        
+
         #Build the command    
         command = ["movescu"]
-        command.append("-v")
-        
+                
         root_option = { "patient":"-P", "study":"-S" }
         command.append(root_option[self.root])
         
@@ -47,39 +46,38 @@ class Move(SCU):
         command.extend(["--call", self.connection.called_ae_title])
         command.extend(["--move", self.move_destination])
         
-        for key in self.query_parameters.keys():
-            command.extend([
-                "-k",
-                str(key)[1:-1]+"={0}".format(self.query_parameters[key].value)
-            ])
-        
         query_level_option = { "patient" : "PATIENT", "study" : "STUDY", 
                                "series" : "SERIES", "image" : "IMAGE" }
         command.extend([
             "-k","0008,0052={0}".format(query_level_option[self.query_level])
         ])
-  
+        
+        for key in self.query_parameters.keys():
+            command.extend([
+                "-k",
+                str(key)[1:-1]+"={0}".format(self.query_parameters[key].value)
+            ])
+
         command.append(self.connection.host)
         command.append(str(self.connection.port))
         
-        query_file = self._create_query_file(self.query_parameters, temporary_directory)
-        command.append(str(query_file)) 
+        #query_file = self._create_query_file(self.query_parameters, temporary_directory)
+        #command.append(query_file) 
         
         #Subshell : exec cmd
         process = subprocess.Popen(command, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, cwd=temporary_directory)
         stdout, stderr = process.communicate()
-        
+
         if process.returncode != 0:
             raise medipy.base.Exception(stderr)
-        
+
         # Process results
         datasets = []
         for filename in glob.glob(os.path.join(temporary_directory, "*")):
-            if not filename in glob.glob(os.path.join(temporary_directory, "tmp*")):
-                dataset = medipy.io.dicom.read(filename)
-                datasets.append(dataset)
-        
+            dataset = medipy.io.dicom.read(filename)
+            datasets.append(dataset)
+            
         # Remove temporary directory
         shutil.rmtree(temporary_directory)
             
@@ -101,28 +99,26 @@ if __name__ == "__main__":
     connection = medipy.network.dicom.Connection("aude.u-strasbg.fr", 11112,
         "forez", "PIIV-RECHERCHE")
         
-    query = medipy.io.dicom.DataSet(patient_id = "010027LA",series_description="*3d")
+    query = medipy.io.dicom.DataSet(patients_name = "010027LA",
+                        series_description="*3d")
     for key in ["patient_id", "study_instance_uid", "series_instance_uid",
             "sop_instance_uid"] :
         query.setdefault(key, None)
                     
     datasets =  medipy.network.dicom.query.relational(connection,"patient",
-                "patient", query)
-    
-    print datasets.patient_id.value
+                "study", query)
                 
-    retrieve_query=[]
     for dataset in datasets:
-        retrieve_query.append(medipy.io.dicom.DataSet(
+        query = medipy.io.dicom.DataSet(
                 patient_id = dataset.patient_id.value,
                 study_instance_uid = dataset.study_instance_uid.value,
                 series_instance_uid = dataset.series_instance_uid.value,
-                sop_instance_uid = dataset.sop_instance_uid.value))
-
-    for query in retrieve_query:
+                sop_instance_uid = dataset.sop_instance_uid.value)
         move = medipy.network.dicom.scu.Move(connection, "patient", "patient",
             "forez", query)
         results = move()
+        print results
 
-#    print results
+
+
 

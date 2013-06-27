@@ -306,9 +306,10 @@ class QueryDialog(medipy.gui.base.Panel):
     def move_dl(self,destination,retrieve_query):
         datasets_move = []
         for query in retrieve_query:
-            move = medipy.network.dicom.scu.Move(self.connection,"patient","patient",
+            move = medipy.network.dicom.scu.Move(self.connection,"patient","image",
                     destination,query)
             result = move()
-            datasets_move.append(result)
+            for dataset in result:
+                datasets_move.append(dataset)
             
         return datasets_move
