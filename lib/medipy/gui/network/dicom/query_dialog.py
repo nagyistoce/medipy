@@ -24,6 +24,8 @@ class QueryDialog(medipy.gui.base.Panel):
     _current_connection = "network/dicom/current_connection"
     _ssh_connections = "network/dicom/ssh"
     _queries_fields = "network/dicom/queries"
+    
+    tree_headers = ['acquisition_date','acquisition_time', 'modality']
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -58,8 +60,13 @@ class QueryDialog(medipy.gui.base.Panel):
         #Set Controls
         self.destination = medipy.gui.control.Directory(self.ui.directory)
         sizer=self.ui.directory.GetSizer()
-        sizer.Add(self.destination,1,wx.EXPAND)
+        sizer.Add(self.destination,1,wx.EXPAND|wx.BOTTOM)
         self.queries = self.ui.qu_panel.GetSizer()
+        
+        self.tree = wx.gizmos.TreeListCtrl(self,name='Patient',
+            style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_EXTENDED)
+        treesizer=self.ui.results.GetSizer()
+        treesizer.Add(self.tree,1,wx.EXPAND)
         
         #Set Events
         self.ui.search.Bind(wx.EVT_BUTTON,self.OnSearch)
@@ -73,9 +80,9 @@ class QueryDialog(medipy.gui.base.Panel):
         self.ui.set_queries.Bind(wx.EVT_BUTTON,self.OnSetQueries)
         self.ui.ssh.Bind(wx.EVT_CHECKBOX,self._update_choice)
 
-        self._update_download()
         self._update_choice()
         self._update_queries()
+        self.update_tree_column()
         
         self.Show(True)
     
@@ -87,7 +94,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
         self.queries.Clear(True)
         self.query_ctrl = {}
-        self.ui.results.ClearAll()
+        self.update_tree()
         
         #Load query preferences
         preferences = medipy.gui.base.Preferences(
@@ -106,8 +113,6 @@ class QueryDialog(medipy.gui.base.Panel):
                     flag=wx.ALIGN_CENTER_VERTICAL)
             self.queries.Add(self.query_ctrl[field],proportion=1,
                     flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            self.ui.results.InsertColumn(
-                self.ui.results.GetColumnCount(),label,width=150)
             
             self.queries.Layout()
         
@@ -138,7 +143,72 @@ class QueryDialog(medipy.gui.base.Panel):
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
             (self.destination.validate() or self.ui.radio.GetSelection()==1)
-            and self.ui.results.GetFirstSelected()!=-1)
+            and self.tree.GetSelection()!=-1)
+
+    def update_tree_column(self):
+        self.tree.AddColumn("Patient Tree",width=250)
+        for header in self.tree_headers:
+            tag = medipy.io.dicom.dictionary.name_dictionary[header]
+            label = medipy.io.dicom.dictionary.data_dictionary[tag][2]
+            self.tree.AddColumn(label)
+
+    def update_tree(self,datasets=[]):
+        self.tree.DeleteAllItems()
+        self.root = self.tree.AddRoot(text='Patient')
+        for dataset in datasets:
+            patient = dataset['patient_id'].value
+            study = dataset['study_description'].value
+            serie = dataset['series_description'].value
+        
+            if self.tree.ItemHasChildren(self.root) :
+                patient_found,patient_item = self.IsChild(self.root,patient)
+                    
+                if not patient_found :
+                    patient_item = self.tree.AppendItem(self.root,text=patient)
+                    study_item = self.tree.AppendItem(patient_item,text=study)
+                    serie_item = self.tree.AppendItem(study_item,text=serie)
+                                            
+                else :
+                    study_found,study_item = self.IsChild(patient_item,study)
+                    if not study_found :
+                        study_item = self.tree.AppendItem(patient_item,text=study)
+                        serie_item = self.tree.AppendItem(study_item,text=serie)
+                                                    
+                    else:
+                        serie_found,serie_item = self.IsChild(study_item,serie)
+                        if not serie_found :
+                            serie_item = self.tree.AppendItem(study_item,text=serie)
+            else:
+                patient_item = self.tree.AppendItem(self.root,text=patient)
+                study_item = self.tree.AppendItem(patient_item,text=study)
+                serie_item = self.tree.AppendItem(study_item,text=serie)
+            
+            for row,header in enumerate(self.tree_headers):       
+                self.tree.SetItemText(serie_item,dataset[header].value,row+1)
+            
+            self.tree.SortChildren(self.root)
+            self.tree.SortChildren(patient_item)
+            self.tree.SortChildren(study_item)
+            self.tree.SortChildren(serie_item)
+
+ 
+    def IsChild(self,itemid,text):
+        """ Search text in item.text of any child in itemid
+            Return boolean and focused item if found
+        """
+        item,cookie = self.tree.GetFirstChild(itemid)
+        count = self.tree.GetChildrenCount(itemid,False)
+        found = False
+        for index in range(count):
+            if text == self.tree.GetItemText(item):
+                found = True
+                break
+            else:
+                item,cookie = self.tree.GetNextChild(itemid,cookie)
+        if found == False:
+            item = None
+            
+        return found,item
             
     #------------------
     #   Event handlers
@@ -198,7 +268,6 @@ class QueryDialog(medipy.gui.base.Panel):
     def OnSearch(self,_):
         """ Send specified query on dicom.Dataset and show results in ListCtrl
         """
-        self.ui.results.DeleteAllItems()
         list_queries={}
         for key, control in self.query_ctrl.items():
             list_queries[key]=control.GetValue()
@@ -212,18 +281,22 @@ class QueryDialog(medipy.gui.base.Panel):
             dlg.Destroy()
         else:
             query = medipy.io.dicom.DataSet(**list_queries)
+            
+            for key in ["patient_id", "study_description","series_description"] :
+                query.setdefault(key,None)
+            
+            for key in self.tree_headers:
+                query.setdefault(key,None)
+            
             datasets =  medipy.network.dicom.query.relational(
                         self.connection,"patient","patient",query)
 
             if datasets==[]:
-                self.ui.results.InsertStringItem(0,'No results')
+                dlg = wx.MessageDialog(self, "No Results",'Try again',wx.OK|wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
             else:
-                for dataset in datasets:
-                    index = self.ui.results.InsertStringItem(
-                            0,dataset[self.fields[0]].value)
-
-                    for column, key in enumerate(self.fields[1:]) :
-                        self.ui.results.SetStringItem(index,1+column,dataset[key].value)
+                self.update_tree(datasets)
 
     
     def OnDownLoad(self,_):
@@ -260,7 +333,8 @@ class QueryDialog(medipy.gui.base.Panel):
                     wx.OK|wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
-  
+            
+            
     #------------------
     #   Retrieve
     #------------------
@@ -270,15 +344,14 @@ class QueryDialog(medipy.gui.base.Panel):
         """
         retrieve_query = []
         
-        for count in range(self.ui.results.GetItemCount()):
+        for item in self.tree.GetSelections():
             list_queries={}
-            if self.ui.results.IsSelected(count) :  
-                for column, key in enumerate(self.fields):
-                    if column==0 :
-                        list_queries[key] = self.ui.results.GetItemText(count)
-                    else :
-                        data = self.ui.results.GetItem(count,column)
-                        list_queries[key] = data.GetText()
+            if not self.tree.ItemHasChildren(item):
+                study=self.tree.GetItemParent(item)
+                patient=self.tree.GetItemParent(study)
+                list_queries['series_description']=self.tree.GetItemText(item,0)
+                list_queries['study_description']=self.tree.GetItemText(study,0)
+                list_queries['patient_id']=self.tree.GetItemText(patient,0)
 
                 #Query for any useful uid
                 query = medipy.io.dicom.DataSet(**list_queries)
