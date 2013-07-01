@@ -26,6 +26,7 @@ class QueryDialog(medipy.gui.base.Panel):
     _queries_fields = "network/dicom/queries"
     
     tree_headers = ['acquisition_date','acquisition_time', 'modality']
+    tree_levels = ['patient_id', 'study_description', 'series_description']
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -191,7 +192,17 @@ class QueryDialog(medipy.gui.base.Panel):
             self.tree.SortChildren(study_item)
             self.tree.SortChildren(serie_item)
 
- 
+    def GetItemTreeLevel(self,item):
+        """ Count every parent that exists over item
+            Return count.
+        """
+        count = 0
+        while self.tree.GetItemText(item)!="Patient": #Text associated to root
+            item = self.tree.GetItemParent(item)
+            count = count+1
+            
+        return count
+
     def IsChild(self,itemid,text):
         """ Search text in item.text of any child in itemid
             Return boolean and focused item if found
@@ -283,11 +294,11 @@ class QueryDialog(medipy.gui.base.Panel):
             query = medipy.io.dicom.DataSet(**list_queries)
             
             for key in ["patient_id", "study_description","series_description"] :
-                query.setdefault(key,None)
+                query.setdefault(key,"")
             
             for key in self.tree_headers:
-                query.setdefault(key,None)
-            
+                query.setdefault(key,"")
+                
             datasets =  medipy.network.dicom.query.relational(
                         self.connection,"patient","patient",query)
 
@@ -346,26 +357,24 @@ class QueryDialog(medipy.gui.base.Panel):
         
         for item in self.tree.GetSelections():
             list_queries={}
-            if not self.tree.ItemHasChildren(item):
-                study=self.tree.GetItemParent(item)
-                patient=self.tree.GetItemParent(study)
-                list_queries['series_description']=self.tree.GetItemText(item,0)
-                list_queries['study_description']=self.tree.GetItemText(study,0)
-                list_queries['patient_id']=self.tree.GetItemText(patient,0)
-
-                #Query for any useful uid
-                query = medipy.io.dicom.DataSet(**list_queries)
-                for key in ["patient_id", "study_instance_uid", 
-                                "series_instance_uid", "sop_instance_uid"] :
-                    query.setdefault(key, None)
-                datasets =  medipy.network.dicom.query.relational(
-                        self.connection,"patient","patient",query)
-                for dataset in datasets:
-                    retrieve_query.append(medipy.io.dicom.DataSet(
-                        patient_id = dataset.patient_id.value,
-                        study_instance_uid = dataset.study_instance_uid.value,
-                        series_instance_uid = dataset.series_instance_uid.value,
-                        sop_instance_uid = dataset.sop_instance_uid.value))
+            level = self.GetItemTreeLevel(item)
+            for each in reversed(self.tree_levels[:level]):
+                list_queries[each]=self.tree.GetItemText(item)
+                item = self.tree.GetItemParent(item)
+            
+            #Query for any useful uid
+            query = medipy.io.dicom.DataSet(**list_queries)
+            for key in ["patient_id", "study_instance_uid", 
+                            "series_instance_uid", "sop_instance_uid"] :
+                query.setdefault(key, None)
+            datasets =  medipy.network.dicom.query.relational(
+                    self.connection,"patient","patient",query)
+            for dataset in datasets:
+                retrieve_query.append(medipy.io.dicom.DataSet(
+                    patient_id = dataset.patient_id.value,
+                    study_instance_uid = dataset.study_instance_uid.value,
+                    series_instance_uid = dataset.series_instance_uid.value,
+                    sop_instance_uid = dataset.sop_instance_uid.value))
                         
         return retrieve_query
 
