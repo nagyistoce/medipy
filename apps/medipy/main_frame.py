@@ -568,16 +568,10 @@ class MainFrame(medipy.gui.base.Frame):
         spectro_dialog.ShowModal()
     
     def OnFromDirectory(self, dummy):
-        images = medipy.gui.io.import_dicom_directory(self)
+        images = medipy.gui.io.import_dicom_directory(
+            self, recursive=True, load_all_images=True)
         if images :
             self.append_image([{"image":image} for image in images])
-
-    def OnFromDirectorySerie(self, dummy):
-        images = medipy.gui.io.import_serie_from_dicom_directory(self)
-        images = [{"image":image} for image in images]
-
-        if isinstance(images, list) and len(images)>0 :
-            self.append_image(images)
             image = self.ui.image_grid[-1]
             for index in range(1, len(image.layers)) :
                 image.set_layer_visibility(index, False)

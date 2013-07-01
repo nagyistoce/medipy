@@ -96,12 +96,12 @@ def _get_matching_datasets(path, fragment) :
     """ Return the datasets matching the filters defined in fragment
     """
     
-    if not medipy.io.dicom.can_read(path) :
+    if not medipy.io.dicom.can_read(str(path)) :
         return []
     
     filters = _get_filters(fragment)
     
-    dicomdir = medipy.io.dicom.read(path)
+    dicomdir = medipy.io.dicom.read(str(path))
     datasets = []
     
     for record in dicomdir.directory_record_sequence.value :

@@ -1,7 +1,11 @@
+find_package(WrapITK REQUIRED)
+
 file(GLOB files "*.py")
 install_py_files(${files})
 
+prepare_wrap_library()
 wrap_library("MediPyBridge" python)
+
     set(WRAPPER_LIBRARY_DEPENDS Base)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
     
@@ -25,12 +29,11 @@ wrap_library("MediPyBridge" python)
             foreach(type "F" "D")
                 foreach(dimension ${WRAP_ITK_DIMS})
                     set(instantiation "M${type}${dimension}${dimension}")
-                    wrap_template("${ITKM_${instantiation}}" "${ITKT_${instantiation}}")
+                    wrap_template(${ITKM_${instantiation}} ${ITKT_${instantiation}})
                 endforeach()
             endforeach()
         end_wrap_class()
     end_wrap_module()
     
 end_wrap_library()
-
 wrap_ikt_post_install("MediPyBridge")
