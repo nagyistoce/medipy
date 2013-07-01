@@ -139,7 +139,7 @@ def _get_matching_datasets(path, fragment) :
     for filename in filenames :
         if not medipy.io.dicom.can_read(str(filename)) :
             continue
-        dataset = medipy.io.dicom.read(filename)
+        dataset = medipy.io.dicom.read(str(filename))
         
         match = True
         for tag, value in filters :

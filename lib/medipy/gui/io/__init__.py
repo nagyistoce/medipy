@@ -7,4 +7,4 @@
 ##########################################################################
 
 from image_file_dialog import ImageFileDialog
-from io import load, import_dicom_directory, import_serie_from_dicom_directory, save
+from io import load, import_dicom_directory, save

@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -33,14 +33,9 @@ def find_resource(where) :
     if resource_path is not None :
         return resource_path
     
-    # Try in MediPy
+    # Try in MediPy and plugins
     import medipy
-    resource_path = os.path.join(os.path.dirname(medipy.__file__), where)
-    if os.path.exists(resource_path) :
-        return resource_path
-        
-    # Try in MediPy plugins
-    for path in medipy.Importer().plugins_path :
+    for path in medipy.__path__ :
         resource_path = os.path.join(path, where)
         if os.path.exists(resource_path) :
             return resource_path
