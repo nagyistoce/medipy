@@ -6,10 +6,11 @@
 # for details.
 ##########################################################################
 
+import os
+import socket
+
 import wx
 import wx.grid
-
-import os
 
 import medipy.network.dicom
 import medipy.gui.base
@@ -120,7 +121,8 @@ class PreferencesDialog(medipy.gui.base.Panel):
     def OnAdd(self,_):
         """ Add a new connection set with default parameters
         """
-        connection = medipy.network.dicom.Connection("----", 0, "----", "----")
+        connection = medipy.network.dicom.Connection(
+            "----", 0, socket.gethostname(), "----")
         self.list_connections.append(["----", connection, "wado", "----"])
 
     def OnDelete(self,_):
