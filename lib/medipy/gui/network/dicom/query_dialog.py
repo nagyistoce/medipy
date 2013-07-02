@@ -65,7 +65,7 @@ class QueryDialog(medipy.gui.base.Panel):
         self.queries = self.ui.qu_panel.GetSizer()
         
         self.tree = wx.gizmos.TreeListCtrl(self,name='Patient',
-            style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_EXTENDED)
+            style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_EXTENDED|wx.TR_MULTIPLE)
         treesizer=self.ui.results.GetSizer()
         treesizer.Add(self.tree,1,wx.EXPAND)
         
@@ -144,7 +144,7 @@ class QueryDialog(medipy.gui.base.Panel):
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
             (self.destination.validate() or self.ui.radio.GetSelection()==1)
-            and self.tree.GetSelection()!=-1)
+            and self.tree.GetSelections()!=-1)
 
     def update_tree_column(self):
         self.tree.AddColumn("Patient Tree",width=250)
@@ -333,12 +333,24 @@ class QueryDialog(medipy.gui.base.Panel):
             for dataset in datasets:
                 save(dataset)
         else:
-            images = []
-            layers = []
-            images.append(medipy.io.dicom.image(datasets))
-            for image in images:
-                layers.append({"image":image})
-            wx.GetApp().frame.append_image(layers)
+            datasets_dict={}
+            
+            for item in query:
+                key = item.patient_id.value + '_' +                         item.study_instance_uid.value + '_' + item.series_instance_uid.value
+                for dataset in datasets:
+                    if item.sop_instance_uid.value == dataset.sop_instance_uid.value:
+                        if not key in datasets_dict:
+                            datasets_dict[key]=[dataset]
+                        else :
+                            datasets_dict[key].append(dataset)
+
+            for key in datasets_dict:
+                images = []
+                layers = []
+                images.append(medipy.io.dicom.image(datasets_dict[key]))
+                for image in images:
+                    layers.append({"image":image})
+                wx.GetApp().frame.append_image(layers)
                             
         dlg = wx.MessageDialog(self, "Successful DownLoad",'Success',
                     wx.OK|wx.ICON_INFORMATION)
@@ -386,12 +398,13 @@ class QueryDialog(medipy.gui.base.Panel):
         return datasets_wado
     
     def move_dl(self,destination,retrieve_query):
-        datasets_move = []
+        move_query = medipy.io.dicom.DataSet(sop_instance_uid='')
         for query in retrieve_query:
-            move = medipy.network.dicom.scu.Move(self.connection,"patient","image",
-                    destination,query)
-            result = move()
-            for dataset in result:
-                datasets_move.append(dataset)
+            sop_uid = str(query.sop_instance_uid.value)
+            mv_sop = str(move_query.sop_instance_uid.value) + '\\' + sop_uid
+            move_query.__setattr__('sop_instance_uid',mv_sop)
             
-        return datasets_move
+        move = medipy.network.dicom.scu.Move(self.connection, "patient", "image",
+                destination, move_query)
+        results = move()
+        return results

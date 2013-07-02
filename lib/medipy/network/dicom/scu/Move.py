@@ -52,17 +52,11 @@ class Move(SCU):
             "-k","0008,0052={0}".format(query_level_option[self.query_level])
         ])
         
-        for key in self.query_parameters.keys():
-            command.extend([
-                "-k",
-                str(key)[1:-1]+"={0}".format(self.query_parameters[key].value)
-            ])
-
         command.append(self.connection.host)
         command.append(str(self.connection.port))
         
-        #query_file = self._create_query_file(self.query_parameters, temporary_directory)
-        #command.append(query_file) 
+        query_file = self._create_query_file(self.query_parameters, temporary_directory)
+        command.append(query_file) 
         
         #Subshell : exec cmd
         process = subprocess.Popen(command, stdout=subprocess.PIPE,
