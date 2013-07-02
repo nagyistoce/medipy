@@ -133,7 +133,7 @@ def least_squares(limages, accu="First"):
     return tensors
     
 
-def weighted_least_squares(images, nb_iter=None):
+def weighted_least_squares(images, mask=None, nb_iter=None):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
         in the list) and a set of float diffusion weighted images (on shell, 
@@ -144,6 +144,8 @@ def weighted_least_squares(images, nb_iter=None):
         
         <gui>
             <item name="images" type="ImageSerie" label="Input"/>
+            <item name="mask" type="Image" initializer="may_be_empty=True, may_be_empty_checked=True" 
+                  label="Mask"/>
             <item name="nb_iter" type="Int" initializer="1" label="Iteartion Count"
                 tooltip="Number of iteration of the WLS estimation"/>
             <item name="output" type="Image" initializer="output=True" 
@@ -151,7 +153,7 @@ def weighted_least_squares(images, nb_iter=None):
         </gui>
     """
     
-    # We're in the same package as itkSecondOrderSymmetricTensorReconstructionFilter, 
+    # We're in the same package as itkWeightedLeastSquaresImageFilter, 
     # so it has already been included in itk by __init__
     
     PixelType = medipy.itk.dtype_to_itk[images[0].dtype.type]
@@ -175,19 +177,15 @@ def weighted_least_squares(images, nb_iter=None):
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
     tensors.image_type = "tensor_2"
-    #return tensors
     
-    #BET masking
-    output_bet = bet(images[0], 0.45)
-    [Tz, Ty, Tx] = output_bet.shape
-    img_tensor_output = medipy.base.Image(tensors.shape, dti="tensor_2")
-    D0 = np.asmatrix(np.zeros((6,1), dtype=img_tensor_output.dtype))
-    for x in range(Tx):
-        for y in range(Ty):
-            for z in range(Tz):
-                if output_bet[z,y,x] == 0.0:
-                    img_tensor_output[z,y,x] = D0.T
-                else:
-                    img_tensor_output[z,y,x] = tensors[z,y,x]
-
-    return img_tensor_output
+    #masking
+    if mask:
+        [Tz, Ty, Tx] = mask.shape
+        D0 = np.asmatrix(np.zeros((6,1), dtype=tensors.dtype))
+        for x in range(Tx):
+            for y in range(Ty):
+                for z in range(Tz):
+                    if mask[z,y,x] == 0.0:
+                        tensors[z,y,x] = D0.T
+    
+    return tensors
