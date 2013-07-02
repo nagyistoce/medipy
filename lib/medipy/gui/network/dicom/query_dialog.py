@@ -108,13 +108,14 @@ class QueryDialog(medipy.gui.base.Panel):
         preferences = medipy.gui.base.Preferences(
             wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
-        (choice,self.connection) = preferences.get(self._current_connection,[])
         list_connections = preferences.get(self._connections, [])        
         for connection in list_connections:
             self.ui.selected_connection.Append(connection[1].host+' --- '+
                     str(connection[1].port)+' --- '+connection[0])
         
-        self.ui.selected_connection.SetSelection(choice)
+        if self._current_connection in preferences :
+            (choice,self.connection) = preferences.get(self._current_connection)
+            self.ui.selected_connection.SetSelection(choice)
 
     def OnSetQueries(self,_):
         self.quer_dlg = wx.Dialog(self,size=(250,300))
