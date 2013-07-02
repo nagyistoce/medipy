@@ -195,7 +195,14 @@ DCMTKToPython
             DcmCodeString * specific_character_set = dynamic_cast<DcmCodeString*>(it);
             char* value;
             specific_character_set->getString(value);
-            this->set_specific_character_set(value);
+            if(value != NULL)
+            {
+                this->set_specific_character_set(value);
+            }
+            else
+            {
+                this->set_specific_character_set("");
+            }
         }
         
         if(it->getETag() == 0)

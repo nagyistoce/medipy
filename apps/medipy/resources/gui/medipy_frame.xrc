@@ -25,9 +25,6 @@
             <label>Import &amp;DICOM directory ...</label>
             <accel>Ctrl+D</accel>
           </object>
-          <object class="wxMenuItem" name="from_directory_serie">
-            <label>Import &amp;DICOM serie directory ...</label>
-          </object>
           <object class="wxMenuItem" name="dicom_query_retrieve">
             <label>DICOM Query and Retrieve</label>
           </object>

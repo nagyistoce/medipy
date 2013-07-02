@@ -1,3 +1,5 @@
+find_package(WrapITK REQUIRED)
+
 file(GLOB files "*.py" "gui/*.py")
 install_py_files(${files})
 
@@ -24,6 +26,7 @@ foreach(type ${WRAP_ITK_REAL})
     endforeach()
 endforeach()
 
+prepare_wrap_library()
 wrap_library("MediPyDiffusion" python)
     set(WRAPPER_LIBRARY_DEPENDS Base IO)
     set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)

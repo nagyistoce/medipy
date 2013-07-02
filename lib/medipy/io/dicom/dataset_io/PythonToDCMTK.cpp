@@ -1,3 +1,11 @@
+/*************************************************************************
+ * MediPy - Copyright (C) Universite de Strasbourg
+ * Distributed under the terms of the CeCILL-B license, as published by
+ * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+ * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+ * for details.
+ ************************************************************************/
+
 #include "PythonToDCMTK.h"
 
 #include <Python.h>
@@ -450,6 +458,7 @@ PythonToDCMTK
 /** 
  * @brief Return a Python string containing the UTF-8 encoded version of the 
  * string or unicode passed to the function.
+ * @return New reference
  */
 PyObject* _to_utf8(PyObject * data)
 {
@@ -457,6 +466,8 @@ PyObject* _to_utf8(PyObject * data)
     
     if(PyString_Check(data))
     {
+        // Add a reference, to make sure that a new reference is always returned
+        Py_INCREF(data);
         result = data;
     }
     else if(PyUnicode_Check(data))
@@ -613,7 +624,9 @@ PythonToDCMTK
         for(Py_ssize_t index=0; index<size; ++index)
         {
             PyObject * python_item = PyList_GetItem(python_value, index);
-            stream << PyString_AsString(PyObject_Str(python_item));
+            PyObject * python_string = PyObject_Str(python_item); // New reference
+            stream << PyString_AsString(python_string);
+            Py_DECREF(python_string);
             
             if(index != size-1)
             {
@@ -623,7 +636,9 @@ PythonToDCMTK
     }
     else
     {
-        stream << PyString_AsString(PyObject_Str(python_value));
+        PyObject * python_string = PyObject_Str(python_value); // New reference
+        stream << PyString_AsString(python_string);
+        Py_DECREF(python_string);
     }
     
     OFString value(stream.str().c_str());
