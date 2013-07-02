@@ -18,7 +18,7 @@
 %pythoncode
 %{
 import medipy.base
-from dataset import DataSet
+from medipy.io.dicom.dataset import DataSet
 
 def _get_dicomdir_records_hierarchy(dataset):
     """ Return the hierarchy of records in a DICOMDIR.
