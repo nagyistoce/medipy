@@ -6,7 +6,17 @@
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
-            <object class="wxGrid" name="connections"/>
+            <object class="wxGrid" name="connections">
+              <font>
+                <size>9</size>
+                <style>normal</style>
+                <weight>normal</weight>
+                <underlined>0</underlined>
+                <family>default</family>
+                <face>Ubuntu</face>
+                <encoding>UTF-8</encoding>
+              </font>
+            </object>
             <option>4</option>
             <flag>wxEXPAND</flag>
           </object>

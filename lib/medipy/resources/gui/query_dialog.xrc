@@ -3,6 +3,59 @@
   <object class="wxPanel" name="Search and Download">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
+      
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxPanel" name="results">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+              </object>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>4</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Connection : </label>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="selected_connection">
+              <content>
+                <item/>
+              </content>
+              <style>wxCB_SORT</style>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxCheckBox" name="ssh">
+              <label>SSH</label>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+            <border>0</border>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="preferences">
+              <label>Set Preferences</label>
+            </object>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>0</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <object class="sizeritem">
@@ -16,7 +69,6 @@
             <option>3</option>
             <flag>wxEXPAND</flag>
           </object>
-          <orient>wxHORIZONTAL</orient>
           <object class="sizeritem">
             <object class="wxBoxSizer">
               <object class="sizeritem">
@@ -38,42 +90,9 @@
             <option>0</option>
             <flag>wxALIGN_RIGHT</flag>
           </object>
-        </object>
-        <option>1</option>
-        <flag>wxEXPAND</flag>
-      </object>
-      <object class="sizeritem">
-        <object class="wxBoxSizer">
-          <object class="sizeritem">
-            <object class="wxStaticText">
-              <label>Connection : </label>
-            </object>
-            <flag>wxALIGN_CENTRE</flag>
-          </object>
-          <object class="sizeritem">
-            <object class="wxChoice" name="selected_connection">
-              <content>
-                <item/>
-              </content>
-            </object>
-            <option>1</option>
-            <flag>wxEXPAND</flag>
-          </object>
-          <object class="sizeritem">
-            <object class="wxButton" name="preferences">
-              <label>Set Preferences</label>
-            </object>
-          </object>
           <orient>wxHORIZONTAL</orient>
         </object>
-        <option>0</option>
-        <flag>wxEXPAND</flag>
-      </object>
-      <object class="sizeritem">
-        <object class="wxListCtrl" name="results">
-          <style>wxLC_REPORT</style>
-        </object>
-        <option>4</option>
+        <option>2</option>
         <flag>wxEXPAND</flag>
       </object>
       <object class="sizeritem">
@@ -81,8 +100,17 @@
           <object class="sizeritem">
             <object class="wxStaticText">
               <label>Set path directory :</label>
+              <font>
+                <size>11</size>
+                <style>normal</style>
+                <weight>normal</weight>
+                <underlined>0</underlined>
+                <family>default</family>
+                <face>Ubuntu</face>
+                <encoding>UTF-8</encoding>
+              </font>
             </object>
-            <flag>wxALIGN_CENTRE_VERTICAL</flag>
+            <flag>wxALIGN_BOTTOM</flag>
           </object>
           <object class="sizeritem">
             <object class="wxPanel" name="directory">
@@ -90,8 +118,8 @@
                 <orient>wxHORIZONTAL</orient>
               </object>
             </object>
-            <option>1</option>
-            <flag>wxEXPAND</flag>
+            <option>2</option>
+            <flag>wxBOTTOM|wxEXPAND</flag>
           </object>
           <object class="sizeritem">
             <object class="wxRadioBox" name="radio">
@@ -105,12 +133,13 @@
               <style>wxNO_BORDER|wxRA_SPECIFY_COLS</style>
             </object>
             <option>0</option>
-            <flag>wxTOP|wxEXPAND</flag>
+            <flag>wxALIGN_BOTTOM</flag>
           </object>
           <object class="sizeritem">
             <object class="wxButton" name="download">
               <label>Download</label>
             </object>
+            <flag>wxALIGN_BOTTOM</flag>
           </object>
           <orient>wxHORIZONTAL</orient>
         </object>
