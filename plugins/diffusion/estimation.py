@@ -146,7 +146,7 @@ def weighted_least_squares(images, mask=None, nb_iter=None):
             <item name="images" type="ImageSerie" label="Input"/>
             <item name="mask" type="Image" initializer="may_be_empty=True, may_be_empty_checked=True" 
                   label="Mask"/>
-            <item name="nb_iter" type="Int" initializer="1" label="Iteartion Count"
+            <item name="nb_iter" type="Int" initializer="1" label="Iteration Count"
                 tooltip="Number of iteration of the WLS estimation"/>
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
