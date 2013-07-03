@@ -84,35 +84,3 @@ class Move(SCU):
         medipy.io.dicom.write(query, query_file)
         
         return query_file
-
-if __name__ == "__main__":
-
-    import medipy.io.dicom
-    import medipy.network.dicom
-    
-    connection = medipy.network.dicom.Connection("aude.u-strasbg.fr", 11112,
-        "forez", "PIIV-RECHERCHE")
-        
-    query = medipy.io.dicom.DataSet(patients_name = "010027LA",
-                        series_description="*3d")
-    for key in ["patient_id", "study_instance_uid", "series_instance_uid",
-            "sop_instance_uid"] :
-        query.setdefault(key, None)
-                    
-    datasets =  medipy.network.dicom.query.relational(connection,"patient",
-                "study", query)
-                
-    for dataset in datasets:
-        query = medipy.io.dicom.DataSet(
-                patient_id = dataset.patient_id.value,
-                study_instance_uid = dataset.study_instance_uid.value,
-                series_instance_uid = dataset.series_instance_uid.value,
-                sop_instance_uid = dataset.sop_instance_uid.value)
-        move = medipy.network.dicom.scu.Move(connection, "patient", "patient",
-            "forez", query)
-        results = move()
-        print results
-
-
-
-

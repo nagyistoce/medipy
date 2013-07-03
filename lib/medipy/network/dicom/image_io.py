@@ -49,7 +49,6 @@ def load(connection, query, retrieve) :
         query = new_query
 
     query_results = query_module.relational(connection, "patient", "patient", query)
-
     if not query_results :
         raise medipy.base.Exception("No image matching query")
 
@@ -59,33 +58,43 @@ def load(connection, query, retrieve) :
     if len(series_uids) > 1 :
         raise medipy.base.Exception("Only one series must match query")
 
-    pool = multiprocessing.Pool()
-
     if retrieve[0] == "GET" :
         raise NotImplementedError()
-    elif retrieve[0] == "MOVE" :
-        raise NotImplementedError()
-    elif retrieve[0] == "WADO" :
         
+    elif retrieve[0] == "MOVE" :
+        move_query = medipy.io.dicom.DataSet(sop_instance_uid='')
+        for item in query_results:
+            sop_uid = str(item.sop_instance_uid.value)
+            mv_sop = str(move_query.sop_instance_uid.value) + '\\' + sop_uid
+            move_query.__setattr__('sop_instance_uid',mv_sop)
+            
+        move = medipy.network.dicom.scu.Move(connection,"patient","image",
+                retrieve[1],move_query)
+
+        results = move()
+        datasets = medipy.io.dicom.split.images(results)
+
+    elif retrieve[0] == "WADO" :
+        pool = multiprocessing.Pool()
         async_results = [pool.apply_async(medipy.network.dicom.wado.get, 
                                           (retrieve[1], wado_query)) 
-                         for wado_query in query_results]    
+                         for wado_query in query_results]
+        pool.close()
+        pool.join()
+        datasets = [x.get() for x in async_results]
+        
     else :
         raise medipy.base.Exception("Unknown retrieve mode {0!r}".format(retrieve))
 
-    pool.close()
-    pool.join()
-    
-    datasets = [x.get() for x in async_results]
-
     stacks = medipy.io.dicom.stacks(datasets)
-    
+
     if len(stacks) == 0 :
         raise medipy.base.Exception("No stack matching query")
     
     pool = multiprocessing.Pool()
     async_results = [pool.apply_async(medipy.io.dicom.image, (stack,))
                      for stack in stacks]
+
     pool.close()
     pool.join()
 
