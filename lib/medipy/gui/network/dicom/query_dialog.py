@@ -320,12 +320,8 @@ class QueryDialog(medipy.gui.base.Panel):
         (_,self.connection,retrieve,retrieve_data) = preferences.get(self._current_connection, []) 
 
         query = self.build_retrieve_query()
-        if retrieve == 'wado':
-            datasets = self.wado_dl(retrieve_data,query)
-        elif retrieve == 'move':
-            datasets = self.move_dl(retrieve_data,query)
-        elif retrieve == 'get':
-            pass
+        retrieve_function = getattr(self, "{0}_dl".format(retrieve))
+        datasets = retrieve_function(retrieve_data, query)
 
         if self.ui.radio.GetSelection()==0:
             save = medipy.io.dicom.routing.SaveDataSet(
@@ -333,24 +329,18 @@ class QueryDialog(medipy.gui.base.Panel):
             for dataset in datasets:
                 save(dataset)
         else:
-            datasets_dict={}
-            
-            for item in query:
-                key = item.patient_id.value + '_' +                         item.study_instance_uid.value + '_' + item.series_instance_uid.value
-                for dataset in datasets:
-                    if item.sop_instance_uid.value == dataset.sop_instance_uid.value:
-                        if not key in datasets_dict:
-                            datasets_dict[key]=[dataset]
-                        else :
-                            datasets_dict[key].append(dataset)
-
-            for key in datasets_dict:
-                images = []
-                layers = []
-                images.append(medipy.io.dicom.image(datasets_dict[key]))
-                for image in images:
-                    layers.append({"image":image})
-                wx.GetApp().frame.append_image(layers)
+            series = medipy.io.dicom.series(datasets)
+            for serie in series:
+                stacks = medipy.io.dicom.split.stacks(serie)
+                # Display dialog
+                if len(stacks)>1:
+                    dialog = medipy.gui.dicom.StacksDialog(self,False)
+                    dialog.set_stacks(stacks)
+                    if dialog.ShowModal() != wx.ID_OK :
+                        stacks=[]
+                    stacks = dialog.get_selected_stacks()
+                images = [medipy.io.dicom.image(stack) for stack in stacks]
+                wx.GetApp().frame.append_image([{"image":image} for image in images])
                             
         dlg = wx.MessageDialog(self, "Successful DownLoad",'Success',
                     wx.OK|wx.ICON_INFORMATION)
