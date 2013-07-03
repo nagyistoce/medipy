@@ -9,4 +9,3 @@
 from preferences_dialog import PreferencesDialog
 from query_dialog import QueryDialog
 from set_queries_dialog import SetQueriesDialog
-from ssh_dialog import SSHDialog

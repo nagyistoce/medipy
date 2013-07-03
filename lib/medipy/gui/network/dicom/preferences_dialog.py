@@ -15,6 +15,12 @@ import medipy.network.dicom
 import medipy.gui.base
 import medipy.base
 
+import logging
+try :
+    import paramiko
+except ImportError :
+    logging.warning("medipy.io.dicom.SSHTunnelConnect not usable: cannot find paramiko package")
+
 class PreferencesDialog(medipy.gui.base.Panel):
 
     _connections = "network/dicom/connections"
@@ -33,9 +39,10 @@ class PreferencesDialog(medipy.gui.base.Panel):
         self.list_connections = medipy.base.ObservableList()
         
         #Set TextCtrl and labels associated
-        self.headers=['Hostname','Port','Calling AE','Called AE','Description',
-            'Retrieve','Retrieve Data']
-        self.shortnames={
+        self.headers=['SSH','Username','Hostname','Port','Calling AE',
+            'Called AE','Description','Retrieve','Retrieve Data']
+            
+        self.shortnames={"SSH" : 'ssh', "Username" : 'username',
             "Hostname" : 'host', "Port" : 'port', "Description" : 'description',
             "Calling AE" : 'calling_ae_title', "Called AE" : 'called_ae_title',
             "Retrieve" : "retrieve", "Retrieve Data" : "retrieve_data"}
@@ -53,15 +60,22 @@ class PreferencesDialog(medipy.gui.base.Panel):
         #Show known connections
         self.ui.connections.SetRowLabelSize(0)
         self.ui.connections.SetDefaultColSize(180)
-        self.ui.connections.CreateGrid(0,7)
+        self.ui.connections.CreateGrid(0,9)
         self.ui.connections.SetColFormatNumber(1)
+        self.ui.connections.SetColSize(0,50)
         self.ui.connections.SetColSize(1,80)
-        self.ui.connections.SetColSize(5,80)
+        self.ui.connections.SetColSize(3,80)
+        self.ui.connections.SetColSize(7,80)
         
-        attr = wx.grid.GridCellAttr()
-        attr.SetRenderer(wx.grid.GridCellEnumRenderer(str(self.retrieve)))
-        attr.SetEditor(wx.grid.GridCellChoiceEditor(self.retrieve))
-        self.ui.connections.SetColAttr(5, attr)
+        attr_enum = wx.grid.GridCellAttr()
+        attr_enum.SetRenderer(wx.grid.GridCellEnumRenderer(str(self.retrieve)))
+        attr_enum.SetEditor(wx.grid.GridCellChoiceEditor(self.retrieve))
+        self.ui.connections.SetColAttr(7, attr_enum)
+        
+        attr_bool = wx.grid.GridCellAttr()
+        attr_bool.SetRenderer(wx.grid.GridCellBoolRenderer())
+        attr_bool.SetEditor(wx.grid.GridCellBoolEditor())
+        self.ui.connections.SetColAttr(0, attr_bool)
         
         for column, header in enumerate(self.headers) :
             self.ui.connections.SetColLabelValue(column,header)
@@ -77,6 +91,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
 
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+
         # An observable list cannot be pickled, so a list is stored in the
         # preferences : fill the content of self.list_connections instead
         # of re-assigning it.
@@ -116,13 +131,24 @@ class PreferencesDialog(medipy.gui.base.Panel):
             else:
                 self.list_connections[row][3]=value
         else :
-            setattr(self.list_connections[row][1],shortname, value)
+            self.list_connections[row][1][shortname] = value
+            if shortname == 'ssh':
+                print value
+                if value == False  and self.list_connections[row][1]['username']!='':
+                    elf.list_connections[row][1]['username']=''
+                    self._update_listview()
+            elif shortname == 'username':
+                if self.list_connections[row][1]['ssh']==False:
+                    pass
+                else :
+                    self.list_connections[row][1][shortname]=value
         self.save_connections()
            
     def OnAdd(self,_):
         """ Add a new connection set with default parameters
         """
-        connection = medipy.network.dicom.Connection("----", 0, "----", "----")
+        connection = {'ssh':False, 'username':'', 'host':'----', 'port':0,
+            'calling_ae_title':'----', 'called_ae_title':'----'}
         self.list_connections.append(["----", connection, "wado", "----"])
 
     def OnDelete(self,_):
@@ -135,7 +161,36 @@ class PreferencesDialog(medipy.gui.base.Panel):
         """ Test the selected connection
         """
         row = self.ui.connections.GetGridCursorRow()
-        echo = medipy.network.dicom.scu.Echo(self.list_connections[row][1])
+        
+        if self.list_connections[row][1]['ssh']!='':
+            #Ask Password to user
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection')
+            dlg.ShowModal()
+            password = dlg.GetValue()
+            dlg.Destroy()
+
+            try:
+                connection = medipy.network.dicom.SSHTunnelConnection(
+                    self.list_connections[row][1]['host'],
+                    self.list_connections[row][1]['port'],
+                    self.list_connections[row][1]['calling_ae_title'],
+                    self.list_connections[row][1]['called_ae_title'],
+                    self.list_connections[row][1]['username'],
+                    password)
+                    
+            except paramiko.AuthenticationException,e:
+                dlg = wx.MessageDialog(self,"Connection Failure: {0}".format(e), 'Connection Failure', wx.OK|wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                return 1
+        else:
+                connection = medipy.network.dicom.Connection(
+                    self.list_connections[row][1]['host'],
+                    self.list_connections[row][1]['port'],
+                    self.list_connections[row][1]['calling_ae_title'],
+                    self.list_connections[row][1]['called_ae_title'])
+                        
+        echo = medipy.network.dicom.scu.Echo(connection)
         try:
             echo()
         except medipy.base.Exception, e:
@@ -175,6 +230,6 @@ class PreferencesDialog(medipy.gui.base.Panel):
                 elif shortname == "retrieve_data":
                     value = retrieve_data
                 else :
-                    value = getattr(connection, shortname)
+                    value = connection[shortname]
                 
                 self.ui.connections.SetCellValue(row,column, str(value))
