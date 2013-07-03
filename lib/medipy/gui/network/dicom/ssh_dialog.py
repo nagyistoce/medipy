@@ -6,19 +6,18 @@
 # for details.
 ##########################################################################
 
-import os
-import socket
-
 import wx
 import wx.grid
+
+import os
 
 import medipy.network.dicom
 import medipy.gui.base
 import medipy.base
 
-class PreferencesDialog(medipy.gui.base.Panel):
+class SSHDialog(medipy.gui.base.Panel):
 
-    _connections = "network/dicom/connections"
+    _ssh_connections = "network/dicom/ssh"
     
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -35,16 +34,17 @@ class PreferencesDialog(medipy.gui.base.Panel):
         
         #Set TextCtrl and labels associated
         self.headers=['Hostname','Port','Calling AE','Called AE','Description',
-            'Retrieve','Retrieve Data']
+            'Username','Password','Retrieve','Retrieve Data']
         self.shortnames={
             "Hostname" : 'host', "Port" : 'port', "Description" : 'description',
             "Calling AE" : 'calling_ae_title', "Called AE" : 'called_ae_title',
-            "Retrieve" : "retrieve", "Retrieve Data" : "retrieve_data"}
+            "Retrieve" : "retrieve", "Retrieve Data" : "retrieve_data",
+            "Username" : "username", "Password" : "password"}
             
         self.retrieve = ['wado', 'get', 'move']
           
         # User interface
-        self.ui = PreferencesDialog.UI()
+        self.ui = SSHDialog.UI()
         
         xrc_file = medipy.base.find_resource(os.path.join("resources","gui","preferences_dialog.xrc"))
         wrappers = []
@@ -54,7 +54,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
         #Show known connections
         self.ui.connections.SetRowLabelSize(0)
         self.ui.connections.SetDefaultColSize(180)
-        self.ui.connections.CreateGrid(0,7)
+        self.ui.connections.CreateGrid(0,9)
         self.ui.connections.SetColFormatNumber(1)
         self.ui.connections.SetColSize(1,80)
         self.ui.connections.SetColSize(5,80)
@@ -81,7 +81,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
         # An observable list cannot be pickled, so a list is stored in the
         # preferences : fill the content of self.list_connections instead
         # of re-assigning it.
-        self.list_connections[:] = preferences.get(self._connections, [])
+        self.list_connections[:] = preferences.get(self._ssh_connections, [])
         self._update_listview()
         
         self.Show(True)
@@ -123,9 +123,9 @@ class PreferencesDialog(medipy.gui.base.Panel):
     def OnAdd(self,_):
         """ Add a new connection set with default parameters
         """
-        connection = medipy.network.dicom.Connection(
-            "----", 0, socket.gethostname(), "----")
-        self.list_connections.append(["----", connection, "wado", "----"])
+        ssh_connection = medipy.network.dicom.SSHTunnelConnection("aude.u-strasbg.fr", 11112, "forez",
+                "PIIV-RECHERCE", "username","password")
+        self.list_connections.append(["----", ssh_connection, "wado", "----"])
 
     def OnDelete(self,_):
         """ Delete selected connection from the connections ObservableList
@@ -155,7 +155,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        preferences.set(self._connections, self.list_connections[:])
+        preferences.set(self._ssh_connections, self.list_connections[:])
 
     def _update_listview(self, *args, **kwargs) :
         """ Refresh gui on any connections ObservableList modification
