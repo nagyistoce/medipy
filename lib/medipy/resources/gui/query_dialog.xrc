@@ -1,0 +1,141 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="Search and Download">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxPanel" name="results">
+              <object class="wxBoxSizer">
+                <orient>wxVERTICAL</orient>
+              </object>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND|wxALIGN_CENTRE</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>4</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Connection : </label>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="selected_connection">
+              <content>
+                <item></item>
+              </content>
+            </object>
+            <option>1</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="preferences">
+              <label>Set Preferences</label>
+            </object>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>0</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxPanel" name="qu_panel">
+              <object class="wxFlexGridSizer">
+                <cols>2</cols>
+                <rows>1</rows>
+                <growablecols>1</growablecols>
+              </object>
+            </object>
+            <option>3</option>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxButton" name="search">
+                  <label>Search</label>
+                </object>
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxButton" name="set_queries">
+                  <label>Set Queries</label>
+                </object>
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+              </object>
+              <orient>wxVERTICAL</orient>
+            </object>
+            <option>0</option>
+            <flag>wxALIGN_RIGHT</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>2</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Set path directory :</label>
+              <font>
+                <size>11</size>
+                <style>normal</style>
+                <weight>normal</weight>
+                <underlined>0</underlined>
+                <family>default</family>
+                <face>Ubuntu</face>
+                <encoding>UTF-8</encoding>
+              </font>
+            </object>
+            <flag>wxALIGN_BOTTOM</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxPanel" name="directory">
+              <object class="wxBoxSizer">
+                <orient>wxHORIZONTAL</orient>
+              </object>
+            </object>
+            <option>2</option>
+            <flag>wxBOTTOM|wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxRadioBox" name="radio">
+              <dimension>2</dimension>
+              <content>
+                <item>Store </item>
+                <item> View</item>
+              </content>
+              <selection>1</selection>
+              <dimension>2</dimension>
+              <style>wxNO_BORDER|wxRA_SPECIFY_COLS</style>
+            </object>
+            <option>0</option>
+            <flag>wxALIGN_BOTTOM</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="download">
+              <label>Download</label>
+            </object>
+            <flag>wxALIGN_BOTTOM</flag>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <option>0</option>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+  </object>
+</resource>

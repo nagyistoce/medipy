@@ -1,0 +1,63 @@
+syntax: glob
+
+.hgignore
+
+# Compiled files
+*.dll
+*.dll.manifest
+*.exp
+*.lib
+*.pyc
+*.pyd
+*.pyd.manifest
+*.os
+*.so
+
+# For out-of-place build
+build
+
+# For in-place build
+
+# CMake files
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+
+# Swig modules
+*PYTHON_wrap.cxx
+
+# VTK/Python files
+*Init.data
+
+# WrapITK files
+Languages
+Typedefs
+gcc_xml.inc
+install_wrapitk_compatibility.cmake
+wrap_*_ext.i
+wrap_*Python.cpp
+wrap_*.cxx
+wrap_*.xml
+*.mdx
+*.includes
+*Python.py
+*Config.py
+
+# Module-specific files
+MediPy*Python.cpp
+lib/medipy/io/dicom/dataset_io/dataset_io.py
+{lib/medipy/vtk,plugins/visualization_3d}/vtk*Python.cxx
+{lib/medipy/vtk,plugins/visualization_3d}/*Init.cxx
+lib/medipy/gui/image/helpers.py
+lib/medipy/io/PyArrayIOPython.cpp
+lib/medipy/io/dicom/AssembleTilesImageFilterPython.cpp
+lib/medipy/io/dicom/dataset_io.py
+plugins/diffusion/fiber_clustering.c
+plugins/diffusion/itkutils.py
+plugins/diffusion/parameter_estimation.py
+plugins/diffusion/spectral_analysis.py
+plugins/medimax/detection/detection.py
+plugins/medimax/recalage/recalage.py
+plugins/medimax/traitement/traitement.py
+
