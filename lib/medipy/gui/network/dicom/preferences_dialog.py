@@ -139,9 +139,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
                     elf.list_connections[row][1]['username']=''
                     self._update_listview()
             elif shortname == 'username':
-                if self.list_connections[row][1]['ssh']==False:
-                    pass
-                else :
+                if self.list_connections[row][1]['ssh'] :
                     self.list_connections[row][1][shortname]=value
         self.save_connections()
            
@@ -149,7 +147,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
         """ Add a new connection set with default parameters
         """
         connection = {'ssh':False, 'username':'', 'host':'----', 'port':0,
-            'calling_ae_title':'----', 'called_ae_title':'----'}
+            'calling_ae_title':socket.gethostname(), 'called_ae_title':'----'}
         self.list_connections.append(["----", connection, "wado", "----"])
 
     def OnDelete(self,_):
