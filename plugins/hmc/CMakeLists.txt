@@ -10,7 +10,7 @@ wrap_library("MediPyHMC" python)
     
     wrap_module("itkHiddenMarkovChainFilter")
         wrap_class("itk::HiddenMarkovChainFilter" POINTER)
-            wrap_template("VIF3IF3" "${ITKT_VIF3}, ${ITKT_IF3}")
+            wrap_template("IF3IF3" "${ITKT_IF3}, ${ITKT_IF3}")
         end_wrap_class()
     end_wrap_module()
 
