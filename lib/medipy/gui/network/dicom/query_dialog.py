@@ -120,14 +120,15 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
         
-        choice = preferences.get(self._current_connection,[])
+        choice = preferences.get(self._current_connection, None)
 
         list_connections = preferences.get(self._connections, [])        
         for connection in list_connections:
             self.ui.selected_connection.Append(connection[1]['host']+' --- '+
                     str(connection[1]['port'])+' --- '+connection[0])
 
-        self.ui.selected_connection.SetSelection(int(choice))
+        if choice :
+            self.ui.selected_connection.SetSelection(int(choice))
 
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
