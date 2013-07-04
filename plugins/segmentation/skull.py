@@ -58,4 +58,3 @@ def skull(input):
     
     output.copy_information(input)
     return output
-    

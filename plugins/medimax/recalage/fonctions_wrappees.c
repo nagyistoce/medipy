@@ -111,6 +111,15 @@ switch(precision)
    switch(registration_type)
     {
     case 0: // rigid
+        
+        if ((dist_type==11) || (dist_type==12)) 
+            {
+            aff_log("\n RECALAGE RIGIDE ICP");
+            dist_type=dist_type-11;
+            imx_matching_rigide_ICP_3d_p(imref, imreca, imres, dist_type, inter_type, min_type, save_type, transfres,inittrf, FieldOfResearch, matchPrecision);
+            break;
+            }
+        
         if (multistart==1)
         {
          aff_log("\n RECALAGE RIGIDE EN MULTIRESOLUTION AVEC MULTISTART (methode Jenkison&Smith) ");
@@ -123,6 +132,15 @@ switch(precision)
         }       
         break;
     case 1: // rigid + zoom
+         if ((dist_type==11) || (dist_type==12)) 
+            {
+            aff_log("\n RECALAGE RIGIDE ICP");
+            dist_type=dist_type-11;
+            imx_matching_rigide_zoom_ICP_3d_p(imref, imreca, imres, dist_type, inter_type, min_type, save_type, transfres,inittrf, FieldOfResearch, matchPrecision);
+            break;
+            }
+ 
+        
         if (multistart==1)
         {
         aff_log("\n RECALAGE RIGIDE+ZOOM EN MULTIRESOLUTION AVEC MULTISTART (methode Jenkison&Smith) ");
@@ -135,6 +153,15 @@ switch(precision)
         }       
         break;
     case 2: // affine
+        if ((dist_type==11) || (dist_type==12)) 
+            {
+            aff_log("\n RECALAGE RIGIDE ICP");
+            dist_type=dist_type-11;
+            imx_matching_affine_ICP_3d_p(imref, imreca, imres, dist_type, inter_type, min_type, save_type, transfres,inittrf, FieldOfResearch, matchPrecision);
+            break;
+            }
+ 
+        
         if (multistart==1)
         {
         aff_log("\n RECALAGE AFFINE EN MULTIRESOLUTION AVEC MULTISTART (methode Jenkison&Smith) ");
@@ -189,7 +216,7 @@ int ApplyTransfo3d(grphic3d *imdeb, char *nomfichier, grphic3d *imres, int inter
     int err=0;
       
     SetGrphic3dDxDyDzPositive(imdeb);
-	put_file_extension(nomfichier,".trf",tmp);
+    put_file_extension(nomfichier,".trf",tmp);
   
     /*chargement de la transformation*/
     transfo = load_transf_3d(tmp);
@@ -251,7 +278,8 @@ int BsplineRegistration3d(  grphic3d *imref,
                             int normalisation_type,
                             int nb_classe,
                             int biais,
-                            int symetrique)
+                            int symetrique,
+                            float ponderation)
 {
 
 
@@ -386,7 +414,7 @@ imx_inimaxminpixel_3d_p(imreca);
         
 if (symetrique > 0)
     {
-    TOPO_PONDERATION_RECALAGE_SYMETRIQUE=0.5;
+    TOPO_PONDERATION_RECALAGE_SYMETRIQUE=ponderation;
     normalisation_type=2; //il y a encore un pb avec le melange de gaussienne
     imx_matching_Bspline_topo_symetrique_3d_p(imref,imreca,imres,func_type,dist_type, reg_type, inter_type,min_type,save_type,nomfichres,resolf, Jmin, Jmax,normalisation_type, nb_classe,adaptatif);
     }
@@ -571,10 +599,11 @@ imRes.dz=transfo->dz;
 
 
     
+if (imSource)    
+    champ=transf_to_field_3d(transfo,&imRes,imSource);
+else 
+    champ=transf_to_field_3d(transfo,NULL,NULL);
     
-champ=transf_to_field_3d(transfo,&imRes,imSource);
-
-
 // allocation des images
 resize_grphic3d_buffer(ux, transfo->width,transfo->height,transfo->depth);
 resize_grphic3d_buffer(uy, transfo->width,transfo->height,transfo->depth);
@@ -691,10 +720,12 @@ void VisuTrfFile(char *nomfichier, grphic3d *output, int type)
 {
 transf3d *transfo;
 field3d *champ;
+int i, j, k;
 
 transfo=load_transf_3d(nomfichier);
 champ=transf_to_field_3d(transfo,NULL,NULL);
 
+                 
 resize_grphic3d_buffer(output, transfo->width,transfo->height,transfo->depth);
 
 
@@ -704,6 +735,17 @@ switch (type)
         module_field_to_image_3d(champ,output);
         break;
     case 1 : /*jacobien*/
+        // Attention pour le calcul du jacobien, il faut un champ en voxel
+        for(i=0;i<transfo->width;i++)
+        for(j=0;j<transfo->height;j++)
+        for(k=0;k<transfo->depth;k++)
+                 {
+                 champ->raw[i][j][k].x=champ->raw[i][j][k].x/transfo->dx;
+                 champ->raw[i][j][k].y=champ->raw[i][j][k].y/transfo->dy;
+                 champ->raw[i][j][k].z=champ->raw[i][j][k].z/transfo->dz;    
+                 }
+
+        
         jacobien_field_to_image_3d(champ,output);
         break;
     case 2 : /* composante suivant x*/
@@ -725,3 +767,132 @@ free_field3d(champ);
 free_transf3d(transfo);
  
 }
+
+/*******************************************************************************
+**  Simulation d'atrophie                              
+*******************************************************************************/
+void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda)
+{
+    int continu,l;
+    /*type de fonction*/
+    int func_type=1;
+    
+    /*interpolation*/
+    int inter_type=4;
+
+    /*minimisation*/
+    int min_type=1;
+    
+    /* regularisation */
+    int reg_type = 2;
+    
+    /* borne jacobien */
+    double Jmin=0.0;
+    double Jmax=100000.0;
+    
+    /* distance */
+    int dist_type = 1;
+    
+    /*sauvegarde du champ*/
+    int save_type=1;
+    int adaptatif=1;
+    
+    /* precision de la methode de simulation (1:precis / 2:tres precis) */ 
+    PRECISION_SIMULATION=2;
+    
+    /* coeff de ponderation de la regularisation */
+    TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=lambda;
+    
+    
+    /* qq tests pour verifier qu'on peut lancer la fontion */
+    if ((imref->dx==0.0)||(imref->dy==0)||(imref->dz==0))
+     {PUT_WARN("Les dx,dy et dz sont nuls");
+          printf("Les dx,dy et dz sont nuls\n");
+            return ;
+    }
+
+
+
+
+    if (mask!=NULL)
+    if ((imref->dx!=mask->dx)||(imref->dy!=mask->dy)||(imref->dz!=mask->dz))
+    {
+      PUT_WARN("La carte de jacobien et le mask de points invariants n'ont pas les memes dx,dy,dz !");
+      printf("La carte de jacobien et le mask de points invariants n'ont pas les memes dx,dy,dz !\n");
+      
+            return;
+    }
+
+    if (mask!=NULL)
+    if ((imref->width!=mask->width)||(imref->height!=mask->height)||(imref->depth!=mask->depth))
+    {
+      PUT_WARN("La carte de jacobien et le mask de points invariants n'ont pas la meme taille !");
+      printf("La carte de jacobien et le mask de points invariants n'ont pas la meme taille !\n");
+      return;
+    }
+
+
+
+
+    continu=0;
+    for (l=0;l<10;l++)
+    {
+    if (imref->width==pow(2.0,l)) continu++;
+    if (imref->height==pow(2.0,l)) continu++;
+    if (imref->depth==pow(2.0,l)) continu++;
+}
+
+    if (continu!=3)
+    {
+      PUT_WARN("Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp");
+          printf("Les tailles des images ne sont pas des puissances de 2 !!! Modification temporaire de la taille des images. Le resultat sera stocke sous forme de fichier chp\n");
+            //return(-1) ;
+            save_type=3;
+    }
+    
+    
+    imx_simul_atrophie_topo_3d_p(imref,mask, func_type, dist_type, reg_type, inter_type, min_type, save_type, nomfichres, resolf, adaptatif, Jmin, Jmax);
+
+
+}
+
+/*******************************************************************************
+**  Combine two trf file
+*******************************************************************************/
+
+int warpDeformationField(char *nomfichierTrfSrc, char *nomfichierTrfApply, char *nomfichierTrfRes, int inter_type)
+{
+int wdth, hght,dpth;
+transf3d* transfoRef,*transfo, *transfoRes;
+field3d* chRef,  *chRes;
+
+   
+transfoRef=load_transf_3d(nomfichierTrfSrc);
+chRef=transf_to_field_3d(transfoRef,NULL,NULL);
+
+transfo=load_transf_3d(nomfichierTrfApply);
+
+
+wdth=transfo->width;
+hght=transfo->height;
+dpth=transfo->depth;
+
+chRes=cr_field3d(wdth,  hght,  dpth);
+
+
+warpDeformationField_p(chRef, transfo, chRes, inter_type);
+                       
+transfoRes=field_to_transf_3d(chRes,NULL,NULL);
+transfoRes->dx=chRes->dx;
+transfoRes->dy=chRes->dy;
+transfoRes->dz=chRes->dz;
+
+save_transf_3d(transfoRes,nomfichierTrfRes);
+free_transf3d(transfo);
+free_transf3d(transfoRef);
+free_transf3d(transfoRes);
+free_field3d(chRef);
+free_field3d(chRes);
+
+}
+
