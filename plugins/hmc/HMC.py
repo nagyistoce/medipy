@@ -6,18 +6,12 @@
 # for details.
 ##########################################################################
 
-import sys
-
 import numpy
 
 import itk
 
 import medipy.itk
 import medipy.hmc
-import medipy.logic 
-import medipy.arithmetic.pixelwise
-
-
 
 def hmc(input_images, mask, atlas_bool, atlas_images, number_iter, number_classes, criterion_outliers, criterion_outliers_value, flair_bool, flair_position):
     
