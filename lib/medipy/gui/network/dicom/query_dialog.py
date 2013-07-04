@@ -22,8 +22,11 @@ class QueryDialog(medipy.gui.base.Panel):
     _current_connection = "network/dicom/current_connection"
     _ssh_connections = "network/dicom/ssh"
     _queries_fields = "network/dicom/queries"
-    
-    tree_headers = ['acquisition_date','acquisition_time', 'modality']
+  
+    tree_headers = ['patients_birth_date','patients_sex',
+    'modalities_in_study','study_date',
+    'study_time','modality','number_of_series_related_instances',]
+  
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -129,20 +132,16 @@ class QueryDialog(medipy.gui.base.Panel):
             and self.tree.GetSelections()!=-1)
 
     def update_tree_column(self):    
-        for column in range(self.tree.GetColumnCount()):
-            self.tree.RemoveColumn(column)
-            
         self.tree.AddColumn("Patient Tree",width=250)
-        for header in self.tree_headers:
-            tag = medipy.io.dicom.dictionary.name_dictionary[header]
-            label = medipy.io.dicom.dictionary.data_dictionary[tag][2]
-            self.tree.AddColumn(label)
+        self.tree.AddColumn("",width=100)
+        self.tree.AddColumn("",width=100)
+        self.tree.AddColumn("",width=100)
 
     def update_tree(self,datasets=[]):
         self.tree.DeleteAllItems()
         self.root = self.tree.AddRoot(text='Patient')
         for dataset in datasets:
-            patient = dataset['patient_id'].value
+            patient = dataset['patients_name'].value
             study = dataset['study_description'].value
             serie = dataset['series_description'].value
         
@@ -153,7 +152,7 @@ class QueryDialog(medipy.gui.base.Panel):
                     patient_item = self.tree.AppendItem(self.root,text=patient)
                     study_item = self.tree.AppendItem(patient_item,text=study)
                     serie_item = self.tree.AppendItem(study_item,text=serie)
-                    self.tree.SetItemPyData(patient_item,'patient_id')
+                    self.tree.SetItemPyData(patient_item,'patients_name')
                     self.tree.SetItemPyData(study_item,'study_description')
                     self.tree.SetItemPyData(serie_item,'series_description')
                                             
@@ -174,17 +173,39 @@ class QueryDialog(medipy.gui.base.Panel):
                 patient_item = self.tree.AppendItem(self.root,text=patient)
                 study_item = self.tree.AppendItem(patient_item,text=study)
                 serie_item = self.tree.AppendItem(study_item,text=serie)
-                self.tree.SetItemPyData(patient_item,'patient_id')
+                self.tree.SetItemPyData(patient_item,'patients_name')
                 self.tree.SetItemPyData(study_item,'study_description')
                 self.tree.SetItemPyData(serie_item,'series_description')
             
-            for row,header in enumerate(self.tree_headers):       
-                self.tree.SetItemText(serie_item,dataset[header].value,row+1)
+            self.SetInformation(patient_item,dataset)
+            self.SetInformation(study_item,dataset)
+            self.SetInformation(serie_item,dataset)
             
             self.tree.SortChildren(self.root)
             self.tree.SortChildren(patient_item)
             self.tree.SortChildren(study_item)
             self.tree.SortChildren(serie_item)
+  
+    def SetInformation(self,item,dataset):
+        date = str(dataset['patients_birth_date'].value)
+        date = date[6:]+'/'+date[4:6]+'/'+date[:4]
+        if self.tree.GetItemPyData(item)=='patients_name':
+            self.tree.SetItemText(item,str(dataset['patients_sex'].value),1)
+            self.tree.SetItemText(item,date,2)
+        
+        elif self.tree.GetItemPyData(item)=='study_description':
+            date = str(dataset['study_date'].value)
+            date = date[6:]+'/'+date[4:6]+'/'+date[:4]
+            hour = str(dataset['study_time'].value)
+            hour = hour[:2]+':'+hour[2:4]+':'+hour[4:6]
+            self.tree.SetItemText(item,date,1)
+            self.tree.SetItemText(item,hour,2)
+            self.tree.SetItemText(item,str(dataset['modalities_in_study'].value),3)
+        
+        else:
+            self.tree.SetItemText(item,
+               str(dataset['number_of_series_related_instances'].value)+' images',1)
+            self.tree.SetItemText(item,str(dataset['modality'].value),2)
 
     def ItemQuery(self,item):
         """ Build query (dictionary) based on treectrl item
@@ -387,7 +408,6 @@ class QueryDialog(medipy.gui.base.Panel):
         
         for item in self.tree.GetSelections():
             list_queries = self.ItemQuery(item)
-            print "queries : ",list_queries
             for queries in list_queries:
                 #Query for any useful uid
                 query = medipy.io.dicom.DataSet(**queries)
