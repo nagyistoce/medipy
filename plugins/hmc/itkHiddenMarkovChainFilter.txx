@@ -130,7 +130,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
         }
     }*/
 
-    std::cout<<"Start !!!"<<std::endl;
+    //std::cout<<"Start !!!"<<std::endl;
 
     //Input iterators construction and input images reading 
     typename PathType::Pointer hilbert_path = PathType::New(); //Creation of hilbert-peano iterator
@@ -165,7 +165,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
 
 
     //Chains creation
-    std::cout<<"Chain creation"<<std::endl;
+    //std::cout<<"Chain creation"<<std::endl;
     std::vector< std::vector<double> > Chain;
     std::vector< std::vector<double> > Chain_Atlas;
  
@@ -175,7 +175,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
 
 
     //Chain initialisation
-    std::cout<<"Chain initialisation"<<std::endl;    
+    //std::cout<<"Chain initialisation"<<std::endl;    
     std::vector< std::vector<double> > Moyenne(m_Number_images, std::vector<double>(m_Number_classes, 0.));
     std::vector< std::vector< std::vector<double> > > Variance(m_Number_classes, std::vector< std::vector<double> >(m_Number_images, std::vector<double>(m_Number_images, 0.)));
     std::vector<double> Proba_ini(m_Number_classes, 0.);
@@ -187,11 +187,11 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     std::vector<unsigned int> Chain_outliers(Chain.size(), 0);
 
     //Expectation-Maximization
-    std::cout<<"Expectation-Maximization"<<std::endl;        
+    //std::cout<<"Expectation-Maximization"<<std::endl;        
     Chain_EM(Chain, Chain_Atlas, Moyenne, Variance, Proba_ini, aij, Chain_seg, Chain_outliers);
 
     //MPM
-    std::cout<<"MPM"<<std::endl;
+    //std::cout<<"MPM"<<std::endl;
     Chain_MPM(Chain, Chain_Atlas, Moyenne, Variance, Proba_ini, aij, Chain_seg, Chain_outliers);
 
 /*    std::vector<double> Chain_seg(Chain.size(), 0);
@@ -203,7 +203,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     
 
     //Output iterators construction nad output images generation
-    std::cout<<"Images reconstruction"<<std::endl;
+    //std::cout<<"Images reconstruction"<<std::endl;
     typename OutputImageType::Pointer output_seg_image = this->GetOuputSegImage();
     output_seg_image->SetRegions(this->GetInputImage(0)->GetLargestPossibleRegion());
     output_seg_image->Allocate();
@@ -259,7 +259,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
         ++output_seg_it;
     }*/
 
-    std::cout<<"End !!!"<<std::endl;
+    //std::cout<<"End !!!"<<std::endl;
 
 }
 
@@ -626,7 +626,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
 
 
     //K-means//
-    std::cout<<"K-means"<<std::endl;
+    //std::cout<<"K-means"<<std::endl;
 
     //Centroid creation
     std::vector< std::vector<double> > Centroids(m_Number_classes, std::vector<double>(2 * m_Number_images, 0.));
@@ -711,7 +711,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
 
     }
 
-    std::cout<<"iter = "<<iter<<std::endl;
+    //std::cout<<"iter = "<<iter<<std::endl;
 
     for(classe1=0; classe1<m_Number_classes; classe1++){
         for(mod1=0; mod1<m_Number_images; mod1++){
@@ -780,7 +780,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
     change = 1000.;
     while((iter<m_Number_iter) && (change>0.01)){
 
-        std::cout<<"iteration = "<<iter+1<<std::endl;
+        //std::cout<<"iteration = "<<iter+1<<std::endl;
 
         //Forward probabilities estimation//
         normalisation = 0.;
@@ -810,7 +810,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
             if(normalisation!=0.){
                 Forward[classe1][0] /= normalisation;
             }else{
-                std::cout<<"Division by zero in Forward estimation"<<std::endl;
+                //std::cout<<"Division by zero in Forward estimation"<<std::endl;
                 Forward[classe1][0] = 1. / m_Number_classes;
             }
         }
@@ -849,7 +849,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
                 if(normalisation!=0.){
                     Forward[classe1][length_Chain] /= normalisation;
                 }else{
-                    std::cout<<"Division by zero in Forward estimation"<<std::endl;
+                    //std::cout<<"Division by zero in Forward estimation"<<std::endl;
                     Forward[classe1][length_Chain] = 1. / m_Number_classes;
                 }
             }
@@ -903,7 +903,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
                 if(normalisation!=0.){
                     Backward[classe1][length_Chain] /= normalisation;
                 }else{
-                    std::cout<<"Division by zero in Forward estimation"<<std::endl;
+                    //std::cout<<"Division by zero in Forward estimation"<<std::endl;
                     Backward[classe1][length_Chain] = 1. / sqrt(m_Number_classes);
                 }
             }
@@ -964,7 +964,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
                     }
                 }
             }else{
-                std::cout<<"Division by zero in Psi estimation"<<std::endl;
+                //std::cout<<"Division by zero in Psi estimation"<<std::endl;
             } 
                 
             
@@ -1203,7 +1203,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
         aij2 = aij;
         Proba_ini2 = Proba_ini;
         
-        std::cout<<"\tchange = "<<change<<std::endl;
+        //std::cout<<"\tchange = "<<change<<std::endl;
 
         iter++;
 
@@ -1255,7 +1255,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
         if(normalisation!=0.){
             Forward[classe1][0] /= normalisation;
         }else{
-            std::cout<<"Division by zero in Forward estimation"<<std::endl;
+            //std::cout<<"Division by zero in Forward estimation"<<std::endl;
             Forward[classe1][0] = 1. / m_Number_classes;
         }
     }
@@ -1294,7 +1294,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
             if(normalisation!=0.){
                 Forward[classe1][length_Chain] /= normalisation;
             }else{
-                std::cout<<"Division by zero in Forward estimation"<<std::endl;
+                //std::cout<<"Division by zero in Forward estimation"<<std::endl;
                 Forward[classe1][length_Chain] = 1. / m_Number_classes;
             }
         }
@@ -1349,7 +1349,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
             if(normalisation!=0.){
                 Backward[classe1][length_Chain] /= normalisation;
             }else{
-                std::cout<<"Division by zero in Forward estimation"<<std::endl;
+                //std::cout<<"Division by zero in Forward estimation"<<std::endl;
                 Backward[classe1][length_Chain] = 1. / sqrt(m_Number_classes);
             }
         }
@@ -1473,7 +1473,7 @@ HiddenMarkovChainFilter<TInputImage, TOutputImage>
             break;
 
         default:
-            std::cout<<"Not implemented"<<std::endl;
+            //std::cout<<"Not implemented"<<std::endl;
             break;
     }
     return res;
