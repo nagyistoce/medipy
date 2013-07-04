@@ -18,9 +18,32 @@ import medipy.io.dicom
 from SCU import SCU
 
 class Move(SCU):
-
+    """ The Move SCU retrieves data from a source DICOM node to a destination 
+        node. This SCU has four parameters :
+        
+            * the highest-level object that is returned (:attr:`root`)
+            * the hierarchy level at which the query is made (:attr:`query_level`)
+            * the destination AE title (:attr:`move_destination`)
+            * the query parameters (:attr:`query_parameters`)
+        
+        The following example retrieves all the DataSets for each patient whose 
+        name begins by `L` ::
+        
+            connection = medipy.io.dicom.Connection("pacs.example.com", 104, "MY_MACHINE", "REMOTE_PACS")
+            
+            query = medipy.io.dicom.DataSet()
+            query.patients_name = medipy.io.dicom.PN("L*")
+            query.patient_id = medipy.io.dicom.LO(None)
+            
+            find = medipy.network.dicom.scu.Find(connection, "patient", "patient", "MY_MACHINE", query)
+            results = find()
+        
+        For this SCU to succeed, the destination node must be known by the 
+        source node.
+    """
+    
     def __init__(self, connection, root="patient", query_level="patient",
-        move_destination=None, query_parameters=None) :
+                 move_destination=None, query_parameters=None) :
 
         SCU.__init__(self, connection)
         

@@ -35,6 +35,8 @@ Multiresolution rigid registration
                     8 : IM NORM MAES2
                     9 : Entropie conjointe
                     10 : Correlation ratio
+                    11 : ICP
+                    12 : ICP sym
     
     inter_type : interpolation method
                     0 : nearest
@@ -148,7 +150,7 @@ MEDIMAX_FUNCTION_MACRO(SimilarityMeasure3d,
 **  Bspline Registration
 *******************************************************************************/
 
-int BsplineRegistration3d(grphic3d *imref, grphic3d *imreca, grphic3d *imres,int dist_type,int reg_type,double reg_factor,int min_type,int save_type,char *nomfichres,int resolf, double Jmin,double Jmax,int normalisation_type, int nb_classe,int biais, int symetrique);
+int BsplineRegistration3d(grphic3d *imref, grphic3d *imreca, grphic3d *imres,int dist_type,int reg_type,double reg_factor,int min_type,int save_type,char *nomfichres,int resolf, double Jmin,double Jmax,int normalisation_type, int nb_classe,int biais, int symetrique, float ponderation);
 
 MEDIMAX_FUNCTION_MACRO(BsplineRegistration3d,
 """ Bspline-based topology preserving registration method
@@ -238,8 +240,10 @@ MEDIMAX_FUNCTION_MACRO(BsplineRegistration3d,
     symetrique : Use symmetric pairwise registration ?
                     0 : No
                     1 : Yes
+    
+    ponderation : weighting factor used during symmetric registration
                     
-""", imres.data=numpy.ndarray(shape=imref.shape, dtype=imref.dtype);imres.copy_information(imref), imref, imreca, imres, dist_type, reg_type, reg_factor, min_type, save_type, nomfichres, resolf, Jmin, Jmax, normalisation_type, nb_classe, biais, symetrique)
+""", imres.data=numpy.ndarray(shape=imref.shape, dtype=imref.dtype);imres.copy_information(imref), imref, imreca, imres, dist_type, reg_type, reg_factor, min_type, save_type, nomfichres, resolf, Jmin, Jmax, normalisation_type, nb_classe, biais, symetrique, ponderation)
 
 #-------------------------------------------------------------
 #   Combine two transf_3d
@@ -340,4 +344,45 @@ MEDIMAX_FUNCTION_MACRO(VisuTrfFile,
                     3 : y displacement field
                     4 : z displacement field
 """,,nomfichier, output, type)
+
+#-------------------------------------------------------------
+#   Atrophy simulation
+#-------------------------------------------------------------
+
+void simulationAtrophie(grphic3d *imref,grphic3d *mask, char *nomfichres, int resolf, float lambda_reg);
+MEDIMAX_FUNCTION_MACRO(simulationAtrophie,
+""" Atrophhy simulation
+
+    imref  : image of desired atrophy rate
+    mask   : mask of invariant points
+    nomfichres  : trf filename
+    resolf : final resolution 
+    lambda : regularisation weighting factor               
+""",,imref, mask, nomfichres, resolf, lambda_reg)
+
+#-------------------------------------------------------------
+#   Apply a transf_3d to a deformation field
+#-------------------------------------------------------------
+
+int warpDeformationField(char *nomfichierTrfSrc, char *nomfichierTrfApply, char *nomfichierTrfRes, int inter_type);
+MEDIMAX_FUNCTION_MACRO(warpDeformationField,
+""" Warp a deformation field according to a .trf file
+
+    nomfichierTrfSrc       : .trf file to warp
+    nomfichierTrfApply  : .trf file to apply
+    nomfichierTrfRes       : resulting .trf file
+    inter_type  : interpolation method
+                    0 : nearest
+                    1 : linear
+                    2 : sin card
+                    3 : quick sin card2
+                    4 : quick sin card3 
+                    5 : bspline 2
+                    6 : bspline 3
+                    7 : bspline 4
+                    8 : bspline 5
+                    9 : label (for labeled image only)
+
+""", , nomfichierTrfSrc, nomfichierTrfApply, nomfichierTrfRes, inter_type)
+
 

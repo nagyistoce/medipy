@@ -7,17 +7,17 @@
  ************************************************************************/
 
 /******************************************************************************
-**/	
-/*!	\file:		chps_3d.c
+**/ 
+/*! \file:      chps_3d.c
 ***
-***	project:	Imagix 1.01
-***			
+*** project:    Imagix 1.01
+***         
 ***
-***	\brief description:    Fichier de gestion et de traitement des champs 3D
-***	
-***	
-***	Copyright (c) 1993, ULP-IPB Strasbourg.                                            
-***	All rights are reserved.
+*** \brief description:    Fichier de gestion et de traitement des champs 3D
+*** 
+*** 
+*** Copyright (c) 1993, ULP-IPB Strasbourg.                                            
+*** All rights are reserved.
 ***
 ***
 ********************************************************************************/
@@ -25,7 +25,7 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include <math.h>
-#include <string.h> 	
+#include <string.h>     
 #include <time.h>
 
 
@@ -66,7 +66,7 @@
 */
 /*!                                                                   
 **     Creation et allocation memoire d'une structure champ pour les 
-**	tailles specifiees en parametres  
+**  tailles specifiees en parametres  
 **  \param  wdth, hght, dpth : taille du champ
 **  \retval field3d, le champ alloue, exit(1) si echec
 *******************************************************************************/
@@ -114,8 +114,8 @@ field3d *cr_field3d(int wdth, int hght, int dpth)
 
 
 **     liberation memoire d'une structure champ:
-**	 \param ch: champ a liberer
-**	 \retval 1
+**   \param ch: champ a liberer
+**   \retval 1
 *******************************************************************************/
  int free_field3d(field3d *ch)
 {
@@ -141,7 +141,7 @@ field3d *cr_field3d(int wdth, int hght, int dpth)
 /*!     Creation et allocation memoire d'une structure transf3d
 **     si t_ini!=NULL allocation et remplissage de la chaine de caractere trans_ini
 **
-**	\param wdth, hght,dpth : taille
+**  \param wdth, hght,dpth : taille
 **  \param t_ini : transformation initial ?
 **  \retval transf3d : la structure transf3d CALLOC'e, liberable avec free_transf3d()
 *******************************************************************************/
@@ -170,7 +170,7 @@ transf3d *cr_transf3d(int wdth, int hght, int dpth, char *t_ini)
 /*!     Creation et allocation memoire d'une structure transf3d
 **     si t_ini!=NULL allocation et remplissage de la chaine de caractere trans_ini
 **
-**	\param imref : taille et dimension
+**  \param imref : taille et dimension
 **  \param t_ini : transformation initial ?
 **  \retval transf3d : la structure transf3d CALLOC'e, liberable avec free_transf3d()
 *******************************************************************************/
@@ -198,7 +198,7 @@ transf3d *cr_transf3d_p(grphic3d *imref, char *t_ini)
 */
 /*!     creation d'une transformation par copie
 **
-**	\param transfo_src : transformation source
+**  \param transfo_src : transformation source
 **  \retval transf3d : la transformation copie de transfo_src
 *******************************************************************************/
 transf3d *cr_copy_transf3d(transf3d *transfo_src)
@@ -228,7 +228,7 @@ transf3d *cr_copy_transf3d(transf3d *transfo_src)
 */                                                                   
 /*!
 **     liberation memoire d'une structure transf3d
-**	\param tr : la strucuture a liberer
+**  \param tr : la strucuture a liberer
 **  \retval 1 si succes, 0 si echec.
 *******************************************************************************/
 int free_transf3d(transf3d *tr)
@@ -267,18 +267,18 @@ int free_transf3d(transf3d *tr)
 *******************************************************************************/
 
 /*******************************************************************************
-** 	oper_field_3d(champ1,champ2,champres)                                   
+**  oper_field_3d(champ1,champ2,champres)                                   
 **                                                                   
-**	Cette fonction permet de calculer le champ resultat d'un operation entre
-**	deux champs contenus dans des fichiers (trf ou chp)
-**	Les resultat est mis dans un fichier chp       
+**  Cette fonction permet de calculer le champ resultat d'un operation entre
+**  deux champs contenus dans des fichiers (trf ou chp)
+**  Les resultat est mis dans un fichier chp       
 *******************************************************************************/
-void	oper_field_3d(void)
+void    oper_field_3d(void)
 {
 char  nomfich1[500],nomfich2[500],nomfichres[500],str[500],*quest[10];
 field3d *ch1=NULL,*ch2=NULL,*chres;
 transf3d *transfo1,*transfo2,*transfores;
-int	e=0,oper_type,i;
+int e=0,oper_type,i;
 TDimension wdth,hght,dpth;
 float coeff=0;
 double dx,dy,dz;
@@ -290,12 +290,12 @@ int res=0;
   strcpy(quest[0],TEXT0075);
   strcpy(quest[1],TEXT0076);
   strcpy(quest[2],"Combinaison");
-	strcpy(quest[3],"Division par un scalaire");
-	strcpy(quest[4],"Carre");
-	strcpy(quest[5],"Racine Carre");
-	strcpy(quest[6],"\0");
+    strcpy(quest[3],"Division par un scalaire");
+    strcpy(quest[4],"Carre");
+    strcpy(quest[5],"Racine Carre");
+    strcpy(quest[6],"\0");
   
-	oper_type=GETV_QCM("Format d'enregistrement",(char **)quest);
+    oper_type=GETV_QCM("Format d'enregistrement",(char **)quest);
   for(i=0;i<10;i++)
     free(quest[i]);
 
@@ -309,7 +309,7 @@ int res=0;
   {PUT_ERROR("This file contains no 3D transformation");return;}
 
 if (oper_type<3)
-	{
+    {
  /*lecture du deuxieme champ*/
  strcpy(nomfich2,GET_FILE("Deuxieme fichier trf",&e));
  if(e != 0)
@@ -318,16 +318,16 @@ if (oper_type<3)
 
  if ((test_fichier_transf_3d(nomfich2))!=1) 
   {PUT_ERROR("This file contains no 3D transformation");return;}
-	}
+    }
 
 
 if (oper_type==3)
-	{
-	while (coeff==0)
-		coeff=GET_FLOAT("coefficient", 1, &e);
-	}
-	
-	
+    {
+    while (coeff==0)
+        coeff=GET_FLOAT("coefficient", 1, &e);
+    }
+    
+    
  /*nom du fichier resultat*/
  sprintf(str,"File ? in %s",_CurrentPath);
  strcpy(nomfichres,SAVE_FILE(str,NULL,&e));
@@ -345,29 +345,29 @@ if (oper_type==3)
      ch2=transf_to_field_3d(transfo2,NULL,NULL);
 
      dx=transfo1->dx;
-		 dy=transfo1->dy;
-		 dz=transfo1->dz;
-	
-		 /*verification de la compatibilite de taille des champs*/
+         dy=transfo1->dy;
+         dz=transfo1->dz;
+    
+         /*verification de la compatibilite de taille des champs*/
      wdth=ch1->width;hght=ch1->height;dpth=ch1->depth;
- 		if (transfo2->dx!=transfo1->dx || transfo2->dy!=transfo1->dy || transfo2->dz!=transfo1->dz)
+        if (transfo2->dx!=transfo1->dx || transfo2->dy!=transfo1->dy || transfo2->dz!=transfo1->dz)
      {
       PUT_ERROR("The two fields have not the same dx,dy,dz");
       free_field3d(ch1);free_field3d(ch2);
       return;
      }
   
-		 
-		 free_transf3d(transfo1);
+         
+         free_transf3d(transfo1);
      free_transf3d(transfo2);
 
 
-		 /*verification de la compatibilite des dx dy dz*/
+         /*verification de la compatibilite des dx dy dz*/
     
 
      
-		
-		
+        
+        
      if (ch2->width!=(int)wdth || ch2->height!=(int)hght || ch2->depth!=(int)dpth)
      {
       PUT_ERROR("The two fields have not the same size");
@@ -390,10 +390,10 @@ if (oper_type==3)
      /*enregistrement du champ resultat*/
      transfo1=field_to_transf_3d(chres,NULL,NULL);
      transfo1->dx=dx;
-		 transfo1->dy=dy;
-		 transfo1->dz=dz;
-		 
-		 save_transf_3d(transfo1,nomfichres);
+         transfo1->dy=dy;
+         transfo1->dz=dz;
+         
+         save_transf_3d(transfo1,nomfichres);
      free_transf3d(transfo1);
      
      /* Libere memoire allouee */
@@ -414,7 +414,7 @@ if (oper_type==3)
         PUT_ERROR("The two fields have not the same size");
         return;
        }
-			
+            
      }
      transfores=cr_transf3d(transfo2->width,transfo2->height,transfo2->depth,NULL);
 
@@ -429,22 +429,22 @@ if (oper_type==3)
      /*allocation du champ resultat*/
 //     }
        
-				
-				
-			if((transfo1->typetrans == CHAMP3D)||(transfo1->typetrans == CHAMPVOXEL3D))
-				{char *query[100];  
-				
-				query[0]="nearest";
-				query[1]="linear";
-				query[2]="bspline 2";
-				query[3]="bspline 3";
-				query[4]="bspline 4";
-				query[5]="bspline 5";
-				query[6]="\0";
-				query[7]=NULL;
-				res=GETV_QCM("Interpolation",(char **)query);
-				}
-				 
+                
+                
+            if((transfo1->typetrans == CHAMP3D)||(transfo1->typetrans == CHAMPVOXEL3D))
+                {char *query[100];  
+                
+                query[0]="nearest";
+                query[1]="linear";
+                query[2]="bspline 2";
+                query[3]="bspline 3";
+                query[4]="bspline 4";
+                query[5]="bspline 5";
+                query[6]="\0";
+                query[7]=NULL;
+                res=GETV_QCM("Interpolation",(char **)query);
+                }
+                 
      comb_transf_3d(transfo1,transfo2,transfores,res);
      
      /*enregistrement du champ resultat*/
@@ -453,24 +453,24 @@ if (oper_type==3)
      /* Libere memoire allouee */
      free_transf3d(transfo1); free_transf3d(transfo2);free_transf3d(transfores);
      break;
-   	case 3 :   /*   division par un coeff */
+    case 3 :   /*   division par un coeff */
      /*lecture des champ*/
      transfo1=load_transf_3d(nomfich1);
      ch1=transf_to_field_3d(transfo1,NULL,NULL);
-			
-		  dx=transfo1->dx;
-		 dy=transfo1->dy;
-		 dz=transfo1->dz;  
+            
+          dx=transfo1->dx;
+         dy=transfo1->dy;
+         dz=transfo1->dz;  
      wdth=transfo1->width;hght=transfo1->height;dpth=transfo1->depth;
      chres=cr_field3d(wdth,hght,dpth);
     
-		 div_field_3d(ch1,chres,coeff);
+         div_field_3d(ch1,chres,coeff);
     
-		 transfo1=field_to_transf_3d(chres,NULL,NULL);
+         transfo1=field_to_transf_3d(chres,NULL,NULL);
      transfo1->dx=dx;
-		 transfo1->dy=dy;
-		 transfo1->dz=dz;
-		 
+         transfo1->dy=dy;
+         transfo1->dz=dz;
+         
      /*enregistrement du champ resultat*/
      save_transf_3d(transfo1,nomfichres);
      
@@ -478,51 +478,51 @@ if (oper_type==3)
      free_transf3d(transfo1); free_field3d(ch1);free_field3d(chres);
      break;
 
-	   	case 4 :   /*   mise au carr� */
+        case 4 :   /*   mise au carr� */
      
-		 /*lecture des champ*/
+         /*lecture des champ*/
      transfo1=load_transf_3d(nomfich1);
      ch1=transf_to_field_3d(transfo1,NULL,NULL);
-  		dx=transfo1->dx;
-		 dy=transfo1->dy;
-		 dz=transfo1->dz;
+        dx=transfo1->dx;
+         dy=transfo1->dy;
+         dz=transfo1->dz;
      wdth=transfo1->width;hght=transfo1->height;dpth=transfo1->depth;
      chres=cr_field3d(wdth,hght,dpth);
     
-		 square_field_3d(ch1,chres);
+         square_field_3d(ch1,chres);
     
-		 transfo1=field_to_transf_3d(chres,NULL,NULL);
+         transfo1=field_to_transf_3d(chres,NULL,NULL);
      
-		 transfo1->dx=dx;
-		 transfo1->dy=dy;
-		 transfo1->dz=dz;
-		 
+         transfo1->dx=dx;
+         transfo1->dy=dy;
+         transfo1->dz=dz;
+         
      /*enregistrement du champ resultat*/
      save_transf_3d(transfo1,nomfichres);
      
      /* Libere memoire allouee */
      free_transf3d(transfo1); free_field3d(ch1);free_field3d(chres);
      break;
-		 
-		 	case 5 :   /*   racine carr� */
+         
+            case 5 :   /*   racine carr� */
      
-		 /*lecture des champ*/
+         /*lecture des champ*/
      transfo1=load_transf_3d(nomfich1);
      ch1=transf_to_field_3d(transfo1,NULL,NULL);
-  		dx=transfo1->dx;
-		 dy=transfo1->dy;
-		 dz=transfo1->dz;
+        dx=transfo1->dx;
+         dy=transfo1->dy;
+         dz=transfo1->dz;
      wdth=transfo1->width;hght=transfo1->height;dpth=transfo1->depth;
      chres=cr_field3d(wdth,hght,dpth);
     
-		 rootsquare_field_3d(ch1,chres);
+         rootsquare_field_3d(ch1,chres);
     
-		 transfo1=field_to_transf_3d(chres,NULL,NULL);
+         transfo1=field_to_transf_3d(chres,NULL,NULL);
      
-		 transfo1->dx=dx;
-		 transfo1->dy=dy;
-		 transfo1->dz=dz;
-		 
+         transfo1->dx=dx;
+         transfo1->dy=dy;
+         transfo1->dz=dz;
+         
      /*enregistrement du champ resultat*/
      save_transf_3d(transfo1,nomfichres);
      
@@ -531,23 +531,23 @@ if (oper_type==3)
      break;
     
   } 
-}	
+}   
 
 
 
 /*******************************************************************************
-** 	add_field_3d(champ1,champ2,champres)                                   
+**  add_field_3d(champ1,champ2,champres)                                   
 */                                                                   
-/*!	Addition de deux champs de deformations
-**	Les champs sont supposes alloues avant l'appel de la fonction          
-**	\param champ1 : champres = champs1+champ2
+/*! Addition de deux champs de deformations
+**  Les champs sont supposes alloues avant l'appel de la fonction          
+**  \param champ1 : champres = champs1+champ2
 **  \param champ2 : champres = champs1+champ2
-**	\param champres : champres = champs1+champ2
+**  \param champres : champres = champs1+champ2
 **  \retval 1 si reussite, 0 si echec
 *******************************************************************************/
-int	add_field_3d(field3d *champ1, field3d *champ2, field3d *champres)
+int add_field_3d(field3d *champ1, field3d *champ2, field3d *champres)
 {
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  vector3d ***data1,***data2,***datares;
  
  wdth=champ1->width;hght=champ1->height;dpth=champ1->depth;
@@ -571,18 +571,18 @@ int	add_field_3d(field3d *champ1, field3d *champ2, field3d *champres)
 }
 
 /*******************************************************************************
-** 	sub_field_3d(champ1,champ2,champres)                                   
+**  sub_field_3d(champ1,champ2,champres)                                   
 */
 /*!                                                                   
-**	Soustraction de deux champs de deformations champres=champ1-champ2
-**	Les champs sont supposes alloues avant l'appel de la fonction 
+**  Soustraction de deux champs de deformations champres=champ1-champ2
+**  Les champs sont supposes alloues avant l'appel de la fonction 
 **  \param champ1, champ2 : champ1 - champ2
-**	\param champres : le champ resultant (E/S)
+**  \param champres : le champ resultant (E/S)
 **  \retval 1 si reussite , 0 si echec         
 *******************************************************************************/
-int	sub_field_3d(field3d *champ1, field3d *champ2, field3d *champres)
+int sub_field_3d(field3d *champ1, field3d *champ2, field3d *champres)
 {
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  vector3d ***data1,***data2,***datares;
  
  wdth=champ1->width;hght=champ1->height;dpth=champ1->depth;
@@ -607,15 +607,15 @@ int	sub_field_3d(field3d *champ1, field3d *champ2, field3d *champres)
 }
 
 /*******************************************************************************
-** 	div_field_3d(champ1,champres,coeff)                                   
+**  div_field_3d(champ1,champres,coeff)                                   
 */                                                                   
-/*!	division d'un champ de transfo par u coeff
-**	Les champs sont supposes alloues avant l'appel de la fonction          
+/*! division d'un champ de transfo par u coeff
+**  Les champs sont supposes alloues avant l'appel de la fonction          
 **  \retval 1 si reussite, 0 si echec
 *******************************************************************************/
-int	div_field_3d(field3d *champ1, field3d *champres, float coeff)
+int div_field_3d(field3d *champ1, field3d *champres, float coeff)
 {
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  vector3d ***data1,***datares;
  
  wdth=champ1->width;hght=champ1->height;dpth=champ1->depth;
@@ -636,15 +636,15 @@ int	div_field_3d(field3d *champ1, field3d *champres, float coeff)
 }
 
 /*******************************************************************************
-** 	mul_field_3d(champ1,champres,coeff)                                   
+**  mul_field_3d(champ1,champres,coeff)                                   
 */                                                                   
-/*!	Multiplication d'un champ de transfo par u coeff
-**	Les champs sont supposes alloues avant l'appel de la fonction          
+/*! Multiplication d'un champ de transfo par u coeff
+**  Les champs sont supposes alloues avant l'appel de la fonction          
 **  \retval 1 si reussite, 0 si echec
 *******************************************************************************/
-int	mul_field_3d(field3d *champ1, field3d *champres, float coeff)
+int mul_field_3d(field3d *champ1, field3d *champres, float coeff)
 {
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  vector3d ***data1,***datares;
  
  wdth=champ1->width;hght=champ1->height;dpth=champ1->depth;
@@ -666,15 +666,15 @@ int	mul_field_3d(field3d *champ1, field3d *champres, float coeff)
 
 
 /*******************************************************************************
-** 	square_field_3d(champ1,champres,coeff)                                   
+**  square_field_3d(champ1,champres,coeff)                                   
 */                                                                   
-/*!	division d'un champ de transfo par u coeff
-**	Les champs sont supposes alloues avant l'appel de la fonction          
+/*! division d'un champ de transfo par u coeff
+**  Les champs sont supposes alloues avant l'appel de la fonction          
 **  \retval 1 si reussite, 0 si echec
 *******************************************************************************/
-int	square_field_3d(field3d *champ1, field3d *champres)
+int square_field_3d(field3d *champ1, field3d *champres)
 {
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  vector3d ***data1,***datares;
  
  wdth=champ1->width;hght=champ1->height;dpth=champ1->depth;
@@ -695,15 +695,15 @@ int	square_field_3d(field3d *champ1, field3d *champres)
 }
 
 /*******************************************************************************
-** 	rootsquare_field_3d(champ1,champres,coeff)                                   
+**  rootsquare_field_3d(champ1,champres,coeff)                                   
 */                                                                   
-/*!	division d'un champ de transfo par u coeff
-**	Les champs sont supposes alloues avant l'appel de la fonction          
+/*! division d'un champ de transfo par u coeff
+**  Les champs sont supposes alloues avant l'appel de la fonction          
 **  \retval 1 si reussite, 0 si echec
 *******************************************************************************/
-int	rootsquare_field_3d(field3d *champ1, field3d *champres)
+int rootsquare_field_3d(field3d *champ1, field3d *champres)
 {
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  vector3d ***data1,***datares;
  
  wdth=champ1->width;hght=champ1->height;dpth=champ1->depth;
@@ -724,14 +724,14 @@ int	rootsquare_field_3d(field3d *champ1, field3d *champres)
 }
 
 /*******************************************************************************
-** 	decomposer_rotation(matrice_rot, angles_rotation)
+**  decomposer_rotation(matrice_rot, angles_rotation)
 */
 /*!
-**	retrouve les angles d'une rotation selon Ox, Oy et Oz
-**	a partir d'un matrice de rotation
-**	/!\ il n'y a pas de controle sur le fait que ce soit bien une matrice de rotation
+**  retrouve les angles d'une rotation selon Ox, Oy et Oz
+**  a partir d'un matrice de rotation
+**  /!\ il n'y a pas de controle sur le fait que ce soit bien une matrice de rotation
 **  \param matrice_rot : la matrice de rotation
-**	\param angles_rotation : le vecteur des angles alloue
+**  \param angles_rotation : le vecteur des angles alloue
 **  \retval 0 si reussite
 *******************************************************************************/
 int decomposer_rotation(double ** matrice_rot, double *angles_rotation)
@@ -761,13 +761,13 @@ int decomposer_rotation(double ** matrice_rot, double *angles_rotation)
 }
 
 /*******************************************************************************
-** 	composer_rotation (rotation1, rotation2, rotation_res)
+**  composer_rotation (rotation1, rotation2, rotation_res)
 */
 /*!
-**	retrouve les angles d'une rotation selon Ox, Oy et Oz
-**	issue de la composee de 2 rotations
+**  retrouve les angles d'une rotation selon Ox, Oy et Oz
+**  issue de la composee de 2 rotations
 **  \param rotation1, rotation2 : les rotations a composer
-**	\param rotation_res : le vecteur des angles resultant
+**  \param rotation_res : le vecteur des angles resultant
 **  \retval 0 si reussite
 *******************************************************************************/
 int composer_rotation (double *rotation1, double *rotation2, double *rotation_res)
@@ -804,11 +804,11 @@ int composer_rotation (double *rotation1, double *rotation2, double *rotation_re
 }
 
 /*******************************************************************************
-** 	comb_transf_3d(transfo2,transfo1,transfores)                                   
+**  comb_transf_3d(transfo2,transfo1,transfores)                                   
 
 **                                                                   
-**	\brief Combinaison de deux champs de deformations
-**	Les champs sont supposes alloues avant l'appel de la fonction          
+**  \brief Combinaison de deux champs de deformations
+**  Les champs sont supposes alloues avant l'appel de la fonction          
 **
 **  \param transfo2,transfo1 : transformation a combiner
 **  \param transfores : la transformation resultante (doit etre allouee)
@@ -846,248 +846,248 @@ imreca->width=transfo2->width ; imreca->height=transfo2->height ; imreca->depth=
 
 
 if (typetrans1==RIGID3D && typetrans2==RIGID3D)
-	{
-	// ***************************************************
-	// Le resultat est une transformation de type RIGID3D 
-	// ***************************************************
-	
-	// recuperation des parametres de la transformation
-	tetax1=transfo1->param[0];tetay1=transfo1->param[1];tetaz1=transfo1->param[2];
-	tx1=transfo1->param[3];ty1=transfo1->param[4];tz1=transfo1->param[5];
-	xc1=transfo1->param[6];yc1=transfo1->param[7];zc1=transfo1->param[8];
-	
-	tetax2=transfo2->param[0];tetay2=transfo2->param[1];tetaz2=transfo2->param[2];
-	tx2=transfo2->param[3];ty2=transfo2->param[4];tz2=transfo2->param[5];
-	xc2=transfo2->param[6];yc2=transfo2->param[7];zc2=transfo2->param[8];
-		
-	// Mise a jour du nombre de parametres et du type de transformation
-	transfores->nb_param=9;
-	transfores->typetrans=RIGID3D;
+    {
+    // ***************************************************
+    // Le resultat est une transformation de type RIGID3D 
+    // ***************************************************
+    
+    // recuperation des parametres de la transformation
+    tetax1=transfo1->param[0];tetay1=transfo1->param[1];tetaz1=transfo1->param[2];
+    tx1=transfo1->param[3];ty1=transfo1->param[4];tz1=transfo1->param[5];
+    xc1=transfo1->param[6];yc1=transfo1->param[7];zc1=transfo1->param[8];
+    
+    tetax2=transfo2->param[0];tetay2=transfo2->param[1];tetaz2=transfo2->param[2];
+    tx2=transfo2->param[3];ty2=transfo2->param[4];tz2=transfo2->param[5];
+    xc2=transfo2->param[6];yc2=transfo2->param[7];zc2=transfo2->param[8];
+        
+    // Mise a jour du nombre de parametres et du type de transformation
+    transfores->nb_param=9;
+    transfores->typetrans=RIGID3D;
   transfores->dx = transfo1->dx;transfores->dy = transfo1->dy;transfores->dz = transfo1->dz;
 
   if (transfores->param) FREE(transfores->param);
-	param=CALLOC(9,double);
- 	transfores->param=param;
-	
-	// Mise a jour des angles
+    param=CALLOC(9,double);
+    transfores->param=param;
+    
+    // Mise a jour des angles
  rotation1[0]=tetax1; rotation1[1]=tetay1; rotation1[2]=tetaz1;
  rotation2[0]=tetax2; rotation2[1]=tetay2; rotation2[2]=tetaz2;
  composer_rotation (rotation2, rotation1, rotation_res);
  param[0]=rotation_res[0]; param[1]=rotation_res[1]; param[2]=rotation_res[2];
-	
-	// Mise a jour du centre de rotation 
-	param[6]=xc1;
-	param[7]=yc1;
-	param[8]=zc1;
-	
-	// Calcul de la translation resultante
-	cxx=cos(tetax2);sxx=sin(tetax2);cyy=cos(tetay2);syy=sin(tetay2);czz=cos(tetaz2);szz=sin(tetaz2);
-  	a11=cyy*czz;a12=-cyy*szz;a13=-syy;
-  	a21=cxx*szz-sxx*syy*czz;
-  	a22=cxx*czz+sxx*syy*szz;
-  	a23=-sxx*cyy;
-  	a31=sxx*szz+cxx*syy*czz;
-  	a32=sxx*czz-cxx*syy*szz;
-  	a33=cxx*cyy;
-	
-	tx=tx1+xc1-xc2;
-	ty=ty1+yc1-yc2;
-	tz=tz1+zc1-zc2;
+    
+    // Mise a jour du centre de rotation 
+    param[6]=xc1;
+    param[7]=yc1;
+    param[8]=zc1;
+    
+    // Calcul de la translation resultante
+    cxx=cos(tetax2);sxx=sin(tetax2);cyy=cos(tetay2);syy=sin(tetay2);czz=cos(tetaz2);szz=sin(tetaz2);
+    a11=cyy*czz;a12=-cyy*szz;a13=-syy;
+    a21=cxx*szz-sxx*syy*czz;
+    a22=cxx*czz+sxx*syy*szz;
+    a23=-sxx*cyy;
+    a31=sxx*szz+cxx*syy*czz;
+    a32=sxx*czz-cxx*syy*szz;
+    a33=cxx*cyy;
+    
+    tx=tx1+xc1-xc2;
+    ty=ty1+yc1-yc2;
+    tz=tz1+zc1-zc2;
 
-	param[3]=a11*tx+a12*ty+a13*tz+tx2+xc2-xc1;
-	param[4]=a21*tx+a22*ty+a23*tz+ty2+yc2-yc1;
-	param[5]=a31*tx+a32*ty+a33*tz+tz2+zc2-zc1;
-	
-	}
-	
+    param[3]=a11*tx+a12*ty+a13*tz+tx2+xc2-xc1;
+    param[4]=a21*tx+a22*ty+a23*tz+ty2+yc2-yc1;
+    param[5]=a31*tx+a32*ty+a33*tz+tz2+zc2-zc1;
+    
+    }
+    
 else if (typetrans1==RIGIDZOOM3D && typetrans2==RIGID3D)
-	{
-	// *******************************************************
-	// Le resultat est une transformation de type RIGIDZOOM3D 
-	// *******************************************************
-	
-	// recuperation des parametres de la transformation
-	tetax1=transfo1->param[0];tetay1=transfo1->param[1];tetaz1=transfo1->param[2];
-	sx1=transfo1->param[3];sy1=transfo1->param[4];sz1=transfo1->param[5];
-	tx1=transfo1->param[6];ty1=transfo1->param[7];tz1=transfo1->param[8];
-	xc1=transfo1->param[9];yc1=transfo1->param[10];zc1=transfo1->param[11];
-	
-	tetax2=transfo2->param[0];tetay2=transfo2->param[1];tetaz2=transfo2->param[2];
-	tx2=transfo2->param[3];ty2=transfo2->param[4];tz2=transfo2->param[5];
-	xc2=transfo2->param[6];yc2=transfo2->param[7];zc2=transfo2->param[8];
-		
-	// Mise a jour du nombre de parametres et du type de transformation
-	transfores->nb_param=12;
-	transfores->typetrans=RIGIDZOOM3D;
+    {
+    // *******************************************************
+    // Le resultat est une transformation de type RIGIDZOOM3D 
+    // *******************************************************
+    
+    // recuperation des parametres de la transformation
+    tetax1=transfo1->param[0];tetay1=transfo1->param[1];tetaz1=transfo1->param[2];
+    sx1=transfo1->param[3];sy1=transfo1->param[4];sz1=transfo1->param[5];
+    tx1=transfo1->param[6];ty1=transfo1->param[7];tz1=transfo1->param[8];
+    xc1=transfo1->param[9];yc1=transfo1->param[10];zc1=transfo1->param[11];
+    
+    tetax2=transfo2->param[0];tetay2=transfo2->param[1];tetaz2=transfo2->param[2];
+    tx2=transfo2->param[3];ty2=transfo2->param[4];tz2=transfo2->param[5];
+    xc2=transfo2->param[6];yc2=transfo2->param[7];zc2=transfo2->param[8];
+        
+    // Mise a jour du nombre de parametres et du type de transformation
+    transfores->nb_param=12;
+    transfores->typetrans=RIGIDZOOM3D;
   transfores->dx = transfo1->dx;transfores->dy = transfo1->dy;transfores->dz = transfo1->dz;
 
   if (transfores->param) FREE(transfores->param);
   param=CALLOC(12,double);
- 	transfores->param=param;
-	
-	// Mise a jour des angles
+    transfores->param=param;
+    
+    // Mise a jour des angles
  rotation1[0]=tetax1; rotation1[1]=tetay1; rotation1[2]=tetaz1;
  rotation2[0]=tetax2; rotation2[1]=tetay2; rotation2[2]=tetaz2;
  composer_rotation (rotation2, rotation1, rotation_res);
  param[0]=rotation_res[0]; param[1]=rotation_res[1]; param[2]=rotation_res[2];
-	
-	// Mise a jour du centre de rotation 
-	param[9]=xc1;
-	param[10]=yc1;
-	param[11]=zc1;
-	
-	// Mise a jour des coeeficients d'echelle
-	param[3]=sx1;
-	param[4]=sy1;
-	param[5]=sz1;
-		
-	// Calcul de la translation resultante
-	cxx=cos(tetax2);sxx=sin(tetax2);cyy=cos(tetay2);syy=sin(tetay2);czz=cos(tetaz2);szz=sin(tetaz2);
-  	a11=cyy*czz;a12=-cyy*szz;a13=-syy;
-  	a21=cxx*szz-sxx*syy*czz;
-  	a22=cxx*czz+sxx*syy*szz;
-  	a23=-sxx*cyy;
-  	a31=sxx*szz+cxx*syy*czz;
-  	a32=sxx*czz-cxx*syy*szz;
-  	a33=cxx*cyy;
-	
-	tx=tx1+xc1-xc2;
-	ty=ty1+yc1-yc2;
-	tz=tz1+zc1-zc2;
-	
-	param[6]=a11*tx+a12*ty+a13*tz+tx2+xc2-xc1;
-	param[7]=a21*tx+a22*ty+a23*tz+ty2+yc2-yc1;
-	param[8]=a31*tx+a32*ty+a33*tz+tz2+zc2-zc1;
-	
-	}
-	
-else if	((typetrans1==RIGID3D && typetrans2==RIGIDZOOM3D)||(typetrans1==RIGID3D && typetrans2==AFFINE3D)||(typetrans1==RIGIDZOOM3D &&
+    
+    // Mise a jour du centre de rotation 
+    param[9]=xc1;
+    param[10]=yc1;
+    param[11]=zc1;
+    
+    // Mise a jour des coeeficients d'echelle
+    param[3]=sx1;
+    param[4]=sy1;
+    param[5]=sz1;
+        
+    // Calcul de la translation resultante
+    cxx=cos(tetax2);sxx=sin(tetax2);cyy=cos(tetay2);syy=sin(tetay2);czz=cos(tetaz2);szz=sin(tetaz2);
+    a11=cyy*czz;a12=-cyy*szz;a13=-syy;
+    a21=cxx*szz-sxx*syy*czz;
+    a22=cxx*czz+sxx*syy*szz;
+    a23=-sxx*cyy;
+    a31=sxx*szz+cxx*syy*czz;
+    a32=sxx*czz-cxx*syy*szz;
+    a33=cxx*cyy;
+    
+    tx=tx1+xc1-xc2;
+    ty=ty1+yc1-yc2;
+    tz=tz1+zc1-zc2;
+    
+    param[6]=a11*tx+a12*ty+a13*tz+tx2+xc2-xc1;
+    param[7]=a21*tx+a22*ty+a23*tz+ty2+yc2-yc1;
+    param[8]=a31*tx+a32*ty+a33*tz+tz2+zc2-zc1;
+    
+    }
+    
+else if ((typetrans1==RIGID3D && typetrans2==RIGIDZOOM3D)||(typetrans1==RIGID3D && typetrans2==AFFINE3D)||(typetrans1==RIGIDZOOM3D &&
 typetrans2==RIGIDZOOM3D)||(typetrans1==RIGIDZOOM3D && typetrans2==AFFINE3D)||(typetrans1==AFFINE3D && typetrans2==RIGID3D)||(typetrans1==AFFINE3D &&
-typetrans2==RIGIDZOOM3D)||(typetrans1==AFFINE3D && typetrans2==AFFINE3D))	
-	{
-	// ****************************************************
-	// Le resultat est une transformation de type AFFINE3D 
-	// ****************************************************
-	
-	// On se ramene a la composition de deux transformations affines par conversion des differents types de transformations 
-	
+typetrans2==RIGIDZOOM3D)||(typetrans1==AFFINE3D && typetrans2==AFFINE3D))   
+    {
+    // ****************************************************
+    // Le resultat est une transformation de type AFFINE3D 
+    // ****************************************************
+    
+    // On se ramene a la composition de deux transformations affines par conversion des differents types de transformations 
+    
 
-		param1=CALLOC(15,double);
- 		for (i=0;i<transfo1->nb_param;i++)
-		param1[i]=transfo1->param[i];
-	
-	 switch (typetrans1)
-  		{
-   		case RIGID3D: rigid_to_rigidz_3d(param1);rigidz_to_affine_3d(param1);
-   		break;
-   		case RIGIDZOOM3D: rigidz_to_affine_3d(param1);
-   		break;
-   		//case AFFINE3D:
-		default:
-   		break;
-  		}
-	
-		param2=CALLOC(15,double);
- 		for (i=0;i<transfo2->nb_param;i++)
-		param2[i]=transfo2->param[i];
-	
-	switch (typetrans2)
-  		{
-   		case RIGID3D: rigid_to_rigidz_3d(param2);rigidz_to_affine_3d(param2);
-   		break;
-   		case RIGIDZOOM3D: rigidz_to_affine_3d(param2);
-   		break;
-   		//case AFFINE3D:
-   		default:
-		break;
-  		}
-		
-	// recuperation des parametres de la transformation
-	a11=param1[0];a12=param1[1];a13=param1[2];
-	a21=param1[3];a22=param1[4];a23=param1[5];
-	a31=param1[6];a32=param1[7];a33=param1[8];
-	tx1=param1[9];ty1=param1[10];tz1=param1[11];
-	xc1=param1[12];yc1=param1[13];zc1=param1[14];
-	
-	
-	b11=param2[0];b12=param2[1];b13=param2[2];
-	b21=param2[3];b22=param2[4];b23=param2[5];
-	b31=param2[6];b32=param2[7];b33=param2[8];
-	tx2=param2[9];ty2=param2[10];tz2=param2[11];
-	xc2=param2[12];yc2=param2[13];zc2=param2[14];
-	
-	// Mise a jour du nombre de parametres et du type de transformation
-	transfores->nb_param=15;
-	transfores->typetrans=AFFINE3D;
- 	transfores->dx = transfo1->dx;transfores->dy = transfo1->dy;transfores->dz = transfo1->dz;
+        param1=CALLOC(15,double);
+        for (i=0;i<transfo1->nb_param;i++)
+        param1[i]=transfo1->param[i];
+    
+     switch (typetrans1)
+        {
+        case RIGID3D: rigid_to_rigidz_3d(param1);rigidz_to_affine_3d(param1);
+        break;
+        case RIGIDZOOM3D: rigidz_to_affine_3d(param1);
+        break;
+        //case AFFINE3D:
+        default:
+        break;
+        }
+    
+        param2=CALLOC(15,double);
+        for (i=0;i<transfo2->nb_param;i++)
+        param2[i]=transfo2->param[i];
+    
+    switch (typetrans2)
+        {
+        case RIGID3D: rigid_to_rigidz_3d(param2);rigidz_to_affine_3d(param2);
+        break;
+        case RIGIDZOOM3D: rigidz_to_affine_3d(param2);
+        break;
+        //case AFFINE3D:
+        default:
+        break;
+        }
+        
+    // recuperation des parametres de la transformation
+    a11=param1[0];a12=param1[1];a13=param1[2];
+    a21=param1[3];a22=param1[4];a23=param1[5];
+    a31=param1[6];a32=param1[7];a33=param1[8];
+    tx1=param1[9];ty1=param1[10];tz1=param1[11];
+    xc1=param1[12];yc1=param1[13];zc1=param1[14];
+    
+    
+    b11=param2[0];b12=param2[1];b13=param2[2];
+    b21=param2[3];b22=param2[4];b23=param2[5];
+    b31=param2[6];b32=param2[7];b33=param2[8];
+    tx2=param2[9];ty2=param2[10];tz2=param2[11];
+    xc2=param2[12];yc2=param2[13];zc2=param2[14];
+    
+    // Mise a jour du nombre de parametres et du type de transformation
+    transfores->nb_param=15;
+    transfores->typetrans=AFFINE3D;
+    transfores->dx = transfo1->dx;transfores->dy = transfo1->dy;transfores->dz = transfo1->dz;
 
-	if (transfores->param)
-		FREE(transfores->param);
-	transfores->param=CALLOC(15,double);
- 	param=transfores->param;
-	
-	// Mise a jour des coefficients aij
-	param[0]=b11*a11+b12*a21+b13*a31;
-	param[1]=b11*a12+b12*a22+b13*a32;
+    if (transfores->param)
+        FREE(transfores->param);
+    transfores->param=CALLOC(15,double);
+    param=transfores->param;
+    
+    // Mise a jour des coefficients aij
+    param[0]=b11*a11+b12*a21+b13*a31;
+    param[1]=b11*a12+b12*a22+b13*a32;
 
-	param[2]=b11*a13+b12*a23+b13*a33;
-	param[3]=b21*a11+b22*a21+b23*a31;
-	param[4]=b21*a12+b22*a22+b23*a32;
-	param[5]=b21*a13+b22*a23+b23*a33;
-	param[6]=b31*a11+b32*a21+b33*a31;
-	param[7]=b31*a12+b32*a22+b33*a32;
-	param[8]=b31*a13+b32*a23+b33*a33;
-	
-	
-	// Mise a jour du centre de rotation 
-	param[12]=xc1;
-	param[13]=yc1;
-	param[14]=zc1;
-	
-	// Calcul de la translation resultante
-	tx=tx1+xc1-xc2;
-	ty=ty1+yc1-yc2;
-	tz=tz1+zc1-zc2;
-	
-	param[9]=b11*tx+b12*ty+b13*tz+tx2+xc2-xc1;
-	param[10]=b21*tx+b22*ty+b23*tz+ty2+yc2-yc1;
-	param[11]=b31*tx+b32*ty+b33*tz+tz2+zc2-zc1;
-	
-	FREE(param1);FREE(param2);
+    param[2]=b11*a13+b12*a23+b13*a33;
+    param[3]=b21*a11+b22*a21+b23*a31;
+    param[4]=b21*a12+b22*a22+b23*a32;
+    param[5]=b21*a13+b22*a23+b23*a33;
+    param[6]=b31*a11+b32*a21+b33*a31;
+    param[7]=b31*a12+b32*a22+b33*a32;
+    param[8]=b31*a13+b32*a23+b33*a33;
+    
+    
+    // Mise a jour du centre de rotation 
+    param[12]=xc1;
+    param[13]=yc1;
+    param[14]=zc1;
+    
+    // Calcul de la translation resultante
+    tx=tx1+xc1-xc2;
+    ty=ty1+yc1-yc2;
+    tz=tz1+zc1-zc2;
+    
+    param[9]=b11*tx+b12*ty+b13*tz+tx2+xc2-xc1;
+    param[10]=b21*tx+b22*ty+b23*tz+ty2+yc2-yc1;
+    param[11]=b31*tx+b32*ty+b33*tz+tz2+zc2-zc1;
+    
+    FREE(param1);FREE(param2);
 
   }
 else
-	{
-	// ***************************************************
-	// Le resultat est une transformation de type CHAMP3D 
-	// ***************************************************
+    {
+    // ***************************************************
+    // Le resultat est une transformation de type CHAMP3D 
+    // ***************************************************
   //  !attention : gestion de l'anisotropie inexistante dx,dy,dz n'a pas de sens.
   
   // On convertit la premiere transformation en un champ de deplacement (en voxel)
-	ch1=transf_to_field_3d(transfo1,imref,imreca);
-	
-	// Allocation du champ resultat
-	wdth=transfo1->width;hght=transfo1->height;dpth=transfo1->depth;
-	chres=cr_field3d(wdth,hght,dpth);
-	data1=ch1->raw;
-	datares=chres->raw;
-	
-/*	// on converti ch1 en mm
-	for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   				for (k=0;k<dpth;k++)
-   				{
-					data1[i][j][k].x=data1[i][j][k].x*transfo1->dx;
-					data1[i][j][k].y=data1[i][j][k].y*transfo1->dy;
-					data1[i][j][k].z=data1[i][j][k].z*transfo1->dz;
-					
-					}
+    ch1=transf_to_field_3d(transfo1,imref,imreca);
+    
+    // Allocation du champ resultat
+    wdth=transfo1->width;hght=transfo1->height;dpth=transfo1->depth;
+    chres=cr_field3d(wdth,hght,dpth);
+    data1=ch1->raw;
+    datares=chres->raw;
+    
+/*  // on converti ch1 en mm
+    for (i=0;i<wdth;i++)
+            for (j=0;j<hght;j++)
+                for (k=0;k<dpth;k++)
+                {
+                    data1[i][j][k].x=data1[i][j][k].x*transfo1->dx;
+                    data1[i][j][k].y=data1[i][j][k].y*transfo1->dy;
+                    data1[i][j][k].z=data1[i][j][k].z*transfo1->dz;
+                    
+                    }
 */
     
-	if ((typetrans2==RIGID3D)||(typetrans2==RIGIDZOOM3D)||(typetrans2==AFFINE3D)||(typetrans2==BSPLINE3D))
-		{
-		if ((typetrans2==RIGID3D)||(typetrans2==RIGIDZOOM3D)||(typetrans2==AFFINE3D))
-		{
+    if ((typetrans2==RIGID3D)||(typetrans2==RIGIDZOOM3D)||(typetrans2==AFFINE3D)||(typetrans2==BSPLINE3D))
+        {
+        if ((typetrans2==RIGID3D)||(typetrans2==RIGIDZOOM3D)||(typetrans2==AFFINE3D))
+        {
     // On traite le cas ou la seconde transformation est rigide, rigidezoom ou affine (on se ramene au cas affine)
       param2=CALLOC(15,double);
       for (i=0;i<transfo2->nb_param;i++)
@@ -1111,326 +1111,326 @@ else
     // Calcul du champ de deformation resultant   
 
       for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   				for (k=0;k<dpth;k++)
-   				{
-    		tmpx=(i+(data1[i][j][k]).x)*transfo2->dx;
-				tmpy=(j+(data1[i][j][k]).y)*transfo2->dy;
-				tmpz=(k+(data1[i][j][k]).z)*transfo2->dz;
+            for (j=0;j<hght;j++)
+                for (k=0;k<dpth;k++)
+                {
+            tmpx=(i+(data1[i][j][k]).x)*transfo2->dx;
+                tmpy=(j+(data1[i][j][k]).y)*transfo2->dy;
+                tmpz=(k+(data1[i][j][k]).z)*transfo2->dz;
 
-				(datares[i][j][k]).x=(float)(a11*tmpx+a12*tmpy+a13*tmpz+tx-i*transfo1->dx);
-				(datares[i][j][k]).y=(float)(a21*tmpx+a22*tmpy+a23*tmpz+ty-j*transfo1->dy);
-				(datares[i][j][k]).z=(float)(a31*tmpx+a32*tmpy+a33*tmpz+tz-k*transfo1->dz);
+                (datares[i][j][k]).x=(float)(a11*tmpx+a12*tmpy+a13*tmpz+tx-i*transfo1->dx);
+                (datares[i][j][k]).y=(float)(a21*tmpx+a22*tmpy+a23*tmpz+ty-j*transfo1->dy);
+                (datares[i][j][k]).z=(float)(a31*tmpx+a32*tmpy+a33*tmpz+tz-k*transfo1->dz);
 
-				}
+                }
 
 
-			// TODO ACHTUNG!!!!!
+            // TODO ACHTUNG!!!!!
     //calcul du champ millimetrique a sauvegarder
-		transfotmp=field_to_transf_3d(chres,NULL,NULL);
+        transfotmp=field_to_transf_3d(chres,NULL,NULL);
 
-		transfores->ch=transfotmp->ch;
-		transfores->typetrans = CHAMP3D;
-		transfores->dx = transfo1->dx;
-		transfores->dy = transfo1->dy;
-		transfores->dz = transfo1->dz;
-		free_field3d(chres);
-		free_field3d(ch1);
-		free(param2);
+        transfores->ch=transfotmp->ch;
+        transfores->typetrans = CHAMP3D;
+        transfores->dx = transfo1->dx;
+        transfores->dy = transfo1->dy;
+        transfores->dz = transfo1->dz;
+        free_field3d(chres);
+        free_field3d(ch1);
+        free(param2);
 
 
-		}
-		else
-		{
-		// On traite le cas ou la seconde transformation est du type Bspline
-		switch (transfo2->degre)
-    	{
-    	case 0: scal_func=Bsplined0;break;
-    	case 1: scal_func=Bsplined1;break;
-    	case 2: scal_func=Bsplined2;break;
-    	default: scal_func=Bsplined0;break;
-    	}	
-		p = CALLOC(transfo2->nb_param,double);  
-		nb_param = init_base_3d(wdth, hght, dpth, scal_func);
-		for (i = BASE3D.resol; i<transfo2->resol; i++)
-		  nb_param = base_resol_up_3d(p,nb_param);
-		if (nb_param != transfo2->nb_param)
-		  printf("ERREUR dans transf_to_field_3d\n");
+        }
+        else
+        {
+        // On traite le cas ou la seconde transformation est du type Bspline
+        switch (transfo2->degre)
+        {
+        case 0: scal_func=Bsplined0;break;
+        case 1: scal_func=Bsplined1;break;
+        case 2: scal_func=Bsplined2;break;
+        default: scal_func=Bsplined0;break;
+        }   
+        p = CALLOC(transfo2->nb_param,double);  
+        nb_param = init_base_3d(wdth, hght, dpth, scal_func);
+        for (i = BASE3D.resol; i<transfo2->resol; i++)
+          nb_param = base_resol_up_3d(p,nb_param);
+        if (nb_param != transfo2->nb_param)
+          printf("ERREUR dans transf_to_field_3d\n");
     
-		 x0=BASE3D.x0;y0=BASE3D.y0;z0=BASE3D.z0;x1=BASE3D.x1;y1=BASE3D.y1;z1=BASE3D.z1;
- 		 fx=BASE3D.fx;fy=BASE3D.fy;fz=BASE3D.fz;
-		 D=(int)floor(TOP_D(nb_param));
-		
-		for(i=0;i<nb_param;i++)
-			p[i]=transfo2->param[i];
+         x0=BASE3D.x0;y0=BASE3D.y0;z0=BASE3D.z0;x1=BASE3D.x1;y1=BASE3D.y1;z1=BASE3D.z1;
+         fx=BASE3D.fx;fy=BASE3D.fy;fz=BASE3D.fz;
+         D=(int)floor(TOP_D(nb_param));
+        
+        for(i=0;i<nb_param;i++)
+            p[i]=transfo2->param[i];
     
-		 
-				for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   			for (k=0;k<dpth;k++)
-   				{
-    			tmpx=(i+(data1[i][j][k]).x)*transfo1->dx/transfo2->dx;
-					tmpy=(j+(data1[i][j][k]).y)*transfo1->dy/transfo2->dy;
-					tmpz=(k+(data1[i][j][k]).z)*transfo1->dz/transfo2->dz;
-				
-					datares[i][j][k].x=(data1[i][j][k]).x*transfo1->dx;
-					datares[i][j][k].y=(data1[i][j][k]).y*transfo1->dy;
-					datares[i][j][k].z=(data1[i][j][k]).z*transfo1->dz;
-//				printf("%d %d %d\r",i,j,k); 				
-					
-					ix=(int)floor(1.0*tmpx*(D+1)/wdth);
-					iy=(int)floor(1.0*tmpy*(D+1)/hght);
-					iz=(int)floor(1.0*tmpz*(D+1)/dpth);
-					
-					for (itmp=MAXI(ix-1,0);itmp<MINI(ix+1,D);itmp++)
-					for (jtmp=MAXI(iy-1,0);jtmp<MINI(iy+1,D);jtmp++)
-					for (ktmp=MAXI(iz-1,0);ktmp<MINI(iz+1,D);ktmp++)
-						{
-						l=(int)floor(TOP_conv_ind(itmp,jtmp,ktmp,nb_param)/3.);
-						px=p[3*l];py=p[3*l+1];pz=p[3*l+2];
-   				 
+         
+                for (i=0;i<wdth;i++)
+            for (j=0;j<hght;j++)
+            for (k=0;k<dpth;k++)
+                {
+                tmpx=(i+(data1[i][j][k]).x)*transfo1->dx/transfo2->dx;
+                    tmpy=(j+(data1[i][j][k]).y)*transfo1->dy/transfo2->dy;
+                    tmpz=(k+(data1[i][j][k]).z)*transfo1->dz/transfo2->dz;
+                
+                    datares[i][j][k].x=(data1[i][j][k]).x*transfo1->dx;
+                    datares[i][j][k].y=(data1[i][j][k]).y*transfo1->dy;
+                    datares[i][j][k].z=(data1[i][j][k]).z*transfo1->dz;
+//              printf("%d %d %d\r",i,j,k);                 
+                    
+                    ix=(int)floor(1.0*tmpx*(D+1)/wdth);
+                    iy=(int)floor(1.0*tmpy*(D+1)/hght);
+                    iz=(int)floor(1.0*tmpz*(D+1)/dpth);
+                    
+                    for (itmp=MAXI(ix-1,0);itmp<MINI(ix+1,D);itmp++)
+                    for (jtmp=MAXI(iy-1,0);jtmp<MINI(iy+1,D);jtmp++)
+                    for (ktmp=MAXI(iz-1,0);ktmp<MINI(iz+1,D);ktmp++)
+                        {
+                        l=(int)floor(TOP_conv_ind(itmp,jtmp,ktmp,nb_param)/3.);
+                        px=p[3*l];py=p[3*l+1];pz=p[3*l+2];
+                 
 f=Bspline(transfo2->degre,2.0*((tmpx-x0[l])/(x1[l]-x0[l])))*Bspline(transfo2->degre,2.0*((tmpy-y0[l])/(y1[l]-y0[l])))*Bspline(transfo2->degre,2.0*((tmpz-z0[l])/(z1[l]-z0[l])));
 
-      			datares[i][j][k].x=(float)(datares[i][j][k].x+px*f);
-      			datares[i][j][k].y=(float)(datares[i][j][k].y+py*f);
-      			datares[i][j][k].z=(float)(datares[i][j][k].z+pz*f);       
-						}
-						
-					}
-				
-		end_base_3d();
+                datares[i][j][k].x=(float)(datares[i][j][k].x+px*f);
+                datares[i][j][k].y=(float)(datares[i][j][k].y+py*f);
+                datares[i][j][k].z=(float)(datares[i][j][k].z+pz*f);       
+                        }
+                        
+                    }
+                
+        end_base_3d();
     // TODO ACHTUNG!!!!
-		transfotmp=field_to_transf_3d(chres,NULL,NULL);
-		transfores->ch=transfotmp->ch;
+        transfotmp=field_to_transf_3d(chres,NULL,NULL);
+        transfores->ch=transfotmp->ch;
     transfores->typetrans = CHAMP3D;
     transfores->dx = transfo1->dx;
     transfores->dy = transfo1->dy;
     transfores->dz = transfo1->dz;
- 		free_field3d(ch1);
-		free_field3d(chres);
-		free(p);
+        free_field3d(ch1);
+        free_field3d(chres);
+        free(p);
     }
-		}
-	else
-		{
-		// Cas Cham3D + Champ3D
-		
-			// On convertit la seconde transformation en un champ de deplacement
-			ch2=transf_to_field_3d(transfo2,NULL,NULL);
-			data2=ch2->raw;
-			
-			wdth2=ch2->width;
-			hght2=ch2->height;
-			dpth2=ch2->depth;
-				 
-		
-			switch (interpolation)
-			{
-			case 0:
-			// Methode du plus proche voisin
-		for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   				for (k=0;k<dpth;k++)
-				{
-				//ix=(int)floor((i+data1[i][j][k].x)*transfo1->dx/transfo2->dx);
+        }
+    else
+        {
+        // Cas Cham3D + Champ3D
+        
+            // On convertit la seconde transformation en un champ de deplacement
+            ch2=transf_to_field_3d(transfo2,NULL,NULL);
+            data2=ch2->raw;
+            
+            wdth2=ch2->width;
+            hght2=ch2->height;
+            dpth2=ch2->depth;
+                 
+        
+            switch (interpolation)
+            {
+            case 0:
+            // Methode du plus proche voisin
+        for (i=0;i<wdth;i++)
+            for (j=0;j<hght;j++)
+                for (k=0;k<dpth;k++)
+                {
+                //ix=(int)floor((i+data1[i][j][k].x)*transfo1->dx/transfo2->dx);
         //iy=(int)floor((j+data1[i][j][k].y)*transfo1->dy/transfo2->dy);
         //iz=(int)floor((k+data1[i][j][k].z)*transfo1->dz/transfo2->dz);
-				
-				ix=(int)floor(i+data1[i][j][k].x);
+                
+                ix=(int)floor(i+data1[i][j][k].x);
         iy=(int)floor(j+data1[i][j][k].y);
         iz=(int)floor(k+data1[i][j][k].z);
-				
-				
-				if ((ix>=0)&&(ix<=wdth2-1)&&(iy>=0)&&(iy<=hght2-1)&&(iz>=0)&&(iz<=dpth2-1))
-					{
-					/*datares[i][j][k].x=data1[i][j][k].x*transfo1->dx+data2[ix][iy][iz].x;
-					datares[i][j][k].y=data1[i][j][k].y*transfo1->dy+data2[ix][iy][iz].y;
-					datares[i][j][k].z=data1[i][j][k].z*transfo1->dz+data2[ix][iy][iz].z;*/
-				
-					//datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx+data2[ix][iy][iz].x;
-					//datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy+data2[ix][iy][iz].y;
-					//datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz+data2[ix][iy][iz].z;
-					
-					datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx+data2[ix][iy][iz].x;
-					datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy+data2[ix][iy][iz].y;
-					datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz+data2[ix][iy][iz].z;
-					
-					}
-				else 
-					{
-					/*datares[i][j][k].x=data1[i][j][k].x*transfo1->dx;
-					datares[i][j][k].y=data1[i][j][k].y*transfo1->dy;
-					datares[i][j][k].z=data1[i][j][k].z*transfo1->dz;*/
-				
-					//datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx;
-					//datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy;
-					//datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz;
-					
-					
-					// C'est un peu de la bidouille, mais au moins on est sur que la transformation sort du FOV
-					datares[i][j][k].x=10*wdth; 
-					datares[i][j][k].y=10*hght;
-					datares[i][j][k].z=10*dpth;
-					
-					
-					}
-				}
-				break;
-				case 1:
-				// Interpolation lineaire
-		/*for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   				for (k=0;k<dpth;k++)
-				{
-				x=(i+data1[i][j][k].x)*transfo1->dx/transfo2->dx;y=(j+data1[i][j][k].y)*transfo1->dy/transfo2->dy;z=(k+data1[i][j][k].z)*transfo1->dz/transfo2->dz;
-				ix=(int)floor(x);
+                
+                
+                if ((ix>=0)&&(ix<=wdth2-1)&&(iy>=0)&&(iy<=hght2-1)&&(iz>=0)&&(iz<=dpth2-1))
+                    {
+                    /*datares[i][j][k].x=data1[i][j][k].x*transfo1->dx+data2[ix][iy][iz].x;
+                    datares[i][j][k].y=data1[i][j][k].y*transfo1->dy+data2[ix][iy][iz].y;
+                    datares[i][j][k].z=data1[i][j][k].z*transfo1->dz+data2[ix][iy][iz].z;*/
+                
+                    //datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx+data2[ix][iy][iz].x;
+                    //datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy+data2[ix][iy][iz].y;
+                    //datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz+data2[ix][iy][iz].z;
+                    
+                    datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx+data2[ix][iy][iz].x;
+                    datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy+data2[ix][iy][iz].y;
+                    datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz+data2[ix][iy][iz].z;
+                    
+                    }
+                else 
+                    {
+                    /*datares[i][j][k].x=data1[i][j][k].x*transfo1->dx;
+                    datares[i][j][k].y=data1[i][j][k].y*transfo1->dy;
+                    datares[i][j][k].z=data1[i][j][k].z*transfo1->dz;*/
+                
+                    //datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx;
+                    //datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy;
+                    //datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz;
+                    
+                    
+                    // C'est un peu de la bidouille, mais au moins on est sur que la transformation sort du FOV
+                    datares[i][j][k].x=10*wdth; 
+                    datares[i][j][k].y=10*hght;
+                    datares[i][j][k].z=10*dpth;
+                    
+                    
+                    }
+                }
+                break;
+                case 1:
+                // Interpolation lineaire
+        /*for (i=0;i<wdth;i++)
+            for (j=0;j<hght;j++)
+                for (k=0;k<dpth;k++)
+                {
+                x=(i+data1[i][j][k].x)*transfo1->dx/transfo2->dx;y=(j+data1[i][j][k].y)*transfo1->dy/transfo2->dy;z=(k+data1[i][j][k].z)*transfo1->dz/transfo2->dz;
+                ix=(int)floor(x);
         iy=(int)floor(y);
         iz=(int)floor(z);
-				tmpx=x-ix;tmpy=y-iy;tmpz=z-iz;
-				if ((ix>=0)&&(ix<=wdth-2)&&(iy>=0)&&(iy<=hght-2)&&(iz>=0)&&(iz<=dpth-2))
-					{
-					datares[i][j][k].x=(float)(data1[i][j][k].x*transfo1->dx+tmpx*tmpy*tmpz*data2[ix][iy][iz].x
-													   +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].x
-													   +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].x
-													   +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].x
-													   +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].x
-													   +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].x
-													   +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].x
-													   +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].x);
-					
-					datares[i][j][k].y=(float)(data1[i][j][k].y*transfo1->dy+tmpx*tmpy*tmpz*data2[ix][iy][iz].y
-													   +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].y
-													   +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].y
-													   +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].y
-													   +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].y
-													   +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].y
-													   +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].y
-													   +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].y);
-												
-					datares[i][j][k].z=(float)(data1[i][j][k].z*transfo1->dz+tmpx*tmpy*tmpz*data2[ix][iy][iz].z
-													   +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].z
-													   +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].z
-													   +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].z
-													   +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].z
-													   +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].z
-													   +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].z
-													   +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].z);
-					}
-				else 
-					{
-					datares[i][j][k].x=data1[i][j][k].x*transfo1->dx;
-					datares[i][j][k].y=data1[i][j][k].y*transfo1->dy;
-					datares[i][j][k].z=data1[i][j][k].z*transfo1->dz;
-					}*/
-					for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   				for (k=0;k<dpth;k++)
-				{
-				x=i+data1[i][j][k].x;
+                tmpx=x-ix;tmpy=y-iy;tmpz=z-iz;
+                if ((ix>=0)&&(ix<=wdth-2)&&(iy>=0)&&(iy<=hght-2)&&(iz>=0)&&(iz<=dpth-2))
+                    {
+                    datares[i][j][k].x=(float)(data1[i][j][k].x*transfo1->dx+tmpx*tmpy*tmpz*data2[ix][iy][iz].x
+                                                       +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].x
+                                                       +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].x
+                                                       +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].x
+                                                       +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].x
+                                                       +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].x
+                                                       +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].x
+                                                       +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].x);
+                    
+                    datares[i][j][k].y=(float)(data1[i][j][k].y*transfo1->dy+tmpx*tmpy*tmpz*data2[ix][iy][iz].y
+                                                       +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].y
+                                                       +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].y
+                                                       +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].y
+                                                       +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].y
+                                                       +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].y
+                                                       +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].y
+                                                       +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].y);
+                                                
+                    datares[i][j][k].z=(float)(data1[i][j][k].z*transfo1->dz+tmpx*tmpy*tmpz*data2[ix][iy][iz].z
+                                                       +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].z
+                                                       +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].z
+                                                       +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].z
+                                                       +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].z
+                                                       +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].z
+                                                       +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].z
+                                                       +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].z);
+                    }
+                else 
+                    {
+                    datares[i][j][k].x=data1[i][j][k].x*transfo1->dx;
+                    datares[i][j][k].y=data1[i][j][k].y*transfo1->dy;
+                    datares[i][j][k].z=data1[i][j][k].z*transfo1->dz;
+                    }*/
+                    for (i=0;i<wdth;i++)
+            for (j=0;j<hght;j++)
+                for (k=0;k<dpth;k++)
+                {
+                x=i+data1[i][j][k].x;
         y=j+data1[i][j][k].y;
         z=k+data1[i][j][k].z;
-				
-				ix=(int)floor(x);
+                
+                ix=(int)floor(x);
         iy=(int)floor(y);
         iz=(int)floor(z);
-				
-				tmpx=x-ix;tmpy=y-iy;tmpz=z-iz;
-				if ((ix>=0)&&(ix<=wdth2-2)&&(iy>=0)&&(iy<=hght2-2)&&(iz>=0)&&(iz<=dpth2-2))
-					{
-					datares[i][j][k].x=(float)((ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx+tmpx*tmpy*tmpz*data2[ix][iy][iz].x
-													   +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].x
-													   +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].x
-													   +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].x
-													   +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].x
-													   +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].x
-													   +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].x
-													   +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].x);
-					
-					datares[i][j][k].y=(float)((ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy+tmpx*tmpy*tmpz*data2[ix][iy][iz].y
-													   +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].y
-													   +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].y
-													   +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].y
-													   +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].y
-													   +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].y
-													   +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].y
-													   +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].y);
-												
-					datares[i][j][k].z=(float)((ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz+tmpx*tmpy*tmpz*data2[ix][iy][iz].z
-													   +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].z
-													   +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].z
-													   +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].z
-													   +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].z
-													   +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].z
-													   +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].z
-													   +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].z);
-					}
-				else 
-					{
-					//datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx;
-					//datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy;
-					//datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz;
-					
-					// C'est un peu de la bidouille, mais au moins on est sur que la transformation sort du FOV
-					datares[i][j][k].x=10*wdth; 
-					datares[i][j][k].y=10*hght;
-					datares[i][j][k].z=10*dpth;
-	
-					}
-				}
-				break;
-				case 2:
-				Inter_Chps_Bspline_3d(ch2,ch1,chres,2,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
-				break;
-				case 3:
-				Inter_Chps_Bspline_3d(ch2,ch1,chres,3,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
-				break;
-				case 4:
-				Inter_Chps_Bspline_3d(ch2,ch1,chres,4,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
-				break;
-				case 5:
-				Inter_Chps_Bspline_3d(ch2,ch1,chres,5,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
-				break;
-				default:break;
-			}
-				/*
-				for (i=0;i<wdth;i++)
-  			for (j=0;j<hght;j++)
-   				for (k=0;k<dpth;k++)
-						{
-						if(abs(datares[i][j][k].x)>wdth*transfo1->dx)
-						 datares[i][j][k].x=wdth*transfo1->dx;
-						if(abs(datares[i][j][k].y)>hght*transfo1->dy)
-						 datares[i][j][k].y=hght*transfo1->dy;
-						 if(abs(datares[i][j][k].z)>dpth*transfo1->dz)
-						 datares[i][j][k].z=dpth*transfo1->dz;
-						}
-				*/		
-						
-			transfotmp=field_to_transf_3d(chres,NULL,NULL);
-			transfores->ch=transfotmp->ch;
+                
+                tmpx=x-ix;tmpy=y-iy;tmpz=z-iz;
+                if ((ix>=0)&&(ix<=wdth2-2)&&(iy>=0)&&(iy<=hght2-2)&&(iz>=0)&&(iz<=dpth2-2))
+                    {
+                    datares[i][j][k].x=(float)((ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx+tmpx*tmpy*tmpz*data2[ix][iy][iz].x
+                                                       +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].x
+                                                       +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].x
+                                                       +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].x
+                                                       +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].x
+                                                       +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].x
+                                                       +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].x
+                                                       +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].x);
+                    
+                    datares[i][j][k].y=(float)((ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy+tmpx*tmpy*tmpz*data2[ix][iy][iz].y
+                                                       +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].y
+                                                       +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].y
+                                                       +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].y
+                                                       +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].y
+                                                       +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].y
+                                                       +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].y
+                                                       +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].y);
+                                                
+                    datares[i][j][k].z=(float)((ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz+tmpx*tmpy*tmpz*data2[ix][iy][iz].z
+                                                       +(1-tmpx)*tmpy*tmpz*data2[ix+1][iy][iz].z
+                                                       +(1-tmpx)*(1-tmpy)*tmpz*data2[ix+1][iy+1][iz].z
+                                                       +(1-tmpx)*tmpy*(1-tmpz)*data2[ix+1][iy][iz+1].z
+                                                       +(1-tmpx)*(1-tmpy)*(1-tmpz)*data2[ix+1][iy+1][iz+1].z
+                                                       +tmpx*(1-tmpy)*(1-tmpz)*data2[ix][iy+1][iz+1].z
+                                                       +tmpx*tmpy*(1-tmpz)*data2[ix][iy][iz+1].z
+                                                       +tmpx*(1-tmpy)*tmpz*data2[ix][iy+1][iz].z);
+                    }
+                else 
+                    {
+                    //datares[i][j][k].x=(ch1->raw[i][j][k].x+i)*transfo2->dx-i*transfo1->dx;
+                    //datares[i][j][k].y=(ch1->raw[i][j][k].y+j)*transfo2->dy-j*transfo1->dy;
+                    //datares[i][j][k].z=(ch1->raw[i][j][k].z+k)*transfo2->dz-k*transfo1->dz;
+                    
+                    // C'est un peu de la bidouille, mais au moins on est sur que la transformation sort du FOV
+                    datares[i][j][k].x=10*wdth; 
+                    datares[i][j][k].y=10*hght;
+                    datares[i][j][k].z=10*dpth;
+    
+                    }
+                }
+                break;
+                case 2:
+                Inter_Chps_Bspline_3d(ch2,ch1,chres,2,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
+                break;
+                case 3:
+                Inter_Chps_Bspline_3d(ch2,ch1,chres,3,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
+                break;
+                case 4:
+                Inter_Chps_Bspline_3d(ch2,ch1,chres,4,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
+                break;
+                case 5:
+                Inter_Chps_Bspline_3d(ch2,ch1,chres,5,transfo2->dx,transfo2->dy,transfo2->dz,transfo1->dx,transfo1->dy,transfo1->dz);
+                break;
+                default:break;
+            }
+                /*
+                for (i=0;i<wdth;i++)
+            for (j=0;j<hght;j++)
+                for (k=0;k<dpth;k++)
+                        {
+                        if(abs(datares[i][j][k].x)>wdth*transfo1->dx)
+                         datares[i][j][k].x=wdth*transfo1->dx;
+                        if(abs(datares[i][j][k].y)>hght*transfo1->dy)
+                         datares[i][j][k].y=hght*transfo1->dy;
+                         if(abs(datares[i][j][k].z)>dpth*transfo1->dz)
+                         datares[i][j][k].z=dpth*transfo1->dz;
+                        }
+                */      
+                        
+            transfotmp=field_to_transf_3d(chres,NULL,NULL);
+            transfores->ch=transfotmp->ch;
       transfores->typetrans = CHAMP3D;
       transfores->dx = transfo1->dx;
       transfores->dy = transfo1->dy;
       transfores->dz = transfo1->dz;
- 			free_field3d(chres);
- 			free_field3d(ch1);
- 			free_field3d(ch2);
-			
+            free_field3d(chres);
+            free_field3d(ch1);
+            free_field3d(ch2);
+            
 
-		}
-		
-		
-	
-	}
+        }
+        
+        
+    
+    }
 free_grphic3d(imref); 
 free_grphic3d(imreca); 
 
-	return(1);
+    return(1);
 }
 /*******************************************************************************
-** 	Inter_Chps_Bspline_3d(ch1,ch2,chres,degre)                                   
+**  Inter_Chps_Bspline_3d(ch1,ch2,chres,degre)                                   
 **       Fais la composition de deux champs de transformation 
-**		avec un interpolation Bspline de de degre n                            
+**      avec un interpolation Bspline de de degre n                            
 *******************************************************************************/
 void Inter_Chps_Bspline_3d(field3d *ch1, field3d *ch2, field3d *chres,int degre,double dx1, double dy1, double dz1, double dx2, double dy2, double dz2)
 {
@@ -1445,387 +1445,387 @@ double epsilon=2.2204460492503131E-16;
 double poles[2],xWeight[6],yWeight[6],zWeight[6]; 
 int xIndex[6],yIndex[6],zIndex[6];
 
-	
+    
 wdth=ch1->width;hght=ch1->height;dpth=ch1->depth;
 wdth2=ch2->width;hght2=ch2->height;dpth2=ch2->depth;
 
 // Calcul des coefficient d'interpolation a partir des echantillons de l'image de depart
 coeff=cr_field3d(wdth, hght, dpth);
-	
-	// Recuperation de la valeur des poles en z
-	switch (degre) 
-	{
-	case 2:
-		poles[0]=(sqrt(8.0) - 3.0);
-		nbpoles=1;
-		break;
-	case 3:
-		poles[0]=(sqrt(3.0) - 2.0);
-		nbpoles=1;
-		break;
-	case 4:
-		poles[0]=(sqrt(664.0 - sqrt(438976.0)) + sqrt(304.0) - 19.0);
-		poles[1]=(sqrt(664.0 + sqrt(438976.0)) - sqrt(304.0) - 19.0);
-		nbpoles=2;
-		break;
-	case 5:
-		poles[0]=(sqrt(135.0 / 2.0 - sqrt(17745.0 / 4.0)) + sqrt(105.0 / 4.0)- 13.0 / 2.0);
-		poles[1]=(sqrt(135.0 / 2.0 + sqrt(17745.0 / 4.0)) - sqrt(105.0 / 4.0)- 13.0 / 2.0);
-		nbpoles=2;
-		break;
-	default:
-		{printf("Degre de spline invalide\n");return;}
-	}
+    
+    // Recuperation de la valeur des poles en z
+    switch (degre) 
+    {
+    case 2:
+        poles[0]=(sqrt(8.0) - 3.0);
+        nbpoles=1;
+        break;
+    case 3:
+        poles[0]=(sqrt(3.0) - 2.0);
+        nbpoles=1;
+        break;
+    case 4:
+        poles[0]=(sqrt(664.0 - sqrt(438976.0)) + sqrt(304.0) - 19.0);
+        poles[1]=(sqrt(664.0 + sqrt(438976.0)) - sqrt(304.0) - 19.0);
+        nbpoles=2;
+        break;
+    case 5:
+        poles[0]=(sqrt(135.0 / 2.0 - sqrt(17745.0 / 4.0)) + sqrt(105.0 / 4.0)- 13.0 / 2.0);
+        poles[1]=(sqrt(135.0 / 2.0 + sqrt(17745.0 / 4.0)) - sqrt(105.0 / 4.0)- 13.0 / 2.0);
+        nbpoles=2;
+        break;
+    default:
+        {printf("Degre de spline invalide\n");return;}
+    }
 
-		
-		// Calcul des coeeficients suivant x
-		row1Dx=(double*)malloc(wdth*sizeof(double));
-		row1Dy=(double*)malloc(wdth*sizeof(double));
-		row1Dz=(double*)malloc(wdth*sizeof(double));
-		
-		
-		for (k=0; k<dpth; k++)
-		{
-			for (j=0; j<hght; j++)
-			{
-				for (i=0; i<wdth; i++)
-					{
-					row1Dx[i]=ch1->raw[i][j][k].x;
-					row1Dy[i]=ch1->raw[i][j][k].y;
-					row1Dz[i]=ch1->raw[i][j][k].z;
-					}
-				GetInterpolationCoefficients(row1Dx,wdth,poles,nbpoles,epsilon);
-				GetInterpolationCoefficients(row1Dy,wdth,poles,nbpoles,epsilon);
-				GetInterpolationCoefficients(row1Dz,wdth,poles,nbpoles,epsilon);							
-				for (i=0; i<wdth; i++)
-					{
-					coeff->raw[i][j][k].x=(float)row1Dx[i];
-					coeff->raw[i][j][k].y=(float)row1Dy[i];
-					coeff->raw[i][j][k].z=(float)row1Dz[i];
-					}
-			}
-		}
-		free(row1Dx);free(row1Dy);free(row1Dz);
-	
-	
-		// Calcul des coeeficients suivant y
+        
+        // Calcul des coeeficients suivant x
+        row1Dx=(double*)malloc(wdth*sizeof(double));
+        row1Dy=(double*)malloc(wdth*sizeof(double));
+        row1Dz=(double*)malloc(wdth*sizeof(double));
+        
+        
+        for (k=0; k<dpth; k++)
+        {
+            for (j=0; j<hght; j++)
+            {
+                for (i=0; i<wdth; i++)
+                    {
+                    row1Dx[i]=ch1->raw[i][j][k].x;
+                    row1Dy[i]=ch1->raw[i][j][k].y;
+                    row1Dz[i]=ch1->raw[i][j][k].z;
+                    }
+                GetInterpolationCoefficients(row1Dx,wdth,poles,nbpoles,epsilon);
+                GetInterpolationCoefficients(row1Dy,wdth,poles,nbpoles,epsilon);
+                GetInterpolationCoefficients(row1Dz,wdth,poles,nbpoles,epsilon);                            
+                for (i=0; i<wdth; i++)
+                    {
+                    coeff->raw[i][j][k].x=(float)row1Dx[i];
+                    coeff->raw[i][j][k].y=(float)row1Dy[i];
+                    coeff->raw[i][j][k].z=(float)row1Dz[i];
+                    }
+            }
+        }
+        free(row1Dx);free(row1Dy);free(row1Dz);
+    
+    
+        // Calcul des coeeficients suivant y
 
-		row1Dx=(double*)malloc(hght*sizeof(double));
-		row1Dy=(double*)malloc(hght*sizeof(double));
-		row1Dz=(double*)malloc(hght*sizeof(double));
-		
-				
-		for (k=0; k<dpth; k++)
-		{
+        row1Dx=(double*)malloc(hght*sizeof(double));
+        row1Dy=(double*)malloc(hght*sizeof(double));
+        row1Dz=(double*)malloc(hght*sizeof(double));
+        
+                
+        for (k=0; k<dpth; k++)
+        {
 
-			for (i=0; i<wdth; i++)
-			{
-				for (j=0; j<hght; j++)
-					{
-					row1Dx[j]=coeff->raw[i][j][k].x;
-					row1Dy[j]=coeff->raw[i][j][k].y;
-					row1Dz[j]=coeff->raw[i][j][k].z;
-					}
-				GetInterpolationCoefficients(row1Dx,hght,poles,nbpoles,epsilon);
-				GetInterpolationCoefficients(row1Dy,hght,poles,nbpoles,epsilon);
-				GetInterpolationCoefficients(row1Dz,hght,poles,nbpoles,epsilon);
-				for (j=0; j<hght; j++)
-				{
-				coeff->raw[i][j][k].x=(float)row1Dx[j];
-				coeff->raw[i][j][k].y=(float)row1Dy[j];
-				coeff->raw[i][j][k].z=(float)row1Dz[j];
-				}
-			}
-		}
-		free(row1Dx);free(row1Dy);free(row1Dz);
-	
-		// Calcul des coeeficients suivant z
-		
-		row1Dx=(double*)malloc(dpth*sizeof(double));
-		row1Dy=(double*)malloc(dpth*sizeof(double));
-		row1Dz=(double*)malloc(dpth*sizeof(double));
-		
-		
-		for (i=0; i<wdth; i++)
-		{
-			for (j=0; j<hght; j++)
-			{
-				for (k=0; k<dpth; k++)
-				{
-				row1Dx[k]=coeff->raw[i][j][k].x;
-				row1Dy[k]=coeff->raw[i][j][k].y;
-				row1Dz[k]=coeff->raw[i][j][k].z;
-				}
-				GetInterpolationCoefficients(row1Dx,dpth,poles,nbpoles,epsilon);
-				GetInterpolationCoefficients(row1Dy,dpth,poles,nbpoles,epsilon);
-				GetInterpolationCoefficients(row1Dz,dpth,poles,nbpoles,epsilon);
-				for (k=0; k<dpth; k++)
-				{
-				coeff->raw[i][j][k].x=(float)row1Dx[k];
-				coeff->raw[i][j][k].y=(float)row1Dy[k];
-				coeff->raw[i][j][k].z=(float)row1Dz[k];
-				}
-			}
-		}
-		free(row1Dx);free(row1Dy);free(row1Dz);
-		
-  		for (i=0;i<wdth2;i++)
-			for (j=0;j<hght2;j++)
-				for (k=0;k<dpth2;k++)
-				{
-				/*x=(i+ch2->raw[i][j][k].x)*dx2/dx1;
-				y=(j+ch2->raw[i][j][k].y)*dy2/dy1;
-				z=(k+ch2->raw[i][j][k].z)*dz2/dz1;*/
-				x=i+ch2->raw[i][j][k].x;
+            for (i=0; i<wdth; i++)
+            {
+                for (j=0; j<hght; j++)
+                    {
+                    row1Dx[j]=coeff->raw[i][j][k].x;
+                    row1Dy[j]=coeff->raw[i][j][k].y;
+                    row1Dz[j]=coeff->raw[i][j][k].z;
+                    }
+                GetInterpolationCoefficients(row1Dx,hght,poles,nbpoles,epsilon);
+                GetInterpolationCoefficients(row1Dy,hght,poles,nbpoles,epsilon);
+                GetInterpolationCoefficients(row1Dz,hght,poles,nbpoles,epsilon);
+                for (j=0; j<hght; j++)
+                {
+                coeff->raw[i][j][k].x=(float)row1Dx[j];
+                coeff->raw[i][j][k].y=(float)row1Dy[j];
+                coeff->raw[i][j][k].z=(float)row1Dz[j];
+                }
+            }
+        }
+        free(row1Dx);free(row1Dy);free(row1Dz);
+    
+        // Calcul des coeeficients suivant z
+        
+        row1Dx=(double*)malloc(dpth*sizeof(double));
+        row1Dy=(double*)malloc(dpth*sizeof(double));
+        row1Dz=(double*)malloc(dpth*sizeof(double));
+        
+        
+        for (i=0; i<wdth; i++)
+        {
+            for (j=0; j<hght; j++)
+            {
+                for (k=0; k<dpth; k++)
+                {
+                row1Dx[k]=coeff->raw[i][j][k].x;
+                row1Dy[k]=coeff->raw[i][j][k].y;
+                row1Dz[k]=coeff->raw[i][j][k].z;
+                }
+                GetInterpolationCoefficients(row1Dx,dpth,poles,nbpoles,epsilon);
+                GetInterpolationCoefficients(row1Dy,dpth,poles,nbpoles,epsilon);
+                GetInterpolationCoefficients(row1Dz,dpth,poles,nbpoles,epsilon);
+                for (k=0; k<dpth; k++)
+                {
+                coeff->raw[i][j][k].x=(float)row1Dx[k];
+                coeff->raw[i][j][k].y=(float)row1Dy[k];
+                coeff->raw[i][j][k].z=(float)row1Dz[k];
+                }
+            }
+        }
+        free(row1Dx);free(row1Dy);free(row1Dz);
+        
+        for (i=0;i<wdth2;i++)
+            for (j=0;j<hght2;j++)
+                for (k=0;k<dpth2;k++)
+                {
+                /*x=(i+ch2->raw[i][j][k].x)*dx2/dx1;
+                y=(j+ch2->raw[i][j][k].y)*dy2/dy1;
+                z=(k+ch2->raw[i][j][k].z)*dz2/dz1;*/
+                x=i+ch2->raw[i][j][k].x;
         y=j+ch2->raw[i][j][k].y;
         z=k+ch2->raw[i][j][k].z;
-				
-				if (x<0 || x>=wdth || y<0 || y>=hght || z<0 || z>=dpth)  
-					{
-					/*chres->raw[i][j][k].x=(float)(ch2->raw[i][j][k].x*dx2);
-					chres->raw[i][j][k].y=(float)(ch2->raw[i][j][k].y*dy2);
-					chres->raw[i][j][k].z=(float)(ch2->raw[i][j][k].z*dz2);*/
-					//chres->raw[i][j][k].x=(float)((ch2->raw[i][j][k].x+i)*dx1-i*dx2);
-					//chres->raw[i][j][k].y=(float)((ch2->raw[i][j][k].y+j)*dy1-j*dy2);
-					//chres->raw[i][j][k].z=(float)((ch2->raw[i][j][k].z+k)*dz1-k*dz2);
-					
-					// C'est un peu de la bidouille, mais au moins on est sur que la transformation sort du FOV
-					chres->raw[i][j][k].x=10*wdth; 
-					chres->raw[i][j][k].y=10*hght;
-					chres->raw[i][j][k].z=10*dpth;
+                
+                if (x<0 || x>=wdth || y<0 || y>=hght || z<0 || z>=dpth)  
+                    {
+                    /*chres->raw[i][j][k].x=(float)(ch2->raw[i][j][k].x*dx2);
+                    chres->raw[i][j][k].y=(float)(ch2->raw[i][j][k].y*dy2);
+                    chres->raw[i][j][k].z=(float)(ch2->raw[i][j][k].z*dz2);*/
+                    //chres->raw[i][j][k].x=(float)((ch2->raw[i][j][k].x+i)*dx1-i*dx2);
+                    //chres->raw[i][j][k].y=(float)((ch2->raw[i][j][k].y+j)*dy1-j*dy2);
+                    //chres->raw[i][j][k].z=(float)((ch2->raw[i][j][k].z+k)*dz1-k*dz2);
+                    
+                    // C'est un peu de la bidouille, mais au moins on est sur que la transformation sort du FOV
+                    chres->raw[i][j][k].x=10*wdth; 
+                    chres->raw[i][j][k].y=10*hght;
+                    chres->raw[i][j][k].z=10*dpth;
 
-					}
-				else
-					{
-					
-					//***********************************************
-					// Calcul de la valeur interpolee vint en (x,y,z)
-					//**********************************************/
-						
-					
-					xIndex[0]=(int)floor(x+0.5)-degre/2;
-					yIndex[0]=(int)floor(y+0.5)-degre/2;
-					zIndex[0]=(int)floor(z+0.5)-degre/2;
-					
-					for (l=0;l<degre;l++)
-						{
-						xIndex[l+1]=xIndex[l]+1;
-						yIndex[l+1]=yIndex[l]+1;
-						zIndex[l+1]=zIndex[l]+1;
-						}
-						
-					
-					// Calcul des poids de la fonction d'interpolation
-					
-					switch (degre) 
-					{
-					case 2:
-						/* x */
-						w = x - (double)xIndex[1];
-						xWeight[1] = 3.0 / 4.0 - w * w;
-						xWeight[2] = (1.0 / 2.0) * (w - xWeight[1] + 1.0);
-						xWeight[0] = 1.0 - xWeight[1] - xWeight[2];
-						/* y */
-						w = y - (double)yIndex[1];
-						yWeight[1] = 3.0 / 4.0 - w * w;
-						yWeight[2] = (1.0 / 2.0) * (w - yWeight[1] + 1.0);
-						yWeight[0] = 1.0 - yWeight[1] - yWeight[2];
-						/* z */
-						w = z - (double)zIndex[1];
-						zWeight[1] = 3.0 / 4.0 - w * w;
-						zWeight[2] = (1.0 / 2.0) * (w - zWeight[1] + 1.0);
-						zWeight[0] = 1.0 - zWeight[1] - zWeight[2];
-						break;
-					case 3:
-						/* x */
-						w = x - (double)xIndex[1];
-						xWeight[3] = (1.0 / 6.0) * w * w * w;
-						xWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - xWeight[3];
-						xWeight[2] = w + xWeight[0] - 2.0 * xWeight[3];
-						xWeight[1] = 1.0 - xWeight[0] - xWeight[2] - xWeight[3];
-						/* y */
-						w = y - (double)yIndex[1];
-						yWeight[3] = (1.0 / 6.0) * w * w * w;
-						yWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - yWeight[3];
-						yWeight[2] = w + yWeight[0] - 2.0 * yWeight[3];
-						yWeight[1] = 1.0 - yWeight[0] - yWeight[2] - yWeight[3];
-						/* z */
-						w = z - (double)zIndex[1];
-						zWeight[3] = (1.0 / 6.0) * w * w * w;
-						zWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - zWeight[3];
-						zWeight[2] = w + zWeight[0] - 2.0 * zWeight[3];
-						zWeight[1] = 1.0 - zWeight[0] - zWeight[2] - zWeight[3];
-						break;
-					case 4:
-						/* x */
-						w = x - (double)xIndex[2];
-						w2 = w * w;
-						t = (1.0 / 6.0) * w2;
-						xWeight[0] = 1.0 / 2.0 - w;
-						xWeight[0] *= xWeight[0];
-						xWeight[0] *= (1.0 / 24.0) * xWeight[0];
-						t0 = w * (t - 11.0 / 24.0);
-						t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
-						xWeight[1] = t1 + t0;
-						xWeight[3] = t1 - t0;
-						xWeight[4] = xWeight[0] + t0 + (1.0 / 2.0) * w;
-						xWeight[2] = 1.0 - xWeight[0] - xWeight[1] - xWeight[3] - xWeight[4];
-						/* y */
-						w = y - (double)yIndex[2];
-						w2 = w * w;
-						t = (1.0 / 6.0) * w2;
-						yWeight[0] = 1.0 / 2.0 - w;
-						yWeight[0] *= yWeight[0];
-						yWeight[0] *= (1.0 / 24.0) * yWeight[0];
-						t0 = w * (t - 11.0 / 24.0);
-						t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
-						yWeight[1] = t1 + t0;
-						yWeight[3] = t1 - t0;
-						yWeight[4] = yWeight[0] + t0 + (1.0 / 2.0) * w;
-						yWeight[2] = 1.0 - yWeight[0] - yWeight[1] - yWeight[3] - yWeight[4];
-						/* z */
-						w = z - (double)zIndex[2];
-						w2 = w * w;
-						t = (1.0 / 6.0) * w2;
-						zWeight[0] = 1.0 / 2.0 - w;
-						zWeight[0] *= zWeight[0];
-						zWeight[0] *= (1.0 / 24.0) * zWeight[0];
-						t0 = w * (t - 11.0 / 24.0);
-						t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
-						zWeight[1] = t1 + t0;
-						zWeight[3] = t1 - t0;
-						zWeight[4] = zWeight[0] + t0 + (1.0 / 2.0) * w;
-						zWeight[2] = 1.0 - zWeight[0] - zWeight[1] - zWeight[3] - zWeight[4];
-						break;
-					case 5:
-						/* x */
-						w = x - (double)xIndex[2];
-						w2 = w * w;
-						xWeight[5] = (1.0 / 120.0) * w * w2 * w2;
-						w2 -= w;
-						w4 = w2 * w2;
-						w -= 1.0 / 2.0;
-						t = w2 * (w2 - 3.0);
-						xWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - xWeight[5];
-						t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
-						t1 = (-1.0 / 12.0) * w * (t + 4.0);
-						xWeight[2] = t0 + t1;
-						xWeight[3] = t0 - t1;
-						t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
-						t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
-						xWeight[1] = t0 + t1;
-						xWeight[4] = t0 - t1;
-						/* y */
-						w = y - (double)yIndex[2];
-						w2 = w * w;
-						yWeight[5] = (1.0 / 120.0) * w * w2 * w2;
-						w2 -= w;
-						w4 = w2 * w2;
-						w -= 1.0 / 2.0;
-						t = w2 * (w2 - 3.0);
-						yWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - yWeight[5];
-						t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
-						t1 = (-1.0 / 12.0) * w * (t + 4.0);
-						yWeight[2] = t0 + t1;
-						yWeight[3] = t0 - t1;
-						t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
-						t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
-						yWeight[1] = t0 + t1;
-						yWeight[4] = t0 - t1;
-						/* z */
-						w = z - (double)zIndex[2];
-						w2 = w * w;
-						zWeight[5] = (1.0 / 120.0) * w * w2 * w2;
-						w2 -= w;
-						w4 = w2 * w2;
-						w -= 1.0 / 2.0;
-						t = w2 * (w2 - 3.0);
-						zWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - zWeight[5];
-						t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
-						t1 = (-1.0 / 12.0) * w * (t + 4.0);
-						zWeight[2] = t0 + t1;
-						zWeight[3] = t0 - t1;
-						t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
-						t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
-						zWeight[1] = t0 + t1;
-						zWeight[4] = t0 - t1;
-						break;
-					default:
-					printf("le degre de la spline est invalide\n");
-					}
-					
-					// Condition limite (mirror boundaries)
-					/*for (l=0;l<=degre;l++)
-						{
-						if (xIndex[l]<0)
-							xIndex[l]=0;
-						if (xIndex[l]>=wdth)
-							xIndex[l]=0;
-						if (yIndex[l]<0)
-							yIndex[l]=0;
-						if (yIndex[l]>=hght)
-							yIndex[l]=0;
-						if (zIndex[l]<0)
-							zIndex[l]=0;
-						if (zIndex[l]>=dpth)
-							zIndex[l]=0;
-						}*/
-					for (l=0;l<=degre;l++)
-						{
-						if (xIndex[l]<0)
-							xIndex[l]=-xIndex[l];
-						if (xIndex[l]>=wdth)
-							xIndex[l]=(int)floor(2.0*(wdth-1))-xIndex[l];
-						if (yIndex[l]<0)
-							yIndex[l]=-yIndex[l];
-						if (yIndex[l]>=hght)
-							yIndex[l]=(int)floor(2.0*(hght-1))-yIndex[l];
-						if (zIndex[l]<0)
-							zIndex[l]=-zIndex[l];
-						if (zIndex[l]>=dpth)
-							zIndex[l]=(int)floor(2.0*(dpth-1))-zIndex[l];
-						}
-					
-					
-					vint.x=0;
-					vint.y=0;
-					vint.z=0;
-					
-					for (n=0;n<=degre;n++) 
-						{
-						sumxy.x=0;
-						sumxy.y=0;
-						sumxy.z=0;
-						for (m=0;m<=degre;m++)
-							{
-							sumx.x=0;
-							sumx.y=0;
-							sumx.z=0;
-							for (l=0;l<=degre;l++)
-								{
-								sumx.x+=(float)(xWeight[l]*coeff->raw[xIndex[l]][yIndex[m]][zIndex[n]].x);
-								sumx.y+=(float)(xWeight[l]*coeff->raw[xIndex[l]][yIndex[m]][zIndex[n]].y);
-								sumx.z+=(float)(xWeight[l]*coeff->raw[xIndex[l]][yIndex[m]][zIndex[n]].z);
-								}
-							sumxy.x+=(float)(yWeight[m]*sumx.x);
-							sumxy.y+=(float)(yWeight[m]*sumx.y);
-							sumxy.z+=(float)(yWeight[m]*sumx.z);
-							}
-						vint.x+=(float)(zWeight[n]*sumxy.x);
-						vint.y+=(float)(zWeight[n]*sumxy.y);
-						vint.z+=(float)(zWeight[n]*sumxy.z);
-						
-						} 
-										
-					
-					/*chres->raw[i][j][k].x=(float)(ch2->raw[i][j][k].x*dx2+vint.x);
-					chres->raw[i][j][k].y=(float)(ch2->raw[i][j][k].y*dy2+vint.y);
-					chres->raw[i][j][k].z=(float)(ch2->raw[i][j][k].z*dz2+vint.z);*/
-					chres->raw[i][j][k].x=(float)((ch2->raw[i][j][k].x+i)*dx1-i*dx2+vint.x);
-					chres->raw[i][j][k].y=(float)((ch2->raw[i][j][k].y+j)*dy1-j*dy2+vint.y);
-					chres->raw[i][j][k].z=(float)((ch2->raw[i][j][k].z+k)*dz1-k*dz2+vint.z);
-						}
-				}
+                    }
+                else
+                    {
+                    
+                    //***********************************************
+                    // Calcul de la valeur interpolee vint en (x,y,z)
+                    //**********************************************/
+                        
+                    
+                    xIndex[0]=(int)floor(x+0.5)-degre/2;
+                    yIndex[0]=(int)floor(y+0.5)-degre/2;
+                    zIndex[0]=(int)floor(z+0.5)-degre/2;
+                    
+                    for (l=0;l<degre;l++)
+                        {
+                        xIndex[l+1]=xIndex[l]+1;
+                        yIndex[l+1]=yIndex[l]+1;
+                        zIndex[l+1]=zIndex[l]+1;
+                        }
+                        
+                    
+                    // Calcul des poids de la fonction d'interpolation
+                    
+                    switch (degre) 
+                    {
+                    case 2:
+                        /* x */
+                        w = x - (double)xIndex[1];
+                        xWeight[1] = 3.0 / 4.0 - w * w;
+                        xWeight[2] = (1.0 / 2.0) * (w - xWeight[1] + 1.0);
+                        xWeight[0] = 1.0 - xWeight[1] - xWeight[2];
+                        /* y */
+                        w = y - (double)yIndex[1];
+                        yWeight[1] = 3.0 / 4.0 - w * w;
+                        yWeight[2] = (1.0 / 2.0) * (w - yWeight[1] + 1.0);
+                        yWeight[0] = 1.0 - yWeight[1] - yWeight[2];
+                        /* z */
+                        w = z - (double)zIndex[1];
+                        zWeight[1] = 3.0 / 4.0 - w * w;
+                        zWeight[2] = (1.0 / 2.0) * (w - zWeight[1] + 1.0);
+                        zWeight[0] = 1.0 - zWeight[1] - zWeight[2];
+                        break;
+                    case 3:
+                        /* x */
+                        w = x - (double)xIndex[1];
+                        xWeight[3] = (1.0 / 6.0) * w * w * w;
+                        xWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - xWeight[3];
+                        xWeight[2] = w + xWeight[0] - 2.0 * xWeight[3];
+                        xWeight[1] = 1.0 - xWeight[0] - xWeight[2] - xWeight[3];
+                        /* y */
+                        w = y - (double)yIndex[1];
+                        yWeight[3] = (1.0 / 6.0) * w * w * w;
+                        yWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - yWeight[3];
+                        yWeight[2] = w + yWeight[0] - 2.0 * yWeight[3];
+                        yWeight[1] = 1.0 - yWeight[0] - yWeight[2] - yWeight[3];
+                        /* z */
+                        w = z - (double)zIndex[1];
+                        zWeight[3] = (1.0 / 6.0) * w * w * w;
+                        zWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - zWeight[3];
+                        zWeight[2] = w + zWeight[0] - 2.0 * zWeight[3];
+                        zWeight[1] = 1.0 - zWeight[0] - zWeight[2] - zWeight[3];
+                        break;
+                    case 4:
+                        /* x */
+                        w = x - (double)xIndex[2];
+                        w2 = w * w;
+                        t = (1.0 / 6.0) * w2;
+                        xWeight[0] = 1.0 / 2.0 - w;
+                        xWeight[0] *= xWeight[0];
+                        xWeight[0] *= (1.0 / 24.0) * xWeight[0];
+                        t0 = w * (t - 11.0 / 24.0);
+                        t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
+                        xWeight[1] = t1 + t0;
+                        xWeight[3] = t1 - t0;
+                        xWeight[4] = xWeight[0] + t0 + (1.0 / 2.0) * w;
+                        xWeight[2] = 1.0 - xWeight[0] - xWeight[1] - xWeight[3] - xWeight[4];
+                        /* y */
+                        w = y - (double)yIndex[2];
+                        w2 = w * w;
+                        t = (1.0 / 6.0) * w2;
+                        yWeight[0] = 1.0 / 2.0 - w;
+                        yWeight[0] *= yWeight[0];
+                        yWeight[0] *= (1.0 / 24.0) * yWeight[0];
+                        t0 = w * (t - 11.0 / 24.0);
+                        t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
+                        yWeight[1] = t1 + t0;
+                        yWeight[3] = t1 - t0;
+                        yWeight[4] = yWeight[0] + t0 + (1.0 / 2.0) * w;
+                        yWeight[2] = 1.0 - yWeight[0] - yWeight[1] - yWeight[3] - yWeight[4];
+                        /* z */
+                        w = z - (double)zIndex[2];
+                        w2 = w * w;
+                        t = (1.0 / 6.0) * w2;
+                        zWeight[0] = 1.0 / 2.0 - w;
+                        zWeight[0] *= zWeight[0];
+                        zWeight[0] *= (1.0 / 24.0) * zWeight[0];
+                        t0 = w * (t - 11.0 / 24.0);
+                        t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
+                        zWeight[1] = t1 + t0;
+                        zWeight[3] = t1 - t0;
+                        zWeight[4] = zWeight[0] + t0 + (1.0 / 2.0) * w;
+                        zWeight[2] = 1.0 - zWeight[0] - zWeight[1] - zWeight[3] - zWeight[4];
+                        break;
+                    case 5:
+                        /* x */
+                        w = x - (double)xIndex[2];
+                        w2 = w * w;
+                        xWeight[5] = (1.0 / 120.0) * w * w2 * w2;
+                        w2 -= w;
+                        w4 = w2 * w2;
+                        w -= 1.0 / 2.0;
+                        t = w2 * (w2 - 3.0);
+                        xWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - xWeight[5];
+                        t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
+                        t1 = (-1.0 / 12.0) * w * (t + 4.0);
+                        xWeight[2] = t0 + t1;
+                        xWeight[3] = t0 - t1;
+                        t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
+                        t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
+                        xWeight[1] = t0 + t1;
+                        xWeight[4] = t0 - t1;
+                        /* y */
+                        w = y - (double)yIndex[2];
+                        w2 = w * w;
+                        yWeight[5] = (1.0 / 120.0) * w * w2 * w2;
+                        w2 -= w;
+                        w4 = w2 * w2;
+                        w -= 1.0 / 2.0;
+                        t = w2 * (w2 - 3.0);
+                        yWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - yWeight[5];
+                        t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
+                        t1 = (-1.0 / 12.0) * w * (t + 4.0);
+                        yWeight[2] = t0 + t1;
+                        yWeight[3] = t0 - t1;
+                        t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
+                        t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
+                        yWeight[1] = t0 + t1;
+                        yWeight[4] = t0 - t1;
+                        /* z */
+                        w = z - (double)zIndex[2];
+                        w2 = w * w;
+                        zWeight[5] = (1.0 / 120.0) * w * w2 * w2;
+                        w2 -= w;
+                        w4 = w2 * w2;
+                        w -= 1.0 / 2.0;
+                        t = w2 * (w2 - 3.0);
+                        zWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - zWeight[5];
+                        t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
+                        t1 = (-1.0 / 12.0) * w * (t + 4.0);
+                        zWeight[2] = t0 + t1;
+                        zWeight[3] = t0 - t1;
+                        t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
+                        t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
+                        zWeight[1] = t0 + t1;
+                        zWeight[4] = t0 - t1;
+                        break;
+                    default:
+                    printf("le degre de la spline est invalide\n");
+                    }
+                    
+                    // Condition limite (mirror boundaries)
+                    /*for (l=0;l<=degre;l++)
+                        {
+                        if (xIndex[l]<0)
+                            xIndex[l]=0;
+                        if (xIndex[l]>=wdth)
+                            xIndex[l]=0;
+                        if (yIndex[l]<0)
+                            yIndex[l]=0;
+                        if (yIndex[l]>=hght)
+                            yIndex[l]=0;
+                        if (zIndex[l]<0)
+                            zIndex[l]=0;
+                        if (zIndex[l]>=dpth)
+                            zIndex[l]=0;
+                        }*/
+                    for (l=0;l<=degre;l++)
+                        {
+                        if (xIndex[l]<0)
+                            xIndex[l]=-xIndex[l];
+                        if (xIndex[l]>=wdth)
+                            xIndex[l]=(int)floor(2.0*(wdth-1))-xIndex[l];
+                        if (yIndex[l]<0)
+                            yIndex[l]=-yIndex[l];
+                        if (yIndex[l]>=hght)
+                            yIndex[l]=(int)floor(2.0*(hght-1))-yIndex[l];
+                        if (zIndex[l]<0)
+                            zIndex[l]=-zIndex[l];
+                        if (zIndex[l]>=dpth)
+                            zIndex[l]=(int)floor(2.0*(dpth-1))-zIndex[l];
+                        }
+                    
+                    
+                    vint.x=0;
+                    vint.y=0;
+                    vint.z=0;
+                    
+                    for (n=0;n<=degre;n++) 
+                        {
+                        sumxy.x=0;
+                        sumxy.y=0;
+                        sumxy.z=0;
+                        for (m=0;m<=degre;m++)
+                            {
+                            sumx.x=0;
+                            sumx.y=0;
+                            sumx.z=0;
+                            for (l=0;l<=degre;l++)
+                                {
+                                sumx.x+=(float)(xWeight[l]*coeff->raw[xIndex[l]][yIndex[m]][zIndex[n]].x);
+                                sumx.y+=(float)(xWeight[l]*coeff->raw[xIndex[l]][yIndex[m]][zIndex[n]].y);
+                                sumx.z+=(float)(xWeight[l]*coeff->raw[xIndex[l]][yIndex[m]][zIndex[n]].z);
+                                }
+                            sumxy.x+=(float)(yWeight[m]*sumx.x);
+                            sumxy.y+=(float)(yWeight[m]*sumx.y);
+                            sumxy.z+=(float)(yWeight[m]*sumx.z);
+                            }
+                        vint.x+=(float)(zWeight[n]*sumxy.x);
+                        vint.y+=(float)(zWeight[n]*sumxy.y);
+                        vint.z+=(float)(zWeight[n]*sumxy.z);
+                        
+                        } 
+                                        
+                    
+                    /*chres->raw[i][j][k].x=(float)(ch2->raw[i][j][k].x*dx2+vint.x);
+                    chres->raw[i][j][k].y=(float)(ch2->raw[i][j][k].y*dy2+vint.y);
+                    chres->raw[i][j][k].z=(float)(ch2->raw[i][j][k].z*dz2+vint.z);*/
+                    chres->raw[i][j][k].x=(float)((ch2->raw[i][j][k].x+i)*dx1-i*dx2+vint.x);
+                    chres->raw[i][j][k].y=(float)((ch2->raw[i][j][k].y+j)*dy1-j*dy2+vint.y);
+                    chres->raw[i][j][k].z=(float)((ch2->raw[i][j][k].z+k)*dz1-k*dz2+vint.z);
+                        }
+                }
  
 free_field3d(coeff);
 }
@@ -1833,10 +1833,10 @@ free_field3d(coeff);
 
 
 /*******************************************************************************
-** 	Bspline(degre,valeur)                                   
+**  Bspline(degre,valeur)                                   
 **                                                                   
-**	Renvoie la valeur en continu de la spline en une valeur donnee
-**	(la spline de degre 3 correspond a Bspline0d1)
+**  Renvoie la valeur en continu de la spline en une valeur donnee
+**  (la spline de degre 3 correspond a Bspline0d1)
 **   La valeuren laquelle la fonction est evaluee est une valeur normalisee dans
 **  l'intervalle [0 degre+1]         
 *******************************************************************************/
@@ -1845,51 +1845,51 @@ double Bspline(int degre,double valeur)
 {
 double res;
 switch (degre)
-  	{
-   	case 0:
-		if ((valeur>=0)&&(valeur<=1)) 
-		res=1;
-		else
-		res=0;   
-   	break;
-   	case 1:
-		if ((valeur>=0)&&(valeur<=1)) 
-		res=valeur;
-		else if ((valeur>1)&&(valeur<=2))
-		res=2-valeur;
-		else 
-		res=0;
-   	break;
-   	case 2:
-		if ((valeur>=0)&&(valeur<=1))
-		res=valeur*valeur/2;
-		else if ((valeur>1)&&(valeur<=2))
-		res=3*valeur-valeur*valeur-3/2;
-		else if ((valeur>2)&&(valeur<=3))
-		res=valeur*valeur/2-3*valeur+9/2;
-		else res=0;   
-   	break;
-   	case 3:
-		if ((valeur>=0)&&(valeur<=0.5)) 
-		res=-2*valeur;
-		else if ((valeur>0.5)&&(valeur<=1))
-		res=4*valeur-3;
-		if ((valeur>1)&&(valeur<=1.5)) 
-		res=5-4*valeur;
-		else if ((valeur>1.5)&&(valeur<=2))
-		res=2*valeur-4;
-		else 
-		res=0;
-   	break;
-	default: // par defaut Bspline d'ordre 1
-		if ((valeur>=0)&&(valeur<=1)) 
-		res=valeur;
-		else if ((valeur>1)&&(valeur<=2))
-		res=2-valeur;
-		else 
-		res=0;
-	break;
-	}  
+    {
+    case 0:
+        if ((valeur>=0)&&(valeur<=1)) 
+        res=1;
+        else
+        res=0;   
+    break;
+    case 1:
+        if ((valeur>=0)&&(valeur<=1)) 
+        res=valeur;
+        else if ((valeur>1)&&(valeur<=2))
+        res=2-valeur;
+        else 
+        res=0;
+    break;
+    case 2:
+        if ((valeur>=0)&&(valeur<=1))
+        res=valeur*valeur/2;
+        else if ((valeur>1)&&(valeur<=2))
+        res=3*valeur-valeur*valeur-3/2;
+        else if ((valeur>2)&&(valeur<=3))
+        res=valeur*valeur/2-3*valeur+9/2;
+        else res=0;   
+    break;
+    case 3:
+        if ((valeur>=0)&&(valeur<=0.5)) 
+        res=-2*valeur;
+        else if ((valeur>0.5)&&(valeur<=1))
+        res=4*valeur-3;
+        if ((valeur>1)&&(valeur<=1.5)) 
+        res=5-4*valeur;
+        else if ((valeur>1.5)&&(valeur<=2))
+        res=2*valeur-4;
+        else 
+        res=0;
+    break;
+    default: // par defaut Bspline d'ordre 1
+        if ((valeur>=0)&&(valeur<=1)) 
+        res=valeur;
+        else if ((valeur>1)&&(valeur<=2))
+        res=2-valeur;
+        else 
+        res=0;
+    break;
+    }  
 return(res);
 }
 
@@ -1900,17 +1900,17 @@ return(res);
 *******************************************************************************/
 
 /*******************************************************************************
-**     compare_field_3d()            	
+**     compare_field_3d()               
 **                                                                  
 **     Compare deux champ contenu dans des fichiers et affiche la difference
-**	de module et la difference de phase dans deux image                          
+**  de module et la difference de phase dans deux image                          
 *******************************************************************************/
 void compare_field_3d(void)
 {
  field3d *ch1,*ch2;
  transf3d *transfo;
  char   nomfich1[500],nomfich2[500];
- int   im_mod,im_phase,wdth,hght,dpth,e=0	;
+ int   im_mod,im_phase,wdth,hght,dpth,e=0   ;
 
 
  /*lecture du premier champ*/
@@ -1957,10 +1957,10 @@ void compare_field_3d(void)
 }
 
 /*******************************************************************************
-**     imx_compare_field_3d_p()            	
+**     imx_compare_field_3d_p()             
 **                                                                  
 **     Compare deux champ contenu et donne le resultat de la difference en module
-**	et en phase sous forme de deux images                          
+**  et en phase sous forme de deux images                          
 *******************************************************************************/
 int imx_compare_field_3d_p(field3d *ch1, field3d *ch2, grphic3d *immod, grphic3d *imphase)
 {
@@ -1968,7 +1968,7 @@ int imx_compare_field_3d_p(field3d *ch1, field3d *ch2, grphic3d *immod, grphic3d
  vector3d v1,v2;
  double   norm1,norm2,maxmod,maxphase,rmod,rphase,c;
  double   ***module,***phase;
- int	wdth,hght,dpth,i,j,k;
+ int    wdth,hght,dpth,i,j,k;
  
  c=180.0/(double)PI;
  
@@ -2019,7 +2019,7 @@ int imx_compare_field_3d_p(field3d *ch1, field3d *ch2, grphic3d *immod, grphic3d
 
 
 /*******************************************************************************
-**     module_field_to_image_3d(ch,im)            	
+**     module_field_to_image_3d(ch,im)              
 **                                                                  
 **     module d'un champ dans une image                             
 *******************************************************************************/
@@ -2043,10 +2043,10 @@ int module_field_to_image_3d(field3d *ch, grphic3d *im)
       cx=data[i][j][k].x;cy=data[i][j][k].y;cz=data[i][j][k].z;
       m=sqrt(cx*cx+cy*cy+cz*cz);
       
-			if (isinf(m))
-		 		m=0;
-		
-		 if (m>maxmod) maxmod=m;
+            if (isinf(m))
+                m=0;
+        
+         if (m>maxmod) maxmod=m;
      }
   /*calcul de maxpixel, rcoeff et icomp correspondant a maxmod*/  
   minmod=0.0;
@@ -2063,10 +2063,10 @@ int module_field_to_image_3d(field3d *ch, grphic3d *im)
     {
      cx=data[i][j][k].x;cy=data[i][j][k].y;cz=data[i][j][k].z;
      m=sqrt(cx*cx+cy*cy+cz*cz);
-		 
-		 if (isinf(m))
-		 	m=-1.0*rcoeff;
-		 
+         
+         if (isinf(m))
+            m=-1.0*rcoeff;
+         
      im->mri[i][j][k]=(int)(m/rcoeff);
     }
   
@@ -2074,12 +2074,12 @@ int module_field_to_image_3d(field3d *ch, grphic3d *im)
  }
 
 /*******************************************************************************
-**     composante_field_to_image_3d(ch,im,type)            	
+**     composante_field_to_image_3d(ch,im,type)             
 **                                                                  
 **     composante d'un champ dans une image
-**     		si type =0  => composante suivant x
-**     		si type =1  => composante suivant y
-**     		si type =2  => composante suivant z
+**          si type =0  => composante suivant x
+**          si type =1  => composante suivant y
+**          si type =2  => composante suivant z
 **                       
 *******************************************************************************/
 int composante_field_to_image_3d(field3d *ch, grphic3d *im, int type)
@@ -2094,32 +2094,32 @@ int composante_field_to_image_3d(field3d *ch, grphic3d *im, int type)
   
   /*calcul la composante max et min du champ*/
   max  = - HUGE_VAL;
-	min  =   HUGE_VAL;
-	
-	for (i=0;i<wdth;i++)
+    min  =   HUGE_VAL;
+    
+    for (i=0;i<wdth;i++)
    for (j=0;j<hght;j++)
     for (k=0;k<dpth;k++)
      {
       if (type==0)
-				{
-				max=MAXI(max,data[i][j][k].x);
-				min=MINI(min,data[i][j][k].x);
-				}
-			
-			if (type==1)
-				{
-				max=MAXI(max,data[i][j][k].y);
-				min=MINI(min,data[i][j][k].y);
-				}
-			
-			if (type==2)
-				{
-				max=MAXI(max,data[i][j][k].z);
-				min=MINI(min,data[i][j][k].z);
-				}
-			}
+                {
+                max=MAXI(max,data[i][j][k].x);
+                min=MINI(min,data[i][j][k].x);
+                }
+            
+            if (type==1)
+                {
+                max=MAXI(max,data[i][j][k].y);
+                min=MINI(min,data[i][j][k].y);
+                }
+            
+            if (type==2)
+                {
+                max=MAXI(max,data[i][j][k].z);
+                min=MINI(min,data[i][j][k].z);
+                }
+            }
   
-	/*calcul de maxpixel, rcoeff et icomp correspondant a maxmod*/  
+    /*calcul de maxpixel, rcoeff et icomp correspondant a maxmod*/  
   imx_brukermax_3d((float)max,(float)min,im);
   rcoeff=im->rcoeff;
   
@@ -2132,21 +2132,56 @@ int composante_field_to_image_3d(field3d *ch, grphic3d *im, int type)
     for (k=0;k<dpth;k++)
     {
  
- 			if (type==0)
-     			im->mri[i][j][k]=(int)(data[i][j][k].x/rcoeff);
+            if (type==0)
+                im->mri[i][j][k]=(int)(data[i][j][k].x/rcoeff);
 
-			if (type==1)
-     			im->mri[i][j][k]=(int)(data[i][j][k].y/rcoeff);
-			
-			if (type==2)
-     			im->mri[i][j][k]=(int)(data[i][j][k].z/rcoeff);
+            if (type==1)
+                im->mri[i][j][k]=(int)(data[i][j][k].y/rcoeff);
+            
+            if (type==2)
+                im->mri[i][j][k]=(int)(data[i][j][k].z/rcoeff);
     }
   
   return(1);
  }
 
 /*******************************************************************************
-**     jacobien_field_to_image_3d(ch,im)            	
+**     images_to_field_3d(ux,uy, uz, ch)            	
+**                                                                  
+**                       
+*******************************************************************************/
+int images_to_field_3d(grphic3d *ux,grphic3d *uy,grphic3d *uz,field3d *ch)
+{
+int i,j,k,wdth,hght,dpth;
+vector3d ***data;
+
+
+if ((ux->width!=uy->width)||(ux->width!=uz->width)||(ux->width!=ch->width)||
+  	(ux->height!=uy->height)||(ux->height!=uz->height)||(ux->height!=ch->height)||
+	(ux->depth!=uy->depth)||(ux->depth!=uz->depth)||(ux->depth!=ch->depth))
+	{
+	printf("Attention, les composantes images et le champs n'ont pas des tailles compatibles !\n");
+	exit(-1);
+	}
+
+wdth=ch->width;hght=ch->height;dpth=ch->depth;
+data=ch->raw;
+  
+
+for (i=0;i<wdth;i++)
+for (j=0;j<hght;j++)
+for (k=0;k<dpth;k++)
+	{
+	data[i][j][k].x=ux->mri[i][j][k]*ux->rcoeff;
+	data[i][j][k].y=uy->mri[i][j][k]*uy->rcoeff;
+	data[i][j][k].z=uz->mri[i][j][k]*uz->rcoeff;
+	}
+  
+  return(1);
+ }
+
+/*******************************************************************************
+**     jacobien_field_to_image_3d(ch,im)                
 **                                                                  
 **     jacobien d'un champ dans une image                             
 *******************************************************************************/
@@ -2157,7 +2192,7 @@ int jacobien_field_to_image_3d(field3d *ch, grphic3d *im)
   double maxmod,m,J1,J2,J3,J4,J5,J6,J7,J8,J9,minmod,filt[5],singularite,Jtot=0;
   vector3d ***data;
   double   ***jacobien;
-	
+    
   wdth=ch->width;hght=ch->height;dpth=ch->depth;
   data=ch->raw;
   
@@ -2181,7 +2216,7 @@ int jacobien_field_to_image_3d(field3d *ch, grphic3d *im)
      J1=J5=J9=1.0;J2=J3=J4=J6=J7=J8=0.0;
      for (l=1;l<=3;l++)
      {
-		 J1+=filt[l]*(data[i+l][j][k].x-data[i-l][j][k].x);
+         J1+=filt[l]*(data[i+l][j][k].x-data[i-l][j][k].x);
      J2+=filt[l]*(data[i][j+l][k].x-data[i][j-l][k].x);
      J3+=filt[l]*(data[i][j][k+l].x-data[i][j][k-l].x);
      J4+=filt[l]*(data[i+l][j][k].y-data[i-l][j][k].y);
@@ -2190,8 +2225,8 @@ int jacobien_field_to_image_3d(field3d *ch, grphic3d *im)
      J7+=filt[l]*(data[i+l][j][k].z-data[i-l][j][k].z);
      J8+=filt[l]*(data[i][j+l][k].z-data[i][j-l][k].z);
      J9+=filt[l]*(data[i][j][k+l].z-data[i][j][k-l].z); 
-		  
-		 /*J1+=filt[l]*(data[i+l][j][k].x-data[i][j][k].x);
+          
+         /*J1+=filt[l]*(data[i+l][j][k].x-data[i][j][k].x);
      J2+=filt[l]*(data[i][j+l][k].x-data[i][j][k].x);
      J3+=filt[l]*(data[i][j][k+l].x-data[i][j][k].x);
      J4+=filt[l]*(data[i+l][j][k].y-data[i][j][k].y);
@@ -2200,7 +2235,7 @@ int jacobien_field_to_image_3d(field3d *ch, grphic3d *im)
      J7+=filt[l]*(data[i+l][j][k].z-data[i][j][k].z);
      J8+=filt[l]*(data[i][j+l][k].z-data[i][j][k].z);
      J9+=filt[l]*(data[i][j][k+l].z-data[i][j][k].z); */
-		   
+           
      }
      m=J1*(J5*J9-J6*J8)-J4*(J2*J9-J3*J8)+J7*(J2*J6-J3*J5);
      jacobien[i][j][k]=m;
@@ -2221,13 +2256,13 @@ int jacobien_field_to_image_3d(field3d *ch, grphic3d *im)
      im->mri[i][j][k]=(int)(jacobien[i][j][k]/rcoeff);
     }
 
-	singularite=0;  
-	for (i=0;i<wdth;i++)
+    singularite=0;  
+    for (i=0;i<wdth;i++)
    for (j=0;j<hght;j++)
     for (k=0;k<dpth;k++)
     if (jacobien[i][j][k]<0.0)
-			singularite++;
-			
+            singularite++;
+            
    printf("Jacobien minimum: %.2f \n",minmod);
    printf("Nombre de singulairte :  %f \n",1.0*singularite/(wdth*hght*dpth));
    
@@ -2252,29 +2287,29 @@ int jacobien_field_to_image_3d(field3d *ch, grphic3d *im)
 
 
 /*******************************************************************************
-** 	int imx_gradient_3d_p(im,grad,method,t)
+**  int imx_gradient_3d_p(im,grad,method,t)
 */
-/*!	Calcul le gradient d'une image et met le resultat dans un champ de 
-**	vecteurs
-**		\param im: 	image 
-**		\param grad: 	champ resultat
-**		\param method:	methode de calcul 
-**				\li  0: classic
-**				\li  1: taylor
-**				\li  2: leat square
-**		\param t:	taille du filtre si necessaire 
+/*! Calcul le gradient d'une image et met le resultat dans un champ de 
+**  vecteurs
+**      \param im:  image 
+**      \param grad:    champ resultat
+**      \param method:  methode de calcul 
+**              \li  0: classic
+**              \li  1: taylor
+**              \li  2: leat square
+**      \param t:   taille du filtre si necessaire 
 **
-**	\attention le champ est suppose alloue a la bonne taille avant l'appel
-**	a cette procedure
+**  \attention le champ est suppose alloue a la bonne taille avant l'appel
+**  a cette procedure
 **
-**	\remark  pour plus de details sur les methodes voir le livre:
-**	practical handbook on image processing for scientific applications
-**	Bernd Jahne, crc press
+**  \remark  pour plus de details sur les methodes voir le livre:
+**  practical handbook on image processing for scientific applications
+**  Bernd Jahne, crc press
 **
 *******************************************************************************/
 int imx_gradient_3d_p(grphic3d *im, field3d *grad, int method, int t)
 {
- int	i,j,k,l,wdth,hght,dpth;
+ int    i,j,k,l,wdth,hght,dpth;
  vector3d ***data,nulvec;
  double *filt,gx,gy,gz;
  
@@ -2296,16 +2331,16 @@ int imx_gradient_3d_p(grphic3d *im, field3d *grad, int method, int t)
    {
     case 1: /*taylor expansion*/
      switch (t)
-	{case 3: filt[1]=-45.0/60.0;filt[2]=9.0/60.0;filt[3]=-1.0/60.0; break;	
-	 case 4: filt[1]=-672.0/840.0;filt[2]=168.0/840.0;filt[3]=-32.0/840.0;filt[4]=3.0/840.0; break;
-     	 default:filt[1]=-8.0/12.0;filt[2]=1/12.0;t=2; break;}
+    {case 3: filt[1]=-45.0/60.0;filt[2]=9.0/60.0;filt[3]=-1.0/60.0; break;  
+     case 4: filt[1]=-672.0/840.0;filt[2]=168.0/840.0;filt[3]=-32.0/840.0;filt[4]=3.0/840.0; break;
+         default:filt[1]=-8.0/12.0;filt[2]=1/12.0;t=2; break;}
     break;
     case 2: /*least-square derivation (non recursive)*/
      switch (t)
-	{case 3: filt[1]=-0.833812;filt[2]=0.229945;filt[3]=0.0422064; break;	
-	 case 4: filt[1]=-0.88464;filt[2]=0.298974;filt[3]=-0.0949175;filt[4]=0.0178608; break;
-	 case 5: filt[1]=-0.914685;filt[2]=0.346228;filt[3]=-0.138704;filt[4]=0.0453905;filt[5]=-0.0086445; break;
-     	 default:filt[1]=-0.74038;filt[2]=0.12019;t=2; break;} 
+    {case 3: filt[1]=-0.833812;filt[2]=0.229945;filt[3]=0.0422064; break;   
+     case 4: filt[1]=-0.88464;filt[2]=0.298974;filt[3]=-0.0949175;filt[4]=0.0178608; break;
+     case 5: filt[1]=-0.914685;filt[2]=0.346228;filt[3]=-0.138704;filt[4]=0.0453905;filt[5]=-0.0086445; break;
+         default:filt[1]=-0.74038;filt[2]=0.12019;t=2; break;} 
     break;
     default:
       filt[1]=-1.0;t=1;
@@ -2385,10 +2420,10 @@ double erreur_field_3d(field3d *champ1, field3d *champ2)
 /*******************************************************************************
 **   carac_field_3d()                                  
 */
-/*!	fonction d'affichage dans le log du min et du max du champ suivant x, y, et z
-**	\param champ : le champ
-**	\retval 1                                                                       
-**    	          
+/*! fonction d'affichage dans le log du min et du max du champ suivant x, y, et z
+**  \param champ : le champ
+**  \retval 1                                                                       
+**                
 *******************************************************************************/
 int carac_field_3d(field3d *champ)
 {
@@ -2437,17 +2472,17 @@ DIFFERENT DE IMDEB (GAIN DE TEMPS DE CALCUL)*/
 */                                                                       
 /*!    fonction d'interpolation par la methode du plus proche voisin      
 **    imres est l'image de im1 transformee par le champ                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
 *******************************************************************************/
 int inter_nearest_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
  int wdthDeb,hghtDeb,dpthDeb;
  int wdthField,hghtField,dpthField;
  int i,j,k,x,y,z;
- vector3d	***data;
+ vector3d   ***data;
  
  wdthDeb=imdeb->width;hghtDeb=imdeb->height;dpthDeb=imdeb->depth;
  wdthField=champ->width;hghtField=champ->height;dpthField=champ->depth;
@@ -2485,10 +2520,10 @@ ceux de imdeb (dx,dy,dz)
 /*!                                                                       
 **    fonction d'interpolation bilineaire                                
 **    imres est l'image de im1 transformee par le champ                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
 *******************************************************************************/
 /*int inter_linear_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
@@ -2526,7 +2561,7 @@ ceux de imdeb (dx,dy,dz)
     if (i2>=0 && i3<wdthDeb && j2>=0 && j3<hghtDeb && k2>=0 && k3<dpthDeb)
       {// tout le voisinage est dans l'image
         xrel=x-i2;yrel=y-j2;zrel=z-k2;
-	
+    
         va=(double)imdebMRI[i2][j2][k2];
         vb=(double)imdebMRI[i2][j2][k3];
         vc=(double)imdebMRI[i2][j3][k2];
@@ -2537,17 +2572,17 @@ ceux de imdeb (dx,dy,dz)
         vh=(double)imdebMRI[i3][j3][k3];
 
         val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
-		+(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
-		+(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+        +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+        +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
         imresMRI[i][j][k]=(int)floor(val+0.5);
       }
       else
       {
        if (i3>=0 && i2<wdthDeb && j3>=0 && j2<hghtDeb && k3>=0 && k2<dpthDeb)
        {//une partie du voisinage est dans l'image
-	
+    
         xrel=x-i2;yrel=y-j2;zrel=z-k2;
-	if (i2==-1 || j2==-1 || k2==-1) va=0.0; else va=(double)imdebMRI[i2][j2][k2];
+    if (i2==-1 || j2==-1 || k2==-1) va=0.0; else va=(double)imdebMRI[i2][j2][k2];
         if (i2==-1 || j2==-1 || k3==dpthDeb) vb=0.0; else vb=(double)imdebMRI[i2][j2][k3];
         if (i2==-1 || j3==hghtDeb || k2==-1) vc=0.0; else vc=(double)imdebMRI[i2][j3][k2];
         if (i2==-1 || j3==hghtDeb || k3==dpthDeb) vd=0.0; else vd=(double)imdebMRI[i2][j3][k3];
@@ -2557,8 +2592,8 @@ ceux de imdeb (dx,dy,dz)
         if (i3==wdthDeb || j3==hghtDeb || k3==dpthDeb) vh=0.0; else vh=(double)imdebMRI[i3][j3][k3];
 
         val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
-		+(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
-		+(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+        +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+        +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
         imresMRI[i][j][k]=(int)floor(val+0.5);
        }
        else
@@ -2625,8 +2660,8 @@ int inter_linear_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
         vh=(double)imdebMRI[i3][j3][k3];
 
         val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
-		+(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
-		+(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+        +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+        +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
         imresMRI[i][j][k]=(int)floor(val+0.5);
       }
       else if ( i2>=-1 && i3<=wdthDeb_M && j2>=-1 && j3<=hghtDeb_M && k2>=-1 && k3<=dpthDeb_M )
@@ -2644,8 +2679,8 @@ int inter_linear_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
         if (i3==wdthDeb || j3==hghtDeb || k3==dpthDeb) vh=0.0; else vh=(double)imdebMRI[i3][j3][k3];
 
         val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
-		+(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
-		+(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+        +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+        +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
         imresMRI[i][j][k]=(int)floor(val+0.5);
        }
        else
@@ -2665,10 +2700,10 @@ int inter_linear_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 **    fonction d'interpolation par la methode du sinus cardinal      
 **    imres est l'image de im1 transformee par le champ
 **    apodisation de Hanning                
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
 *******************************************************************************/
 int inter_sinc_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
@@ -2677,7 +2712,7 @@ int inter_sinc_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
  int   i,j,k,l,i1,j1,k1,i2,j2,k2,i1b,j1b,k1b,i2b,j2b,k2b,ic,jc,kc;
  double x,y,z,d,DX,DY,DZ,D,fx[10],fy[10],fz[10];
  double val,pix;
- vector3d	***data=NULL;
+ vector3d   ***data=NULL;
  double ***tmp_res=NULL;
  TYPEMRI3D ***imdebMRI=NULL;
  const int tf=2;  //taille du filtre
@@ -2777,11 +2812,11 @@ int inter_sinc_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 */                                                                       
 /*!    fonction d'interpolation par la methode du sinus cardinal rapide     
 **    imres est l'image de im1 transformee par le champ  
-**	La taille du filtre est 2                
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
+**  La taille du filtre est 2                
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
 *******************************************************************************/
 int inter_qsinc2_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
@@ -2794,7 +2829,7 @@ int inter_qsinc2_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 /*!                                                                      
 **    fonction d'interpolation par la methode du sinus cardinal rapide     
 **    imres est l'image de im1 transformee par le champ  
-**	La taille du filtre est 3                
+**  La taille du filtre est 3                
 **   \param imdeb : l'image de depart
 **   \param champ : le champ
 **   \param imres : l'image resultat (E/S)
@@ -2823,12 +2858,12 @@ int inter_qsinc_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres, int tf)
  int wdth,hght,dpth;
  int wdthDeb,hghtDeb,dpthDeb;
  int   i,j,k,nbp,ic,jc,kc,ix0,iy0,iz0,ix1,iy1,iz1;
- int	ix,iy,iz,v1,v2,v3,v4,v5,v6,v7,v8;
+ int    ix,iy,iz,v1,v2,v3,v4,v5,v6,v7,v8;
  int   il,jl,kl,ir,jr,kr;
  double x,y,z,d,D;
  double fr[100][10],fl[100][10];
  double val,pix,pas;
- vector3d	***data=NULL;
+ vector3d   ***data=NULL;
  double ***tmp_res=NULL;
  TYPEMRI3D ***imdebMRI=NULL;
  
@@ -2854,12 +2889,12 @@ int inter_qsinc_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres, int tf)
     d=1.0-pas*(double)i+(double)j;
     d=PI*sqrt(d*d);
     if (d!=0.0) fr[i][j]=sin(d)/d*0.5*(1.0+cos(2.0*d/(double)(2*tf)));
-	  else	fr[i][j]=1.0;
+      else  fr[i][j]=1.0;
     D=D+fr[i][j];
     d=pas*(double)i+(double)j;
     d=PI*sqrt(d*d);
     if (d!=0.0) fl[i][j]=sin(d)/d*0.5*(1.0+cos(2.0*d/(double)(2*tf)));
-	  else	fl[i][j]=1.0;
+      else  fl[i][j]=1.0;
     D=D+fl[i][j];
    }
   for (j=0;j<tf;j++) {fr[i][j]=fr[i][j]/D;fl[i][j]=fl[i][j]/D;}
@@ -2941,314 +2976,315 @@ int inter_qsinc_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres, int tf)
 /*!                                                                       
 **    fonction d'interpolation par une Bspline de degre n.     
 **    imres est l'image de im1 transformee par le champ  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
-**	 
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
+**   
 *******************************************************************************/
 int inter_Bspline_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres,int degre)
 {
-	int wdthDeb,hghtDeb,dpthDeb,nbpoles;
-	int wdthField,hghtField,dpthField;
-	int i,j,k,l,m,n;
-	double x,y,z,w,w2,w4,t,t0,t1,vint,sumx,sumxy;
-	double ***coeff,*row1D, ***tmp_res;
- 	double epsilon=2.2204460492503131E-16;
-	double poles[2],xWeight[6],yWeight[6],zWeight[6]; 
-	int xIndex[6],yIndex[6],zIndex[6];
+    int wdthDeb,hghtDeb,dpthDeb,nbpoles;
+    int wdthField,hghtField,dpthField;
+    int i,j,k,l,m,n;
+    double x,y,z,w,w2,w4,t,t0,t1,vint,sumx,sumxy;
+    double ***coeff,*row1D, ***tmp_res;
+    double epsilon=2.2204460492503131E-16;
+    double poles[2],xWeight[6],yWeight[6],zWeight[6]; 
+    int xIndex[6],yIndex[6],zIndex[6];
    
   wdthDeb=imdeb->width;hghtDeb=imdeb->height;dpthDeb=imdeb->depth;
   wdthField=champ->width;hghtField=champ->height;dpthField=champ->depth;
   if (wdthField!=(int)imres->width || hghtField!=(int)imres->height || dpthField!=(int)imres->depth)
   {fprintf(stderr,"le champ n'est pas de la bonne taille dans inter_bspline_3d\n");return(1);}
-	
+    
   imx_copie_image_params_3d_p(imdeb,imres);
 
-	
-	// Calcul des coefficient d'interpolation a partir des echantillons de l'image de depart
-	coeff=alloc_dmatrix_3d(wdthDeb, hghtDeb, dpthDeb);
-	
-	// image temporaire en double
-	tmp_res=alloc_dmatrix_3d(wdthField, hghtField, dpthField);
-	
-	// Recuperation de la valeur des poles en z
-	switch (degre) 
-	{
-	case 2:
-		poles[0]=(sqrt(8.0) - 3.0);
-		nbpoles=1;
-		break;
-	case 3:
-		poles[0]=(sqrt(3.0) - 2.0);
-		nbpoles=1;
-		break;
-	case 4:
-		poles[0]=(sqrt(664.0 - sqrt(438976.0)) + sqrt(304.0) - 19.0);
-		poles[1]=(sqrt(664.0 + sqrt(438976.0)) - sqrt(304.0) - 19.0);
-		nbpoles=2;
-		break;
-	case 5:
-		poles[0]=(sqrt(135.0 / 2.0 - sqrt(17745.0 / 4.0)) + sqrt(105.0 / 4.0)- 13.0 / 2.0);
-		poles[1]=(sqrt(135.0 / 2.0 + sqrt(17745.0 / 4.0)) - sqrt(105.0 / 4.0)- 13.0 / 2.0);
-		nbpoles=2;
-		break;
-	default:
-		{fprintf(stderr,"inter_Bspline_3d: Degre de spline invalide, degres admis: {2,3,4,5}\n");return(2);}
-	}
+    
+    // Calcul des coefficient d'interpolation a partir des echantillons de l'image de depart
+    coeff=alloc_dmatrix_3d(wdthDeb, hghtDeb, dpthDeb);
+    
+    // image temporaire en double
+    tmp_res=alloc_dmatrix_3d(wdthField, hghtField, dpthField);
+    
+    // Recuperation de la valeur des poles en z
+    switch (degre) 
+    {
+    case 2:
+        poles[0]=(sqrt(8.0) - 3.0);
+        nbpoles=1;
+        break;
+    case 3:
+        poles[0]=(sqrt(3.0) - 2.0);
+        nbpoles=1;
+        break;
+    case 4:
+        poles[0]=(sqrt(664.0 - sqrt(438976.0)) + sqrt(304.0) - 19.0);
+        poles[1]=(sqrt(664.0 + sqrt(438976.0)) - sqrt(304.0) - 19.0);
+        nbpoles=2;
+        break;
+    case 5:
+        poles[0]=(sqrt(135.0 / 2.0 - sqrt(17745.0 / 4.0)) + sqrt(105.0 / 4.0)- 13.0 / 2.0);
+        poles[1]=(sqrt(135.0 / 2.0 + sqrt(17745.0 / 4.0)) - sqrt(105.0 / 4.0)- 13.0 / 2.0);
+        nbpoles=2;
+        break;
+    default:
+        {fprintf(stderr,"inter_Bspline_3d: Degre de spline invalide, degres admis: {2,3,4,5}\n");return(2);}
+    }
 
-		
-		// Calcul des coeeficients suivant x
-		row1D=(double *)malloc(wdthDeb*sizeof(double));
-		
-		for (k=0; k<dpthDeb; k++)
-		{
-			for (j=0; j<hghtDeb; j++)
-			{
-				for (i=0; i<wdthDeb; i++){row1D[i]=imdeb->mri[i][j][k];}
-				GetInterpolationCoefficients(row1D,wdthDeb,poles,nbpoles,epsilon);
-				for (i=0; i<wdthDeb; i++){coeff[i][j][k]=row1D[i];}
-			}
-		}
-		free(row1D);
-	
-	
-		// Calcul des coefficients suivant y
-		row1D=(double *)malloc(hghtDeb*sizeof(double));
-		
-		for (k=0; k<dpthDeb; k++)
-		{
-			for (i=0; i<wdthDeb; i++)
-			{
-				for (j=0; j<hghtDeb; j++){row1D[j]=coeff[i][j][k];}
-				GetInterpolationCoefficients(row1D,hghtDeb,poles,nbpoles,epsilon);
-				for (j=0; j<hghtDeb; j++){coeff[i][j][k]=row1D[j];}
-			}
-		}
-		free(row1D);
-	
-		// Calcul des coefficients suivant z
-		row1D=(double *)malloc(dpthDeb*sizeof(double));
-		
-		for (i=0; i<wdthDeb; i++)
-		{
-			for (j=0; j<hghtDeb; j++)
-			{
-				for (k=0; k<dpthDeb; k++){row1D[k]=coeff[i][j][k];}
-				GetInterpolationCoefficients(row1D,dpthDeb,poles,nbpoles,epsilon);
-				for (k=0; k<dpthDeb; k++){coeff[i][j][k]=row1D[k];}
-			}
-		}
-		free(row1D);
-		
-  		for (i=0;i<wdthField;i++)
-			for (j=0;j<hghtField;j++)
-				for (k=0;k<dpthField;k++)
-				{
-				x=i+champ->raw[i][j][k].x;
-				y=j+champ->raw[i][j][k].y;
-				z=k+champ->raw[i][j][k].z;
-				
-				if (x<0 || x>=wdthDeb || y<0 || y>=hghtDeb || z<0 || z>=dpthDeb)  
-					{
+        
+        // Calcul des coeeficients suivant x
+        row1D=(double *)malloc(wdthDeb*sizeof(double));
+        
+        for (k=0; k<dpthDeb; k++)
+        {
+            for (j=0; j<hghtDeb; j++)
+            {
+                for (i=0; i<wdthDeb; i++){row1D[i]=imdeb->mri[i][j][k];}
+                GetInterpolationCoefficients(row1D,wdthDeb,poles,nbpoles,epsilon);
+                for (i=0; i<wdthDeb; i++){coeff[i][j][k]=row1D[i];}
+            }
+        }
+        free(row1D);
+    
+    
+        // Calcul des coefficients suivant y
+        row1D=(double *)malloc(hghtDeb*sizeof(double));
+        
+        for (k=0; k<dpthDeb; k++)
+        {
+            for (i=0; i<wdthDeb; i++)
+            {
+                for (j=0; j<hghtDeb; j++){row1D[j]=coeff[i][j][k];}
+                GetInterpolationCoefficients(row1D,hghtDeb,poles,nbpoles,epsilon);
+                for (j=0; j<hghtDeb; j++){coeff[i][j][k]=row1D[j];}
+            }
+        }
+        free(row1D);
+    
+        // Calcul des coefficients suivant z
+        row1D=(double *)malloc(dpthDeb*sizeof(double));
+        
+        for (i=0; i<wdthDeb; i++)
+        {
+            for (j=0; j<hghtDeb; j++)
+            {
+                for (k=0; k<dpthDeb; k++){row1D[k]=coeff[i][j][k];}
+                GetInterpolationCoefficients(row1D,dpthDeb,poles,nbpoles,epsilon);
+                for (k=0; k<dpthDeb; k++){coeff[i][j][k]=row1D[k];}
+            }
+        }
+        free(row1D);
+       
+
+        for (i=0;i<wdthField;i++)
+            for (j=0;j<hghtField;j++)
+                for (k=0;k<dpthField;k++)
+                {
+                x=i+champ->raw[i][j][k].x;
+                y=j+champ->raw[i][j][k].y;
+                z=k+champ->raw[i][j][k].z;
+                
+                if (x<0 || x>=wdthDeb || y<0 || y>=hghtDeb || z<0 || z>=dpthDeb)  
+                    {
           tmp_res[i][j][k]=0.0;
-					}
-				else
-					{
-					
-					//***********************************************
-					// Calcul de la valeur interpolee vint en (x,y,z)
-					//**********************************************/
-					
-					
-					xIndex[0]=(int)floor(x+0.5)-degre/2;
-					yIndex[0]=(int)floor(y+0.5)-degre/2;
-					zIndex[0]=(int)floor(z+0.5)-degre/2;
-					
-					for (l=0;l<degre;l++)
-						{
-						xIndex[l+1]=xIndex[l]+1;
-						yIndex[l+1]=yIndex[l]+1;
-						zIndex[l+1]=zIndex[l]+1;
-						}
-						
-					
-					// Calcul des poids de la fonction d'interpolation
-					
-					switch (degre) 
-					{
-					case 2:
-						/* x */
-						w = x - (double)xIndex[1];
-						xWeight[1] = 3.0 / 4.0 - w * w;
-						xWeight[2] = (1.0 / 2.0) * (w - xWeight[1] + 1.0);
-						xWeight[0] = 1.0 - xWeight[1] - xWeight[2];
-						/* y */
-						w = y - (double)yIndex[1];
-						yWeight[1] = 3.0 / 4.0 - w * w;
-						yWeight[2] = (1.0 / 2.0) * (w - yWeight[1] + 1.0);
-						yWeight[0] = 1.0 - yWeight[1] - yWeight[2];
-						/* z */
-						w = z - (double)zIndex[1];
-						zWeight[1] = 3.0 / 4.0 - w * w;
-						zWeight[2] = (1.0 / 2.0) * (w - zWeight[1] + 1.0);
-						zWeight[0] = 1.0 - zWeight[1] - zWeight[2];
-						break;
-					case 3:
-						/* x */
-						w = x - (double)xIndex[1];
-						xWeight[3] = (1.0 / 6.0) * w * w * w;
-						xWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - xWeight[3];
-						xWeight[2] = w + xWeight[0] - 2.0 * xWeight[3];
-						xWeight[1] = 1.0 - xWeight[0] - xWeight[2] - xWeight[3];
-						/* y */
-						w = y - (double)yIndex[1];
-						yWeight[3] = (1.0 / 6.0) * w * w * w;
-						yWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - yWeight[3];
-						yWeight[2] = w + yWeight[0] - 2.0 * yWeight[3];
-						yWeight[1] = 1.0 - yWeight[0] - yWeight[2] - yWeight[3];
-						/* z */
-						w = z - (double)zIndex[1];
-						zWeight[3] = (1.0 / 6.0) * w * w * w;
-						zWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - zWeight[3];
-						zWeight[2] = w + zWeight[0] - 2.0 * zWeight[3];
-						zWeight[1] = 1.0 - zWeight[0] - zWeight[2] - zWeight[3];
-						break;
-					case 4:
-						/* x */
-						w = x - (double)xIndex[2];
-						w2 = w * w;
-						t = (1.0 / 6.0) * w2;
-						xWeight[0] = 1.0 / 2.0 - w;
-						xWeight[0] *= xWeight[0];
-						xWeight[0] *= (1.0 / 24.0) * xWeight[0];
-						t0 = w * (t - 11.0 / 24.0);
-						t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
-						xWeight[1] = t1 + t0;
-						xWeight[3] = t1 - t0;
-						xWeight[4] = xWeight[0] + t0 + (1.0 / 2.0) * w;
-						xWeight[2] = 1.0 - xWeight[0] - xWeight[1] - xWeight[3] - xWeight[4];
-						/* y */
-						w = y - (double)yIndex[2];
-						w2 = w * w;
-						t = (1.0 / 6.0) * w2;
-						yWeight[0] = 1.0 / 2.0 - w;
-						yWeight[0] *= yWeight[0];
-						yWeight[0] *= (1.0 / 24.0) * yWeight[0];
-						t0 = w * (t - 11.0 / 24.0);
-						t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
-						yWeight[1] = t1 + t0;
-						yWeight[3] = t1 - t0;
-						yWeight[4] = yWeight[0] + t0 + (1.0 / 2.0) * w;
-						yWeight[2] = 1.0 - yWeight[0] - yWeight[1] - yWeight[3] - yWeight[4];
-						/* z */
-						w = z - (double)zIndex[2];
-						w2 = w * w;
-						t = (1.0 / 6.0) * w2;
-						zWeight[0] = 1.0 / 2.0 - w;
-						zWeight[0] *= zWeight[0];
-						zWeight[0] *= (1.0 / 24.0) * zWeight[0];
-						t0 = w * (t - 11.0 / 24.0);
-						t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
-						zWeight[1] = t1 + t0;
-						zWeight[3] = t1 - t0;
-						zWeight[4] = zWeight[0] + t0 + (1.0 / 2.0) * w;
-						zWeight[2] = 1.0 - zWeight[0] - zWeight[1] - zWeight[3] - zWeight[4];
-						break;
-					case 5:
-						/* x */
-						w = x - (double)xIndex[2];
-						w2 = w * w;
-						xWeight[5] = (1.0 / 120.0) * w * w2 * w2;
-						w2 -= w;
-						w4 = w2 * w2;
-						w -= 1.0 / 2.0;
-						t = w2 * (w2 - 3.0);
-						xWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - xWeight[5];
-						t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
-						t1 = (-1.0 / 12.0) * w * (t + 4.0);
-						xWeight[2] = t0 + t1;
-						xWeight[3] = t0 - t1;
-						t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
-						t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
-						xWeight[1] = t0 + t1;
-						xWeight[4] = t0 - t1;
-						/* y */
-						w = y - (double)yIndex[2];
-						w2 = w * w;
-						yWeight[5] = (1.0 / 120.0) * w * w2 * w2;
-						w2 -= w;
-						w4 = w2 * w2;
-						w -= 1.0 / 2.0;
-						t = w2 * (w2 - 3.0);
-						yWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - yWeight[5];
-						t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
-						t1 = (-1.0 / 12.0) * w * (t + 4.0);
-						yWeight[2] = t0 + t1;
-						yWeight[3] = t0 - t1;
-						t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
-						t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
-						yWeight[1] = t0 + t1;
-						yWeight[4] = t0 - t1;
-						/* z */
-						w = z - (double)zIndex[2];
-						w2 = w * w;
-						zWeight[5] = (1.0 / 120.0) * w * w2 * w2;
-						w2 -= w;
-						w4 = w2 * w2;
-						w -= 1.0 / 2.0;
-						t = w2 * (w2 - 3.0);
-						zWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - zWeight[5];
-						t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
-						t1 = (-1.0 / 12.0) * w * (t + 4.0);
-						zWeight[2] = t0 + t1;
-						zWeight[3] = t0 - t1;
-						t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
-						t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
-						zWeight[1] = t0 + t1;
-						zWeight[4] = t0 - t1;
-						break;
-					default:
-					fprintf(stderr,"inter_Bspline_3d: Degre de spline invalide, degres admis: {2,3,4,5}\n");
+                    }
+                else
+                    {
+                    
+                    //***********************************************
+                    // Calcul de la valeur interpolee vint en (x,y,z)
+                    //**********************************************/
+                    
+                    
+                    xIndex[0]=(int)floor(x+0.5)-degre/2;
+                    yIndex[0]=(int)floor(y+0.5)-degre/2;
+                    zIndex[0]=(int)floor(z+0.5)-degre/2;
+                    
+                    for (l=0;l<degre;l++)
+                        {
+                        xIndex[l+1]=xIndex[l]+1;
+                        yIndex[l+1]=yIndex[l]+1;
+                        zIndex[l+1]=zIndex[l]+1;
+                        }
+                        
+                    
+                    // Calcul des poids de la fonction d'interpolation
+                    
+                    switch (degre) 
+                    {
+                    case 2:
+                        /* x */
+                        w = x - (double)xIndex[1];
+                        xWeight[1] = 3.0 / 4.0 - w * w;
+                        xWeight[2] = (1.0 / 2.0) * (w - xWeight[1] + 1.0);
+                        xWeight[0] = 1.0 - xWeight[1] - xWeight[2];
+                        /* y */
+                        w = y - (double)yIndex[1];
+                        yWeight[1] = 3.0 / 4.0 - w * w;
+                        yWeight[2] = (1.0 / 2.0) * (w - yWeight[1] + 1.0);
+                        yWeight[0] = 1.0 - yWeight[1] - yWeight[2];
+                        /* z */
+                        w = z - (double)zIndex[1];
+                        zWeight[1] = 3.0 / 4.0 - w * w;
+                        zWeight[2] = (1.0 / 2.0) * (w - zWeight[1] + 1.0);
+                        zWeight[0] = 1.0 - zWeight[1] - zWeight[2];
+                        break;
+                    case 3:
+                        /* x */
+                        w = x - (double)xIndex[1];
+                        xWeight[3] = (1.0 / 6.0) * w * w * w;
+                        xWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - xWeight[3];
+                        xWeight[2] = w + xWeight[0] - 2.0 * xWeight[3];
+                        xWeight[1] = 1.0 - xWeight[0] - xWeight[2] - xWeight[3];
+                        /* y */
+                        w = y - (double)yIndex[1];
+                        yWeight[3] = (1.0 / 6.0) * w * w * w;
+                        yWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - yWeight[3];
+                        yWeight[2] = w + yWeight[0] - 2.0 * yWeight[3];
+                        yWeight[1] = 1.0 - yWeight[0] - yWeight[2] - yWeight[3];
+                        /* z */
+                        w = z - (double)zIndex[1];
+                        zWeight[3] = (1.0 / 6.0) * w * w * w;
+                        zWeight[0] = (1.0 / 6.0) + (1.0 / 2.0) * w * (w - 1.0) - zWeight[3];
+                        zWeight[2] = w + zWeight[0] - 2.0 * zWeight[3];
+                        zWeight[1] = 1.0 - zWeight[0] - zWeight[2] - zWeight[3];
+                        break;
+                    case 4:
+                        /* x */
+                        w = x - (double)xIndex[2];
+                        w2 = w * w;
+                        t = (1.0 / 6.0) * w2;
+                        xWeight[0] = 1.0 / 2.0 - w;
+                        xWeight[0] *= xWeight[0];
+                        xWeight[0] *= (1.0 / 24.0) * xWeight[0];
+                        t0 = w * (t - 11.0 / 24.0);
+                        t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
+                        xWeight[1] = t1 + t0;
+                        xWeight[3] = t1 - t0;
+                        xWeight[4] = xWeight[0] + t0 + (1.0 / 2.0) * w;
+                        xWeight[2] = 1.0 - xWeight[0] - xWeight[1] - xWeight[3] - xWeight[4];
+                        /* y */
+                        w = y - (double)yIndex[2];
+                        w2 = w * w;
+                        t = (1.0 / 6.0) * w2;
+                        yWeight[0] = 1.0 / 2.0 - w;
+                        yWeight[0] *= yWeight[0];
+                        yWeight[0] *= (1.0 / 24.0) * yWeight[0];
+                        t0 = w * (t - 11.0 / 24.0);
+                        t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
+                        yWeight[1] = t1 + t0;
+                        yWeight[3] = t1 - t0;
+                        yWeight[4] = yWeight[0] + t0 + (1.0 / 2.0) * w;
+                        yWeight[2] = 1.0 - yWeight[0] - yWeight[1] - yWeight[3] - yWeight[4];
+                        /* z */
+                        w = z - (double)zIndex[2];
+                        w2 = w * w;
+                        t = (1.0 / 6.0) * w2;
+                        zWeight[0] = 1.0 / 2.0 - w;
+                        zWeight[0] *= zWeight[0];
+                        zWeight[0] *= (1.0 / 24.0) * zWeight[0];
+                        t0 = w * (t - 11.0 / 24.0);
+                        t1 = 19.0 / 96.0 + w2 * (1.0 / 4.0 - t);
+                        zWeight[1] = t1 + t0;
+                        zWeight[3] = t1 - t0;
+                        zWeight[4] = zWeight[0] + t0 + (1.0 / 2.0) * w;
+                        zWeight[2] = 1.0 - zWeight[0] - zWeight[1] - zWeight[3] - zWeight[4];
+                        break;
+                    case 5:
+                        /* x */
+                        w = x - (double)xIndex[2];
+                        w2 = w * w;
+                        xWeight[5] = (1.0 / 120.0) * w * w2 * w2;
+                        w2 -= w;
+                        w4 = w2 * w2;
+                        w -= 1.0 / 2.0;
+                        t = w2 * (w2 - 3.0);
+                        xWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - xWeight[5];
+                        t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
+                        t1 = (-1.0 / 12.0) * w * (t + 4.0);
+                        xWeight[2] = t0 + t1;
+                        xWeight[3] = t0 - t1;
+                        t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
+                        t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
+                        xWeight[1] = t0 + t1;
+                        xWeight[4] = t0 - t1;
+                        /* y */
+                        w = y - (double)yIndex[2];
+                        w2 = w * w;
+                        yWeight[5] = (1.0 / 120.0) * w * w2 * w2;
+                        w2 -= w;
+                        w4 = w2 * w2;
+                        w -= 1.0 / 2.0;
+                        t = w2 * (w2 - 3.0);
+                        yWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - yWeight[5];
+                        t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
+                        t1 = (-1.0 / 12.0) * w * (t + 4.0);
+                        yWeight[2] = t0 + t1;
+                        yWeight[3] = t0 - t1;
+                        t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
+                        t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
+                        yWeight[1] = t0 + t1;
+                        yWeight[4] = t0 - t1;
+                        /* z */
+                        w = z - (double)zIndex[2];
+                        w2 = w * w;
+                        zWeight[5] = (1.0 / 120.0) * w * w2 * w2;
+                        w2 -= w;
+                        w4 = w2 * w2;
+                        w -= 1.0 / 2.0;
+                        t = w2 * (w2 - 3.0);
+                        zWeight[0] = (1.0 / 24.0) * (1.0 / 5.0 + w2 + w4) - zWeight[5];
+                        t0 = (1.0 / 24.0) * (w2 * (w2 - 5.0) + 46.0 / 5.0);
+                        t1 = (-1.0 / 12.0) * w * (t + 4.0);
+                        zWeight[2] = t0 + t1;
+                        zWeight[3] = t0 - t1;
+                        t0 = (1.0 / 16.0) * (9.0 / 5.0 - t);
+                        t1 = (1.0 / 24.0) * w * (w4 - w2 - 5.0);
+                        zWeight[1] = t0 + t1;
+                        zWeight[4] = t0 - t1;
+                        break;
+                    default:
+                    fprintf(stderr,"inter_Bspline_3d: Degre de spline invalide, degres admis: {2,3,4,5}\n");
           return(2);
-					}
-					// Condition limite (mirror boundaries)
-					for (l=0;l<=degre;l++)
-						{
-						if (xIndex[l]<0)
-							xIndex[l]=-xIndex[l];
-						if (xIndex[l]>=wdthDeb)
-							xIndex[l]=2*(wdthDeb-1)-xIndex[l];
-						if (yIndex[l]<0)
-							yIndex[l]=-yIndex[l];
-						if (yIndex[l]>=hghtDeb)
-							yIndex[l]=2*(hghtDeb-1)-yIndex[l];
-						if (zIndex[l]<0)
-							zIndex[l]=-zIndex[l];
-						if (zIndex[l]>=dpthDeb)
-							zIndex[l]=2*(dpthDeb-1)-zIndex[l];
-						}
-									
-					vint=0;
-					for (n=0;n<=degre;n++) 
-						{
-						sumxy=0;
-						for (m=0;m<=degre;m++)
-							{
-							sumx=0;
-							for (l=0;l<=degre;l++)
-								{
-								sumx+=xWeight[l]*coeff[xIndex[l]][yIndex[m]][zIndex[n]];
-								}
-							sumxy+=yWeight[m]*sumx;
-							}
-						vint+=zWeight[n]*sumxy;
-						} 
+                    }
+                    // Condition limite (mirror boundaries)
+                    for (l=0;l<=degre;l++)
+                        {
+                        if (xIndex[l]<0)
+                            xIndex[l]=-xIndex[l];
+                        if (xIndex[l]>=wdthDeb)
+                            xIndex[l]=2*(wdthDeb-1)-xIndex[l];
+                        if (yIndex[l]<0)
+                            yIndex[l]=-yIndex[l];
+                        if (yIndex[l]>=hghtDeb)
+                            yIndex[l]=2*(hghtDeb-1)-yIndex[l];
+                        if (zIndex[l]<0)
+                            zIndex[l]=-zIndex[l];
+                        if (zIndex[l]>=dpthDeb)
+                            zIndex[l]=2*(dpthDeb-1)-zIndex[l];
+                        }
+                                    
+                    vint=0;
+                    for (n=0;n<=degre;n++) 
+                        {
+                        sumxy=0;
+                        for (m=0;m<=degre;m++)
+                            {
+                            sumx=0;
+                            for (l=0;l<=degre;l++)
+                                {
+                                sumx+=xWeight[l]*coeff[xIndex[l]][yIndex[m]][zIndex[n]];
+                                }
+                            sumxy+=yWeight[m]*sumx;
+                            }
+                        vint+=zWeight[n]*sumxy;
+                        } 
 
-					tmp_res[i][j][k]=vint;
-					}
-				}
-
+                    tmp_res[i][j][k]=vint;
+                    }
+                }
+	
  //normalisation       
  normaliser_3d(imdeb, imres, tmp_res, wdthField, hghtField,dpthField);
  
@@ -3259,71 +3295,71 @@ return(0);
 
 
 /*******************************************************************************
-**    			inter_Bspline_3d_2
+**              inter_Bspline_3d_2
 */
 /*!
-** 		Fonction qui permet l'interface avec les fonctions de type interpol                                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
+**      Fonction qui permet l'interface avec les fonctions de type interpol                                  
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
 *******************************************************************************/
-int	inter_Bspline_3d_2(grphic3d *imdeb, field3d *champ, grphic3d *imres)
+int inter_Bspline_3d_2(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
-	int res;
-	res=inter_Bspline_3d(imdeb,champ,imres,2);
-	return(res);
+    int res;
+    res=inter_Bspline_3d(imdeb,champ,imres,2);
+    return(res);
 }
 
 /*******************************************************************************
-**    			inter_Bspline_3d_3
+**              inter_Bspline_3d_3
 */
 /*!
-** 		Fonction qui permet l'interface avec les fonctions de type interpol                                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
+**      Fonction qui permet l'interface avec les fonctions de type interpol                                  
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
 *******************************************************************************/
-int	inter_Bspline_3d_3(grphic3d *imdeb, field3d *champ, grphic3d *imres)
+int inter_Bspline_3d_3(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
-	int res;
-	res=inter_Bspline_3d(imdeb,champ,imres,3);
-	return(res);
+    int res;
+    res=inter_Bspline_3d(imdeb,champ,imres,3);
+    return(res);
 }
 
 /*******************************************************************************
-**    			inter_Bspline_3d_4
+**              inter_Bspline_3d_4
 */
 /*!
-** 		Fonction qui permet l'interface avec les fonctions de type interpol                                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
+**      Fonction qui permet l'interface avec les fonctions de type interpol                                  
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
 *******************************************************************************/
-int	inter_Bspline_3d_4(grphic3d *imdeb, field3d *champ, grphic3d *imres)
+int inter_Bspline_3d_4(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
-	int res;
-	res=inter_Bspline_3d(imdeb,champ,imres,4);
-	return(res);
+    int res;
+    res=inter_Bspline_3d(imdeb,champ,imres,4);
+    return(res);
 }
 
 /*******************************************************************************
-**    			inter_Bspline_3d_5
+**              inter_Bspline_3d_5
 */
 /*!
-** 		Fonction qui permet l'interface avec les fonctions de type interpol                                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
+**      Fonction qui permet l'interface avec les fonctions de type interpol                                  
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval res : la valeur retournee par la fonction d'interpolation bspline(c-a-d 1)
 *******************************************************************************/
-int	inter_Bspline_3d_5(grphic3d *imdeb, field3d *champ, grphic3d *imres)
+int inter_Bspline_3d_5(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
-	int res;
-	res=inter_Bspline_3d(imdeb,champ,imres,5);
-	return(res);
+    int res;
+    res=inter_Bspline_3d(imdeb,champ,imres,5);
+    return(res);
 }
 
 /*******************************************************************************
@@ -3332,13 +3368,13 @@ int	inter_Bspline_3d_5(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 /*!
 **    fonction d'interpolation utilisee pour le volume partiel
 **    avec les distances basees sur l'entropie conjointe
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
 **
 *******************************************************************************/
-int	inter_VP_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
+int inter_VP_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
   imx_copie_3d_p(imdeb, imres);
 
@@ -3350,11 +3386,11 @@ int	inter_VP_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 */
 /*!
 **    cree une image au format ipb a partir d'un tableau 3D de double
-**	\param imdeb : image de depart, pour l'obtention des parametres
-**	\param imres : image resultat (E/S)
-**	\param temp_res : donnees de l'image a creer (en type double)
-**	\param wdth, hght, dpth : la taille de l'image
-**	\retval 1
+**  \param imdeb : image de depart, pour l'obtention des parametres
+**  \param imres : image resultat (E/S)
+**  \param temp_res : donnees de l'image a creer (en type double)
+**  \param wdth, hght, dpth : la taille de l'image
+**  \retval 1
 **
 *******************************************************************************/
 int normaliser_3d(grphic3d *imdeb, grphic3d *imres, double ***tmp_res, int wdth, int hght, int dpth)
@@ -3401,7 +3437,7 @@ int normaliser_3d(grphic3d *imdeb, grphic3d *imres, double ***tmp_res, int wdth,
   imres->max_pixel=(TYPEMRI3D)floor(max+0.5);
   imres->min_pixel=(TYPEMRI3D)floor(min+0.5);
   imres->rcoeff=imdeb->rcoeff;
-	imres->icomp=imdeb->icomp;
+    imres->icomp=imdeb->icomp;
  }
  
  return 0;    
@@ -3451,7 +3487,7 @@ int normaliser_float_3d(grphic3d *imdeb, grphic3d *imres, float ***tmp_res, int 
   imres->max_pixel=(TYPEMRI3D)floor(max+0.5);
   imres->min_pixel=(TYPEMRI3D)floor(min+0.5);
   imres->rcoeff=imdeb->rcoeff;
- 	imres->icomp=imdeb->icomp;
+    imres->icomp=imdeb->icomp;
 
  }
 
@@ -3462,114 +3498,114 @@ int normaliser_float_3d(grphic3d *imdeb, grphic3d *imres, float ***tmp_res, int 
 /*******************************************************************************
 **    GetInterpolationCoefficients ()
 */
-/*!		\param  c :  			input samples --> output coefficients 
-**		\param  DataLength : 	number of samples or coefficients
-**		\param  z[] : 			poles 
-**		\param  NbPoles : 		number of poles 
-**		\param  Tolerance : 	admissible relative error 
-**		                                 
+/*!     \param  c :             input samples --> output coefficients 
+**      \param  DataLength :    number of samples or coefficients
+**      \param  z[] :           poles 
+**      \param  NbPoles :       number of poles 
+**      \param  Tolerance :     admissible relative error 
+**                                       
 **                                                                       
-**  	\brief Fonction calculant les coefficients pour l'interpolation Bspline
-**				a partir de la valeur des echantillons
-**	 
+**      \brief Fonction calculant les coefficients pour l'interpolation Bspline
+**              a partir de la valeur des echantillons
+**   
 *******************************************************************************/
 void GetInterpolationCoefficients (double c[], int DataLength, double z[], int NbPoles, double Tolerance)
 {
-	double Lambda = 1.0;
-	int n, k;
-	/* special case required by mirror boundaries */
-	if (DataLength == 1)
-		return;
-	/* compute the overall gain */
-	for (k = 0; k < NbPoles; k = k + 1)
-		Lambda = Lambda * (1.0 - z[k]) * (1.0 - 1.0 / z[k]);
-	/* apply the gain */
-	for (n = 0; n < DataLength; n = n + 1)
-		c[n] = c[n] * Lambda;
-	/* loop over all poles */
-	for (k = 0; k < NbPoles; k = k + 1) 
-	{
-		/* causal initialization */
-		c[0] = InitialCausalCoefficient(c, DataLength, z[k], Tolerance);
-		/* causal recursion */
-		for (n = 1; n < DataLength; n = n + 1)
-			c[n] = c[n] + z[k] * c[n-1];
-		/* anticausal initialization */
-		c[DataLength-1] = InitialAntiCausalCoefficient(c, DataLength, z[k]);
-		/* anticausal recursion */
-		for (n = DataLength-2; n >= 0; n = n - 1)
-			c[n] = z[k] * (c[n+1] - c[n]);
-	}
+    double Lambda = 1.0;
+    int n, k;
+    /* special case required by mirror boundaries */
+    if (DataLength == 1)
+        return;
+    /* compute the overall gain */
+    for (k = 0; k < NbPoles; k = k + 1)
+        Lambda = Lambda * (1.0 - z[k]) * (1.0 - 1.0 / z[k]);
+    /* apply the gain */
+    for (n = 0; n < DataLength; n = n + 1)
+        c[n] = c[n] * Lambda;
+    /* loop over all poles */
+    for (k = 0; k < NbPoles; k = k + 1) 
+    {
+        /* causal initialization */
+        c[0] = InitialCausalCoefficient(c, DataLength, z[k], Tolerance);
+        /* causal recursion */
+        for (n = 1; n < DataLength; n = n + 1)
+            c[n] = c[n] + z[k] * c[n-1];
+        /* anticausal initialization */
+        c[DataLength-1] = InitialAntiCausalCoefficient(c, DataLength, z[k]);
+        /* anticausal recursion */
+        for (n = DataLength-2; n >= 0; n = n - 1)
+            c[n] = z[k] * (c[n+1] - c[n]);
+    }
 }
 
 /*******************************************************************************
 **   InitialCausalCoefficient  ()
 */
-/*!		\param  c :  			input samples --> output coefficients 
-**		\param  DataLength : 	number of samples or coefficients
-**		\param  z[] : 			poles 
-**		\param  Tolerance : 	admissible relative error 
-**		                                 
-**		
-**	 
+/*!     \param  c :             input samples --> output coefficients 
+**      \param  DataLength :    number of samples or coefficients
+**      \param  z[] :           poles 
+**      \param  Tolerance :     admissible relative error 
+**                                       
+**      
+**   
 *******************************************************************************/
 double InitialCausalCoefficient (double c[], int DataLength, double z, double Tolerance)
 {
-	double Sum, zn, z2n, iz;
-	int n, Horizon=0;
-	int TruncatedSum;
-	/* this initialization corresponds to mirror boundaries */
-	TruncatedSum = 0;
-	if (Tolerance > 0.0) 
-	{
-		Horizon = (int)ceil(log(Tolerance) / log(fabs(z)));
-		TruncatedSum = (Horizon < DataLength);
-	}
-	
-	if (TruncatedSum) 
-	{
-		/* accelerated loop */
-		zn = z;
-		Sum = c[0];
-		for (n = 1; n < Horizon; n = n + 1) 
-		{
-			Sum = Sum + zn * c[n];
-			zn = zn * z;
-		}
-	return(Sum);
-	}
-	else 
-	{
-		/* full loop */
-		zn = z;
-		iz = 1.0 / z;
-		z2n = pow(z, DataLength-1);
-		Sum = c[0] + z2n * c[DataLength-1];
-		z2n = z2n * z2n * iz;
-		for (n = 1; n <= DataLength - 2; n = n + 1) 
-		{
-			Sum = Sum + (zn + z2n) * c[n];
-			zn = zn * z;
-			z2n = z2n * iz;
-		}
-	return(Sum / (1.0 - zn * zn));
-	}
+    double Sum, zn, z2n, iz;
+    int n, Horizon=0;
+    int TruncatedSum;
+    /* this initialization corresponds to mirror boundaries */
+    TruncatedSum = 0;
+    if (Tolerance > 0.0) 
+    {
+        Horizon = (int)ceil(log(Tolerance) / log(fabs(z)));
+        TruncatedSum = (Horizon < DataLength);
+    }
+    
+    if (TruncatedSum) 
+    {
+        /* accelerated loop */
+        zn = z;
+        Sum = c[0];
+        for (n = 1; n < Horizon; n = n + 1) 
+        {
+            Sum = Sum + zn * c[n];
+            zn = zn * z;
+        }
+    return(Sum);
+    }
+    else 
+    {
+        /* full loop */
+        zn = z;
+        iz = 1.0 / z;
+        z2n = pow(z, DataLength-1);
+        Sum = c[0] + z2n * c[DataLength-1];
+        z2n = z2n * z2n * iz;
+        for (n = 1; n <= DataLength - 2; n = n + 1) 
+        {
+            Sum = Sum + (zn + z2n) * c[n];
+            zn = zn * z;
+            z2n = z2n * iz;
+        }
+    return(Sum / (1.0 - zn * zn));
+    }
 }
 
 /*******************************************************************************
 **   InitialAntiCausalCoefficient  ()
 */
-/*!		\param  c :  			input samples --> output coefficients 
-**		\param  DataLength : 	number of samples or coefficients
-**		\param  z[] : 			poles 
-**		                                 
-**		
-**	 
+/*!     \param  c :             input samples --> output coefficients 
+**      \param  DataLength :    number of samples or coefficients
+**      \param  z[] :           poles 
+**                                       
+**      
+**   
 *******************************************************************************/
 double InitialAntiCausalCoefficient (double c[], int DataLength, double z)
 {
-	/* this initialization corresponds to mirror boundaries */
-	return((z / (z * z - 1.0)) * (z * c[DataLength-2] + c[DataLength-1]));
+    /* this initialization corresponds to mirror boundaries */
+    return((z / (z * z - 1.0)) * (z * c[DataLength-2] + c[DataLength-1]));
 }
 
 
@@ -3600,46 +3636,46 @@ void inter_linear_chps_3d(field3d *champ1,double x,double y,double z,vector3d *p
  
  if (i2>=0 && i3<wdth && j2>=0 && j3<hght && k2>=0 && k3<dpth)
    {/* tout le voisinage est dans l'image*/
- 	 xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
+     xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
 
- 	 va=(double)data1[i2][j2][k2].x;
- 	 vb=(double)data1[i2][j2][k3].x;
- 	 vc=(double)data1[i2][j3][k2].x;
- 	 vd=(double)data1[i2][j3][k3].x;
- 	 ve=(double)data1[i3][j2][k2].x;
- 	 vf=(double)data1[i3][j2][k3].x;
- 	 vg=(double)data1[i3][j3][k2].x;
- 	 vh=(double)data1[i3][j3][k3].x;
+     va=(double)data1[i2][j2][k2].x;
+     vb=(double)data1[i2][j2][k3].x;
+     vc=(double)data1[i2][j3][k2].x;
+     vd=(double)data1[i2][j3][k3].x;
+     ve=(double)data1[i3][j2][k2].x;
+     vf=(double)data1[i3][j2][k3].x;
+     vg=(double)data1[i3][j3][k2].x;
+     vh=(double)data1[i3][j3][k3].x;
 
- 	 val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
- 	 +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
- 	 +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
- 	 (*p).x=(float)floor(val+0.5);
+     val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
+     +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+     +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+     (*p).x=(float)floor(val+0.5);
    }
    else
    {
- 	if (i3>=0 && i2<wdth && j3>=0 && j2<hght && k3>=0 && k2<dpth)
- 	{/*une partie du voisinage est dans l'image*/
+    if (i3>=0 && i2<wdth && j3>=0 && j2<hght && k3>=0 && k2<dpth)
+    {/*une partie du voisinage est dans l'image*/
 
- 	 xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
+     xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
  if (i2==-1 || j2==-1 || k2==-1) va=0.0; else va=(double)data1[i2][j2][k2].x;
- 	 if (i2==-1 || j2==-1 || k3==dpth) vb=0.0; else vb=(double)data1[i2][j2][k3].x;
- 	 if (i2==-1 || j3==hght || k2==-1) vc=0.0; else vc=(double)data1[i2][j3][k2].x;
- 	 if (i2==-1 || j3==hght || k3==dpth) vd=0.0; else vd=(double)data1[i2][j3][k3].x;
- 	 if (i3==wdth || j2==-1 || k2==-1) ve=0.0; else ve=(double)data1[i3][j2][k2].x;
- 	 if (i3==wdth || j2==-1 || k3==dpth) vf=0.0; else vf=(double)data1[i3][j2][k3].x;
- 	 if (i3==wdth || j3==hght || k2==-1) vg=0.0; else vg=(double)data1[i3][j3][k2].x;
- 	 if (i3==wdth || j3==hght || k3==dpth) vh=0.0; else vh=(double)data1[i3][j3][k3].x;
+     if (i2==-1 || j2==-1 || k3==dpth) vb=0.0; else vb=(double)data1[i2][j2][k3].x;
+     if (i2==-1 || j3==hght || k2==-1) vc=0.0; else vc=(double)data1[i2][j3][k2].x;
+     if (i2==-1 || j3==hght || k3==dpth) vd=0.0; else vd=(double)data1[i2][j3][k3].x;
+     if (i3==wdth || j2==-1 || k2==-1) ve=0.0; else ve=(double)data1[i3][j2][k2].x;
+     if (i3==wdth || j2==-1 || k3==dpth) vf=0.0; else vf=(double)data1[i3][j2][k3].x;
+     if (i3==wdth || j3==hght || k2==-1) vg=0.0; else vg=(double)data1[i3][j3][k2].x;
+     if (i3==wdth || j3==hght || k3==dpth) vh=0.0; else vh=(double)data1[i3][j3][k3].x;
 
- 	 val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
- 	 +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
- 	 +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
- 	 (*p).x=(float)floor(val+0.5);	   
- 	}
- 	else
- 	{/*le voisinage est totalement en dehors de l'image*/
- 	 (*p).x=0;
- 	}
+     val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
+     +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+     +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+     (*p).x=(float)floor(val+0.5);     
+    }
+    else
+    {/*le voisinage est totalement en dehors de l'image*/
+     (*p).x=0;
+    }
    }
 
 /*  debut interpolation  pour y */
@@ -3648,47 +3684,47 @@ void inter_linear_chps_3d(field3d *champ1,double x,double y,double z,vector3d *p
  
  if (i2>=0 && i3<wdth && j2>=0 && j3<hght && k2>=0 && k3<dpth)
    {/* tout le voisinage est dans l'image*/
- 	 xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
+     xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
 
- 	 va=(double)data1[i2][j2][k2].y;
- 	 vb=(double)data1[i2][j2][k3].y;
- 	 vc=(double)data1[i2][j3][k2].y;
- 	 vd=(double)data1[i2][j3][k3].y;
- 	 ve=(double)data1[i3][j2][k2].y;
- 	 vf=(double)data1[i3][j2][k3].y;
- 	 vg=(double)data1[i3][j3][k2].y;
- 	 vh=(double)data1[i3][j3][k3].y;
+     va=(double)data1[i2][j2][k2].y;
+     vb=(double)data1[i2][j2][k3].y;
+     vc=(double)data1[i2][j3][k2].y;
+     vd=(double)data1[i2][j3][k3].y;
+     ve=(double)data1[i3][j2][k2].y;
+     vf=(double)data1[i3][j2][k3].y;
+     vg=(double)data1[i3][j3][k2].y;
+     vh=(double)data1[i3][j3][k3].y;
 
- 	 val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
- 	 +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+     val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
+     +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
 
- 	 +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
- 	 (*p).y=(float)floor(val+0.5);
+     +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+     (*p).y=(float)floor(val+0.5);
    }
    else
    {
- 	if (i3>=0 && i2<wdth && j3>=0 && j2<hght && k3>=0 && k2<dpth)
- 	{/*une partie du voisinage est dans l'image*/
+    if (i3>=0 && i2<wdth && j3>=0 && j2<hght && k3>=0 && k2<dpth)
+    {/*une partie du voisinage est dans l'image*/
 
- 	 xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
+     xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
  if (i2==-1 || j2==-1 || k2==-1) va=0.0; else va=(double)data1[i2][j2][k2].y;
- 	 if (i2==-1 || j2==-1 || k3==dpth) vb=0.0; else vb=(double)data1[i2][j2][k3].y;
- 	 if (i2==-1 || j3==hght || k2==-1) vc=0.0; else vc=(double)data1[i2][j3][k2].y;
- 	 if (i2==-1 || j3==hght || k3==dpth) vd=0.0; else vd=(double)data1[i2][j3][k3].y;
- 	 if (i3==wdth || j2==-1 || k2==-1) ve=0.0; else ve=(double)data1[i3][j2][k2].y;
- 	 if (i3==wdth || j2==-1 || k3==dpth) vf=0.0; else vf=(double)data1[i3][j2][k3].y;
- 	 if (i3==wdth || j3==hght || k2==-1) vg=0.0; else vg=(double)data1[i3][j3][k2].y;
- 	 if (i3==wdth || j3==hght || k3==dpth) vh=0.0; else vh=(double)data1[i3][j3][k3].y;
+     if (i2==-1 || j2==-1 || k3==dpth) vb=0.0; else vb=(double)data1[i2][j2][k3].y;
+     if (i2==-1 || j3==hght || k2==-1) vc=0.0; else vc=(double)data1[i2][j3][k2].y;
+     if (i2==-1 || j3==hght || k3==dpth) vd=0.0; else vd=(double)data1[i2][j3][k3].y;
+     if (i3==wdth || j2==-1 || k2==-1) ve=0.0; else ve=(double)data1[i3][j2][k2].y;
+     if (i3==wdth || j2==-1 || k3==dpth) vf=0.0; else vf=(double)data1[i3][j2][k3].y;
+     if (i3==wdth || j3==hght || k2==-1) vg=0.0; else vg=(double)data1[i3][j3][k2].y;
+     if (i3==wdth || j3==hght || k3==dpth) vh=0.0; else vh=(double)data1[i3][j3][k3].y;
 
- 	 val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
- 	 +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
- 	 +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
- 	 (*p).y=(float)floor(val+0.5);	   
- 	}
- 	else
- 	{/*le voisinage est totalement en dehors de l'image*/
- 	 (*p).y=0;
- 	}
+     val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
+     +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+     +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+     (*p).y=(float)floor(val+0.5);     
+    }
+    else
+    {/*le voisinage est totalement en dehors de l'image*/
+     (*p).y=0;
+    }
    }
 
 /*  debut interpolation  pour z */
@@ -3697,45 +3733,45 @@ void inter_linear_chps_3d(field3d *champ1,double x,double y,double z,vector3d *p
  
  if (i2>=0 && i3<wdth && j2>=0 && j3<hght && k2>=0 && k3<dpth)
    {/* tout le voisinage est dans l'image*/
- 	 xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
+     xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
 
- 	 va=(double)data1[i2][j2][k2].z;
- 	 vb=(double)data1[i2][j2][k3].z;
- 	 vc=(double)data1[i2][j3][k2].z;
- 	 vd=(double)data1[i2][j3][k3].z;
- 	 ve=(double)data1[i3][j2][k2].z;
- 	 vf=(double)data1[i3][j2][k3].z;
- 	 vg=(double)data1[i3][j3][k2].z;
- 	 vh=(double)data1[i3][j3][k3].z;
+     va=(double)data1[i2][j2][k2].z;
+     vb=(double)data1[i2][j2][k3].z;
+     vc=(double)data1[i2][j3][k2].z;
+     vd=(double)data1[i2][j3][k3].z;
+     ve=(double)data1[i3][j2][k2].z;
+     vf=(double)data1[i3][j2][k3].z;
+     vg=(double)data1[i3][j3][k2].z;
+     vh=(double)data1[i3][j3][k3].z;
 
- 	 val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
- 	 +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
- 	 +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
- 	 (*p).z=(float)floor(val+0.5);
+     val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
+     +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+     +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+     (*p).z=(float)floor(val+0.5);
    }
    else
    {
- 	if (i3>=0 && i2<wdth && j3>=0 && j2<hght && k3>=0 && k2<dpth)
- 	{/*une partie du voisinage est dans l'image*/
- 	 xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
+    if (i3>=0 && i2<wdth && j3>=0 && j2<hght && k3>=0 && k2<dpth)
+    {/*une partie du voisinage est dans l'image*/
+     xrel=x-(double)i2;yrel=y-(double)j2;zrel=z-(double)k2;
  if (i2==-1 || j2==-1 || k2==-1) va=0.0; else va=(double)data1[i2][j2][k2].z;
- 	 if (i2==-1 || j2==-1 || k3==dpth) vb=0.0; else vb=(double)data1[i2][j2][k3].z;
- 	 if (i2==-1 || j3==hght || k2==-1) vc=0.0; else vc=(double)data1[i2][j3][k2].z;
- 	 if (i2==-1 || j3==hght || k3==dpth) vd=0.0; else vd=(double)data1[i2][j3][k3].z;
- 	 if (i3==wdth || j2==-1 || k2==-1) ve=0.0; else ve=(double)data1[i3][j2][k2].z;
- 	 if (i3==wdth || j2==-1 || k3==dpth) vf=0.0; else vf=(double)data1[i3][j2][k3].z;
- 	 if (i3==wdth || j3==hght || k2==-1) vg=0.0; else vg=(double)data1[i3][j3][k2].z;
- 	 if (i3==wdth || j3==hght || k3==dpth) vh=0.0; else vh=(double)data1[i3][j3][k3].z;
+     if (i2==-1 || j2==-1 || k3==dpth) vb=0.0; else vb=(double)data1[i2][j2][k3].z;
+     if (i2==-1 || j3==hght || k2==-1) vc=0.0; else vc=(double)data1[i2][j3][k2].z;
+     if (i2==-1 || j3==hght || k3==dpth) vd=0.0; else vd=(double)data1[i2][j3][k3].z;
+     if (i3==wdth || j2==-1 || k2==-1) ve=0.0; else ve=(double)data1[i3][j2][k2].z;
+     if (i3==wdth || j2==-1 || k3==dpth) vf=0.0; else vf=(double)data1[i3][j2][k3].z;
+     if (i3==wdth || j3==hght || k2==-1) vg=0.0; else vg=(double)data1[i3][j3][k2].z;
+     if (i3==wdth || j3==hght || k3==dpth) vh=0.0; else vh=(double)data1[i3][j3][k3].z;
 
- 	 val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
- 	 +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
- 	 +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
- 	 (*p).z=(float)floor(val+0.5);	   
- 	}
- 	else
- 	{/*le voisinage est totalement en dehors de l'image*/
- 	 (*p).z=0;
- 	}
+     val=(ve-va)*xrel+(vc-va)*yrel+(vb-va)*zrel+(vg-ve-vc+va)*xrel*yrel
+     +(vd-vc-vb+va)*yrel*zrel+(vf-ve-vb+va)*xrel*zrel
+     +(vh+ve+vc+vb-vg-vf-vd-va)*xrel*yrel*zrel+va;
+     (*p).z=(float)floor(val+0.5);     
+    }
+    else
+    {/*le voisinage est totalement en dehors de l'image*/
+     (*p).z=0;
+    }
    }
 }
 
@@ -3744,17 +3780,17 @@ void inter_linear_chps_3d(field3d *champ1,double x,double y,double z,vector3d *p
 */                                                                       
 /*!    fonction d'interpolation pour les images labelisees      
 **    imres est l'image de im1 transformee par le champ                  
-**	\param imdeb : image de depart
-**	\param imres : image resultat (E/S)
-**	\param champ : le champ
-**	\retval 1
+**  \param imdeb : image de depart
+**  \param imres : image resultat (E/S)
+**  \param champ : le champ
+**  \retval 1
 *******************************************************************************/
 int inter_labeled_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 {
  int wdthDeb,hghtDeb,dpthDeb,nb_label;
  int wdthField,hghtField,dpthField;
  int i,j,k,i1,j1,k1,l,auxi,auxj,auxk,maxlabel=0;
- vector3d	***data;
+ vector3d   ***data;
  double *label,maxval,tmp;
  double x,y,z,dx,dy,dz;
  
@@ -3817,13 +3853,13 @@ int inter_labeled_3d(grphic3d *imdeb, field3d *champ, grphic3d *imres)
 /*******************************************************************************
 **   test_fichier_transf_3d(nomfichier)                                  
 **                                                                        
-**    	Test si le fichier dont le nom est passe en parametre, contient bien une
+**      Test si le fichier dont le nom est passe en parametre, contient bien une
 **      transformation 3D
-**	Ce test est fait en verifiant que la premiere ligne contient bien le
+**  Ce test est fait en verifiant que la premiere ligne contient bien le
 **      mot clef TRANSF3D         
-**	renvoie 1 si c'est bon 0 sinon
+**  renvoie 1 si c'est bon 0 sinon
 *******************************************************************************/
-int	test_fichier_transf_3d(char *nomfichier)
+int test_fichier_transf_3d(char *nomfichier)
 {
  FILE *fichier;
  char  ligne[PATH_LEN];
@@ -3844,20 +3880,20 @@ int	test_fichier_transf_3d(char *nomfichier)
 /*******************************************************************************
 **   quest_save_result_3d(save_type)                                  
 */                                                                        
-/*!    	Demande si on veut enregistrer la transforamtion dans un fichier
-**	Si oui, demande sous quel format: champ ou parametres
-**		et renvoi le nom du fichier (sans extension)
-**	Si non, retourne NULL
-**	La fonction gere l'existence d'un des deux fichiers        
-**	\param save_type : 
-**		- 0 sous format champ 
-**		- 1 sous format parametre 
+/*!     Demande si on veut enregistrer la transforamtion dans un fichier
+**  Si oui, demande sous quel format: champ ou parametres
+**      et renvoi le nom du fichier (sans extension)
+**  Si non, retourne NULL
+**  La fonction gere l'existence d'un des deux fichiers        
+**  \param save_type : 
+**      - 0 sous format champ 
+**      - 1 sous format parametre 
 *******************************************************************************/
 char *quest_save_result_3d(int *save_type)
 { 
- char	s[250],str[256],nomchp[250],nomraw[250],nomtrf[250],*nomfichres,*quest[4];
- FILE	*filechp,*fileraw,*filetrf;
- int	ans,err=0,s_type,i;
+ char   s[250],str[256],nomchp[250],nomraw[250],nomtrf[250],*nomfichres,*quest[4];
+ FILE   *filechp,*fileraw,*filetrf;
+ int    ans,err=0,s_type,i;
  
  s_type=1;
  sprintf(s,"Save resulting field?\n");
@@ -3887,9 +3923,9 @@ char *quest_save_result_3d(int *save_type)
      {
       strcpy(nomfichres,SAVE_FILE(str,NULL,&err));
       sprintf(nomchp,"%s.chp",nomfichres);
-	  sprintf(nomraw,"%s.rw",nomfichres);
+      sprintf(nomraw,"%s.rw",nomfichres);
       filechp=fopen(nomchp,"r");
-	  fileraw=fopen(nomraw,"r");
+      fileraw=fopen(nomraw,"r");
       if (filechp!=NULL || fileraw!=NULL)
        { /*one of the two files already exist*/
         sprintf(s,"Delete old file ?\n");
@@ -3904,9 +3940,9 @@ char *quest_save_result_3d(int *save_type)
     break;
     case 1: /*sous format parametre*/ 
      do
-     {	  
+     {    
       strcpy(nomfichres,SAVE_FILE(str,NULL,&err));
-	  put_file_extension(nomfichres,".trf",nomfichres);
+      put_file_extension(nomfichres,".trf",nomfichres);
 
       filetrf=fopen(nomtrf,"r");
       if (filetrf!=NULL)
@@ -3932,7 +3968,7 @@ char *quest_save_result_3d(int *save_type)
 */
 /*!                                                                       
 **   alloue et retourne un champ de deformation correspondant a la transformation
-**   passee en parametre	 	     
+**   passee en parametre             
 **   \param transfo : la transformation 
 **   \retval field3d : le champs de deformation, NULL si echec
 *******************************************************************************/
@@ -3978,7 +4014,7 @@ field3d *transf_to_field_3d(transf3d *transfo,grphic3d* imref,grphic3d *imreca)
 **   similaire a transf_to_field_3d(), sauf que le champ n'est pas alloue
 **   
 **   \param transfo : la transformation 
-**	 \param champ : le field3d deja alloue (E/S)
+**   \param champ : le field3d deja alloue (E/S)
 **   \retval 0
 *******************************************************************************/
 int transf_to_field_3d_noalloc(transf3d *transfo, field3d *champ,grphic3d* imref, grphic3d* imreca)
@@ -3990,7 +4026,7 @@ int transf_to_field_3d_noalloc(transf3d *transfo, field3d *champ,grphic3d* imref
   int i, j, k, l, nb_param;
   double *p;
   vector3d *ch, ***data;
-	int res;
+    int res;
 
  
   wdth=transfo->width;hght=transfo->height;dpth=transfo->depth;
@@ -4038,9 +4074,9 @@ int transf_to_field_3d_noalloc(transf3d *transfo, field3d *champ,grphic3d* imref
       nb_param = base_resol_up_3d(p,nb_param);
     if (nb_param != transfo->nb_param)
       printf("ERREUR dans transf_to_field_3d\n");
-		res=base_to_field_3d(nb_param, transfo->param, champ,imref,imreca);
+        res=base_to_field_3d(nb_param, transfo->param, champ,imref,imreca);
     if(res==-1)
-			return(-1);
+            return(-1);
     end_base_3d();
     free(p);
     break;
@@ -4119,14 +4155,14 @@ int transf_to_field_champ_3d_noalloc(transf3d *transfo, field3d* points_choisis,
 */
 /*!                                                                       
 **   alloue et retourne une transfo champ millimetrique correspondant au champ voxelique     
-**	\param champ : le champ
+**  \param champ : le champ
 **  \param imref : useless (on ne sait jamais)
 **  \param imreca: image sur laquelle s'applique le champ
-**	\retval transf3d : la transformation 3d correspondante
+**  \retval transf3d : la transformation 3d correspondante
 *******************************************************************************/
 //transf3d *field_to_transf_3d(field3d *champ,grphic3d *imref, grphic3d *imreca)
 //{
-// unsigned int	i,j,k,l,wdth,hght,dpth;
+// unsigned int i,j,k,l,wdth,hght,dpth;
 // transf3d *transfo;
 // vector3d *ch,***data;
 // float dxreca,dyreca,dzreca;
@@ -4137,8 +4173,8 @@ int transf_to_field_champ_3d_noalloc(transf3d *transfo, field3d* points_choisis,
 //
 // if (imref && imreca)
 // {
-//	 if (imref->width != wdth || imref->height != hght || imref->depth != dpth )
-//	 {   fprintf(stderr,"pas la bonne taille\n"); return NULL;}
+//   if (imref->width != wdth || imref->height != hght || imref->depth != dpth )
+//   {   fprintf(stderr,"pas la bonne taille\n"); return NULL;}
 //   dxreca = imreca->dx; dyreca = imreca->dy; dzreca = imreca->dz;
 //   dxref = imref->dx; dyref = imref->dy; dzref = imref->dz;
 // }
@@ -4181,7 +4217,7 @@ int transf_to_field_champ_3d_noalloc(transf3d *transfo, field3d* points_choisis,
 
 transf3d *field_to_transf_3d(field3d *champ,grphic3d *imref, grphic3d *imreca)
 {
- unsigned int	i,j,k,l,wdth,hght,dpth;
+ unsigned int   i,j,k,l,wdth,hght,dpth;
  transf3d *transfo;
  vector3d *ch,***data;
  float dxreca,dyreca,dzreca;
@@ -4192,8 +4228,8 @@ transf3d *field_to_transf_3d(field3d *champ,grphic3d *imref, grphic3d *imreca)
 
  if (imref && imreca)
  {
-	 if (imref->width != wdth || imref->height != hght || imref->depth != dpth )
-	 {   fprintf(stderr,"pas la bonne taille\n"); return NULL;}
+     if (imref->width != wdth || imref->height != hght || imref->depth != dpth )
+     {   fprintf(stderr,"pas la bonne taille\n"); return NULL;}
    dxreca = imreca->dx; dyreca = imreca->dy; dzreca = imreca->dz;
    dxref = imref->dx; dyref = imref->dy; dzref = imref->dz;
  }
@@ -4236,7 +4272,7 @@ transf3d *field_to_transf_3d(field3d *champ,grphic3d *imref, grphic3d *imreca)
 
 void field_to_transf_3d_noalloc(field3d *champ,transf3d* transfo,grphic3d *imref, grphic3d *imreca)
 {
- unsigned int	i,j,k,l,wdth,hght,dpth;
+ unsigned int   i,j,k,l,wdth,hght,dpth;
  vector3d *ch,***data;
  float dxreca,dyreca,dzreca;
  float dxref,dyref,dzref;
@@ -4246,16 +4282,16 @@ void field_to_transf_3d_noalloc(field3d *champ,transf3d* transfo,grphic3d *imref
 
  if (imref && imreca)
  {
-	 if (imref->width != wdth || imref->height != hght || imref->depth != dpth )
-	 {   fprintf(stderr,"pas la bonne taille\n"); 
-	 
-	#ifdef COMPILE_FOR_MEDIPY
-	return;
-	#else
-	return NULL;
-	#endif
+     if (imref->width != wdth || imref->height != hght || imref->depth != dpth )
+     {   fprintf(stderr,"pas la bonne taille\n"); 
+     
+    #ifdef COMPILE_FOR_MEDIPY
+    return;
+    #else
+    return NULL;
+    #endif
  
-	 }
+     }
    dxreca = imreca->dx; dyreca = imreca->dy; dzreca = imreca->dz;
    dxref = imref->dx; dyref = imref->dy; dzref = imref->dz;
  }
@@ -4297,14 +4333,14 @@ void field_to_transf_3d_noalloc(field3d *champ,transf3d* transfo,grphic3d *imref
 /*******************************************************************************
 **   save_transf_3d(transfo,nomfichier)                                  
 */                                                                       
-/*!    	Enregistre la transformation dans un fichier texte
-**	Le nom de fichier donne est considere sans extension
-**	l'extension .trf est ajoutee au nom 
-**	Si le fichier existe, on l'ecrase           
-**	\param  transfo  : la transformation a sauver
-**	\param nomfichier : le nom du fichier a sauvegarder
+/*!     Enregistre la transformation dans un fichier texte
+**  Le nom de fichier donne est considere sans extension
+**  l'extension .trf est ajoutee au nom 
+**  Si le fichier existe, on l'ecrase           
+**  \param  transfo  : la transformation a sauver
+**  \param nomfichier : le nom du fichier a sauvegarder
 
-**	\retval 1
+**  \retval 1
 *******************************************************************************/
 int save_transf_3d(transf3d *transfo, char *nomfichier)
 {
@@ -4352,15 +4388,15 @@ int save_transf_3d(transf3d *transfo, char *nomfichier)
      reel = transfo->dx;put_header(&header, "dx=", REEL, &reel,(int)NULL);
      reel = transfo->dy;put_header(&header, "dy=", REEL, &reel,(int)NULL);
      reel = transfo->dz;put_header(&header, "dz=", REEL, &reel,(int)NULL);
-     reel = p[0];	put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
-     reel = p[1];	put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
-     reel = p[2];	put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
-     reel = p[3];	put_header(&header, "Tx=", REEL, &reel, (int)NULL);
-     reel = p[4];	put_header(&header, "Ty=", REEL, &reel, (int)NULL);
-     reel = p[5];	put_header(&header, "Tz=", REEL, &reel, (int)NULL);
-     reel = p[6];	put_header(&header, "Xg=", REEL, &reel, (int)NULL);
-     reel = p[7];	put_header(&header, "Yg=", REEL, &reel, (int)NULL);
-     reel = p[8];	put_header(&header, "Zg=", REEL, &reel, (int)NULL);
+     reel = p[0];   put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
+     reel = p[1];   put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
+     reel = p[2];   put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
+     reel = p[3];   put_header(&header, "Tx=", REEL, &reel, (int)NULL);
+     reel = p[4];   put_header(&header, "Ty=", REEL, &reel, (int)NULL);
+     reel = p[5];   put_header(&header, "Tz=", REEL, &reel, (int)NULL);
+     reel = p[6];   put_header(&header, "Xg=", REEL, &reel, (int)NULL);
+     reel = p[7];   put_header(&header, "Yg=", REEL, &reel, (int)NULL);
+     reel = p[8];   put_header(&header, "Zg=", REEL, &reel, (int)NULL);
      break;
     case RIGIDZOOM3D:
      p=transfo->param;
@@ -4372,18 +4408,18 @@ int save_transf_3d(transf3d *transfo, char *nomfichier)
      reel = transfo->dx;put_header(&header, "dx=", REEL, &reel,(int)NULL);
      reel = transfo->dy;put_header(&header, "dy=", REEL, &reel,(int)NULL);
      reel = transfo->dz;put_header(&header, "dz=", REEL, &reel,(int)NULL);
-     reel = p[0];	put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
-     reel = p[1];	put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
-     reel = p[2];	put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
-     reel = p[3];	put_header(&header, "Sx=", REEL, &reel, (int)NULL);
-     reel = p[4];	put_header(&header, "Sy=", REEL, &reel, (int)NULL);
-     reel = p[5];	put_header(&header, "Sz=", REEL, &reel, (int)NULL);
-     reel = p[6];	put_header(&header, "Tx=", REEL, &reel, (int)NULL);
-     reel = p[7];	put_header(&header, "Ty=", REEL, &reel, (int)NULL);
-     reel = p[8];	put_header(&header, "Tz=", REEL, &reel, (int)NULL);
-     reel = p[9];	put_header(&header, "Xg=", REEL, &reel, (int)NULL);
-     reel = p[10];	put_header(&header, "Yg=", REEL, &reel, (int)NULL);
-     reel = p[11];	put_header(&header, "Zg=", REEL, &reel, (int)NULL);
+     reel = p[0];   put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
+     reel = p[1];   put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
+     reel = p[2];   put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
+     reel = p[3];   put_header(&header, "Sx=", REEL, &reel, (int)NULL);
+     reel = p[4];   put_header(&header, "Sy=", REEL, &reel, (int)NULL);
+     reel = p[5];   put_header(&header, "Sz=", REEL, &reel, (int)NULL);
+     reel = p[6];   put_header(&header, "Tx=", REEL, &reel, (int)NULL);
+     reel = p[7];   put_header(&header, "Ty=", REEL, &reel, (int)NULL);
+     reel = p[8];   put_header(&header, "Tz=", REEL, &reel, (int)NULL);
+     reel = p[9];   put_header(&header, "Xg=", REEL, &reel, (int)NULL);
+     reel = p[10];  put_header(&header, "Yg=", REEL, &reel, (int)NULL);
+     reel = p[11];  put_header(&header, "Zg=", REEL, &reel, (int)NULL);
      break;
     case AFFINE3D:
      p=transfo->param;
@@ -4395,21 +4431,21 @@ int save_transf_3d(transf3d *transfo, char *nomfichier)
      reel = transfo->dx;put_header(&header, "dx=", REEL, &reel,(int)NULL);
      reel = transfo->dy;put_header(&header, "dy=", REEL, &reel,(int)NULL);
      reel = transfo->dz;put_header(&header, "dz=", REEL, &reel,(int)NULL);
-     reel = p[0];	put_header(&header, "a00=", REEL, &reel, (int)NULL);
-     reel = p[1];	put_header(&header, "a01=", REEL, &reel, (int)NULL);
-     reel = p[2];	put_header(&header, "a02=", REEL, &reel, (int)NULL);
-     reel = p[3];	put_header(&header, "a10=", REEL, &reel, (int)NULL);
-     reel = p[4];	put_header(&header, "a11=", REEL, &reel, (int)NULL);
-     reel = p[5];	put_header(&header, "a12=", REEL, &reel, (int)NULL);
-     reel = p[6];	put_header(&header, "a20=", REEL, &reel, (int)NULL);
-     reel = p[7];	put_header(&header, "a21=", REEL, &reel, (int)NULL);
-     reel = p[8];	put_header(&header, "a22=", REEL, &reel, (int)NULL);
-     reel = p[9];	put_header(&header, "Tx=", REEL, &reel, (int)NULL);
-     reel = p[10];	put_header(&header, "Ty=", REEL, &reel, (int)NULL);
-     reel = p[11];	put_header(&header, "Tz=", REEL, &reel, (int)NULL);
-     reel = p[12];	put_header(&header, "Xg=", REEL, &reel, (int)NULL);
-     reel = p[13];	put_header(&header, "Yg=", REEL, &reel, (int)NULL);
-     reel = p[14];	put_header(&header, "Zg=", REEL, &reel, (int)NULL);
+     reel = p[0];   put_header(&header, "a00=", REEL, &reel, (int)NULL);
+     reel = p[1];   put_header(&header, "a01=", REEL, &reel, (int)NULL);
+     reel = p[2];   put_header(&header, "a02=", REEL, &reel, (int)NULL);
+     reel = p[3];   put_header(&header, "a10=", REEL, &reel, (int)NULL);
+     reel = p[4];   put_header(&header, "a11=", REEL, &reel, (int)NULL);
+     reel = p[5];   put_header(&header, "a12=", REEL, &reel, (int)NULL);
+     reel = p[6];   put_header(&header, "a20=", REEL, &reel, (int)NULL);
+     reel = p[7];   put_header(&header, "a21=", REEL, &reel, (int)NULL);
+     reel = p[8];   put_header(&header, "a22=", REEL, &reel, (int)NULL);
+     reel = p[9];   put_header(&header, "Tx=", REEL, &reel, (int)NULL);
+     reel = p[10];  put_header(&header, "Ty=", REEL, &reel, (int)NULL);
+     reel = p[11];  put_header(&header, "Tz=", REEL, &reel, (int)NULL);
+     reel = p[12];  put_header(&header, "Xg=", REEL, &reel, (int)NULL);
+     reel = p[13];  put_header(&header, "Yg=", REEL, &reel, (int)NULL);
+     reel = p[14];  put_header(&header, "Zg=", REEL, &reel, (int)NULL);
      break;
     case RIGIDGLOBALZOOM3D:
      p=transfo->param;
@@ -4421,16 +4457,16 @@ int save_transf_3d(transf3d *transfo, char *nomfichier)
      reel = transfo->dx;put_header(&header, "dx=", REEL, &reel,(int)NULL);
      reel = transfo->dy;put_header(&header, "dy=", REEL, &reel,(int)NULL);
      reel = transfo->dz;put_header(&header, "dz=", REEL, &reel,(int)NULL);
-     reel = p[0];	put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
-     reel = p[1];	put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
-     reel = p[2];	put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
-     reel = p[3];	put_header(&header, "S=", REEL, &reel, (int)NULL);
-     reel = p[4];	put_header(&header, "Tx=", REEL, &reel, (int)NULL);
-     reel = p[5];	put_header(&header, "Ty=", REEL, &reel, (int)NULL);
-     reel = p[6];	put_header(&header, "Tz=", REEL, &reel, (int)NULL);
-     reel = p[7];	put_header(&header, "Xg=", REEL, &reel, (int)NULL);
-     reel = p[8];	put_header(&header, "Yg=", REEL, &reel, (int)NULL);
-     reel = p[9];	put_header(&header, "Zg=", REEL, &reel, (int)NULL);
+     reel = p[0];   put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
+     reel = p[1];   put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
+     reel = p[2];   put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
+     reel = p[3];   put_header(&header, "S=", REEL, &reel, (int)NULL);
+     reel = p[4];   put_header(&header, "Tx=", REEL, &reel, (int)NULL);
+     reel = p[5];   put_header(&header, "Ty=", REEL, &reel, (int)NULL);
+     reel = p[6];   put_header(&header, "Tz=", REEL, &reel, (int)NULL);
+     reel = p[7];   put_header(&header, "Xg=", REEL, &reel, (int)NULL);
+     reel = p[8];   put_header(&header, "Yg=", REEL, &reel, (int)NULL);
+     reel = p[9];   put_header(&header, "Zg=", REEL, &reel, (int)NULL);
      break;
     case AFFINEDECOUPLE3D:
      p=transfo->param;
@@ -4442,21 +4478,21 @@ int save_transf_3d(transf3d *transfo, char *nomfichier)
      reel = transfo->dx;put_header(&header, "dx=", REEL, &reel,(int)NULL);
      reel = transfo->dy;put_header(&header, "dy=", REEL, &reel,(int)NULL);
      reel = transfo->dz;put_header(&header, "dz=", REEL, &reel,(int)NULL);
-     reel = p[0];	put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
-     reel = p[1];	put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
-     reel = p[2];	put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
-     reel = p[3];	put_header(&header, "Tx=", REEL, &reel, (int)NULL);
-     reel = p[4];	put_header(&header, "Ty=", REEL, &reel, (int)NULL);
-     reel = p[5];	put_header(&header, "Tz=", REEL, &reel, (int)NULL);
-     reel = p[6];	put_header(&header, "Sx=", REEL, &reel, (int)NULL);
-     reel = p[7];	put_header(&header, "Sy=", REEL, &reel, (int)NULL);
-     reel = p[8];	put_header(&header, "Sz=", REEL, &reel, (int)NULL);
-     reel = p[9];	put_header(&header, "Skewyx=", REEL, &reel, (int)NULL);
-     reel = p[10];	put_header(&header, "Skewzx=", REEL, &reel, (int)NULL);
-     reel = p[11];	put_header(&header, "Skewzy=", REEL, &reel, (int)NULL);
-     reel = p[12];	put_header(&header, "Xg=", REEL, &reel, (int)NULL);
-     reel = p[13];	put_header(&header, "Yg=", REEL, &reel, (int)NULL);
-     reel = p[14];	put_header(&header, "Zg=", REEL, &reel, (int)NULL);
+     reel = p[0];   put_header(&header, "Theta_x=", REEL, &reel, (int)NULL);
+     reel = p[1];   put_header(&header, "Theta_y=", REEL, &reel, (int)NULL);
+     reel = p[2];   put_header(&header, "Theta_z=", REEL, &reel, (int)NULL);
+     reel = p[3];   put_header(&header, "Tx=", REEL, &reel, (int)NULL);
+     reel = p[4];   put_header(&header, "Ty=", REEL, &reel, (int)NULL);
+     reel = p[5];   put_header(&header, "Tz=", REEL, &reel, (int)NULL);
+     reel = p[6];   put_header(&header, "Sx=", REEL, &reel, (int)NULL);
+     reel = p[7];   put_header(&header, "Sy=", REEL, &reel, (int)NULL);
+     reel = p[8];   put_header(&header, "Sz=", REEL, &reel, (int)NULL);
+     reel = p[9];   put_header(&header, "Skewyx=", REEL, &reel, (int)NULL);
+     reel = p[10];  put_header(&header, "Skewzx=", REEL, &reel, (int)NULL);
+     reel = p[11];  put_header(&header, "Skewzy=", REEL, &reel, (int)NULL);
+     reel = p[12];  put_header(&header, "Xg=", REEL, &reel, (int)NULL);
+     reel = p[13];  put_header(&header, "Yg=", REEL, &reel, (int)NULL);
+     reel = p[14];  put_header(&header, "Zg=", REEL, &reel, (int)NULL);
      break;
     case BSPLINE3D:
      p=transfo->param;
@@ -4565,19 +4601,19 @@ int save_transf_3d(transf3d *transfo, char *nomfichier)
 /*******************************************************************************
 **    load_transf_3d(nomfichier)                                  
 */                                                                       
-/*!    	charge une transfo depuis un fichier .trf
-**	alloue et retourne un  pointeur sur une transfo
+/*!     charge une transfo depuis un fichier .trf
+**  alloue et retourne un  pointeur sur une transfo
 **
 **  \param nomfichier : le nom du fichier contenant la transfo
-**	\retval transf3d : un pointeur sur la transfo, NULL en cas d'echec
+**  \retval transf3d : un pointeur sur la transfo, NULL en cas d'echec
 *******************************************************************************/
 transf3d *load_transf_3d(char *nomfichier)
 {
- char  	nom[256],*ext,typet[50],chemin[250],nomsext[255];
- FILE	*fichier;
+ char   nom[256],*ext,typet[50],chemin[250],nomsext[255];
+ FILE   *fichier;
  double *p,tmp;
  vector3d *ch;
- int	nb_param,wdth,hght,dpth,i;
+ int    nb_param,wdth,hght,dpth,i;
  double dx,dy,dz;
  transf3d *transfo;
  TRANSFO3D typetrans;
@@ -4597,8 +4633,8 @@ transf3d *load_transf_3d(char *nomfichier)
   fichier = fopen(nomfichier, "rb");
   if (!fichier)
   {
-	printf("File does not exist: %s \n", nomfichier);
-	return NULL;
+    printf("File does not exist: %s \n", nomfichier);
+    return NULL;
   }
   fclose (fichier);
   
@@ -4745,19 +4781,19 @@ transf3d *load_transf_3d(char *nomfichier)
    if (fichier==NULL) {printf("erreur a l'ouverture du fichier %s \n",nomprm); return NULL;}
    else
     {
-     	//fread(ch,sizeof(vector3d),wdth*hght*dpth,fichier);
-     	imx_fread(ch,wdth*hght*dpth,sizeof(vector3d),fichier);
-	fclose(fichier);
+        //fread(ch,sizeof(vector3d),wdth*hght*dpth,fichier);
+        imx_fread(ch,wdth*hght*dpth,sizeof(vector3d),fichier);
+    fclose(fichier);
 
-     	if(_is_bigEndian==0)
-     	{
-      	for(i=0;i<(int)(transfo->width*transfo->height*transfo->depth);i++)
-      		{
-		tmp=ch[i].x;
-		ch[i].x=ch[i].z;
-		ch[i].z=(float)tmp;
-		}
-      	}
+        if(_is_bigEndian==0)
+        {
+        for(i=0;i<(int)(transfo->width*transfo->height*transfo->depth);i++)
+            {
+        tmp=ch[i].x;
+        ch[i].x=ch[i].z;
+        ch[i].z=(float)tmp;
+        }
+        }
     } 
    }
   break;
@@ -4940,7 +4976,7 @@ int copie_transf_3d(transf3d *src, transf3d *dest)
     FREE(dest->param);
   dest->param = NULL;
   if (dest->ch)
-	FREE(dest->ch);
+    FREE(dest->ch);
   dest->ch = NULL;
 
   //copie de parametres de dimension
@@ -4997,7 +5033,7 @@ int realloc_transf_param_3d(transf3d *transf,int nb_param)
 **   apply_transf_3d()                                  
 */
 /*!                                                                       
-**    	appliquer a une image une transformation contenu dans un fichier          
+**      appliquer a une image une transformation contenu dans un fichier          
 *******************************************************************************/
 
 void apply_transf_3d(void)
@@ -5012,12 +5048,12 @@ void apply_transf_3d(void)
 
   /*fichier contenant la transformation*/
   {
-	sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
-	
+    sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
+    
     if (err)
       return ;
-	  
-	put_file_extension(nomfichier,".trf",nomfichier);
+      
+    put_file_extension(nomfichier,".trf",nomfichier);
 
     if (test_fichier_transf_3d(nomfichier) != 1)
     {
@@ -5039,13 +5075,13 @@ void apply_transf_3d(void)
 /*!  \ingroup Recalage
 **
 **
-**	\brief Application d'une transformation a l'aide d'une fonction d'interpolation
-**			a une image 3d 
+**  \brief Application d'une transformation a l'aide d'une fonction d'interpolation
+**          a une image 3d 
 **
 **
-**	\param imdeb : image source
-**	\param imres : image resultat (E/S)
-**	\param tranfso : la transformation 
+**  \param imdeb : image source
+**  \param imres : image resultat (E/S)
+**  \param tranfso : la transformation 
 **  \param inter_fct : fct d'interpolation
 **
 ***********************************************************/
@@ -5101,13 +5137,13 @@ end_func:
 /*!  \ingroup Recalage
 **
 **
-**	\brief Application d'une transformation definie dans un fichier de type *.trf
-**			a une image 3d 
+**  \brief Application d'une transformation definie dans un fichier de type *.trf
+**          a une image 3d 
 **
 **
-**	\param imdeb : image source
-**	\param imres : image resultat (E/S)
-**	\param nomfichier : le nom du fichier de la transformation (*.trf)
+**  \param imdeb : image source
+**  \param imres : image resultat (E/S)
+**  \param nomfichier : le nom du fichier de la transformation (*.trf)
 **  \param inter_type : choix de l'interpolation
 **
 ***********************************************************/
@@ -5148,14 +5184,14 @@ error1:
 /*!  \ingroup Recalage
 **
 **
-**	\brief Application d'une transformation anisotropique a l'aide d'une fonction d'interpolation
-**			a une image 3d
+**  \brief Application d'une transformation anisotropique a l'aide d'une fonction d'interpolation
+**          a une image 3d
 **
 **
-**	\param imref    : image reference
-**	\param imtransf : image sur laquelle appliquer une transfo
-**	\param imres    : image resultat (E/S)
-**	\param tranfso  : la transformation
+**  \param imref    : image reference
+**  \param imtransf : image sur laquelle appliquer une transfo
+**  \param imres    : image resultat (E/S)
+**  \param tranfso  : la transformation
 **  \param inter_fct: fct d'interpolation
 **
 ***********************************************************/
@@ -5205,25 +5241,25 @@ error1:
 **   apply_transf_seuil_3d()                                  
 */
 /*!                                                                       
-**    	appliquer a une image seuille une transformation contenu dans un fichier          
+**      appliquer a une image seuille une transformation contenu dans un fichier          
 *******************************************************************************/
 void apply_transf_seuil_3d(void)
 {
   int im_deb, im_res, err=0, inter_type;
   char nomfichier[PATH_LEN]/*, *quest[6]*/;
-	
+    
   /*question sur les images*/
   im_deb = GET_PLACE3D(TEXT0030);
   im_res = GET_PLACE3D(TEXT0006);
 
   /*fichier contenant la transformation*/
   {
-	sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
-	
+    sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
+    
     if (err)
       return ;
-	  
-	put_file_extension(nomfichier,".trf",nomfichier);
+      
+    put_file_extension(nomfichier,".trf",nomfichier);
 
     if (test_fichier_transf_3d(nomfichier) != 1)
     {
@@ -5236,7 +5272,7 @@ void apply_transf_seuil_3d(void)
   inter_type = imx_query_interpolation_type_3D(0);
  
  
-		
+        
   imx_apply_transf_seuil_3d(im_res, im_deb, nomfichier, inter_type);
 
   show_picture_3d(im_res);
@@ -5247,13 +5283,13 @@ void apply_transf_seuil_3d(void)
 /*!  \ingroup Recalage
 **
 **
-**	\brief Application d'une transformation definie dans un fichier de type *.trf
-**			a une image 3d 
+**  \brief Application d'une transformation definie dans un fichier de type *.trf
+**          a une image 3d 
 **
 **
-**	\param imdeb : image source
-**	\param imres : image resultat (E/S)
-**	\param nomfichier : le nom du fichier de la transformation (*.trf)
+**  \param imdeb : image source
+**  \param imres : image resultat (E/S)
+**  \param nomfichier : le nom du fichier de la transformation (*.trf)
 **  \param inter_type : choix de l'interpolation
 **
 ***********************************************************/
@@ -5266,25 +5302,25 @@ int imx_apply_transf_seuil_3d(int im_res, int im_deb, char *nomfichier, int inte
   InterpolationFct inter_fct,inter_label;
   grphic3d * imdeb = NULL;
   grphic3d * imres = NULL;
-	grphic3d *maskdeb,*maskres;
+    grphic3d *maskdeb,*maskres;
   
   imdeb = ptr_img_3d(im_deb);
   imres = ptr_img_3d(im_res);
   
-	maskdeb=cr_grphic3d(imdeb);imx_copie_3d_p(imdeb,maskdeb);
+    maskdeb=cr_grphic3d(imdeb);imx_copie_3d_p(imdeb,maskdeb);
   maskres=cr_grphic3d(imres);imx_copie_3d_p(imres,maskres);  
   
-	maskdeb->max_pixel=1;
-	maskdeb->min_pixel=0;
-	
-	for (i=0;i<imdeb->width;i++)
-	for (j=0;j<imdeb->height;j++)
-	for (k=0;k<imdeb->depth;k++)
-		{
-		if (imdeb->mri[i][j][k]!=0) maskdeb->mri[i][j][k]=1;
-		}
-		
-	put_file_extension(nomfichier,".trf",tmp);
+    maskdeb->max_pixel=1;
+    maskdeb->min_pixel=0;
+    
+    for (i=0;i<imdeb->width;i++)
+    for (j=0;j<imdeb->height;j++)
+    for (k=0;k<imdeb->depth;k++)
+        {
+        if (imdeb->mri[i][j][k]!=0) maskdeb->mri[i][j][k]=1;
+        }
+        
+    put_file_extension(nomfichier,".trf",tmp);
   
   /*chargement de la transformation*/
   transfo = load_transf_3d(tmp);
@@ -5298,19 +5334,19 @@ int imx_apply_transf_seuil_3d(int im_res, int im_deb, char *nomfichier, int inte
   inter_label = imx_choose_interpolation_fct(9);
   
   err = imx_apply_transf_3d_p(imres, imdeb, transfo, inter_fct);
-	err = imx_apply_transf_3d_p(maskres, maskdeb, transfo,inter_label);
-	
-	for (i=0;i<imres->width;i++)
-	for (j=0;j<imres->height;j++)
-	for (k=0;k<imres->depth;k++)
-		{
-		if (maskres->mri[i][j][k]==0) imres->mri[i][j][k]=0;
-		}
-		
+    err = imx_apply_transf_3d_p(maskres, maskdeb, transfo,inter_label);
+    
+    for (i=0;i<imres->width;i++)
+    for (j=0;j<imres->height;j++)
+    for (k=0;k<imres->depth;k++)
+        {
+        if (maskres->mri[i][j][k]==0) imres->mri[i][j][k]=0;
+        }
+        
   imx_reinitialise_visual_params_3d_p(imres);
 
   free_transf3d(transfo); 
-	free_grphic3d(maskdeb);free_grphic3d(maskres);
+    free_grphic3d(maskdeb);free_grphic3d(maskres);
 error1:
   return err;
 }
@@ -5318,7 +5354,7 @@ error1:
 /*******************************************************************************
 **   visu_transf_3d()                                  
 **                                                                       
-**    	visualise la transfo ou d'un champ sous forme d'un quadrillage deforme          
+**      visualise la transfo ou d'un champ sous forme d'un quadrillage deforme          
 **  ATTENTION : on visualise une transformation en mm.!!!
 **
 *******************************************************************************/
@@ -5326,8 +5362,8 @@ void visu_transf_3d(void)
 {
  field3d *champ;
  transf3d *transfo;
- int	im_res,e=0,i,j,k,type;
- char 	nomfichier[256],*quest[9];
+ int    im_res,e=0,i,j,k,type;
+ char   nomfichier[256],*quest[9];
  grphic3d *imres;
  
  
@@ -5380,37 +5416,37 @@ void visu_transf_3d(void)
  if (type==2 && transfo->typetrans==BSPLINE3D)
   jacobien_bspline1_3d(transfo, ptr_img_3d(im_res));
  else 
- 		{	
-		if (type==3)
-			jacobien_champ_interpolation_bspline1(transfo,imres);
-		else
-			{
-			if (type==4)
-				integrale_jacobien_bspline1(transfo,imres);
-			else
-			{
-			 /*generation du champ*/		 
-			champ=transf_to_field_3d(transfo,NULL,NULL);
-			
-			//if (type==2)
-				{
-				for(i=0;i<transfo->width;i++)
-				for(j=0;j<transfo->height;j++)
-				for(k=0;k<transfo->depth;k++)
-				 {
-				 champ->raw[i][j][k].x=champ->raw[i][j][k].x/transfo->dx;
-				 champ->raw[i][j][k].y=champ->raw[i][j][k].y/transfo->dy;
-				 champ->raw[i][j][k].z=champ->raw[i][j][k].z/transfo->dz;	 
-				 }
-				}
-			
-			printf("Attention, le resultat est donnee en voxel et non en millimetre ! \n");			
-			
-			imx_visu_field_3d(champ,imres,type);
-			free_field3d(champ);
-			}
-			}
-		}
+        {   
+        if (type==3)
+            jacobien_champ_interpolation_bspline1(transfo,imres);
+        else
+            {
+            if (type==4)
+                integrale_jacobien_bspline1(transfo,imres);
+            else
+            {
+             /*generation du champ*/         
+            champ=transf_to_field_3d(transfo,NULL,NULL);
+            
+            //if (type==2)
+                {
+                for(i=0;i<transfo->width;i++)
+                for(j=0;j<transfo->height;j++)
+                for(k=0;k<transfo->depth;k++)
+                 {
+                 champ->raw[i][j][k].x=champ->raw[i][j][k].x/transfo->dx;
+                 champ->raw[i][j][k].y=champ->raw[i][j][k].y/transfo->dy;
+                 champ->raw[i][j][k].z=champ->raw[i][j][k].z/transfo->dz;    
+                 }
+                }
+            
+            printf("Attention, le resultat est donnee en voxel et non en millimetre ! \n");         
+            
+            imx_visu_field_3d(champ,imres,type);
+            free_field3d(champ);
+            }
+            }
+        }
  // Mise a jour des dx,dy,dz de l'image resultat
  imres->dx=transfo->dx;
  imres->dy=transfo->dy;
@@ -5426,9 +5462,9 @@ void visu_transf_3d(void)
 
 /*******************************************************************************
 **      jacobien_champ_interpolation_bspline1(ch,imres)
-**	
+**  
 **      jacobien d'un champ de deformation en interpoalant par une spline de degre 1
-** 		On se ram�ne au cas du modele de d�formation bspline qui � chaque voxel
+**      On se ram�ne au cas du modele de d�formation bspline qui � chaque voxel
 **  associe un jeu de param�tre 
 *******************************************************************************/
 int jacobien_champ_interpolation_bspline1(transf3d *transfo_src, grphic3d *imres)
@@ -5466,15 +5502,15 @@ param[i]=0;
 for (i=1;i<maxsize;i++)
 for (j=1;j<maxsize;j++)
 for (k=1;k<maxsize;k++)
-	if ((i<wdth)&&(j<hght)&&(k<dpth))
-		{
-		l = TOP_conv_ind(i-1,j-1,k-1,nb_param);
-		param[l]	=champ->raw[i][j][k].x;
-		param[l+1]=champ->raw[i][j][k].y;
-		param[l+2]=champ->raw[i][j][k].z;
-		}
-		
-		
+    if ((i<wdth)&&(j<hght)&&(k<dpth))
+        {
+        l = TOP_conv_ind(i-1,j-1,k-1,nb_param);
+        param[l]    =champ->raw[i][j][k].x;
+        param[l+1]=champ->raw[i][j][k].y;
+        param[l+2]=champ->raw[i][j][k].z;
+        }
+        
+        
 transfo->nb_param=nb_param;
 transfo->param=param;
 transfo->resol=resol;
@@ -5492,9 +5528,9 @@ return(1);
 
 /*******************************************************************************
 **      integrale_jacobien_bspline1(ch,imres)
-**	
+**  
 **      integrale du jacobien d'un champ de deformation en interpoalant par une spline de degre 1
-** 		On se ram�ne au cas du modele de d�formation bspline qui � chaque voxel
+**      On se ram�ne au cas du modele de d�formation bspline qui � chaque voxel
 **  associe un jeu de param�tre 
 *******************************************************************************/
 int integrale_jacobien_bspline1(transf3d *transfo_src, grphic3d *imres)
@@ -5502,66 +5538,66 @@ int integrale_jacobien_bspline1(transf3d *transfo_src, grphic3d *imres)
 
 
 if (transfo_src->typetrans!=BSPLINE3D) // on cree une transfo Bspline 3D a partir de la transfo donnee
-	{
-	transf3d *transfo;
-	int wdth,hght,dpth,maxsize,i,j,k,l,resol;
-	int nb_param;
-	double *param;
-	field3d *champ;
+    {
+    transf3d *transfo;
+    int wdth,hght,dpth,maxsize,i,j,k,l,resol;
+    int nb_param;
+    double *param;
+    field3d *champ;
 
-	wdth=transfo_src->width;
-	hght=transfo_src->height;
-	dpth=transfo_src->depth;
+    wdth=transfo_src->width;
+    hght=transfo_src->height;
+    dpth=transfo_src->depth;
 
-	maxsize=MAXI(wdth,hght);
-	maxsize=MAXI(maxsize,dpth);
+    maxsize=MAXI(wdth,hght);
+    maxsize=MAXI(maxsize,dpth);
 
-	transfo=cr_copy_transf3d(transfo_src);
-	transfo->typetrans=BSPLINE3D;
-	transfo->degre=1;
-	transfo->width=maxsize;
-	transfo->height=maxsize;
-	transfo->depth=maxsize;
+    transfo=cr_copy_transf3d(transfo_src);
+    transfo->typetrans=BSPLINE3D;
+    transfo->degre=1;
+    transfo->width=maxsize;
+    transfo->height=maxsize;
+    transfo->depth=maxsize;
   
-	resol = (int)floor(log(maxsize)/log(2)+0.5);
+    resol = (int)floor(log(maxsize)/log(2)+0.5);
 
-	nb_param=3*pow((pow(2,resol)-1),3);;
-	param=(double *) malloc(nb_param*sizeof(double));
-
-
-	champ=transf_to_field_3d(transfo_src,NULL,NULL);
-
-	for (i=0;i<nb_param;i++)
-	param[i]=0;
-	  
-	for (i=1;i<maxsize;i++)
-	for (j=1;j<maxsize;j++)
-	for (k=1;k<maxsize;k++)
-		if ((i<wdth)&&(j<hght)&&(k<dpth))
-		{
-		l = TOP_conv_ind(i-1,j-1,k-1,nb_param);
-		param[l]	=champ->raw[i][j][k].x;
-		param[l+1]=champ->raw[i][j][k].y;
-		param[l+2]=champ->raw[i][j][k].z;
-		}
-		
-		transfo->nb_param=nb_param;
-	transfo->param=param;
-	transfo->resol=resol;
-
-	integrale_jacobien_bspline1_compute(transfo,imres);
-
-	free(param);
-	free_field3d(champ);
-	transfo->typetrans=CHAMP3D;
-	free_transf3d(transfo);
+    nb_param=3*pow((pow(2,resol)-1),3);;
+    param=(double *) malloc(nb_param*sizeof(double));
 
 
-	}
+    champ=transf_to_field_3d(transfo_src,NULL,NULL);
+
+    for (i=0;i<nb_param;i++)
+    param[i]=0;
+      
+    for (i=1;i<maxsize;i++)
+    for (j=1;j<maxsize;j++)
+    for (k=1;k<maxsize;k++)
+        if ((i<wdth)&&(j<hght)&&(k<dpth))
+        {
+        l = TOP_conv_ind(i-1,j-1,k-1,nb_param);
+        param[l]    =champ->raw[i][j][k].x;
+        param[l+1]=champ->raw[i][j][k].y;
+        param[l+2]=champ->raw[i][j][k].z;
+        }
+        
+        transfo->nb_param=nb_param;
+    transfo->param=param;
+    transfo->resol=resol;
+
+    integrale_jacobien_bspline1_compute(transfo,imres);
+
+    free(param);
+    free_field3d(champ);
+    transfo->typetrans=CHAMP3D;
+    free_transf3d(transfo);
+
+
+    }
 else
-	{
-	integrale_jacobien_bspline1_compute(transfo_src,imres);
-	}
+    {
+    integrale_jacobien_bspline1_compute(transfo_src,imres);
+    }
 
 
 
@@ -5572,18 +5608,18 @@ return(1);
 
 /*******************************************************************************
 **      jacobien_transf3d_to_image_3d(transfo,imres)
-**	
+**  
 **      jacobien d'une deformation vers une images
 *******************************************************************************/
-int	jacobien_transf3d_to_image_3d(transf3d *transfo, grphic3d *imres)
+int jacobien_transf3d_to_image_3d(transf3d *transfo, grphic3d *imres)
 {
  int     (*scal_func)(int pas, double **f, double **df);
  double  *p;
  int     nb_param;
  double *fx,*fy,*fz,*dfx,*dfy,*dfz;
- int	*x0,*y0,*z0,*x1,*y1,*z1;
- int	wdth,hght,dpth,i,j,k,l,i0,i1,j0,j1,k0,k1;
- double aa1,bb1,cc1,aa2,bb2,cc2,aa3,bb3,cc3,d23,d31,d12,det,rcoeff,ax,ay,az		;
+ int    *x0,*y0,*z0,*x1,*y1,*z1;
+ int    wdth,hght,dpth,i,j,k,l,i0,i1,j0,j1,k0,k1;
+ double aa1,bb1,cc1,aa2,bb2,cc2,aa3,bb3,cc3,d23,d31,d12,det,rcoeff,ax,ay,az     ;
  double  ***J,minJ,maxJ;
  
  
@@ -5667,10 +5703,10 @@ int	jacobien_transf3d_to_image_3d(transf3d *transfo, grphic3d *imres)
 
 /*******************************************************************************
 **      imx_visu_field_3d(champ,imres,type)
-**	
+**  
 **      visualisation d'un champ sous forme d'une image
 *******************************************************************************/
-int	imx_visu_field_3d(field3d *ch, grphic3d *imres, int type)
+int imx_visu_field_3d(field3d *ch, grphic3d *imres, int type)
 {
  grphic3d *imtemp;
  int i,j,k,wdth,hght,dpth,pas;
@@ -5682,40 +5718,40 @@ int	imx_visu_field_3d(field3d *ch, grphic3d *imres, int type)
  switch (type)
  {
   case 0 :/*module*/
-  	module_field_to_image_3d(ch,imres);
+    module_field_to_image_3d(ch,imres);
   break;
   case 1 : /*quadrillage*/
-  	imtemp=cr_grphic3d(imres);
-	imtemp->rcoeff=1.0;imtemp->icomp=0.0;imtemp->max_pixel=imtemp->cutoff_max=1;
-	pas=8;
-	for (i=0;i<wdth;i++) for (j=0;j<hght;j++) for (k=0;k<dpth;k++) imtemp->mri[i][j][k]=0;
-	/*for (i=0;i<wdth;i=i+pas) for (j=0;j<hght;j++) for (k=0;k<dpth;k++) imtemp->mri[i][j][k]=1;
-   	for (i=0;i<wdth;i++) for (j=0;j<hght;j=j+pas) for (k=0;k<dpth;k++) imtemp->mri[i][j][k]=1;
-   	for (i=0;i<wdth;i++) for (j=0;j<hght;j++) for (k=0;k<dpth;k=k+pas) imtemp->mri[i][j][k]=1;*/
-	for (i=0;i<wdth;i=i+pas) for (j=0;j<hght;j++) imtemp->mri[i][j][(int)(0.5*dpth)]=1;
-	for (i=0;i<wdth;i++) for (j=0;j<hght;j=j+pas) imtemp->mri[i][j][(int)(0.5*dpth)]=1;
-   	
-	for (i=0;i<wdth;i++) imtemp->mri[i][hght-1][(int)(0.5*dpth)]=1;
+    imtemp=cr_grphic3d(imres);
+    imtemp->rcoeff=1.0;imtemp->icomp=0.0;imtemp->max_pixel=imtemp->cutoff_max=1;
+    pas=8;
+    for (i=0;i<wdth;i++) for (j=0;j<hght;j++) for (k=0;k<dpth;k++) imtemp->mri[i][j][k]=0;
+    /*for (i=0;i<wdth;i=i+pas) for (j=0;j<hght;j++) for (k=0;k<dpth;k++) imtemp->mri[i][j][k]=1;
+    for (i=0;i<wdth;i++) for (j=0;j<hght;j=j+pas) for (k=0;k<dpth;k++) imtemp->mri[i][j][k]=1;
+    for (i=0;i<wdth;i++) for (j=0;j<hght;j++) for (k=0;k<dpth;k=k+pas) imtemp->mri[i][j][k]=1;*/
+    for (i=0;i<wdth;i=i+pas) for (j=0;j<hght;j++) imtemp->mri[i][j][(int)(0.5*dpth)]=1;
+    for (i=0;i<wdth;i++) for (j=0;j<hght;j=j+pas) imtemp->mri[i][j][(int)(0.5*dpth)]=1;
+    
+    for (i=0;i<wdth;i++) imtemp->mri[i][hght-1][(int)(0.5*dpth)]=1;
     for (j=0;j<hght;j++) imtemp->mri[wdth-1][j][(int)(0.5*dpth)]=1;
    
-	inter_nearest_3d(imtemp,ch,imres);
-	free_grphic3d(imtemp);
+    inter_nearest_3d(imtemp,ch,imres);
+    free_grphic3d(imtemp);
   break;
   case 2 : /*jaocibien*/
-   	jacobien_field_to_image_3d(ch,imres);
+    jacobien_field_to_image_3d(ch,imres);
   break;
   case 5 : /* composante suivant x*/
-		composante_field_to_image_3d(ch,imres,0);
+        composante_field_to_image_3d(ch,imres,0);
   break;
-	
+    
   case 6 : /* composante suivant y*/
-		composante_field_to_image_3d(ch,imres,1);
+        composante_field_to_image_3d(ch,imres,1);
   break;
-	
+    
   case 7 : /* composante suivant z*/
-		composante_field_to_image_3d(ch,imres,2);
+        composante_field_to_image_3d(ch,imres,2);
   break;
-		
+        
  }
    
  return(1);
@@ -5753,20 +5789,20 @@ void defor_synth_3d_point(void)
   
   npoints = (int)GET_FLOAT("nbre de points a modifier", 1, &err);
   if (npoints<=0)
-  	npoints=1;
+    npoints=1;
   vecteur = malloc(npoints*sizeof(vector3d));
   pts = malloc(npoints*sizeof(vector3d));
-	
+    
  for (i=0;i<npoints;i++)
- 	{
-	pts[i].x=(int)GET_FLOAT("coord pts en X", 1, &err);
-	pts[i].y=(int)GET_FLOAT("coord pts en Y", 1, &err);
-	pts[i].z=(int)GET_FLOAT("coord pts en Z", 1, &err);		
-	vecteur[i].x = GET_FLOAT("vecteur deplacement en X", 1, &err);
-	vecteur[i].y = GET_FLOAT("vecteur deplacement en Y", 1, &err);
-	vecteur[i].z = GET_FLOAT("vecteur deplacement en Z", 1, &err);		
-	}
-	
+    {
+    pts[i].x=(int)GET_FLOAT("coord pts en X", 1, &err);
+    pts[i].y=(int)GET_FLOAT("coord pts en Y", 1, &err);
+    pts[i].z=(int)GET_FLOAT("coord pts en Z", 1, &err);     
+    vecteur[i].x = GET_FLOAT("vecteur deplacement en X", 1, &err);
+    vecteur[i].y = GET_FLOAT("vecteur deplacement en Y", 1, &err);
+    vecteur[i].z = GET_FLOAT("vecteur deplacement en Z", 1, &err);      
+    }
+    
  imx_defor_synth_3d_point(nomfichres,256,256,256,npoints,pts,vecteur);
 
  free(vecteur);
@@ -5785,17 +5821,17 @@ int imx_defor_synth_3d_point(char *nomfichres, int wdth, int hght, int dpth,int 
  void Convolve(float *y, long int nbpts, int wnd,double * filter);
  field3d  *ch;
  transf3d *transfo;
- int 	i,j,k;
+ int    i,j,k;
  vector3d ***data;
  int taille=7;
  double *triangle;
  float *timecrs;
  triangle = malloc((2*taille+1)*sizeof(double));
  for (i=0;i<taille;i++)
-	triangle[i] = triangle[2*taille+-i] = (double)(i+1)/(double)(taille+1);
+    triangle[i] = triangle[2*taille+-i] = (double)(i+1)/(double)(taille+1);
  triangle[taille] = 1;
  //Le triangle n est pas normalise sinon, ca changerait la valeur entree par user...
- 	
+    
  
  ch=cr_field3d(wdth,hght,dpth);
  data=ch->raw;
@@ -5804,51 +5840,51 @@ int imx_defor_synth_3d_point(char *nomfichres, int wdth, int hght, int dpth,int 
 for (i=0;i<wdth;i++)
 for (j=0;j<hght;j++)
 for (k=0;k<dpth;k++)
-	data[i][j][k].x=data[i][j][k].y=data[i][j][k].z=0;
+    data[i][j][k].x=data[i][j][k].y=data[i][j][k].z=0;
 
 for (i=0;i<npts;i++)
-	{
-	data[(int)Pts[i].x][(int)Pts[i].y][(int)Pts[i].z].x = Dep[i].x;		
-	data[(int)Pts[i].x][(int)Pts[i].y][(int)Pts[i].z].y = Dep[i].y;
-	data[(int)Pts[i].x][(int)Pts[i].y][(int)Pts[i].z].z = Dep[i].z;
-	}
-		
+    {
+    data[(int)Pts[i].x][(int)Pts[i].y][(int)Pts[i].z].x = Dep[i].x;     
+    data[(int)Pts[i].x][(int)Pts[i].y][(int)Pts[i].z].y = Dep[i].y;
+    data[(int)Pts[i].x][(int)Pts[i].y][(int)Pts[i].z].z = Dep[i].z;
+    }
+        
  /* Filtrage dans le sens des X */
   if( (timecrs = (float*)malloc(sizeof(float)*wdth)) == NULL)
   {
     PUT_WNDMSG( ERR_MEM_ALLOC);
     return 0;
   }
-	
+    
   for(j=0 ; j<hght ; j++)
     for(k=0 ; k<dpth ; k++)
     {
-	
+    
       for (i=0;i<wdth;i++)
         timecrs[i]=data[i][j][k].x;
-	
+    
       Convolve(timecrs,wdth,2*taille+1,triangle);
-	
-	  for (i=0;i<wdth;i++)
+    
+      for (i=0;i<wdth;i++)
         data[i][j][k].x = timecrs[i];
-	
-	  for (i=0;i<wdth;i++)
+    
+      for (i=0;i<wdth;i++)
         timecrs[i]=data[i][j][k].y;
-	
-	if (j)		  				
+    
+    if (j)                      
       Convolve(timecrs,wdth,2*taille+1,triangle);
-	
-	  for (i=0;i<wdth;i++)
+    
+      for (i=0;i<wdth;i++)
         data[i][j][k].y = timecrs[i];
-	
-	  for (i=0;i<wdth;i++)
+    
+      for (i=0;i<wdth;i++)
         timecrs[i]=data[i][j][k].z;
-	
+    
       Convolve(timecrs,wdth,2*taille+1,triangle);
-	
-	  for (i=0;i<wdth;i++)
+    
+      for (i=0;i<wdth;i++)
         data[i][j][k].z = timecrs[i];
-	
+    
 
     }
 
@@ -5882,7 +5918,7 @@ for (i=0;i<npts;i++)
 
   free(timecrs);
 
-	/*Filtrage  Dans le sens des Z */
+    /*Filtrage  Dans le sens des Z */
   if( (timecrs = (float*)malloc(sizeof(float)*dpth)) == NULL)
   {
     PUT_WNDMSG( ERR_MEM_ALLOC);
@@ -5894,18 +5930,18 @@ for (i=0;i<npts;i++)
       for (k=0;k<dpth;k++)
         timecrs[k]=data[i][j][k].x;
       Convolve(timecrs,wdth,2*taille+1,triangle);
-	  for (k=0;k<dpth;k++)
+      for (k=0;k<dpth;k++)
         data[i][j][k].x=timecrs[k];
       for (k=0;k<dpth;k++)
         timecrs[k]=data[i][j][k].y;
       Convolve(timecrs,wdth,2*taille+1,triangle);
-	  for (k=0;k<dpth;k++)
+      for (k=0;k<dpth;k++)
         data[i][j][k].y=timecrs[k];
       for (k=0;k<dpth;k++)
         timecrs[k]=data[i][j][k].z;
       Convolve(timecrs,wdth,2*taille+1,triangle);
-	  for (k=0;k<dpth;k++)
-        data[i][j][k].z=timecrs[k];	  
+      for (k=0;k<dpth;k++)
+        data[i][j][k].z=timecrs[k];   
     }
 
  free(timecrs);
@@ -5930,7 +5966,7 @@ void Convolve(float *y, long int nbpts, int wnd,double * filter)
   
   if( (yres = (float*)malloc(sizeof(float)*nbpts)) == NULL)
   {
-	printf("pb allocation memmoire\n");    
+    printf("pb allocation memmoire\n");    
 //    return 0;
   }
 
@@ -5986,7 +6022,7 @@ int imx_defor_synth_3d(char *nomfichres, int wdth, int hght, int dpth)
  field3d  *ch;
  transf3d *transfo;
  vector3d *points,*vecteurs;
- int 	nbp,i,j,k,l,pas;
+ int    nbp,i,j,k,l,pas;
  
  
  
@@ -6042,21 +6078,21 @@ int imx_defor_synth_3d(char *nomfichres, int wdth, int hght, int dpth)
 **        inter_field_thinplate_3d()                                              
 **                                                                        
 **       calcul le champ interpole (en thin plate spline a partir des donnees 
-**	contenues dans les talbeau points et vecteur
-**	Le champ est suppos�alloue �la bonne taille avant l'appel
-**	ch:champ a interpoler
-**	points:tableau contenant les points ou le champ est connu
-**	vecteurs:tableau contenant la valeur du champ au points definis dans points
-**	nbp: nombre de points                        
+**  contenues dans les talbeau points et vecteur
+**  Le champ est suppos�alloue �la bonne taille avant l'appel
+**  ch:champ a interpoler
+**  points:tableau contenant les points ou le champ est connu
+**  vecteurs:tableau contenant la valeur du champ au points definis dans points
+**  nbp: nombre de points                        
 *******************************************************************************/
 int inter_field_thinplate_3d(field3d *ch, vector3d *points, vector3d *vecteurs, int nb_points)
 {
-  int 	 i,j,k,m,iu,ju,ku,wdth,hght,dpth;
+  int    i,j,k,m,iu,ju,ku,wdth,hght,dpth;
   double *xp,*yp,*zp,*vx,*vy,*vz;
   double **L,**Linv; /*meme notation que dans l'article de reference Bookstein89*/
   double *Yx,*Yy,*Yz,*Wx,*Wy,*Wz;
   double r,***Ur;
-  int	 xpc,ypc,zpc;  
+  int    xpc,ypc,zpc;  
   vector3d ***data;
   
 
@@ -6184,21 +6220,21 @@ int inter_field_thinplate_3d(field3d *ch, vector3d *points, vector3d *vecteurs, 
 void affine_to_affinesscg()
 {
 /*
-	char * src;
-	char * dst;
-	int e;
+    char * src;
+    char * dst;
+    int e;
     transf3d *transfo1;
-	
-	src = strdup(GET_FILE(POSx_SAVE,POSy_SAVE,"transfo affine",&e));
-	dst = strdup(GET_FILE(POSx_SAVE,POSy_SAVE,"transfo a sauvegarder",&e));
-	
-	transfo1=load_transf_3d(src);
-	transfo1->nb_param  = affine_to_affinesscg_3d(transfo1->param);
-	transfo1->typetrans = AFFINE3D;
-	save_transf_3d(transfo1, dst);
-	free(src);
-	free(dst);
-	free_transf3d(transfo1);
+    
+    src = strdup(GET_FILE(POSx_SAVE,POSy_SAVE,"transfo affine",&e));
+    dst = strdup(GET_FILE(POSx_SAVE,POSy_SAVE,"transfo a sauvegarder",&e));
+    
+    transfo1=load_transf_3d(src);
+    transfo1->nb_param  = affine_to_affinesscg_3d(transfo1->param);
+    transfo1->typetrans = AFFINE3D;
+    save_transf_3d(transfo1, dst);
+    free(src);
+    free(dst);
+    free_transf3d(transfo1);
 */
 }
 
@@ -6580,13 +6616,13 @@ end_func:
 /*!
 **       \brief choix de l'interpolation
 **
-**		ouvre une boite de dialogue pour le choix du type de l'interpolation
-** 		\retval int : le numero de l'interpolation
-**			- nearest -> 0
-**			- linear -> 1
-**			- sin card -> 2
-**			- quick sin card2 -> 3
-**			- etc ...
+**      ouvre une boite de dialogue pour le choix du type de l'interpolation
+**      \retval int : le numero de l'interpolation
+**          - nearest -> 0
+**          - linear -> 1
+**          - sin card -> 2
+**          - quick sin card2 -> 3
+**          - etc ...
 **
 
 *******************************************************************************/
@@ -6597,18 +6633,18 @@ int imx_query_interpolation_type_3D(int dist_type)
   d'influence si on a choisi une distance se basant sur l'interpolation volume partiel*/
   char *query[100];
 
-	query[0]="nearest";
-	query[1]="linear";
-	query[2]="sin card.";
-	query[3]="quick sin card2";
-	query[4]="quick sin card3";
-	query[5]="bspline 2";
-	query[6]="bspline 3";
-	query[7]="bspline 4";
-	query[8]="bspline 5";
-	query[9]="label";
-	query[10]="\0";
-	query[11]=NULL;
+    query[0]="nearest";
+    query[1]="linear";
+    query[2]="sin card.";
+    query[3]="quick sin card2";
+    query[4]="quick sin card3";
+    query[5]="bspline 2";
+    query[6]="bspline 3";
+    query[7]="bspline 4";
+    query[8]="bspline 5";
+    query[9]="label";
+    query[10]="\0";
+    query[11]=NULL;
 
   /*on affiche quand meme les possibilites dans le cas d'une distance se basant sur l'interpolation volume partiel
   (cf fonctionnement des automates)
@@ -6626,48 +6662,48 @@ int imx_query_interpolation_type_3D(int dist_type)
 
 /*------------------------------------------------*/
 /*!
-**	\brief determine la fonction d'interpolation
+**  \brief determine la fonction d'interpolation
 **
-**	\param  inter_type : le type d'interpolation choisie
-**	\retval InterpolationFct : un pointeur sur la fonction d'interpolatio
+**  \param  inter_type : le type d'interpolation choisie
+**  \retval InterpolationFct : un pointeur sur la fonction d'interpolatio
 */
 /*------------------------------------------------*/
 InterpolationFct
 imx_choose_interpolation_fct(int inter_type)
 {
-	InterpolationFct interpol;
-	switch (inter_type)
-	{
-		case 0: interpol=inter_nearest_3d;aff_log("NEAREST ");break;
-		case 1: interpol=inter_linear_3d;aff_log("LINEAR ");break;
-		case 2: interpol=inter_sinc_3d;aff_log("SINC ");break;
-		case 3: interpol=inter_qsinc2_3d;aff_log("QSINC2 ");break;
-		case 4: interpol=inter_qsinc3_3d;aff_log("QSINC3 ");break;
-		case 5: interpol=inter_Bspline_3d_2;aff_log("BSPLINE2 ");break;
-		case 6: interpol=inter_Bspline_3d_3;aff_log("BSPLINE3 ");break;
-		case 7: interpol=inter_Bspline_3d_4;aff_log("BSPLINE4 ");break;
-		case 8: interpol=inter_Bspline_3d_5;aff_log("BSPLINE5 ");break;
-		case 9: interpol=inter_labeled_3d;aff_log("LABEL ");break;
+    InterpolationFct interpol;
+    switch (inter_type)
+    {
+        case 0: interpol=inter_nearest_3d;aff_log("NEAREST ");break;
+        case 1: interpol=inter_linear_3d;aff_log("LINEAR ");break;
+        case 2: interpol=inter_sinc_3d;aff_log("SINC ");break;
+        case 3: interpol=inter_qsinc2_3d;aff_log("QSINC2 ");break;
+        case 4: interpol=inter_qsinc3_3d;aff_log("QSINC3 ");break;
+        case 5: interpol=inter_Bspline_3d_2;aff_log("BSPLINE2 ");break;
+        case 6: interpol=inter_Bspline_3d_3;aff_log("BSPLINE3 ");break;
+        case 7: interpol=inter_Bspline_3d_4;aff_log("BSPLINE4 ");break;
+        case 8: interpol=inter_Bspline_3d_5;aff_log("BSPLINE5 ");break;
+        case 9: interpol=inter_labeled_3d;aff_log("LABEL ");break;
     case 10: interpol=inter_VP_3d;aff_log("Volume Partiel ");break;
 
 
 /*#ifdef HAS_IMLIB3D
-	case 5: interpol=CPP_Imx_SplineResample_2;aff_log("BSPLINE2 ");break;
-	case 6: interpol=CPP_Imx_SplineResample_3;aff_log("BSPLINE3 ");break;
-	case 7: interpol=CPP_Imx_SplineResample_4;aff_log("BSPLINE4 ");break;
-	case 8: interpol=CPP_Imx_SplineResample_5;aff_log("BSPLINE5 ");break;
+    case 5: interpol=CPP_Imx_SplineResample_2;aff_log("BSPLINE2 ");break;
+    case 6: interpol=CPP_Imx_SplineResample_3;aff_log("BSPLINE3 ");break;
+    case 7: interpol=CPP_Imx_SplineResample_4;aff_log("BSPLINE4 ");break;
+    case 8: interpol=CPP_Imx_SplineResample_5;aff_log("BSPLINE5 ");break;
 #endif // HAS_IMLIB3D */
     default:PUT_WARN("Use by default of linear interpolation");
-	        interpol=inter_linear_3d;aff_log("LINEAR ");break;
-	}
-	return interpol;
+            interpol=inter_linear_3d;aff_log("LINEAR ");break;
+    }
+    return interpol;
 }
 
 /*******************************************************************************
 **   apply_inverse_primitives_transf_3d()                                  
 */
 /*!                                                                       
-**    	appliquer a une image une transformation contenu dans un fichier          
+**      appliquer a une image une transformation contenu dans un fichier          
 *******************************************************************************/
 
 void apply_inverse_primitives_transf_3d(void)
@@ -6682,12 +6718,12 @@ void apply_inverse_primitives_transf_3d(void)
 
   /*fichier contenant la transformation*/
   {
-	sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
-	
+    sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
+    
     if (err)
       return ;
-	  
-	put_file_extension(nomfichier,".trf",nomfichier);
+      
+    put_file_extension(nomfichier,".trf",nomfichier);
 
     if (test_fichier_transf_3d(nomfichier) != 1)
     {
@@ -6707,13 +6743,13 @@ void apply_inverse_primitives_transf_3d(void)
 /*!  \ingroup Recalage
 **
 **
-**	\brief Application d'une transformation definie dans un fichier de type *.trf
-**			a une image 3d 
+**  \brief Application d'une transformation definie dans un fichier de type *.trf
+**          a une image 3d 
 **
 **
-**	\param imdeb : image source
-**	\param imres : image resultat (E/S)
-**	\param nomfichier : le nom du fichier de la transformation (*.trf)
+**  \param imdeb : image source
+**  \param imres : image resultat (E/S)
+**  \param nomfichier : le nom du fichier de la transformation (*.trf)
 **  \param inter_type : choix de l'interpolation
 **
 ***********************************************************/
@@ -6752,13 +6788,13 @@ error1:
 /*!  \ingroup Recalage
 **
 **
-**	\brief Application d'une transformation a l'aide d'une fonction d'interpolation
-**			a une image 3d 
+**  \brief Application d'une transformation a l'aide d'une fonction d'interpolation
+**          a une image 3d 
 **
 **
-**	\param imdeb : image source
-**	\param imres : image resultat (E/S)
-**	\param tranfso : la transformation 
+**  \param imdeb : image source
+**  \param imres : image resultat (E/S)
+**  \param tranfso : la transformation 
 **  \param inter_fct : fct d'interpolation
 **
 ***********************************************************/
@@ -6768,13 +6804,13 @@ int imx_apply_inverse_primitives_transf_3d_p(grphic3d *imres, grphic3d *imdeb, t
   int err = 0,i,j,k,wdth,hght,dpth,wdthr,hghtr,dpthr,x,y,z;
   grphic3d *imTemp=NULL;
 
-	wdth=imdeb->width;
-	hght=imdeb->height;
-	dpth=imdeb->depth;
+    wdth=imdeb->width;
+    hght=imdeb->height;
+    dpth=imdeb->depth;
 
-	wdthr=imres->width;
-	hghtr=imres->height;
-	dpthr=imres->depth;
+    wdthr=imres->width;
+    hghtr=imres->height;
+    dpthr=imres->depth;
 
   // Creation de imtemp si necessaire
   if (imdeb==imres)
@@ -6805,27 +6841,27 @@ int imx_apply_inverse_primitives_transf_3d_p(grphic3d *imres, grphic3d *imdeb, t
 
   if (! champ) { err = 1; goto end_func; }
  
- 	for (i=0;i<wdthr;i++)
-	for (j=0;j<hghtr;j++)
-	for (k=0;k<dpthr;k++)
-		imres->mri[i][j][k]=0;
-			
-	
-	for (i=0;i<wdth;i++)
-	for (j=0;j<hght;j++)
-	for (k=0;k<dpth;k++)
-		if (imdeb->mri[i][j][k]>0)
-			{
-			x=floor(i+champ->raw[i][j][k].x+0.5);
-			y=floor(j+champ->raw[i][j][k].y+0.5);
-			z=floor(k+champ->raw[i][j][k].z+0.5);
-			
-			if ((x>=0)&&(x<wdthr)&&(y>=0)&&(y<hghtr)&&(z>=0)&&(z<dpthr))
-				imres->mri[x][y][z]=imdeb->mri[i][j][k];
-			
-			
-			}
-	
+    for (i=0;i<wdthr;i++)
+    for (j=0;j<hghtr;j++)
+    for (k=0;k<dpthr;k++)
+        imres->mri[i][j][k]=0;
+            
+    
+    for (i=0;i<wdth;i++)
+    for (j=0;j<hght;j++)
+    for (k=0;k<dpth;k++)
+        if (imdeb->mri[i][j][k]>0)
+            {
+            x=floor(i+champ->raw[i][j][k].x+0.5);
+            y=floor(j+champ->raw[i][j][k].y+0.5);
+            z=floor(k+champ->raw[i][j][k].z+0.5);
+            
+            if ((x>=0)&&(x<wdthr)&&(y>=0)&&(y<hghtr)&&(z>=0)&&(z<dpthr))
+                imres->mri[x][y][z]=imdeb->mri[i][j][k];
+            
+            
+            }
+    
  
  
  
@@ -6845,7 +6881,7 @@ end_func:
 **   convert_trf_to_chp()                                  
 */
 /*!                                                                       
-**    	Convertir une transfo en champ          
+**      Convertir une transfo en champ          
 *******************************************************************************/
 
 void convert_trf_to_chp(void)
@@ -6854,15 +6890,15 @@ int err=0;
 char nomfichier[PATH_LEN],nomfichres[PATH_LEN],str[PATH_LEN];
 transf3d* transfo,*transfores;
 field3d* ch;
-	
+    
   /*fichier contenant la transformation*/
   {
-	sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
-	
+    sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
+    
     if (err)
       return ;
-	  
-	put_file_extension(nomfichier,".trf",nomfichier);
+      
+    put_file_extension(nomfichier,".trf",nomfichier);
 
     if (test_fichier_transf_3d(nomfichier) != 1)
     {
@@ -6883,7 +6919,7 @@ field3d* ch;
   transfores->dx=transfo->dx;
   transfores->dy=transfo->dy;
   transfores->dz=transfo->dz;
-		 
+         
   save_transf_3d(transfores,nomfichres);
   free_transf3d(transfo);
   free_transf3d(transfores);
@@ -6897,7 +6933,7 @@ field3d* ch;
 **   subsample_chp()                                  
 */
 /*!                                                                       
-**    	sous echantillonne un champ          
+**      sous echantillonne un champ          
 *******************************************************************************/
 
 void subsample_chp(void)
@@ -6907,15 +6943,15 @@ int wdth, hght,dpth;
 char nomfichier[PATH_LEN],nomfichres[PATH_LEN],str[PATH_LEN];
 transf3d* transfo,*transfores;
 field3d* ch, *chres;
-	
+    
   /*fichier contenant la transformation*/
   {
-	sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
-	
+    sprintf(nomfichier,"%s",GET_FILE("*.trf",&err));
+    
     if (err)
       return ;
-	  
-	put_file_extension(nomfichier,".trf",nomfichier);
+      
+    put_file_extension(nomfichier,".trf",nomfichier);
 
     if (test_fichier_transf_3d(nomfichier) != 1)
     {
@@ -6946,15 +6982,15 @@ field3d* ch, *chres;
   for (i=0; i<wdth; i++)
   for (j=0; j<hght; j++)
   for (k=0; k<dpth; k++)
-  	{
-	chres->raw[i][j][k]=ch->raw[i*zoom][j*zoom][k*zoom];
-	}
+    {
+    chres->raw[i][j][k]=ch->raw[i*zoom][j*zoom][k*zoom];
+    }
   
   transfores=field_to_transf_3d(chres,NULL,NULL);
   transfores->dx=transfo->dx*zoom;
   transfores->dy=transfo->dy*zoom;
   transfores->dz=transfo->dz*zoom;
-		 
+         
   save_transf_3d(transfores,nomfichres);
   free_transf3d(transfo);
   free_transf3d(transfores);
@@ -6962,3 +6998,267 @@ field3d* ch, *chres;
   free_field3d(chres);
 
 }
+
+
+
+/*******************************************************************************
+**   warpDeformationField_menu()                                  
+*/
+/*!                                                                       
+**      Déforme un champ de déformation          
+*******************************************************************************/
+
+void warpDeformationField_menu(void)
+{
+int err=0, inter_type;
+int wdth, hght,dpth;
+char nomfichierRef[PATH_LEN],nomfichierTrf[PATH_LEN], nomfichRes[PATH_LEN],str[PATH_LEN];
+transf3d* transfoRef,*transfo, *transfoRes;
+field3d* chRef,  *chRes;
+
+
+    
+/*fichier contenant la transformation à déformer */
+{
+    sprintf(nomfichierRef,"%s",GET_FILE("Champ a deformer (*.trf) ",&err));
+    
+    if (err)
+        return ;
+    
+    put_file_extension(nomfichierRef,".trf",nomfichierRef);
+
+    if (test_fichier_transf_3d(nomfichierRef) != 1)
+    {
+        PUT_ERROR("This file contains no 3D transformation");
+        return ;
+    }
+}
+    
+
+/*fichier contenant la transformation*/
+{
+    sprintf(nomfichierTrf,"%s",GET_FILE("Transformation (*.trf)",&err));
+    
+    if (err)
+    return ;
+    
+    put_file_extension(nomfichierTrf,".trf",nomfichierTrf);
+
+    if (test_fichier_transf_3d(nomfichierTrf) != 1)
+    {
+    PUT_ERROR("This file contains no 3D transformation");
+    return ;
+    }
+}
+
+/*methode d'interpolation*/
+inter_type = imx_query_interpolation_type_3D(0);
+
+/*nom du fichier resultat*/
+sprintf(str,"File ? in %s",_CurrentPath);
+strcpy(nomfichRes,SAVE_FILE(str,NULL,&err));
+put_file_extension(nomfichRes,".trf",nomfichRes);
+
+
+transfoRef=load_transf_3d(nomfichierRef);
+chRef=transf_to_field_3d(transfoRef,NULL,NULL);
+
+transfo=load_transf_3d(nomfichierTrf);
+
+
+wdth=transfo->width;
+hght=transfo->height;
+dpth=transfo->depth;
+
+chRes=cr_field3d(wdth,  hght,  dpth);
+
+
+warpDeformationField_p(chRef, transfo, chRes, inter_type);
+                       
+transfoRes=field_to_transf_3d(chRes,NULL,NULL);
+transfoRes->dx=chRes->dx;
+transfoRes->dy=chRes->dy;
+transfoRes->dz=chRes->dz;
+
+save_transf_3d(transfoRes,nomfichRes);
+free_transf3d(transfo);
+free_transf3d(transfoRef);
+free_transf3d(transfoRes);
+free_field3d(chRef);
+free_field3d(chRes);
+}
+
+/*******************************************************************************
+**   warpDeformationField_p()                                  
+*/
+/*!                                                                       
+ **     Déforme un champ de déformation          
+ *******************************************************************************/
+void warpDeformationField_p(field3d* chRef, transf3d* transfo, field3d* chRes, int inter_type)
+{
+InterpolationFct inter_fct;
+grphic3d* ux, *uy, *uz, *imtemp;
+int wdth, hght, dpth;
+
+wdth=chRes->width;
+hght=chRes->height;
+dpth=chRes->depth;
+
+chRes->dx=transfo->dx;
+chRes->dy=transfo->dy;
+chRes->dz=transfo->dz;
+
+
+inter_fct = imx_choose_interpolation_fct(inter_type);
+
+imtemp=cr_grphic3d_modif(chRef->width,chRef->height,chRef->depth,0.0,1.0,0);
+
+ux=cr_grphic3d_modif(wdth,hght,dpth,0.0,1.0,0);
+uy=cr_grphic3d_modif(wdth,hght,dpth,0.0,1.0,0);
+uz=cr_grphic3d_modif(wdth,hght,dpth,0.0,1.0,0);
+
+composante_field_to_image_3d(chRef, imtemp, 0);
+imx_apply_transf_3d_p(ux,imtemp, transfo, inter_fct);
+
+composante_field_to_image_3d(chRef, imtemp, 1);
+imx_apply_transf_3d_p(uy, imtemp, transfo, inter_fct);
+
+composante_field_to_image_3d(chRef, imtemp, 2);
+imx_apply_transf_3d_p(uz, imtemp, transfo, inter_fct);
+
+
+images_to_field_3d(ux,uy,uz,chRes);
+
+reorientDeformationField_p(chRes, transfo, chRes);
+
+free_grphic3d(imtemp);
+free_grphic3d(ux);
+free_grphic3d(uy);
+free_grphic3d(uz);
+}
+
+/*******************************************************************************
+**   reorientDeformationField_p()                                  
+*/
+/*!                                                                       
+ **     Réoriente un champ de déformation          
+ *******************************************************************************/
+void reorientDeformationField_p(field3d* chRef, transf3d* transfo, field3d* chRes)
+{
+int wdth, hght, dpth;
+int i,j,k,l;
+field3d* chTemp, *chTransfo;
+double** J, **invJ,  *vec, *res, normvec, normres;
+
+
+
+J= alloc_dmatrix(3,3);
+vec=alloc_dvector(3);
+
+wdth=chRef->width;
+hght=chRef->height;
+dpth=chRef->depth;
+
+if (chRes==chRef)
+    chTemp=cr_field3d(wdth,  hght,  dpth);
+else
+    chTemp=chRes;
+
+chTransfo=transf_to_field_3d(transfo,NULL,NULL);
+
+
+for (i=0; i<wdth; i++)
+for (j=0; j<hght; j++)
+for (k=0; k<dpth; k++)
+    {
+          
+        
+    eval_matrice_jacobienne_3d(chTransfo, i, j, k,  J);
+    invJ=matrix_inversion(J,3);
+
+    vec[0]=chRef->raw[i][j][k].x;
+    vec[1]=chRef->raw[i][j][k].y;
+    vec[2]=chRef->raw[i][j][k].z;
+    
+    normvec=sqrt(vec[0]*vec[0]+vec[1]*vec[1]+vec[2]*vec[2]);
+    
+
+    res=matrix_multiply_vector(invJ,3,3,vec);
+    normres=sqrt(res[0]*res[0]+res[1]*res[1]+res[2]*res[2]);
+    
+    if (normres>0)
+        for (l=0; l<3; l++) res[l]=res[l]*normvec/normres;
+    else 
+        for (l=0; l<3; l++) res[l]=0;
+    
+    chTemp->raw[i][j][k].x=res[0];
+    chTemp->raw[i][j][k].y=res[1];
+    chTemp->raw[i][j][k].z=res[2];
+
+    free_dvector(res,3);
+    free_dmatrix(invJ,3,3);
+    }
+
+if (chRes==chRef)
+    {
+    for (i=0; i<wdth; i++)
+    for (j=0; j<hght; j++)
+    for (k=0; k<dpth; k++)
+        {
+        chRes->raw[i][j][k].x=chTemp->raw[i][j][k].x;
+        chRes->raw[i][j][k].y=chTemp->raw[i][j][k].y;
+        chRes->raw[i][j][k].z=chTemp->raw[i][j][k].z;
+        }
+    free_field3d(chTemp);
+    }
+
+free_field3d(chTransfo);
+free_dmatrix(J,3,3);
+free_dvector(vec,3);
+}
+
+
+
+/*******************************************************************************
+**     eval_matrice_jacobienne_3d(ch,i,j,k,mat)             
+**                                                                  
+**     jacobien d'un champ dans une image                             
+*******************************************************************************/
+void eval_matrice_jacobienne_3d(field3d *ch, int i, int j, int k, double** J)
+{
+double J1,J2,J3,J4,J5,J6,J7,J8,J9;
+double filt[5];
+int l;
+vector3d ***data; 
+
+data= ch->raw;
+ 
+filt[1]=0.3326;filt[2]=0.0612;filt[3]=0.015;
+J1=J5=J9=1.0;J2=J3=J4=J6=J7=J8=0.0;
+
+if ((i>=3)&&(i<(ch->width-3))&&(j>=3)&&(j<(ch->height-3))&&(k>=3)&&(k<(ch->depth-3)))
+     for (l=1;l<=3;l++)
+     {
+     J1+=filt[l]*(data[i+l][j][k].x-data[i-l][j][k].x);
+     J2+=filt[l]*(data[i][j+l][k].x-data[i][j-l][k].x);
+     J3+=filt[l]*(data[i][j][k+l].x-data[i][j][k-l].x);
+     J4+=filt[l]*(data[i+l][j][k].y-data[i-l][j][k].y);
+     J5+=filt[l]*(data[i][j+l][k].y-data[i][j-l][k].y);
+     J6+=filt[l]*(data[i][j][k+l].y-data[i][j][k-l].y);
+     J7+=filt[l]*(data[i+l][j][k].z-data[i-l][j][k].z);
+     J8+=filt[l]*(data[i][j+l][k].z-data[i][j-l][k].z);
+     J9+=filt[l]*(data[i][j][k+l].z-data[i][j][k-l].z); 
+     }
+
+J[0][0]=J1;
+J[0][1]=J2;
+J[0][2]=J3;
+J[1][0]=J4;
+J[1][1]=J5;
+J[1][2]=J6;
+J[2][0]=J7;
+J[2][1]=J8;
+J[2][2]=J9;
+
+ }
+

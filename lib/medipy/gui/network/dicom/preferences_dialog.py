@@ -6,10 +6,11 @@
 # for details.
 ##########################################################################
 
+import os
+import socket
+
 import wx
 import wx.grid
-
-import os
 
 import medipy.network.dicom
 import medipy.gui.base

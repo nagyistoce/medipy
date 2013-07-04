@@ -539,7 +539,7 @@ char *ext2;
         
         imx_realloc_mri_pow2_centered_p(imref);
         imx_realloc_mri_pow2_centered_p(imreca);
-        imx_realloc_mri_pow2_centered_p(imres);
+        //imx_realloc_mri_pow2_centered_p(imres);
         
         if (imreca->mask!=NULL)
             imx_realloc_mri_pow2_centered_p(imreca->mask);
@@ -547,8 +547,8 @@ char *ext2;
         if (imref->mask!=NULL)
             imx_realloc_mri_pow2_centered_p(imref->mask);
         
-        if (imres->mask!=NULL)
-            imx_realloc_mri_pow2_centered_p(imres->mask);
+        //if (imres->mask!=NULL)
+         //   imx_realloc_mri_pow2_centered_p(imres->mask);
         
         wdth=imref->width;hght=imref->height;dpth=imref->depth;
         
@@ -803,15 +803,6 @@ TOPO_SEUIL_SIGNIFICATIVITE=0.05;
         update_TOPO_REGULARISATION_MEMBRANE_ELASTIQUE_NORMALISEE2(imtref,imtreca,imtres,champ,minimisation,base_to_field_3d,interpol,distance,regularisation,nb_param,param,masque_param,Jmin,Jmax,nomfichres);
 
 
-/*Ereg=regularisation_globale_3d(nb_param,param, masque_param);
-printf("Eregularisation avant optimisation : %f\n",Ereg);
-tmp_Reg=TOPO_REGULARISATION_MEMBRANE_ELASTIQUE;
-TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=0;
-Esim=Energie_globale_3d(imtref,imtreca, nb_param, param,param_norm, distance,masque_param);
-printf("Esim avant optimisation : %f\n",Esim);
-TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=tmp_Reg;
-*/
-
     if (dist_type==12)
             update_maxnorm_HistoJoint(imtref,imtreca);
 
@@ -849,123 +840,6 @@ compt++;
 else
  mini=minimisation(imtref,imtreca,imtres,champ,base_to_field_3d,interpol,distance, regularisation, nb_param,param,masque_param,Jmin,Jmax,nomfichres);
 
-
-/*Ereg2=regularisation_globale_3d(nb_param,param, masque_param);
-printf("Eregularisation apres optimisation : %f\n",Ereg2);
-tmp_Reg=TOPO_REGULARISATION_MEMBRANE_ELASTIQUE;
-TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=0;
-Esim2=Energie_globale_3d(imtref,imtreca, nb_param, param,param_norm, distance,masque_param);
-printf("Esim apres optimisation : %f\n",Esim2);
-TOPO_REGULARISATION_MEMBRANE_ELASTIQUE=tmp_Reg;
-printf("Diminution Esim : %f       Augmentation Ereg %f \n",1.0*(Esim-Esim2)/Esim,1.0*(Ereg2-Ereg)/Ereg);
-*/
-
-
-//mini=minimisation(imtref,imtreca,imtres,champ,base_to_field_3d,interpol,distance,nb_param,param,masque_param,Jmin,Jmax,nomfichres);
-
-
-
-//}
-
-/*if ((normalisation_type==14)&&(r==resolf))
-    {
-    init_melange_gaussienne_2d(nb_classe);
-
-    //calcul de la transformation
-    base_to_field_3d(nb_param,param,champ,NULL,NULL);
-    interpol=inter_qsinc3_3d;
-  interpol(imreca,champ,imtres);
- 
-    imx_copie_3d_p(imref,imtref);
-    //histo_joint_linear_norm_3d_p(imref,imtres,MELANGE_GAUSSIENNE_2D.histo);
-    histo_joint_linear_3d_p(imref,imtres,MELANGE_GAUSSIENNE_2D.histo);
-    fit_gaussienne2d_EM(MELANGE_GAUSSIENNE_2D.histo, MELANGE_GAUSSIENNE_2D.param, nb_classe);
-    init_segment_gaussienne2d(imtref,imtres,imtref->mask, imtres->mask, MELANGE_GAUSSIENNE_2D.histo,nb_classe, MELANGE_GAUSSIENNE_2D.param  );
-
-    // conversion de MELANGE_GAUSSIENNE_2D.param 
-    for (l=0; l<nb_classe; l++)
-        {
-        MELANGE_GAUSSIENNE_2D.param[l].mx=MELANGE_GAUSSIENNE_2D.param[l].mx*imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1);
-        MELANGE_GAUSSIENNE_2D.param[l].my=MELANGE_GAUSSIENNE_2D.param[l].my*imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1);
-        MELANGE_GAUSSIENNE_2D.param[l].sx=MELANGE_GAUSSIENNE_2D.param[l].sx*(imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1))*(imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1));
-        MELANGE_GAUSSIENNE_2D.param[l].sy=MELANGE_GAUSSIENNE_2D.param[l].sy*(imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1))*(imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1));
-        MELANGE_GAUSSIENNE_2D.param[l].sxy=MELANGE_GAUSSIENNE_2D.param[l].sxy*(imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1))*(imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1));   
-        }
-
-    minimisation=TOP_min_icm_locale_3d;
-    distance=Energie_ML_locale_3d;  
-
-    if (TOPO_REGULARISATION_MEMBRANE_ELASTIQUE!=0)
-        update_TOPO_REGULARISATION_MEMBRANE_ELASTIQUE_NORMALISEE(imtref,imtreca, nb_param, param, param_norm, distance, masque_param);
-
-    mini=minimisation(imtref,imtreca,imtres,champ,base_to_field_3d,interpol,distance,nb_param,param,masque_param,Jmin,Jmax,nomfichres);
-
-    
-    free_melange_gaussienne_2d();
-    }*/
- 
-/* if ((normalisation_type==14)&&(r==resolf))
-    {
-    double *moyenne,*std;
-    int *nb_tot;
-    
-    moyenne=(double *)malloc(nb_classe*sizeof(double));
-    std=(double *)malloc(nb_classe*sizeof(double));
-    nb_tot=(int *)malloc(nb_classe*sizeof(int));
-    
-    init_melange_gaussienne_2d(nb_classe);
-
-    //calcul de la transformation
-    base_to_field_3d(nb_param,param,champ,NULL,NULL);
-    interpol=inter_qsinc3_3d;
-  interpol(imreca,champ,imtres);
- 
-    //histo_joint_linear_norm_3d_p(imref,imtres,MELANGE_GAUSSIENNE_2D.histo);
-    histo_joint_linear_3d_p(imref,imtres,MELANGE_GAUSSIENNE_2D.histo);
-    fit_gaussienne2d_EM(MELANGE_GAUSSIENNE_2D.histo, MELANGE_GAUSSIENNE_2D.param, nb_classe);
-    init_segment_gaussienne2d(imtref,imtres,imtref->mask, imtres->mask, MELANGE_GAUSSIENNE_2D.histo,nb_classe, MELANGE_GAUSSIENNE_2D.param  );
-
-    // conversion de MELANGE_GAUSSIENNE_2D.param 
-    for (l=0; l<nb_classe; l++)
-        {
-        MELANGE_GAUSSIENNE_2D.param[l].mx=MELANGE_GAUSSIENNE_2D.param[l].mx*imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1);
-        MELANGE_GAUSSIENNE_2D.param[l].my=MELANGE_GAUSSIENNE_2D.param[l].my*imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1);
-        MELANGE_GAUSSIENNE_2D.param[l].sx=MELANGE_GAUSSIENNE_2D.param[l].sx*(imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1))*(imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1));
-        MELANGE_GAUSSIENNE_2D.param[l].sy=MELANGE_GAUSSIENNE_2D.param[l].sy*(imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1))*(imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1));
-        MELANGE_GAUSSIENNE_2D.param[l].sxy=MELANGE_GAUSSIENNE_2D.param[l].sxy*(imtres->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->height-1))*(imtref->max_pixel/(MELANGE_GAUSSIENNE_2D.histo->width-1));   
-        }
-
-        load_mri_ipb_3d("/home/noblet/base_image/label/brainweb_128.ipb", imtref->mask, 1); 
-        segment_mean_std_classe(imtres,imtref->mask,moyenne,std,nb_tot,nb_classe);
-            
-            for (i=0;i<wdth;i++)
-            for (j=0;j<hght;j++)
-            for (k=0;k<dpth;k++).
-                {
-                l=imtref->mask->mri[i][j][k]-1;
-                
-                if (l>-1)
-                    {
-                    imtref->mri[i][j][k]=moyenne[l]/std[l];
-                    imtreca->mri[i][j][k]=imtreca->mri[i][j][k]/std[l];
-                    }
-                else
-                {
-                    imtref->mri[i][j][k]=0;
-                    imtreca->mri[i][j][k]=0;
-                    }
-                
-                }
-                
-    if (TOPO_REGULARISATION_MEMBRANE_ELASTIQUE!=0)
-        update_TOPO_REGULARISATION_MEMBRANE_ELASTIQUE_NORMALISEE(imtref,imtreca, nb_param, param, param_norm, distance, masque_param);
-
-    mini=minimisation(imtref,imtreca,imtres,champ,base_to_field_3d,interpol,distance,nb_param,param,masque_param,Jmin,Jmax,nomfichres);
-
-    free(moyenne), free(std); free(nb_tot);
-    free_melange_gaussienne_2d();
-    }
- */
     #ifndef SAVE_INTERMEDIAIRE_2
     
 if (nomfichres!=NULL)
@@ -1107,8 +981,12 @@ if (nomfichres!=NULL)
     
         imx_undo_mri_pow2_centered_p(imref,wdth_old,hght_old,dpth_old);
         imx_undo_mri_pow2_centered_p(imreca,wdth_old,hght_old,dpth_old);
-        imx_undo_mri_pow2_centered_p(imres,wdth_old,hght_old,dpth_old);
-    
+        
+        if ((imres != imreca) && (imres != imref))
+            {imx_undo_mri_pow2_centered_p(imres,wdth_old,hght_old,dpth_old);
+            if (imres->mask!=NULL)
+                imx_undo_mri_pow2_centered_p(imres->mask,wdth_old,hght_old,dpth_old);
+            }
     
         if (imreca->mask!=NULL)
         imx_undo_mri_pow2_centered_p(imreca->mask,wdth_old,hght_old,dpth_old);
@@ -1116,8 +994,6 @@ if (nomfichres!=NULL)
         if (imref->mask!=NULL)
         imx_undo_mri_pow2_centered_p(imref->mask,wdth_old,hght_old,dpth_old);
         
-        if (imres->mask!=NULL)
-        imx_undo_mri_pow2_centered_p(imres->mask,wdth_old,hght_old,dpth_old);
         
         
         }
@@ -2925,7 +2801,6 @@ int imx_simul_atrophie_topo_3d_p(grphic3d *imref,grphic3d *mask, int func_type, 
         
     
         wdth=imref->width;hght=imref->height;dpth=imref->depth;
-        
         }
     
     tdebut=time(NULL);
@@ -3145,6 +3020,7 @@ int imx_simul_atrophie_topo_3d_p(grphic3d *imref,grphic3d *mask, int func_type, 
             } 
     }
     save_transf_3d(transfo,nomfichres);
+    
     free_transf3d(transfo);
    } 
  }
@@ -3716,10 +3592,10 @@ if (dist_type==12)
            
                transf3d *transfo,*transfo_opp,*transfo_inv, *transfo_comb; 
                 int l;
-       			double *param_tmp;
-				
-				/*liberation de la base*/
-				end_base_3d();
+                double *param_tmp;
+                
+                /*liberation de la base*/
+                end_base_3d();
 
                 // transfo direct
                 transfo=cr_transf3d(wdth,hght,dpth,NULL);

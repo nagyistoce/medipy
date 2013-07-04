@@ -365,6 +365,7 @@ class QueryDialog(medipy.gui.base.Panel):
         dlg.Destroy()
             
             
+
     #------------------
     #   Retrieve
     #------------------
