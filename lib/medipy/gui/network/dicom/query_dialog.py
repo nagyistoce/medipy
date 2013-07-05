@@ -25,7 +25,7 @@ class QueryDialog(medipy.gui.base.Panel):
   
     tree_headers = ['patients_birth_date','patients_sex',
     'modalities_in_study','study_date',
-    'study_time','modality','number_of_series_related_instances',]
+    'study_time','modality','number_of_series_related_instances']
   
 
     class UI(medipy.gui.base.UI):
@@ -37,11 +37,12 @@ class QueryDialog(medipy.gui.base.Panel):
             self.preferences = None
             self.selected_connection = None
             self.results = None
-            self.radio = None
+            self.radio_dl = None
+            self.radio_view = None
             self.set_queries = None
                         
             self.controls = ["qu_panel","search","download","directory",
-                "preferences","selected_connection","results","radio","set_queries"]
+                "preferences","selected_connection","results","radio_dl","radio_view","set_queries"]
             
     def __init__(self, parent=None, *args, **kwargs):        
         self.connection = None
@@ -74,7 +75,7 @@ class QueryDialog(medipy.gui.base.Panel):
         self.ui.results.Bind(wx.EVT_LIST_ITEM_DESELECTED,self.OnResult)
         self.ui.preferences.Bind(wx.EVT_BUTTON,self.OnPreferences)
         self.ui.selected_connection.Bind(wx.EVT_CHOICE,self.OnChoice)
-        self.ui.radio.Bind(wx.EVT_RADIOBOX,self._update_download)
+        self.ui.radio_dl.Bind(wx.EVT_RADIOBOX,self._update_download)
         self.ui.set_queries.Bind(wx.EVT_BUTTON,self.OnSetQueries)
 
         self._update_choice()
@@ -128,7 +129,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
-            (self.destination.validate() or self.ui.radio.GetSelection()==1)
+            (self.destination.validate() or self.ui.radio_dl.GetSelection()==1)
             and self.tree.GetSelections()!=-1)
 
     def update_tree_column(self):    
@@ -136,60 +137,37 @@ class QueryDialog(medipy.gui.base.Panel):
         self.tree.AddColumn("",width=100)
         self.tree.AddColumn("",width=100)
         self.tree.AddColumn("",width=100)
-
+    
     def update_tree(self,datasets=[]):
         self.tree.DeleteAllItems()
-        self.root = self.tree.AddRoot(text='Patient')
-        for dataset in datasets:
-            patient = dataset['patients_name'].value
-            study = dataset['study_description'].value
-            serie = dataset['series_description'].value
-        
-            if self.tree.ItemHasChildren(self.root) :
-                patient_found,patient_item = self.IsChild(self.root,patient)
-                    
-                if not patient_found :
-                    patient_item = self.tree.AppendItem(self.root,text=patient)
-                    study_item = self.tree.AppendItem(patient_item,text=study)
-                    serie_item = self.tree.AppendItem(study_item,text=serie)
-                    self.tree.SetItemPyData(patient_item,'patients_name')
-                    self.tree.SetItemPyData(study_item,'study_description')
-                    self.tree.SetItemPyData(serie_item,'series_description')
-                                            
-                else :
-                    study_found,study_item = self.IsChild(patient_item,study)
-                    if not study_found :
-                        study_item = self.tree.AppendItem(patient_item,text=study)
-                        serie_item = self.tree.AppendItem(study_item,text=serie)
-                        self.tree.SetItemPyData(study_item,'study_description')
-                        self.tree.SetItemPyData(serie_item,'series_description')
-                                                    
-                    else:
-                        serie_found,serie_item = self.IsChild(study_item,serie)
-                        if not serie_found :
-                            serie_item = self.tree.AppendItem(study_item,text=serie)
-                            self.tree.SetItemPyData(serie_item,'series_description')
-            else:
-                patient_item = self.tree.AppendItem(self.root,text=patient)
-                study_item = self.tree.AppendItem(patient_item,text=study)
-                serie_item = self.tree.AppendItem(study_item,text=serie)
-                self.tree.SetItemPyData(patient_item,'patients_name')
-                self.tree.SetItemPyData(study_item,'study_description')
-                self.tree.SetItemPyData(serie_item,'series_description')
+        if self.ui.radio_view.GetSelection()==0:
+            patient_tree=['patients_name','study_description','series_description']
+            self.root = self.tree.AddRoot(text='Patient')
+            for dataset in datasets:
+                if self.tree.ItemHasChildren(self.root) :
+                    item=self.root
+                    for name in patient_tree:
+                        found,child = self.IsChild(item,dataset[name].value)
+                        if not found:
+                            self.CreateSubItems(item,patient_tree[patient_tree.index(name):],dataset)
+                            break
+                        item=child                            
+                else:
+                    self.CreateSubItems(self.root,patient_tree,dataset)
             
-            self.SetInformation(patient_item,dataset)
-            self.SetInformation(study_item,dataset)
-            self.SetInformation(serie_item,dataset)
-            
-            self.tree.SortChildren(self.root)
-            self.tree.SortChildren(patient_item)
-            self.tree.SortChildren(study_item)
-            self.tree.SortChildren(serie_item)
+        else:
+            pass
+    
+    def CreateSubItems(self,item,sub_labels,dataset):
+        for name in sub_labels:
+            item = self.tree.AppendItem(item,text=dataset[name].value)
+            self.tree.SetItemPyData(item,name)
+            self.SetInformation(item,dataset)
   
     def SetInformation(self,item,dataset):
-        date = str(dataset['patients_birth_date'].value)
-        date = date[6:]+'/'+date[4:6]+'/'+date[:4]
         if self.tree.GetItemPyData(item)=='patients_name':
+            date = str(dataset['patients_birth_date'].value)
+            date = date[6:]+'/'+date[4:6]+'/'+date[:4]
             self.tree.SetItemText(item,str(dataset['patients_sex'].value),1)
             self.tree.SetItemText(item,date,2)
         
@@ -372,7 +350,7 @@ class QueryDialog(medipy.gui.base.Panel):
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
         datasets = retrieve_function(connection,retrieve_data, query)
 
-        if self.ui.radio.GetSelection()==0:
+        if self.ui.radio_dl.GetSelection()==0:  #Store is selected
             save = medipy.io.dicom.routing.SaveDataSet(
                                 str(self.destination.value),mode="hierarchical")
             for dataset in datasets:
