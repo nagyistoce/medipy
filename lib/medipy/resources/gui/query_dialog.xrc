@@ -30,7 +30,7 @@
           <object class="sizeritem">
             <object class="wxChoice" name="selected_connection">
               <content>
-                <item></item>
+                <item/>
               </content>
             </object>
             <option>1</option>
@@ -76,6 +76,17 @@
                 <flag>wxEXPAND</flag>
               </object>
               <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxRadioBox" name="radio_view">
+                  <label>View</label>
+                  <content>
+                    <item>Patient</item>
+                    <item>Study</item>
+                  </content>
+                  <selection>0</selection>
+                  <style>wxRA_SPECIFY_COLS</style>
+                </object>
+              </object>
             </object>
             <option>0</option>
             <flag>wxALIGN_RIGHT</flag>
@@ -112,7 +123,7 @@
             <flag>wxBOTTOM|wxEXPAND</flag>
           </object>
           <object class="sizeritem">
-            <object class="wxRadioBox" name="radio">
+            <object class="wxRadioBox" name="radio_dl">
               <dimension>2</dimension>
               <content>
                 <item>Store </item>

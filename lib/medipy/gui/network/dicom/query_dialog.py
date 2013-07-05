@@ -42,7 +42,8 @@ class QueryDialog(medipy.gui.base.Panel):
             self.set_queries = None
                         
             self.controls = ["qu_panel","search","download","directory",
-                "preferences","selected_connection","results","radio_dl","radio_view","set_queries"]
+                "preferences","selected_connection","results",
+                "radio_dl","radio_view","set_queries"]
             
     def __init__(self, parent=None, *args, **kwargs):        
         self.connection = None
@@ -84,9 +85,9 @@ class QueryDialog(medipy.gui.base.Panel):
         
         self.Show(True)
     
-    #------------------
-    #   Update GUI
-    #------------------
+    #------------------------------------
+    #       GUI Update
+    #------------------------------------
         
     def _update_queries(self):
         self.queries.Clear(True)
@@ -140,31 +141,54 @@ class QueryDialog(medipy.gui.base.Panel):
     
     def update_tree(self,datasets=[]):
         self.tree.DeleteAllItems()
-        if self.ui.radio_view.GetSelection()==0:
-            patient_tree=['patients_name','study_description','series_description']
-            self.root = self.tree.AddRoot(text='Patient')
-            for dataset in datasets:
-                if self.tree.ItemHasChildren(self.root) :
-                    item=self.root
-                    for name in patient_tree:
-                        found,child = self.IsChild(item,dataset[name].value)
-                        if not found:
-                            self.CreateSubItems(item,patient_tree[patient_tree.index(name):],dataset)
-                            break
-                        item=child                            
-                else:
-                    self.CreateSubItems(self.root,patient_tree,dataset)
+        self.root = self.tree.AddRoot(text='Root')
+        for dataset in datasets:
+            if self.ui.radio_view.GetSelection()==0:
+                shortnames=['patients_name','study_description',
+                        'series_description']
+                values={}
+                for name in shortnames:
+                    values[name]=dataset[name].value
+            else:
+                shortnames=['study','sub_study','patients_name',
+                    'study_description','series_description']
+                study,sub_study,exam=dataset['study_description'].value.split('^')
+                values = {'study':study,'sub_study':sub_study}
+                values['patients_name']=dataset['patients_name'].value
+                values['study_description']=exam
+                values['series_description']=dataset['series_description'].value
+                
+            if self.tree.ItemHasChildren(self.root) :
+                item=self.root
+                for name in shortnames:
+                    found,child = self.IsChild(item,values[name])
+                    if not found:
+                        self.CreateSubItems(item,values,
+                                shortnames[shortnames.index(name):],dataset)
+                        break
+                    item=child                            
+            else:
+                self.CreateSubItems(self.root,values,shortnames,dataset)
             
-        else:
-            pass
+        self.tree.SortChildren(self.root)
     
-    def CreateSubItems(self,item,sub_labels,dataset):
-        for name in sub_labels:
-            item = self.tree.AppendItem(item,text=dataset[name].value)
-            self.tree.SetItemPyData(item,name)
-            self.SetInformation(item,dataset)
+    #------------------------------------
+    #   Related tree functions
+    #------------------------------------
+    def CreateSubItems(self,item,values,shortnames,dataset):
+        """ Insert items under item
+        """
+        for name in shortnames:
+            child = self.tree.AppendItem(item,text=values[name])
+            self.tree.SetItemPyData(child,name)
+            self.SetInformations(child,dataset)
+            self.tree.SortChildren(item)
+            item=child
   
-    def SetInformation(self,item,dataset):
+    def SetInformations(self,item,dataset):
+        """ Set informations related to item
+            Format into a more readable piece of information (date, hour...)
+        """
         if self.tree.GetItemPyData(item)=='patients_name':
             date = str(dataset['patients_birth_date'].value)
             date = date[6:]+'/'+date[4:6]+'/'+date[:4]
@@ -180,7 +204,7 @@ class QueryDialog(medipy.gui.base.Panel):
             self.tree.SetItemText(item,hour,2)
             self.tree.SetItemText(item,str(dataset['modalities_in_study'].value),3)
         
-        else:
+        elif self.tree.GetItemPyData(item)=='series_description':
             self.tree.SetItemText(item,
                str(dataset['number_of_series_related_instances'].value)+' images',1)
             self.tree.SetItemText(item,str(dataset['modality'].value),2)
@@ -190,6 +214,7 @@ class QueryDialog(medipy.gui.base.Panel):
             If item has child, recursive call until not
             Return a list of queries
         """
+        
         queries=[]
         if self.tree.ItemHasChildren(item):
             count = self.tree.GetChildrenCount(item,False)
@@ -200,7 +225,7 @@ class QueryDialog(medipy.gui.base.Panel):
                 child,cookie = self.tree.GetNextChild(item,cookie)
         else:
             query={}
-            while self.tree.GetItemText(item)!="Patient": #Text associated to root
+            while self.tree.GetItemText(item)!="Root":
                 query[self.tree.GetItemPyData(item)]=self.tree.GetItemText(item)
                 item = self.tree.GetItemParent(item)
             queries.append(query)
@@ -208,7 +233,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
     def IsChild(self,itemid,text):
         """ Search text in item.text of any child in itemid
-            Return boolean and focused item if found
+            Return boolean and focused item if found, None if not
         """
         item,cookie = self.tree.GetFirstChild(itemid)
         count = self.tree.GetChildrenCount(itemid,False)
@@ -262,9 +287,9 @@ class QueryDialog(medipy.gui.base.Panel):
         
         return (connection,retrieve,retrieve_data)
             
-    #------------------
-    #   Event handlers
-    #------------------
+    #------------------------------------
+    #       Event handlers
+    #------------------------------------
     def OnResult(self, _):
         self._update_download()
     
