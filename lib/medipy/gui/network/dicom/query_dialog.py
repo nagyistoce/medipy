@@ -20,7 +20,6 @@ class QueryDialog(medipy.gui.base.Panel):
 
     _connections = "network/dicom/connections"
     _current_connection = "network/dicom/current_connection"
-    _ssh_connections = "network/dicom/ssh"
     _queries_fields = "network/dicom/queries"
   
     tree_headers = ['patients_birth_date','patients_sex',
@@ -90,6 +89,10 @@ class QueryDialog(medipy.gui.base.Panel):
     #------------------------------------
         
     def _update_queries(self):
+        """ Query fields update based on stored queries preferences
+        """
+        #TODO : Catch exception when an unknown label is entered for name_dictionary
+        
         self.queries.Clear(True)
         self.query_ctrl = {}
         self.update_tree()
@@ -114,7 +117,9 @@ class QueryDialog(medipy.gui.base.Panel):
             
         self.queries.Layout()
         
-    def _update_choice(self, *args):        
+    def _update_choice(self, *args):
+        """ Connection list update based on stored preferences
+        """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
@@ -140,6 +145,8 @@ class QueryDialog(medipy.gui.base.Panel):
         self.tree.AddColumn("",width=100)
     
     def update_tree(self,datasets=[]):
+        """ TreeCtrl update based on selected view (study or patient):
+        """
         self.tree.DeleteAllItems()
         self.root = self.tree.AddRoot(text='Root')
         for dataset in datasets:
@@ -177,6 +184,9 @@ class QueryDialog(medipy.gui.base.Panel):
     #------------------------------------
     def CreateSubItems(self,item,values,shortnames,dataset):
         """ Insert items under item
+            Shortnames are the different tree sub-levels
+            Values are the related values that will be shown in the TreeCtrl
+            Related dataset is needed in SetInformations
         """
         for name in shortnames:
             child = self.tree.AppendItem(item,text=values[name])
@@ -187,6 +197,7 @@ class QueryDialog(medipy.gui.base.Panel):
   
     def SetInformations(self,item,dataset):
         """ Set informations related to item
+            Check item level with ItemPyData
             Format into a more readable piece of information (date, hour...)
         """
         if self.tree.GetItemPyData(item)=='patients_name':
@@ -307,7 +318,9 @@ class QueryDialog(medipy.gui.base.Panel):
         
         self._update_queries()
 
-    def OnChoice(self,_):    
+    def OnChoice(self,_):
+        """ Store current connection in preferences (index)
+        """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         
@@ -330,7 +343,8 @@ class QueryDialog(medipy.gui.base.Panel):
         self._update_choice()
         
     def OnSearch(self,_):
-        """ Send specified query on dicom.Dataset and show results in TreeListCtrl
+        """ Use relational to retrieve specified query
+            Call update_tree to show results
         """
         (connection,_,__) = self.BuildConnection()
 
@@ -406,6 +420,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
     def build_retrieve_query(self,connection):
         """ Build a list of queries based on selected area in ListCtrl
+            Return a list of DataSet
         """
         retrieve_query = []
         
@@ -429,6 +444,9 @@ class QueryDialog(medipy.gui.base.Panel):
         return retrieve_query
 
     def wado_dl(self,connection,wado_url,retrieve_query):
+        """ Download data specified in query from wado_url
+            Return a list of DataSets
+        """
         datasets_wado = []
         for query in retrieve_query:
             datasets_wado.append(medipy.network.dicom.wado.get(wado_url,query))
@@ -436,6 +454,9 @@ class QueryDialog(medipy.gui.base.Panel):
         return datasets_wado
     
     def move_dl(self,connection,destination,retrieve_query):
+        """ Move SCU call to download specified query to desination
+            Return a list of DataSets
+        """
         move_query = medipy.io.dicom.DataSet(sop_instance_uid='')
         for query in retrieve_query:
             sop_uid = str(query.sop_instance_uid.value)
