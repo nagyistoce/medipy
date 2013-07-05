@@ -25,7 +25,7 @@ class QueryDialog(medipy.gui.base.Panel):
     _ssh_connections = "network/dicom/ssh"
     _queries_fields = "network/dicom/queries"
     
-    tree_headers = ['acquisition_date','acquisition_time', 'modality']
+    tree_headers = ['modality']
     tree_levels = ['patient_id', 'study_description', 'series_description']
 
     class UI(medipy.gui.base.UI):
@@ -221,27 +221,27 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
                 
         list_connections = preferences.get(self._connections,[])
-    
-        if list_connections[row][1]['ssh']!='':
+        
+        parameters = dict(
+            (name, list_connections[row][1][name])
+            for name in ["host", "port", "calling_ae_title", "called_ae_title"]
+        )
+        
+        if list_connections[row][1]['ssh']:
+            class_ = medipy.network.dicom.SSHTunnelConnection
+            
             #Ask Password to user
             dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection')
             dlg.ShowModal()
             password = dlg.GetValue()
             dlg.Destroy()
-            
-            connection = medipy.network.dicom.SSHTunnelConnection(
-                list_connections[row][1]['host'],
-                list_connections[row][1]['port'],
-                list_connections[row][1]['calling_ae_title'],
-                list_connections[row][1]['called_ae_title'],
-                list_connections[row][1]['username'],
-                password)
+
+            parameters["username"] = self.list_connections[row][1]['username']
+            parameters["password"] = password
         else:
-            connection = medipy.network.dicom.Connection(
-                    list_connections[row][1]['host'],
-                    list_connections[row][1]['port'],
-                    list_connections[row][1]['calling_ae_title'],
-                    list_connections[row][1]['called_ae_title'])
+            class_ = medipy.network.dicom.Connection
+        
+        connection = class_(**parameters)
         
         retrieve = list_connections[row][2]
         retrieve_data = list_connections[row][3]
@@ -276,7 +276,6 @@ class QueryDialog(medipy.gui.base.Panel):
         choice = self.ui.selected_connection.GetCurrentSelection()
         
         preferences.set(self._current_connection, choice)
-        print choice
 
     def OnPreferences(self,_):
        

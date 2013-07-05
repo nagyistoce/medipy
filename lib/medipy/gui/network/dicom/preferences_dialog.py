@@ -127,16 +127,13 @@ class PreferencesDialog(medipy.gui.base.Panel):
                 self.list_connections[row][3]=''
                 self._update_listview()
         elif shortname == "retrieve_data":
-            if self.list_connections[row][2]=='get':
-                pass
-            else:
+            if self.list_connections[row][2]!='get':
                 self.list_connections[row][3]=value
         else :
             self.list_connections[row][1][shortname] = value
             if shortname == 'ssh':
-                print value
-                if value == False  and self.list_connections[row][1]['username']!='':
-                    elf.list_connections[row][1]['username']=''
+                if not value and self.list_connections[row][1]['username']:
+                    self.list_connections[row][1]['username']=''
                     self._update_listview()
             elif shortname == 'username':
                 if self.list_connections[row][1]['ssh'] :
@@ -161,45 +158,52 @@ class PreferencesDialog(medipy.gui.base.Panel):
         """
         row = self.ui.connections.GetGridCursorRow()
         
-        if self.list_connections[row][1]['ssh']!='':
+        parameters = dict(
+            (name, self.list_connections[row][1][name])
+            for name in ["host", "port", "calling_ae_title", "called_ae_title"]
+        )
+        
+        if self.list_connections[row][1]['ssh']:
+            class_ = medipy.network.dicom.SSHTunnelConnection
+            
             #Ask Password to user
             dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection')
             dlg.ShowModal()
             password = dlg.GetValue()
             dlg.Destroy()
 
-            try:
-                connection = medipy.network.dicom.SSHTunnelConnection(
-                    self.list_connections[row][1]['host'],
-                    self.list_connections[row][1]['port'],
-                    self.list_connections[row][1]['calling_ae_title'],
-                    self.list_connections[row][1]['called_ae_title'],
-                    self.list_connections[row][1]['username'],
-                    password)
-                    
-            except paramiko.AuthenticationException,e:
-                dlg = wx.MessageDialog(self,"Connection Failure: {0}".format(e), 'Connection Failure', wx.OK|wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return 1
+            parameters["username"] = self.list_connections[row][1]['username']
+            parameters["password"] = password
         else:
-                connection = medipy.network.dicom.Connection(
-                    self.list_connections[row][1]['host'],
-                    self.list_connections[row][1]['port'],
-                    self.list_connections[row][1]['calling_ae_title'],
-                    self.list_connections[row][1]['called_ae_title'])
+            class_ = medipy.network.dicom.Connection
+        
+        try :
+            connection = class_(**parameters)
+        except paramiko.AuthenticationException,e:
+            dlg = wx.MessageDialog(self,"Connection Failure: {0}".format(e), 
+                'Connection Failure', wx.OK|wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
+            return 
                         
         echo = medipy.network.dicom.scu.Echo(connection)
         try:
             echo()
         except medipy.base.Exception, e:
-            dlg = wx.MessageDialog(self, "Cannot contact entity.\nMake sure you entered the right parameters.",'Connection failure',wx.OK|wx.ICON_ERROR)
-            dlg.ShowModal()
-            dlg.Destroy()
+            message = "Cannot contact entity.\nMake sure you entered the right parameters."
+            title = 'Connection failure'
+            flags = wx.OK|wx.ICON_ERROR
+            dlg = wx.MessageDialog(self, 
+                "Cannot contact entity.\nMake sure you entered the right parameters.",
+                'Connection failure',wx.OK|wx.ICON_ERROR)
         else:
-            dlg = wx.MessageDialog(self, "Parameters seem to be correct.\nYou may be able to work on this connection",'Connection succeeded',wx.OK|wx.ICON_INFORMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
+            message = "Parameters seem to be correct.\nYou may be able to work on this connection"
+            title = 'Connection succeeded'
+            flags = wx.OK|wx.ICON_INFORMATION
+        
+        dlg = wx.MessageDialog(self, message, title, flags) 
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def save_connections(self, *args) :
         """ Save the connections to the preferences. This function can also be
