@@ -146,36 +146,48 @@ class QueryDialog(medipy.gui.base.Panel):
             serie = dataset['series_description'].value
         
             if self.tree.ItemHasChildren(self.root) :
-                patient_found,patient_item = self.IsChild(self.root,patient)
+                patient_found,patient_item = self.IsChild(self.root,
+                    dataset.patient_id)
                     
                 if not patient_found :
                     patient_item = self.tree.AppendItem(self.root,text=patient)
                     study_item = self.tree.AppendItem(patient_item,text=study)
                     serie_item = self.tree.AppendItem(study_item,text=serie)
-                    self.tree.SetItemPyData(patient_item,'patients_name')
-                    self.tree.SetItemPyData(study_item,'study_description')
-                    self.tree.SetItemPyData(serie_item,'series_description')
+                    self.tree.SetItemPyData(patient_item,
+                        ('patients_name', dataset.patient_id))
+                    self.tree.SetItemPyData(study_item, 
+                        ('study_description', dataset.study_instance_uid))
+                    self.tree.SetItemPyData(serie_item,
+                        ('series_description', dataset.series_instance_uid))
                                             
                 else :
-                    study_found,study_item = self.IsChild(patient_item,study)
+                    study_found,study_item = self.IsChild(patient_item, 
+                        dataset.study_instance_uid)
                     if not study_found :
                         study_item = self.tree.AppendItem(patient_item,text=study)
                         serie_item = self.tree.AppendItem(study_item,text=serie)
-                        self.tree.SetItemPyData(study_item,'study_description')
-                        self.tree.SetItemPyData(serie_item,'series_description')
+                        self.tree.SetItemPyData(study_item,
+                            ('study_description', dataset.study_instance_uid))
+                        self.tree.SetItemPyData(serie_item,
+                            ('series_description', dataset.series_instance_uid))
                                                     
                     else:
-                        serie_found,serie_item = self.IsChild(study_item,serie)
+                        serie_found,serie_item = self.IsChild(study_item, 
+                            dataset.series_instance_uid)
                         if not serie_found :
                             serie_item = self.tree.AppendItem(study_item,text=serie)
-                            self.tree.SetItemPyData(serie_item,'series_description')
+                            self.tree.SetItemPyData(serie_item,
+                                ('series_description', dataset.series_instance_uid))
             else:
                 patient_item = self.tree.AppendItem(self.root,text=patient)
                 study_item = self.tree.AppendItem(patient_item,text=study)
                 serie_item = self.tree.AppendItem(study_item,text=serie)
-                self.tree.SetItemPyData(patient_item,'patients_name')
-                self.tree.SetItemPyData(study_item,'study_description')
-                self.tree.SetItemPyData(serie_item,'series_description')
+                self.tree.SetItemPyData(patient_item,
+                    ('patients_name', dataset.patient_id))
+                self.tree.SetItemPyData(study_item,
+                    ('study_description', dataset.study_instance_uid))
+                self.tree.SetItemPyData(serie_item,
+                    ('series_description', dataset.series_instance_uid))
             
             self.SetInformation(patient_item,dataset)
             self.SetInformation(study_item,dataset)
@@ -189,11 +201,11 @@ class QueryDialog(medipy.gui.base.Panel):
     def SetInformation(self,item,dataset):
         date = str(dataset['patients_birth_date'].value)
         date = date[6:]+'/'+date[4:6]+'/'+date[:4]
-        if self.tree.GetItemPyData(item)=='patients_name':
+        if self.tree.GetItemPyData(item)[0]=='patients_name':
             self.tree.SetItemText(item,str(dataset['patients_sex'].value),1)
             self.tree.SetItemText(item,date,2)
         
-        elif self.tree.GetItemPyData(item)=='study_description':
+        elif self.tree.GetItemPyData(item)[0]=='study_description':
             date = str(dataset['study_date'].value)
             date = date[6:]+'/'+date[4:6]+'/'+date[:4]
             hour = str(dataset['study_time'].value)
@@ -223,7 +235,7 @@ class QueryDialog(medipy.gui.base.Panel):
         else:
             query={}
             while self.tree.GetItemText(item)!="Patient": #Text associated to root
-                query[self.tree.GetItemPyData(item)]=self.tree.GetItemText(item)
+                query[self.tree.GetItemPyData(item)[0]]=self.tree.GetItemText(item)
                 item = self.tree.GetItemParent(item)
             queries.append(query)
         return queries
@@ -236,7 +248,7 @@ class QueryDialog(medipy.gui.base.Panel):
         count = self.tree.GetChildrenCount(itemid,False)
         found = False
         for index in range(count):
-            if text == self.tree.GetItemText(item):
+            if text == self.tree.GetItemPyData(item)[1]:
                 found = True
                 break
             else:
