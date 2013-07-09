@@ -212,7 +212,11 @@ class QueryDialog(medipy.gui.base.Panel):
             hour = hour[:2]+':'+hour[2:4]+':'+hour[4:6]
             self.tree.SetItemText(item,date,1)
             self.tree.SetItemText(item,hour,2)
-            self.tree.SetItemText(item,str(dataset['modalities_in_study'].value),3)
+            
+            modalities = dataset['modalities_in_study'].value
+            if isinstance(modalities, list) :
+                modalities = ", ".join(sorted(modalities))
+            self.tree.SetItemText(item, modalities,3)
         
         else:
             self.tree.SetItemText(item,
