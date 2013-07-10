@@ -14,6 +14,26 @@ import medipy.io.dicom
 
 from SCU import SCU
 
+# Configuration file template for DCMTK Store SCU.
+# Parameters: transfer_syntax and sop_class_uid
+config_template = r"""
+[[TransferSyntaxes]]
+
+[MediPyTS]
+TransferSyntax1 = {transfer_syntax}
+
+[[PresentationContexts]]
+
+[MediPyContext]
+PresentationContext1 = {sop_class_uid}\MediPyTS
+
+[[Profiles]]
+
+[MediPyProfile]
+
+PresentationContexts = MediPyContext
+"""
+
 class Store(SCU):
     """ The Store SCU stores DataSets on a DICOM node. This SCU has only one
         parameter: :attr:`dataset`, the DataSet to be stored. The Store SCU does
@@ -36,11 +56,25 @@ class Store(SCU):
     
     def __call__(self) :
         
-        f, filename = tempfile.mkstemp()
+        f, dataset_filename = tempfile.mkstemp()
         os.close(f)
-        medipy.io.dicom.write(self.dataset, filename)
+        medipy.io.dicom.write(self.dataset, dataset_filename)
+        
+        # Generate a custom configuration file to make sure that the presentation
+        # context is correct, even for private SOP classes. The TS associated
+        # with the presentation context defaults to Explicit VR Little Endian.
+        transfer_syntax = getattr(self.dataset, "header", {}).get(
+            "transfer_syntax_uid", medipy.io.dicom.UI("1.2.840.10008.1.2.1")).value
+        f, config_filename = tempfile.mkstemp()
+        config = config_template.format(
+            transfer_syntax=transfer_syntax,
+            sop_class_uid=self.dataset.sop_class_uid.value)
+        os.write(f, config)
+        os.close(f)
         
         command = ["storescu"]
+        
+        command.extend(["--config-file", config_filename, "MediPyProfile"])
         
         command.extend(["--aetitle", self.connection.calling_ae_title])
         command.extend(["--call", self.connection.called_ae_title])
@@ -48,13 +82,15 @@ class Store(SCU):
         command.append(self.connection.host)
         command.append(str(self.connection.port))
         
-        command.append(filename)
+        command.append(dataset_filename)
         
         process = subprocess.Popen(command, 
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         
-        os.unlink(filename)
+        # Remove the temporary files
+        os.unlink(dataset_filename)
+        os.unlink(config_filename)
         
         if process.returncode != 0 :
             raise medipy.base.Exception(stderr)
