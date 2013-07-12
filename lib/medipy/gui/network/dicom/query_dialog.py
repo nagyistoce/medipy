@@ -124,14 +124,16 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
         
-        choice = preferences.get(self._current_connection,[])
+        choice,_ = preferences.get(self._current_connection,[])
 
-        list_connections = preferences.get(self._connections, [])        
+        list_connections = preferences.get(self._connections, [])
         for connection in list_connections:
-            self.ui.selected_connection.Append(connection[1]['host']+' --- '+
-                    str(connection[1]['port'])+' --- '+connection[0])
+            self.ui.selected_connection.Append(connection[1].host+' --- '+
+                    str(connection[1].port)+' --- '+connection[0])
 
         self.ui.selected_connection.SetSelection(int(choice))
+        
+        self.OnChoice()
 
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
@@ -259,44 +261,6 @@ class QueryDialog(medipy.gui.base.Panel):
             item = None
             
         return found,item
-    
-    def BuildConnection(self):
-        """ Build connection based on current selection
-            Hypotesis : list_connection and choice list in the same order
-            Return object connection
-        """
-        row = self.ui.selected_connection.GetCurrentSelection()
-        
-        preferences = medipy.gui.base.Preferences(
-                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-                
-        list_connections = preferences.get(self._connections,[])
-    
-        if list_connections[row][1]['ssh']!='':
-            #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection')
-            dlg.ShowModal()
-            password = dlg.GetValue()
-            dlg.Destroy()
-            
-            connection = medipy.network.dicom.SSHTunnelConnection(
-                list_connections[row][1]['host'],
-                list_connections[row][1]['port'],
-                list_connections[row][1]['calling_ae_title'],
-                list_connections[row][1]['called_ae_title'],
-                list_connections[row][1]['username'],
-                password)
-        else:
-            connection = medipy.network.dicom.Connection(
-                    list_connections[row][1]['host'],
-                    list_connections[row][1]['port'],
-                    list_connections[row][1]['calling_ae_title'],
-                    list_connections[row][1]['called_ae_title'])
-        
-        retrieve = list_connections[row][2]
-        retrieve_data = list_connections[row][3]
-        
-        return (connection,retrieve,retrieve_data)
             
     #------------------------------------
     #       Event handlers
@@ -318,18 +282,19 @@ class QueryDialog(medipy.gui.base.Panel):
         
         self._update_queries()
 
-    def OnChoice(self,_):
+    def OnChoice(self,*args,**kwargs):
         """ Store current connection in preferences (index)
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         
+        list_connections = preferences.get(self._connections,[])
         choice = self.ui.selected_connection.GetCurrentSelection()
         
-        preferences.set(self._current_connection, choice)
+        preferences.set(self._current_connection,(choice,list_connections[choice]))
 
     def OnPreferences(self,_):       
-        self.pref_dlg = wx.Dialog(self,size=(900,400),
+        self.pref_dlg = wx.Dialog(self,size=(1000,200),
                     style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
         self.pref_panel = medipy.gui.network.dicom.PreferencesDialog(self.pref_dlg)
 
@@ -346,8 +311,12 @@ class QueryDialog(medipy.gui.base.Panel):
         """ Use relational to retrieve specified query
             Call update_tree to show results
         """
-        (connection,_,__) = self.BuildConnection()
-
+        
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        _,current = preferences.get(self._current_connection,[])
+        connection = current[1]
+        
         list_queries={}
         for key, control in self.query_ctrl.items():
             list_queries[key]=control.GetValue()
@@ -383,8 +352,15 @@ class QueryDialog(medipy.gui.base.Panel):
         """ DownLoad selected object in TreeListCtrl
             A path should be specified with control.Directory if stored
         """
-        (connection,retrieve,retrieve_data) = self.BuildConnection()
-
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        _,current = preferences.get(self._current_connection,[])
+        connection = current[1]
+        retrieve = current[2]
+        retrieve_data = current[3]
+        
+        print connection, retrieve, retrieve_data
+        
         query = self.build_retrieve_query(connection)
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
         datasets = retrieve_function(connection,retrieve_data, query)

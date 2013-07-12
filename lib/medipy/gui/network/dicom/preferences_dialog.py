@@ -28,11 +28,9 @@ class PreferencesDialog(medipy.gui.base.Panel):
     class UI(medipy.gui.base.UI):
         def __init__(self):
             self.add = None
-            self.delete = None
-            self.validate = None
             self.connections = None
                         
-            self.controls = ["add","validate","delete","connections"]
+            self.controls = ["add","connections"]
             
     def __init__(self, parent=None, *args, **kwargs):
         
@@ -46,9 +44,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
             "Hostname" : 'host', "Port" : 'port', "Description" : 'description',
             "Calling AE" : 'calling_ae_title', "Called AE" : 'called_ae_title',
             "Retrieve" : "retrieve", "Retrieve Data" : "retrieve_data"}
-            
-        self.retrieve = ['wado', 'get', 'move']
-          
+                  
         # User interface
         self.ui = PreferencesDialog.UI()
         
@@ -56,38 +52,13 @@ class PreferencesDialog(medipy.gui.base.Panel):
         wrappers = []
         medipy.gui.base.Panel.__init__(self, xrc_file, "preferences", 
             wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
-                         
-        #Show known connections
-        self.ui.connections.SetRowLabelSize(0)
-        self.ui.connections.SetDefaultColSize(180)
-        self.ui.connections.CreateGrid(0,9)
-        self.ui.connections.SetColFormatNumber(1)
-        self.ui.connections.SetColSize(0,50)
-        self.ui.connections.SetColSize(1,80)
-        self.ui.connections.SetColSize(3,80)
-        self.ui.connections.SetColSize(7,80)
+
+        self.sizer = self.ui.connections.GetSizer()
         
-        attr_enum = wx.grid.GridCellAttr()
-        attr_enum.SetRenderer(wx.grid.GridCellEnumRenderer(str(self.retrieve)))
-        attr_enum.SetEditor(wx.grid.GridCellChoiceEditor(self.retrieve))
-        self.ui.connections.SetColAttr(7, attr_enum)
-        
-        attr_bool = wx.grid.GridCellAttr()
-        attr_bool.SetRenderer(wx.grid.GridCellBoolRenderer())
-        attr_bool.SetEditor(wx.grid.GridCellBoolEditor())
-        self.ui.connections.SetColAttr(0, attr_bool)
-        
-        for column, header in enumerate(self.headers) :
-            self.ui.connections.SetColLabelValue(column,header)
- 
         #Set Events
         self.ui.add.Bind(wx.EVT_BUTTON,self.OnAdd)
-        self.ui.delete.Bind(wx.EVT_BUTTON,self.OnDelete)
-        self.ui.validate.Bind(wx.EVT_BUTTON,self.OnValidate)
-        self.ui.connections.Bind(wx.grid.EVT_GRID_CELL_CHANGE,
-                self._update_connections)
-        self.list_connections.add_observer("any", self.save_connections)
-        self.list_connections.add_observer("any", self._update_listview)
+        self.list_connections.add_observer("any", self._save_connections)
+        self.list_connections.add_observer("any", self._update_list)
 
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
@@ -96,100 +67,93 @@ class PreferencesDialog(medipy.gui.base.Panel):
         # preferences : fill the content of self.list_connections instead
         # of re-assigning it.
         self.list_connections[:] = preferences.get(self._connections, [])
-        self._update_listview()
-        
+        self._update_list()
         self.Show(True)
     
-    def _update_connections(self,event):
+    def _update_list(self,*args,**kwargs):
+        """ Initialize gui from connection in list_connections
+            Add observer on any connection/retrieve panel
+        """
+        self.sizer.Clear(True)
+        self.panels=[]
+        
+        for row,(description,connection,method,option) in enumerate(self.list_connections):
+            hrz_sizer=wx.BoxSizer(wx.HORIZONTAL)
+            
+            connection_panel = medipy.gui.network.dicom.Connection(self,connection)
+            retrieve_panel = medipy.gui.network.dicom.Retrieve(self,method,option)
+            text = wx.TextCtrl(self.ui.connections,value=description)
+            delete = wx.Button(self.ui.connections,label='Delete',name=str(row))
+            validate = wx.Button(self.ui.connections,label='Validate',name=str(row))
+            
+            self.panels.append([connection_panel,
+                                retrieve_panel,
+                                text,
+                                delete,
+                                validate])
+            
+            connection_panel.add_observer("modify",self._update_connections)
+            retrieve_panel.add_observer("modify",self._update_connections)
+            text.Bind(wx.EVT_TEXT,self._update_connections)
+            delete.Bind(wx.EVT_BUTTON,self.OnDelete)
+            validate.Bind(wx.EVT_BUTTON,self.OnValidate)
+            
+            hrz_sizer.AddMany([
+                (connection_panel,5,wx.EXPAND),
+                (text,1,wx.EXPAND),
+                (retrieve_panel,2,wx.EXPAND),
+                (delete,0,wx.EXPAND),
+                (validate,0,wx.EXPAND)])
+            
+            self.sizer.Add(hrz_sizer,0,wx.EXPAND)
+        
+        self.sizer.Layout()
+    
+    def _update_connections(self,*args,**kwargs):
         """ Update and save connections observable list from ui entry
         """
-        row = event.GetRow()
-        col = event.GetCol()
         
-        shortname = self.shortnames[self.headers[col]]
+        for row,item in enumerate(self.panels):
+            self.list_connections[row][0] = item[2].GetValue()
+            self.list_connections[row][1] = item[0].connection
+            self.list_connections[row][2] = item[1].retrieve[0]
+            self.list_connections[row][3] = item[1].retrieve[1]
 
-        if shortname == "port" :
-            try :
-                value = int(self.ui.connections.GetCellValue(row,col))
-            except :
-                value = self.ui.connections.GetCellValue(row,col)
-        else : 
-            value = self.ui.connections.GetCellValue(row,col)
-            
-        if shortname == "description":
-            self.list_connections[row][0]=value
-        elif shortname == "retrieve":
-            self.list_connections[row][2]=value
-            # On 'get' choice, we don't need any value in retrieve_data
-            # Updating listview is necessary to refresh the grid
-            if value == 'get' and self.list_connections[row][3]!='':
-                self.list_connections[row][3]=''
-                self._update_listview()
-        elif shortname == "retrieve_data":
-            if self.list_connections[row][2]=='get':
-                pass
-            else:
-                self.list_connections[row][3]=value
-        else :
-            self.list_connections[row][1][shortname] = value
-            if shortname == 'ssh':
-                print value
-                if value == False  and self.list_connections[row][1]['username']!='':
-                    elf.list_connections[row][1]['username']=''
-                    self._update_listview()
-            elif shortname == 'username':
-                if self.list_connections[row][1]['ssh']==False:
-                    pass
-                else :
-                    self.list_connections[row][1][shortname]=value
-        self.save_connections()
+        self._save_connections()
+    
+    
+    def _save_connections(self, *args) :
+        """ Save the connections to the preferences. This function can also be
+            used as an event handler.
+        """
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        preferences.set(self._connections, self.list_connections[:])
+
+#--------------------
+#   Event handlers
+#--------------------
            
     def OnAdd(self,_):
         """ Add a new connection set with default parameters
         """
-        connection = {'ssh':False, 'username':'', 'host':'----', 'port':0,
-            'calling_ae_title':'----', 'called_ae_title':'----'}
-        self.list_connections.append(["----", connection, "wado", "----"])
+        connection =medipy.network.dicom.Connection('----',0,'----','----')
+        self.list_connections.append(["----", connection, "get", ' '])
 
-    def OnDelete(self,_):
+    def OnDelete(self,event):
         """ Delete selected connection from the connections ObservableList
         """
-        row = self.ui.connections.GetGridCursorRow()
-        del self.list_connections[row]
+        source = event.GetEventObject()
+        del self.list_connections[int(source.GetName())]
 
-    def OnValidate(self,_):
+    def OnValidate(self,event):
         """ Test the selected connection
         """
-        row = self.ui.connections.GetGridCursorRow()
+        source = event.GetEventObject()
+        row = int(source.GetName())
         
-        if self.list_connections[row][1]['ssh']!='':
-            #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection')
-            dlg.ShowModal()
-            password = dlg.GetValue()
-            dlg.Destroy()
-
-            try:
-                connection = medipy.network.dicom.SSHTunnelConnection(
-                    self.list_connections[row][1]['host'],
-                    self.list_connections[row][1]['port'],
-                    self.list_connections[row][1]['calling_ae_title'],
-                    self.list_connections[row][1]['called_ae_title'],
-                    self.list_connections[row][1]['username'],
-                    password)
-                    
-            except paramiko.AuthenticationException,e:
-                dlg = wx.MessageDialog(self,"Connection Failure: {0}".format(e), 'Connection Failure', wx.OK|wx.ICON_ERROR)
-                dlg.ShowModal()
-                dlg.Destroy()
-                return 1
-        else:
-                connection = medipy.network.dicom.Connection(
-                    self.list_connections[row][1]['host'],
-                    self.list_connections[row][1]['port'],
-                    self.list_connections[row][1]['calling_ae_title'],
-                    self.list_connections[row][1]['called_ae_title'])
-                        
+        connection = self.list_connections[row][1]
+        
         echo = medipy.network.dicom.scu.Echo(connection)
         try:
             echo()
@@ -201,35 +165,3 @@ class PreferencesDialog(medipy.gui.base.Panel):
             dlg = wx.MessageDialog(self, "Parameters seem to be correct.\nYou may be able to work on this connection",'Connection succeeded',wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-
-    def save_connections(self, *args) :
-        """ Save the connections to the preferences. This function can also be
-            used as an event handler.
-        """
-        preferences = medipy.gui.base.Preferences(
-                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        preferences.set(self._connections, self.list_connections[:])
-
-    def _update_listview(self, *args, **kwargs) :
-        """ Refresh gui on any connections ObservableList modification
-        """
-        self.ui.connections.ClearGrid()
-        delta = self.ui.connections.GetNumberRows()-len(self.list_connections)
-        if delta<0 :
-            self.ui.connections.AppendRows(abs(delta))
-        elif delta>0:
-            self.ui.connections.DeleteRows(0,delta)
-            
-        for row,(description,connection,retrieve,retrieve_data) in enumerate(self.list_connections) :
-            for column, header in enumerate(self.headers) :
-                shortname = self.shortnames[header]
-                if shortname == "description" :
-                    value = description
-                elif shortname == "retrieve" :
-                    value = retrieve
-                elif shortname == "retrieve_data":
-                    value = retrieve_data
-                else :
-                    value = connection[shortname]
-                
-                self.ui.connections.SetCellValue(row,column, str(value))

@@ -4,43 +4,16 @@
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
-        <object class="wxBoxSizer">
-          <object class="sizeritem">
-            <object class="wxGrid" name="connections">
-              <font>
-                <size>9</size>
-                <style>normal</style>
-                <weight>normal</weight>
-                <underlined>0</underlined>
-                <family>default</family>
-                <face>Ubuntu</face>
-                <encoding>UTF-8</encoding>
-              </font>
-            </object>
-            <option>4</option>
-            <flag>wxEXPAND</flag>
+        <object class="wxPanel" name="connections">
+          <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
           </object>
-          <orient>wxHORIZONTAL</orient>
         </object>
-        <option>3</option>
+        <option>1</option>
         <flag>wxEXPAND</flag>
       </object>
       <object class="sizeritem">
         <object class="wxBoxSizer">
-          <object class="sizeritem">
-            <object class="wxButton" name="delete">
-              <label>Delete</label>
-            </object>
-            <option>1</option>
-            <flag>wxALIGN_CENTRE</flag>
-          </object>
-          <object class="sizeritem">
-            <object class="wxButton" name="validate">
-              <label>Validate</label>
-            </object>
-            <option>1</option>
-            <flag>wxALIGN_CENTRE</flag>
-          </object>
           <object class="sizeritem">
             <object class="wxButton" name="add">
               <label>Add</label>
