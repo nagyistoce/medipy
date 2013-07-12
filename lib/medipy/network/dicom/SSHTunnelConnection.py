@@ -56,7 +56,11 @@ class SSHTunnelConnection(Connection) :
             # Kill the child process and propagate the exception
             self._shutdown_tunnel()
             raise exception
-        
+    
+        self.username=username
+        self.host=host
+        self.port=remote_port
+            
     def __del__(self) :
         # Make sure the tunnel process is destroyed.
         self._shutdown_tunnel()
