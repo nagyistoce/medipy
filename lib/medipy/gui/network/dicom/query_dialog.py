@@ -119,21 +119,22 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
         
-        choice = preferences.get(self._current_connection,[])
+        choice = preferences.get(self._current_connection, None)
 
         list_connections = preferences.get(self._connections, [])        
         for connection in list_connections:
             self.ui.selected_connection.Append(connection[1]['host']+' --- '+
                     str(connection[1]['port'])+' --- '+connection[0])
 
-        self.ui.selected_connection.SetSelection(int(choice))
+        if choice :
+            self.ui.selected_connection.SetSelection(int(choice))
 
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
             (self.destination.validate() or self.ui.radio_dl.GetSelection()==1)
             and self.tree.GetSelections()!=-1)
 
-    def update_tree_column(self):    
+    def update_tree_column(self):
         self.tree.AddColumn("Patient Tree",width=250)
         self.tree.AddColumn("",width=100)
         self.tree.AddColumn("",width=100)
@@ -202,7 +203,11 @@ class QueryDialog(medipy.gui.base.Panel):
             hour = hour[:2]+':'+hour[2:4]+':'+hour[4:6]
             self.tree.SetItemText(item,date,1)
             self.tree.SetItemText(item,hour,2)
-            self.tree.SetItemText(item,str(dataset['modalities_in_study'].value),3)
+            
+            modalities = dataset['modalities_in_study'].value
+            if isinstance(modalities, list) :
+                modalities = ", ".join(sorted(modalities))
+            self.tree.SetItemText(item, modalities,3)
         
         elif self.tree.GetItemPyData(item)=='series_description':
             self.tree.SetItemText(item,
@@ -260,27 +265,26 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
                 
         list_connections = preferences.get(self._connections,[])
-    
-        if list_connections[row][1]['ssh']!='':
+        
+        parameters = dict(
+            (name, list_connections[row][1][name])
+            for name in ["host", "port", "calling_ae_title", "called_ae_title"]
+        )
+        
+        if list_connections[row][1]['ssh']:
+            class_ = medipy.network.dicom.SSHTunnelConnection
+            
             #Ask Password to user
             dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection')
             dlg.ShowModal()
             password = dlg.GetValue()
             dlg.Destroy()
-            
-            connection = medipy.network.dicom.SSHTunnelConnection(
-                list_connections[row][1]['host'],
-                list_connections[row][1]['port'],
-                list_connections[row][1]['calling_ae_title'],
-                list_connections[row][1]['called_ae_title'],
-                list_connections[row][1]['username'],
-                password)
+            parameters["username"] = self.list_connections[row][1]['username']
+            parameters["password"] = password
         else:
-            connection = medipy.network.dicom.Connection(
-                    list_connections[row][1]['host'],
-                    list_connections[row][1]['port'],
-                    list_connections[row][1]['calling_ae_title'],
-                    list_connections[row][1]['called_ae_title'])
+            class_ = medipy.network.dicom.Connection
+        
+        connection = class_(**parameters)
         
         retrieve = list_connections[row][2]
         retrieve_data = list_connections[row][3]
@@ -333,7 +337,6 @@ class QueryDialog(medipy.gui.base.Panel):
         """ Send specified query on dicom.Dataset and show results in TreeListCtrl
         """
         (connection,_,__) = self.BuildConnection()
-
         list_queries={}
         for key, control in self.query_ctrl.items():
             list_queries[key]=control.GetValue()

@@ -37,7 +37,7 @@ def configure_plugins_path() :
             config = ConfigParser.ConfigParser()
             config.read(config_file)
             if config.has_section("plugins") and config.has_option("plugins", "path") :
-                global_plugins_path = [
+                plugins_path = [
                     x for x in config.get("plugins", "path").split(os.pathsep)
                     if os.path.isdir(x)
                 ]

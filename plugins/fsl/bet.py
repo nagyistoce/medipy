@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -7,6 +7,9 @@
 ##########################################################################
 
 import os
+import tempfile
+
+import medipy.io
 
 from fsl_tool import FSLTool
 
@@ -113,3 +116,44 @@ class BET(FSLTool):
     outline = property(_get_outline)
     brain_mask = property(_get_brain_mask)
     skull = property(_get_skull)
+
+def bet(input, create_outline=False, create_brain_mask=False, create_skull=False,
+        intensity_threshold=0.5, gradient_threshold=None, 
+        head_radius=None, center_of_gravity=None, *args, **kwargs) :
+    """ BET (Brain Extraction Tool) from FSL.
+    
+        <gui>
+            <item name="input" type="Image" label="Input" />
+            <item name="create_outline" type="Bool" label="Create outline"
+                  initializer="False" />
+            <item name="create_brain_mask" type="Bool" label="Create brain mask"
+                  initializer="False" />
+            <item name="create_skull" type="Bool" label="Create skull"
+                  initializer="False" />
+            <item name="intensity_threshold" type="Float" label="Intensity threshold"
+                  initializer="0.5" />
+            <item name="gradient_threshold" type="Float" label="Gradient threshold"
+                  initializer="0" />
+            <item name="output" type="Image" label="Output" 
+                  initializer="output=True" role="return" />
+        </gui>
+    """
+    
+    fd, input_filename = tempfile.mkstemp(".nii.gz")
+    os.close(fd)
+    medipy.io.save(input, input_filename)
+    
+    fd, output_filename = tempfile.mkstemp(".nii.gz")
+    os.close(fd)
+
+    bet = BET(input_filename, output_filename, create_outline, create_brain_mask,
+              create_skull, intensity_threshold, gradient_threshold, head_radius,
+              center_of_gravity, *args, **kwargs)
+    bet()
+    
+    output = medipy.io.load(output_filename)
+    
+    os.unlink(input_filename)
+    os.unlink(output_filename)
+    
+    return output

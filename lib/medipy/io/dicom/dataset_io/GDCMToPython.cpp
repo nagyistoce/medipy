@@ -417,13 +417,19 @@ GDCMToPython
             {
                 count = byte_value->GetLength()/gdcm_vr.GetSize();
             }
+            else if(gdcm_vr & (gdcm::VR::LT | gdcm::VR::ST | gdcm::VR::UT))
+            {
+                // LT, ST and UT may not be multi-valued and 
+                // gdcm::VM::GetNumberOfElementsFromArray does not use the VR !
+                count = 1;
+            }
             else 
             {
                 count = gdcm::VM::GetNumberOfElementsFromArray(
                     byte_value->GetPointer(), byte_value->GetLength());
             }
         }
-
+        
         if(count == 0)
         {
             value = Py_None;
@@ -683,7 +689,7 @@ GDCMToPython
     else if(vr & (gdcm::VR::LT | gdcm::VR::ST | gdcm::VR::UT))
     {
         // LT, ST and UT may not be multi-valued
-        return begin-end;
+        return end-begin;
     }
     else if(vr == gdcm::VR::AT)
     {
