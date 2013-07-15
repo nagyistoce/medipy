@@ -287,7 +287,7 @@ class QueryDialog(medipy.gui.base.Panel):
         preferences.set(self._current_connection,(choice,list_connections[choice]))
 
     def OnPreferences(self,_):       
-        self.pref_dlg = wx.Dialog(self,size=(1000,200),
+        self.pref_dlg = wx.Dialog(self,size=(1100,200),
                     style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
         self.pref_panel = medipy.gui.network.dicom.PreferencesDialog(self.pref_dlg)
 
@@ -309,6 +309,15 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         _,current = preferences.get(self._current_connection,[])
         connection = current[1]
+
+        if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
+            #Ask Password to user
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.username))
+            dlg.ShowModal()
+            connection.password = dlg.GetValue()
+            dlg.Destroy()
+        
+        connection.connect()
         
         list_queries={}
         for key, control in self.query_ctrl.items():
@@ -340,6 +349,7 @@ class QueryDialog(medipy.gui.base.Panel):
             else:
                 self.update_tree(datasets)
 
+        connection.disconnect()
     
     def OnDownLoad(self,_):
         """ DownLoad selected object in TreeListCtrl
@@ -351,8 +361,15 @@ class QueryDialog(medipy.gui.base.Panel):
         connection = current[1]
         retrieve = current[2]
         retrieve_data = current[3]
-        
-        print connection, retrieve, retrieve_data
+
+        if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
+            #Ask Password to user
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.username))
+            dlg.ShowModal()
+            connection.password = dlg.GetValue()
+            dlg.Destroy()
+
+        connection.connect()
         
         query = self.build_retrieve_query(connection)
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
@@ -381,7 +398,8 @@ class QueryDialog(medipy.gui.base.Panel):
                     wx.OK|wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
-            
+        
+        connection.disconnect()    
             
     #------------------
     #   Retrieve

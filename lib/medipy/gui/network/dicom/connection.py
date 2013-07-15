@@ -110,8 +110,7 @@ class Connection(wx.Panel,medipy.base.Observable):
                 remote_port = int(self.text['Port'].GetValue()),
                 calling_ae_title = self.text['Calling AE'].GetValue(),
                 called_ae_title = self.text['Called AE'].GetValue(),
-                username = '',
-                password='')
+                username = '',password='')
             
             self.sizer.Clear(True)
             self._set_connection(connection)
@@ -130,7 +129,7 @@ class Connection(wx.Panel,medipy.base.Observable):
             
         else:
             if self.checkbox.GetValue()==True:
-                self._connection.__setattr__(username, self.user.GetValue())
+                self._connection.__setattr__("username", self.user.GetValue())
             for header in self.headers[2:]:
                 name = self.shortnames[header]
                 value = self.text[header].GetValue()
@@ -159,7 +158,7 @@ class Connection(wx.Panel,medipy.base.Observable):
             self.user = wx.TextCtrl(self,value=connection.username)
             self.user.Bind(wx.EVT_TEXT,self.modify)
             self.sizer.Add(wx.StaticText(self,label='Username :'),0,wx.ALIGN_CENTER)
-            self.sizer.Add(self.user,0,wx.EXPAND)
+            self.sizer.Add(self.user,1,wx.EXPAND)
         else:
             self.checkbox.SetValue(False)
 
