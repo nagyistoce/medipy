@@ -28,62 +28,118 @@ class SSHTunnelConnection(ConnectionBase) :
         (localhost, local_port) <-> (remote_host, 22) <-> (remote_host, remote_port)
     """
     
-    def __init__(self, host, remote_port, calling_ae_title, called_ae_title, 
+    def __init__(self, remote_host, remote_port, calling_ae_title, called_ae_title, 
                  username, password, connect=False, local_port=None) :
         
         if local_port is None :
             # Let the OS pick an available port by binding to port 0
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind(("", 0))
-            self.local_port = s.getsockname()[1]
+            self._local_port = s.getsockname()[1]
             s.close()
         else :
-			self.local_port = local_port
+            self._local_port = local_port
 
-        ConnectionBase.__init__(self, "localhost", self.local_port, calling_ae_title, called_ae_title)
-        
-        self.username=username
-        self.password=password
-        self.port=remote_port
-        
         self.connected = False
+
+        ConnectionBase.__init__(self, "localhost", self._local_port, calling_ae_title, called_ae_title)
+      
+        #Properties private attributes
+        self._remote_host=None
+        self._remote_port=None
+        self._username=None
+        self._password=None
+        
+        self._set_port(remote_port)
+        self._set_host(remote_host)
+        self._set_password(password)
+        self._set_user(username)
 
         if connect :
             self.connect()
 
     def connect(self) :
-		if self.connected==False:
-				
-			pipe = multiprocessing.Pipe()
+        if self.connected==False:
+            pipe = multiprocessing.Pipe()
+            self.process = multiprocessing.Process(
+                target=SSHTunnelConnection._start_tunnel, 
+                args=(self._remote_host, self._remote_port, self._username, self._password, self._local_port, pipe))
+            self.process.daemon = False
+            self.process.start()
 			
-			self.process = multiprocessing.Process(
-				target=SSHTunnelConnection._start_tunnel, 
-				args=(self.host, self.port, self.username, self.password, self.local_port, pipe))
-			self.process.daemon = False
-			self.process.start()
-			
-			# Wait for the child process to give some information about its success
-			while(not pipe[0].poll(0.005)) :
-				pass
-			exception = pipe[0].recv()
-			if exception :
-				# Kill the child process and propagate the exception
-				self._shutdown_tunnel()
-				raise exception
-
-			self.connected = True
+            # Wait for the child process to give some information about its success
+            while(not pipe[0].poll(0.005)) :
+                pass
+            exception = pipe[0].recv()
+            if exception :
+                # Kill the child process and propagate the exception
+                self._shutdown_tunnel()
+                raise exception
+            
+            self.connected = True
 
     def disconnect(self):
-		if self.connected == True:
-			self._shutdown_tunnel()
-            
-    def __del__(self) :
-		if self.connected == True:
-			# Make sure the tunnel process is destroyed.
-			self._shutdown_tunnel()
+        if self.connected == True:
+            self._shutdown_tunnel()
+
+    ##############
+    # Properties #
+    ##############
+    def _get_host(self):
+        return self._remote_host
+
+    def _set_host(self,host):
+        if self.connected == True:
+            self.disconnect()
+            self._remote_host = host
+            self.connect()
+        else :
+            self._remote_host = host
+
+    def _get_port(self):
+        return self._remote_port
+
+    def _set_port(self,port):
+        if self.connected == True:
+            self.disconnect()
+            self._remote_port = port
+            self.connect()
+        else :
+            self._remote_port = port
+
+    def _get_user(self):
+        return self._username
+
+    def _set_user(self,user):
+        if self.connected == True:
+            self.disconnect()
+            self._username = user
+            self.connect()
+        else :
+            self._username = user
+
+    def _get_password(self):
+        return self._password
+
+    def _set_password(self,password):
+        if self.connected == True:
+            self.disconnect()
+            self._password = password
+            self.connect()
+        else:
+            self._password = password
+
+    host = property(_get_host,_set_host)
+    port = property(_get_port,_set_port)
+    user = property(_get_user,_set_user)
+    password = property(_get_password,_set_password)
+    
+    ############################
+    # Tunnel related functions #
+    ############################
     
     @staticmethod
-    def _start_tunnel(host, remote_port, username, password, local_port, pipe) :
+    def _start_tunnel(remote_host, remote_port, username, password, local_port, pipe) :
         """ Start the tunnel to the remote host. This function is supposed to
             be executed in a multiprocessing.Process, so exceptions are caught
             and returned using pipe[1].send().
@@ -94,7 +150,7 @@ class SSHTunnelConnection(ConnectionBase) :
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
         try :
-            client.connect(host, username=username, password=password)
+            client.connect(remote_host, username=username, password=password)
         except Exception as e :
             pipe[1].send(e)
             return
@@ -102,7 +158,7 @@ class SSHTunnelConnection(ConnectionBase) :
             pipe[1].send(None)
         
         SSHTunnelConnection._forward_tunnel(
-            local_port, host, remote_port, client.get_transport())
+            local_port, remote_host, remote_port, client.get_transport())
     
     @staticmethod
     def _forward_tunnel(local_port, remote_host, remote_port, transport):

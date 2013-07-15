@@ -25,7 +25,6 @@ class QueryDialog(medipy.gui.base.Panel):
     tree_headers = ['patients_birth_date','patients_sex',
     'modalities_in_study','study_date',
     'study_time','modality','number_of_series_related_instances']
-  
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -84,9 +83,9 @@ class QueryDialog(medipy.gui.base.Panel):
         
         self.Show(True)
     
-    #------------------------------------
-    #       GUI Update
-    #------------------------------------
+    ##############
+    # GUI Update #
+    ##############
         
     def _update_queries(self):
         """ Query fields update based on stored queries preferences
@@ -123,18 +122,19 @@ class QueryDialog(medipy.gui.base.Panel):
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
-        
+
         choice,_ = preferences.get(self._current_connection,None)
 
         list_connections = preferences.get(self._connections, [])
-        for connection in list_connections:
-            self.ui.selected_connection.Append(connection[1].host+' --- '+
-                    str(connection[1].port)+' --- '+connection[0])
+        if list_connections != []:
+            for connection in list_connections:
+                self.ui.selected_connection.Append(connection[1].host+' --- '+
+                        str(connection[1].port)+' --- '+connection[0])
 
-        if choice :
-            self.ui.selected_connection.SetSelection(int(choice))
-        
-        self.OnChoice()
+            if choice :
+                self.ui.selected_connection.SetSelection(int(choice))
+            
+            self.OnChoice()
 
     def _update_download(self, *args, **kwargs):
         self.ui.download.Enable(
@@ -183,9 +183,9 @@ class QueryDialog(medipy.gui.base.Panel):
             
         self.tree.SortChildren(self.root)
     
-    #------------------------------------
-    #   Related tree functions
-    #------------------------------------
+    ##########################
+    # Tree related functions #
+    ##########################
   
     def SetInformations(self, item, level, dataset):
         """ Set informations related to item
@@ -255,9 +255,9 @@ class QueryDialog(medipy.gui.base.Panel):
             
         return found,item
             
-    #------------------------------------
-    #       Event handlers
-    #------------------------------------
+    ##################
+    # Event handlers #
+    ##################
     def OnResult(self, _):
         self._update_download()
     
@@ -312,7 +312,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.username))
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
             dlg.ShowModal()
             connection.password = dlg.GetValue()
             dlg.Destroy()
@@ -364,7 +364,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.username))
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
             dlg.ShowModal()
             connection.password = dlg.GetValue()
             dlg.Destroy()
@@ -401,9 +401,9 @@ class QueryDialog(medipy.gui.base.Panel):
         
         connection.disconnect()    
             
-    #------------------
-    #   Retrieve
-    #------------------
+    ############
+    # Retrieve #
+    ############
 
     def build_retrieve_query(self,connection):
         """ Build a list of queries based on selected area in ListCtrl

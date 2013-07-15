@@ -14,9 +14,9 @@ import medipy.io.dicom
 import medipy.gui.base
 import medipy.base
 
-#------------------------
-#   Retrieve Panel Class
-#------------------------
+    ########################
+    # Retrieve Panel Class #
+    ########################
 
 class Retrieve(wx.Panel,medipy.base.Observable):
     def __init__(self, parent=None, retrieve_by="get", retrieve_option='',
@@ -74,9 +74,9 @@ class Retrieve(wx.Panel,medipy.base.Observable):
 
     retrieve = property(_get_retrieve,_set_retrieve)
 
-#--------------------------
-#   Connection Panel Class
-#--------------------------
+    ##########################
+    # Connection Panel Class #
+    ##########################
 
 class Connection(wx.Panel,medipy.base.Observable):
    
@@ -106,7 +106,7 @@ class Connection(wx.Panel,medipy.base.Observable):
         """
         if self.checkbox.GetValue()==True and isinstance(self.connection,medipy.network.dicom.Connection):
             connection = medipy.network.dicom.SSHTunnelConnection(
-                host = self.text['Hostname'].GetValue(),
+                remote_host = self.text['Hostname'].GetValue(),
                 remote_port = int(self.text['Port'].GetValue()),
                 calling_ae_title = self.text['Calling AE'].GetValue(),
                 called_ae_title = self.text['Called AE'].GetValue(),
@@ -129,7 +129,7 @@ class Connection(wx.Panel,medipy.base.Observable):
             
         else:
             if self.checkbox.GetValue()==True:
-                self._connection.__setattr__("username", self.user.GetValue())
+                self._connection.user = self.user.GetValue()
             for header in self.headers[2:]:
                 name = self.shortnames[header]
                 value = self.text[header].GetValue()
@@ -139,6 +139,10 @@ class Connection(wx.Panel,medipy.base.Observable):
                     self._connection.__setattr__(name,value)
 
         self.notify_observers("modify")
+    
+    ##############
+    # Properties #
+    #############
     
     def _get_connection(self):
         """ Connection object, may be either a simple medipy.network.dicom.Connection
@@ -155,7 +159,7 @@ class Connection(wx.Panel,medipy.base.Observable):
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             self.checkbox.SetValue(True)
-            self.user = wx.TextCtrl(self,value=connection.username)
+            self.user = wx.TextCtrl(self,value=connection.user)
             self.user.Bind(wx.EVT_TEXT,self.modify)
             self.sizer.Add(wx.StaticText(self,label='Username :'),0,wx.ALIGN_CENTER)
             self.sizer.Add(self.user,1,wx.EXPAND)
@@ -165,8 +169,7 @@ class Connection(wx.Panel,medipy.base.Observable):
         self.text={}
         for header in self.headers[2:]:
             name=self.shortnames[header]
-            self.text[header] = wx.TextCtrl(self,
-                value=str(connection.__getattribute__(name)))
+            self.text[header] = wx.TextCtrl(self, value=str(connection.__getattribute__(name)))
             self.text[header].Bind(wx.EVT_TEXT,self.modify)
             if header!="Port":
                 self.sizer.Add(wx.StaticText(self,label=header+' :'),
