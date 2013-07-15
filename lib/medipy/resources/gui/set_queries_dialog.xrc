@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="set_queries">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxPanel" name="queries">
+          <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+          </object>
+        </object>
+        <option>1</option>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxButton" name="save">
+          <label>Save</label>
+        </object>
+        <option>0</option>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+    </object>
+  </object>
+</resource>
