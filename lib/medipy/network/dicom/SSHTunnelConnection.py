@@ -18,9 +18,9 @@ try :
 except ImportError :
     logging.warning("medipy.io.dicom.SSHTunnelConnect not usable: cannot find paramiko package")
 
-from Connection import Connection
+from connection_base import ConnectionBase
 
-class SSHTunnelConnection(Connection) :
+class SSHTunnelConnection(ConnectionBase) :
     """ DICOM network connection through a SSH tunnel.
     
         The tunnel is as follows :
@@ -29,41 +29,58 @@ class SSHTunnelConnection(Connection) :
     """
     
     def __init__(self, host, remote_port, calling_ae_title, called_ae_title, 
-                 username, password, local_port=None) :
+                 username, password, connect=False, local_port=None) :
         
         if local_port is None :
             # Let the OS pick an available port by binding to port 0
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind(("", 0))
-            local_port = s.getsockname()[1]
+            self.local_port = s.getsockname()[1]
             s.close()
+        else :
+			self.local_port = local_port
 
-        Connection.__init__(self, "localhost", local_port, calling_ae_title, called_ae_title)
+        ConnectionBase.__init__(self, "localhost", self.local_port, calling_ae_title, called_ae_title)
         
-        pipe = multiprocessing.Pipe()
-        
-        self.process = multiprocessing.Process(
-            target=SSHTunnelConnection._start_tunnel, 
-            args=(host, remote_port, username, password, local_port, pipe))
-        self.process.daemon = False
-        self.process.start()
-        
-        # Wait for the child process to give some information about its success
-        while(not pipe[0].poll(0.005)) :
-            pass
-        exception = pipe[0].recv()
-        if exception :
-            # Kill the child process and propagate the exception
-            self._shutdown_tunnel()
-            raise exception
-    
         self.username=username
-        self.host=host
+        self.password=password
         self.port=remote_port
+        
+        self.connected = False
+
+        if connect :
+            self.connect()
+
+    def connect(self) :
+		if self.connected==False:
+				
+			pipe = multiprocessing.Pipe()
+			
+			self.process = multiprocessing.Process(
+				target=SSHTunnelConnection._start_tunnel, 
+				args=(self.host, self.port, self.username, self.password, self.local_port, pipe))
+			self.process.daemon = False
+			self.process.start()
+			
+			# Wait for the child process to give some information about its success
+			while(not pipe[0].poll(0.005)) :
+				pass
+			exception = pipe[0].recv()
+			if exception :
+				# Kill the child process and propagate the exception
+				self._shutdown_tunnel()
+				raise exception
+
+			self.connected = True
+
+    def disconnect(self):
+		if self.connected == True:
+			self._shutdown_tunnel()
             
     def __del__(self) :
-        # Make sure the tunnel process is destroyed.
-        self._shutdown_tunnel()
+		if self.connected == True:
+			# Make sure the tunnel process is destroyed.
+			self._shutdown_tunnel()
     
     @staticmethod
     def _start_tunnel(host, remote_port, username, password, local_port, pipe) :
@@ -114,6 +131,7 @@ class SSHTunnelConnection(Connection) :
         while(self.process.is_alive()) :
             self.process.terminate()
             time.sleep(0.005)
+        self.connected = False
 
 class Handler(SocketServer.BaseRequestHandler):
     """ Handler forwarding the data between a TCPServer and a Paramiko channel.
