@@ -1,15 +1,15 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import itk
 import medipy.itk
 
-def binary_threshold(input=None, min=None, max=None, inside=None, outside=None) :
+def binary_threshold(input, min, max, inside, outside) :
     """ Return a binarized version of the input image.
     
         <gui> 
@@ -37,7 +37,7 @@ def binary_threshold(input=None, min=None, max=None, inside=None, outside=None) 
     
     return medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
 
-def threshold(input=None, min=None, max=None, outside=None) :
+def threshold(input, min, max, outside) :
     """ Return a thresholded version of the input image.
     
         <gui> 

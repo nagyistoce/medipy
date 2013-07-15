@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import itk
@@ -38,13 +38,15 @@ def label_connected_components(input, output):
         output.data = output_uint16.data.astype(output.dtype)
         output.copy_information(output_uint16)
 
-def order_connected_components(input):
+def order_connected_components(input, minimum_object_size=0):
     """ Re-label connected components such that labels are consecutive and that
         labels are based on the size of the object : the largest object will
         have label 1, the second largest will have label 2, etc.
         
         <gui>
             <item name="input" type="Image" label="Input"/>
+            <item name="minimum_object_size" type="Int" 
+                  label="Minimum object size" />
             <item name="output" type="Image" initializer="output=True" 
                 role="return" label="Output"/>
         </gui>
@@ -56,7 +58,8 @@ def order_connected_components(input):
         input_uint16 = input.astype(numpy.uint16)
         itk_input = medipy.itk.medipy_image_to_itk_image(input_uint16, True)
     
-    relabel_component_filter = itk.RelabelComponentImageFilter[itk_input, itk_input].New()
+    relabel_component_filter = itk.RelabelComponentImageFilter[itk_input, itk_input].New(
+        MinimumObjectSize=minimum_object_size)
     relabel_component_filter(itk_input)
     
     itk_output = relabel_component_filter[0]

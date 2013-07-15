@@ -124,14 +124,15 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
         
-        choice,_ = preferences.get(self._current_connection,[])
+        choice,_ = preferences.get(self._current_connection,None)
 
         list_connections = preferences.get(self._connections, [])
         for connection in list_connections:
             self.ui.selected_connection.Append(connection[1].host+' --- '+
                     str(connection[1].port)+' --- '+connection[0])
 
-        self.ui.selected_connection.SetSelection(int(choice))
+       if choice :
+            self.ui.selected_connection.SetSelection(int(choice))
         
         self.OnChoice()
 
@@ -152,74 +153,66 @@ class QueryDialog(medipy.gui.base.Panel):
         self.tree.DeleteAllItems()
         self.root = self.tree.AddRoot(text='Root')
         for dataset in datasets:
-            if self.ui.radio_view.GetSelection()==0:
-                shortnames=['patients_name','study_description',
-                        'series_description']
-                values={}
-                for name in shortnames:
-                    values[name]=dataset[name].value
-            else:
-                shortnames=['study','sub_study','patients_name',
-                    'study_description','series_description']
-                study,sub_study,exam=dataset['study_description'].value.split('^')
-                values = {'study':study,'sub_study':sub_study}
-                values['patients_name']=dataset['patients_name'].value
-                values['study_description']=exam
-                values['series_description']=dataset['series_description'].value
+             # Build the hierarchy as a list of (level, label, key)
+             if self.ui.radio_view.GetSelection()==0:
+                hierarchy = [
+                    ("patient", dataset.patients_name.value, dataset.patient_id.value),
+                    ("study", dataset.study_description.value, dataset.study_instance_uid.value),
+                    ("series", dataset.series_description.value, dataset.series_instance_uid.value),
+                ]
+            else :
+                trial, time_point = dataset.study_description.value.rsplit("^", 1)
                 
-            if self.tree.ItemHasChildren(self.root) :
-                item=self.root
-                for name in shortnames:
-                    found,child = self.IsChild(item,values[name])
-                    if not found:
-                        self.CreateSubItems(item,values,
-                                shortnames[shortnames.index(name):],dataset)
-                        break
-                    item=child                            
-            else:
-                self.CreateSubItems(self.root,values,shortnames,dataset)
+                hierarchy = [(None, item, item) for item in trial.split("^")]
+                hierarchy.extend([
+                    ("patient", dataset.patients_name.value, dataset.patient_id.value),
+                    ("study", time_point, dataset.study_instance_uid.value),
+                    ("series", dataset.series_description.value, dataset.series_instance_uid.value),
+                ])
+            
+            item = self.root
+            for level, label, key in hierarchy : 
+                found, child = self.IsChild(item, key)
+                if not found :
+                    # Add the node in the tree
+                    child = self.tree.AppendItem(item, label)
+                    self.tree.SetItemPyData(child, key)
+                    self.SetInformations(child, level, dataset)
+                    self.tree.SortChildren(item)
+                item = child
             
         self.tree.SortChildren(self.root)
     
     #------------------------------------
     #   Related tree functions
     #------------------------------------
-    def CreateSubItems(self,item,values,shortnames,dataset):
-        """ Insert items under item
-            Shortnames are the different tree sub-levels
-            Values are the related values that will be shown in the TreeCtrl
-            Related dataset is needed in SetInformations
-        """
-        for name in shortnames:
-            child = self.tree.AppendItem(item,text=values[name])
-            self.tree.SetItemPyData(child,name)
-            self.SetInformations(child,dataset)
-            self.tree.SortChildren(item)
-            item=child
   
-    def SetInformations(self,item,dataset):
+    def SetInformations(self, item, level, dataset):
         """ Set informations related to item
-            Check item level with ItemPyData
             Format into a more readable piece of information (date, hour...)
         """
-        if self.tree.GetItemPyData(item)=='patients_name':
+        if level == "patient":
             date = str(dataset['patients_birth_date'].value)
             date = date[6:]+'/'+date[4:6]+'/'+date[:4]
             self.tree.SetItemText(item,str(dataset['patients_sex'].value),1)
             self.tree.SetItemText(item,date,2)
         
-        elif self.tree.GetItemPyData(item)=='study_description':
+        elif level == "study":
             date = str(dataset['study_date'].value)
             date = date[6:]+'/'+date[4:6]+'/'+date[:4]
             hour = str(dataset['study_time'].value)
             hour = hour[:2]+':'+hour[2:4]+':'+hour[4:6]
             self.tree.SetItemText(item,date,1)
             self.tree.SetItemText(item,hour,2)
-            self.tree.SetItemText(item,str(dataset['modalities_in_study'].value),3)
+            
+            modalities = dataset['modalities_in_study'].value
+            if isinstance(modalities, list) :
+                modalities = ", ".join(sorted(modalities))
+            self.tree.SetItemText(item, modalities,3)
         
-        elif self.tree.GetItemPyData(item)=='series_description':
+        elif level == "series":
             self.tree.SetItemText(item,
-               str(dataset['number_of_series_related_instances'].value)+' images',1)
+               str(dataset['number_of_series_related_instances'].value)+' instances',1)
             self.tree.SetItemText(item,str(dataset['modality'].value),2)
 
     def ItemQuery(self,item):
@@ -244,7 +237,7 @@ class QueryDialog(medipy.gui.base.Panel):
             queries.append(query)
         return queries
 
-    def IsChild(self,itemid,text):
+    def IsChild(self,itemid,key):
         """ Search text in item.text of any child in itemid
             Return boolean and focused item if found, None if not
         """
@@ -252,7 +245,7 @@ class QueryDialog(medipy.gui.base.Panel):
         count = self.tree.GetChildrenCount(itemid,False)
         found = False
         for index in range(count):
-            if text == self.tree.GetItemText(item):
+            if key == self.tree.GetItemPyData(item):
                 found = True
                 break
             else:
