@@ -118,9 +118,9 @@ class Connection(wx.Panel,medipy.base.Observable):
             self.sizer.Layout()
         
         elif self.checkbox.GetValue()==False and isinstance(self.connection,medipy.network.dicom.SSHTunnelConnection):
-            connection = medipy.network.dicom.SSHTunnelConnection(
+            connection = medipy.network.dicom.Connection(
                 host = self.text['Hostname'].GetValue(),
-                remote_port = int(self.text['Port'].GetValue()),
+                port = int(self.text['Port'].GetValue()),
                 calling_ae_title = self.text['Calling AE'].GetValue(),
                 called_ae_title = self.text['Called AE'].GetValue())
             
@@ -130,12 +130,15 @@ class Connection(wx.Panel,medipy.base.Observable):
             
         else:
             if self.checkbox.GetValue()==True:
-                self.connection.username = self.user.GetValue()
-            
+                self._connection.__setattr__(username, self.user.GetValue())
             for header in self.headers[2:]:
                 name = self.shortnames[header]
-                self.connection.__setattr__(name,self.text[header].GetValue())
-     
+                value = self.text[header].GetValue()
+                if name == "port" and value!='':
+                    self._connection.__setattr__(name,int(value))
+                else:
+                    self._connection.__setattr__(name,value)
+
         self.notify_observers("modify")
     
     def _get_connection(self):
