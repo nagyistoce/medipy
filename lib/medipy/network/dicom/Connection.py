@@ -6,7 +6,9 @@
 # for details.
 ##########################################################################
 
-class Connection(object) :
+from connection_base import ConnectionBase
+
+class Connection(ConnectionBase) :
     """ A network connection from a SCU to a SCP.
     
         ``host`` and ``port`` are peer informations at the TCP/IP level. 
@@ -18,10 +20,14 @@ class Connection(object) :
                 "MY_MACHINE", "REMOTE_PACS")
     """
     
-    def __init__(self, host, port, calling_ae_title, called_ae_title) :
-        self.host = host
-        self.port = port
-        self.calling_ae_title = calling_ae_title
-        self.called_ae_title = called_ae_title
-        # add transfer syntaxes, timeout, ... ?
-        # cf. PS 3.7-2011, 7.1 
+    def __init__(self, host, port, calling_ae_title, called_ae_title, connect=False) :
+        ConnectionBase.__init__(self, host, port, calling_ae_title, called_ae_title)
+        
+        if connect :
+            self.connect()
+    
+    def connect(self) :
+        pass
+    
+    def disconnect(self) :
+        pass
