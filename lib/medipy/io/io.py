@@ -121,11 +121,11 @@ def number_of_images(url):
     scheme, path, fragment = _split(url)
     
     try :
-        function = getattr(scheme, "save")
+        function = getattr(scheme, "number_of_images")
     except AttributeError :
         raise medipy.base.Exception("Scheme \"{0}\" cannot compute number of images".format(scheme))
 
-    function(path, fragment)
+    return function(path, fragment)
 
 def _split(url):
     """ Return the scheme (as a Python module), the path and the fragment from
