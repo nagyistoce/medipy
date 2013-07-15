@@ -131,7 +131,7 @@ class QueryDialog(medipy.gui.base.Panel):
             self.ui.selected_connection.Append(connection[1].host+' --- '+
                     str(connection[1].port)+' --- '+connection[0])
 
-       if choice :
+        if choice :
             self.ui.selected_connection.SetSelection(int(choice))
         
         self.OnChoice()
@@ -153,8 +153,8 @@ class QueryDialog(medipy.gui.base.Panel):
         self.tree.DeleteAllItems()
         self.root = self.tree.AddRoot(text='Root')
         for dataset in datasets:
-             # Build the hierarchy as a list of (level, label, key)
-             if self.ui.radio_view.GetSelection()==0:
+            # Build the hierarchy as a list of (level, label, key)
+            if self.ui.radio_view.GetSelection()==0:
                 hierarchy = [
                     ("patient", dataset.patients_name.value, dataset.patient_id.value),
                     ("study", dataset.study_description.value, dataset.study_instance_uid.value),
