@@ -92,6 +92,9 @@ class Move(SCU):
         # Process results
         datasets = []
         for filename in glob.glob(os.path.join(temporary_directory, "*")):
+            if filename == query_file :
+                # Skip the query file, stored in the same directory
+                continue
             dataset = medipy.io.dicom.read(filename)
             datasets.append(dataset)
             
