@@ -5,8 +5,8 @@
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
 # for details.
 ##########################################################################
-import wx
 import os
+import wx
 
 import medipy.gui.base
 import medipy.gui.network.dicom
@@ -172,11 +172,11 @@ class QueryDialog(medipy.gui.base.Panel):
             
             item = self.root
             for level, label, key in hierarchy : 
-                found, child = self.IsChild(item, key)
+                found, child = self.IsChild(item, (level,key))
                 if not found :
                     # Add the node in the tree
                     child = self.tree.AppendItem(item, label)
-                    self.tree.SetItemPyData(child, key)
+                    self.tree.SetItemPyData(child, (level,key))
                     self.SetInformations(child, level, dataset)
                     self.tree.SortChildren(item)
                 item = child
@@ -232,7 +232,12 @@ class QueryDialog(medipy.gui.base.Panel):
         else:
             query={}
             while self.tree.GetItemText(item)!="Root":
-                query[self.tree.GetItemPyData(item)]=self.tree.GetItemText(item)
+                level,key = self.tree.GetItemPyData(item)
+                if level!=None:
+                    if level == "patient":
+                        query["patient_id"]=key
+                    else :
+                        query["{0}_instance_uid".format(level)]=key
                 item = self.tree.GetItemParent(item)
             queries.append(query)
         return queries
