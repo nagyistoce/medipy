@@ -6,14 +6,13 @@
 # for details.
 ##########################################################################
 
-from medipy.base.late_binding_property import LateBindingProperty
+from medipy.base import LateBindingProperty
 
 class ConnectionBase(object):
-    """ Abstract Connection Class
-        Use derived classes instead : Connection and SSHTunnelConnection
+    """ Base class for DICOM connections from SCUs to SCPs.
     """
 
-    def __init__(self, host, port, calling_ae_title, called_ae_title) :
+    def __init__(self, host, port, calling_ae_title, called_ae_title, connect=False) :
         
         #Properties private attributes
         self._host=None
@@ -28,18 +27,27 @@ class ConnectionBase(object):
         
         # add transfer syntaxes, timeout, ... ?
         # cf. PS 3.7-2011, 7.1 
+        
+        if connect :
+            self.connect()
     
     def connect(self) :
+        """ Open the connection.
+        """
+        
         raise NotImplementedError()
     
     def disconnect(self) :
+        """ Close the connection.
+        """
+        
         raise NotImplementedError()
         
     ##############
     # Properties #
     ##############
     def _get_host(self):
-        """
+        """ Host to connect to.
         """
         return self._host
         
@@ -47,7 +55,7 @@ class ConnectionBase(object):
         self._host = host
 
     def _get_port(self):
-        """
+        """ TCP port to connect to.
         """
         return self._port
         
@@ -55,7 +63,7 @@ class ConnectionBase(object):
         self._port = port
 
     def _get_calling_ae_title(self):
-        """
+        """ Calling (i.e. local) AE title.
         """
         return self._calling_ae_title
         
@@ -63,7 +71,7 @@ class ConnectionBase(object):
         self._calling_ae_title = calling_ae_title
         
     def _get_called_ae_title(self):
-        """
+        """ Called (i.e. remote) AE title.
         """
         return self._called_ae_title
         

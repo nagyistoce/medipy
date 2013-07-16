@@ -29,7 +29,7 @@ class SSHTunnelConnection(ConnectionBase) :
     """
     
     def __init__(self, remote_host, remote_port, calling_ae_title, called_ae_title, 
-                 username, password, connect=False, local_port=None) :
+                 username, password, local_port=None, connect=False) :
         
         if local_port is None :
             # Let the OS pick an available port by binding to port 0
@@ -40,26 +40,22 @@ class SSHTunnelConnection(ConnectionBase) :
         else :
             self._local_port = local_port
 
-        self.connected = False
-
-        ConnectionBase.__init__(self, "localhost", self._local_port, calling_ae_title, called_ae_title)
-      
-        #Properties private attributes
+        #Properties attributes
         self._remote_host=None
         self._remote_port=None
         self._username=None
         self._password=None
+        self._connected = False
         
-        self._set_port(remote_port)
-        self._set_host(remote_host)
+        self._set_remote_host(remote_host)
+        self._set_remote_port(remote_port)
         self._set_password(password)
         self._set_user(username)
 
-        if connect :
-            self.connect()
+        ConnectionBase.__init__(self, "localhost", self._local_port, calling_ae_title, called_ae_title, connect)
 
     def connect(self) :
-        if self.connected==False:
+        if not self.connected:
             pipe = multiprocessing.Pipe()
             self.process = multiprocessing.Process(
                 target=SSHTunnelConnection._start_tunnel, 
@@ -76,31 +72,31 @@ class SSHTunnelConnection(ConnectionBase) :
                 self._shutdown_tunnel()
                 raise exception
             
-            self.connected = True
+            self._connected = True
 
     def disconnect(self):
-        if self.connected == True:
+        if self._connected:
             self._shutdown_tunnel()
 
     ##############
     # Properties #
     ##############
-    def _get_host(self):
+    def _get_remote_host(self):
         return self._remote_host
 
-    def _set_host(self,host):
-        if self.connected == True:
+    def _set_remote_host(self,host):
+        if self.connected:
             self.disconnect()
             self._remote_host = host
             self.connect()
         else :
             self._remote_host = host
 
-    def _get_port(self):
+    def _get_remote_port(self):
         return self._remote_port
 
-    def _set_port(self,port):
-        if self.connected == True:
+    def _set_remote_port(self,port):
+        if self.connected:
             self.disconnect()
             self._remote_port = port
             self.connect()
@@ -111,7 +107,7 @@ class SSHTunnelConnection(ConnectionBase) :
         return self._username
 
     def _set_user(self,user):
-        if self.connected == True:
+        if self.connected:
             self.disconnect()
             self._username = user
             self.connect()
@@ -122,17 +118,21 @@ class SSHTunnelConnection(ConnectionBase) :
         return self._password
 
     def _set_password(self,password):
-        if self.connected == True:
+        if self.connected:
             self.disconnect()
             self._password = password
             self.connect()
         else:
             self._password = password
 
-    host = property(_get_host,_set_host)
-    port = property(_get_port,_set_port)
+    def _get_connected(self):
+        return self._connected
+
+    remote_host = property(_get_remote_host,_set_remote_host)
+    remote_port = property(_get_remote_port,_set_remote_port)
     user = property(_get_user,_set_user)
     password = property(_get_password,_set_password)
+    connected = property(_get_connected)
     
     ############################
     # Tunnel related functions #

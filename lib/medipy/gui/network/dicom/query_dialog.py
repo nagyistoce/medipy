@@ -123,7 +123,7 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
 
-        choice,_ = preferences.get(self._current_connection,None)
+        choice,_ = preferences.get(self._current_connection, [None, None])
 
         list_connections = preferences.get(self._connections, [])
         if list_connections != []:
@@ -131,9 +131,8 @@ class QueryDialog(medipy.gui.base.Panel):
                 self.ui.selected_connection.Append(connection[1].host+' --- '+
                         str(connection[1].port)+' --- '+connection[0])
 
-            if choice :
-                self.ui.selected_connection.SetSelection(int(choice))
-            
+        if choice :
+            self.ui.selected_connection.SetSelection(int(choice))
             self.OnChoice()
 
     def _update_download(self, *args, **kwargs):
@@ -289,6 +288,9 @@ class QueryDialog(medipy.gui.base.Panel):
         list_connections = preferences.get(self._connections,[])
         choice = self.ui.selected_connection.GetCurrentSelection()
         
+        if choice == -1 :
+            return
+        
         preferences.set(self._current_connection,(choice,list_connections[choice]))
 
     def OnPreferences(self,_):       
@@ -312,7 +314,7 @@ class QueryDialog(medipy.gui.base.Panel):
         
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        _,current = preferences.get(self._current_connection,[])
+        _,current = preferences.get(self._current_connection,[None, None])
         connection = current[1]
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
@@ -362,11 +364,11 @@ class QueryDialog(medipy.gui.base.Panel):
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        _,current = preferences.get(self._current_connection,[])
+        _,current = preferences.get(self._current_connection,[None, None])
         connection = current[1]
         retrieve = current[2]
         retrieve_data = current[3]
-
+        
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             #Ask Password to user
             dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
