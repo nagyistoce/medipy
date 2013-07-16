@@ -124,7 +124,7 @@ class QueryDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         self.ui.selected_connection.Clear()
         
-        choice,_ = preferences.get(self._current_connection,None)
+        choice,_ = preferences.get(self._current_connection, [None, None])
 
         list_connections = preferences.get(self._connections, [])
         for connection in list_connections:
@@ -284,6 +284,9 @@ class QueryDialog(medipy.gui.base.Panel):
         list_connections = preferences.get(self._connections,[])
         choice = self.ui.selected_connection.GetCurrentSelection()
         
+        if choice == -1 :
+            return
+        
         preferences.set(self._current_connection,(choice,list_connections[choice]))
 
     def OnPreferences(self,_):       
@@ -307,7 +310,7 @@ class QueryDialog(medipy.gui.base.Panel):
         
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        _,current = preferences.get(self._current_connection,[])
+        _,current = preferences.get(self._current_connection,[None, None])
         connection = current[1]
         
         list_queries={}
@@ -347,12 +350,10 @@ class QueryDialog(medipy.gui.base.Panel):
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        _,current = preferences.get(self._current_connection,[])
+        _,current = preferences.get(self._current_connection,[None, None])
         connection = current[1]
         retrieve = current[2]
         retrieve_data = current[3]
-        
-        print connection, retrieve, retrieve_data
         
         query = self.build_retrieve_query(connection)
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
