@@ -128,7 +128,11 @@ class QueryDialog(medipy.gui.base.Panel):
         list_connections = preferences.get(self._connections, [])
         if list_connections != []:
             for connection in list_connections:
-                self.ui.selected_connection.Append(connection[1].host+' --- '+
+                if isinstance(connection[1],medipy.network.dicom.SSHTunnelConnection):
+                    self.ui.selected_connection.Append(connection[1].remote_host+' --- '+
+                        str(connection[1].remote_port)+' --- '+connection[0])
+                else :
+                    self.ui.selected_connection.Append(connection[1].host+' --- '+
                         str(connection[1].port)+' --- '+connection[0])
 
         if choice :
