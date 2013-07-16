@@ -75,7 +75,7 @@ class SSHTunnelConnection(ConnectionBase) :
             self._connected = True
 
     def disconnect(self):
-        if self._connected:
+        if self.connected:
             self._shutdown_tunnel()
 
     ##############
@@ -187,7 +187,7 @@ class SSHTunnelConnection(ConnectionBase) :
         while(self.process.is_alive()) :
             self.process.terminate()
             time.sleep(0.005)
-        self.connected = False
+        self._connected = False
 
 class Handler(SocketServer.BaseRequestHandler):
     """ Handler forwarding the data between a TCPServer and a Paramiko channel.
