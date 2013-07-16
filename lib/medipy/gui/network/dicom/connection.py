@@ -142,7 +142,7 @@ class Connection(wx.Panel,medipy.base.Observable):
     
     ##############
     # Properties #
-    #############
+    ##############
     
     def _get_connection(self):
         """ Connection object, may be either a simple medipy.network.dicom.Connection
