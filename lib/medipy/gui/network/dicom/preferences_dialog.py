@@ -131,9 +131,9 @@ class PreferencesDialog(medipy.gui.base.Panel):
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         preferences.set(self._connections, self.list_connections[:])
 
-#--------------------
-#   Event handlers
-#--------------------
+    ##################
+    # Event handlers #
+    ##################
            
     def OnAdd(self,_):
         """ Add a new connection set with default parameters
