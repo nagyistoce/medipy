@@ -455,11 +455,9 @@ class QueryDialog(medipy.gui.base.Panel):
         """ Move SCU call to download specified query to desination
             Return a list of DataSets
         """
-        move_query = medipy.io.dicom.DataSet(sop_instance_uid='')
-        for query in retrieve_query:
-            sop_uid = str(query.sop_instance_uid.value)
-            mv_sop = str(move_query.sop_instance_uid.value) + '\\' + sop_uid
-            move_query.__setattr__('sop_instance_uid',mv_sop)
+        move_query = medipy.io.dicom.DataSet(
+            sop_instance_uid="\\".join(
+                x.sop_instance_uid.value for x in retrieve_query))
             
         move = medipy.network.dicom.scu.Move(connection, "patient", "image",
                 destination, move_query)
