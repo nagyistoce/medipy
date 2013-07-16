@@ -132,6 +132,10 @@ class Connection(wx.Panel,medipy.base.Observable):
                 self._connection.user = self.user.GetValue()
             for header in self.headers[2:]:
                 name = self.shortnames[header]
+                # On SSHConnection modify remote_host and remote_port instead
+                if isinstance(self._connection,medipy.network.dicom.SSHTunnelConnection):
+                    if header == "Port" or header == "Hostname":
+                        name = "remote_{0}".format(name)
                 value = self.text[header].GetValue()
                 if name == "port" and value!='':
                     self._connection.__setattr__(name,int(value))
@@ -169,6 +173,10 @@ class Connection(wx.Panel,medipy.base.Observable):
         self.text={}
         for header in self.headers[2:]:
             name=self.shortnames[header]
+            # On SSHConnection retrieve remote_host and remote_port instead
+            if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
+                if header == "Port" or header == "Hostname":
+                    name = "remote_{0}".format(name)
             self.text[header] = wx.TextCtrl(self, value=str(connection.__getattribute__(name)))
             self.text[header].Bind(wx.EVT_TEXT,self.modify)
             if header!="Port":
