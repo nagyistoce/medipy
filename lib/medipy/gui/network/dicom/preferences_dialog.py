@@ -155,6 +155,14 @@ class PreferencesDialog(medipy.gui.base.Panel):
         
         connection = self.list_connections[row][1]
         
+        if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
+            #Ask Password to user
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
+            dlg.ShowModal()
+            connection.password = dlg.GetValue()
+            dlg.Destroy()
+        
+        connection.connect()
         echo = medipy.network.dicom.scu.Echo(connection)
         try:
             echo()
@@ -166,3 +174,4 @@ class PreferencesDialog(medipy.gui.base.Panel):
             dlg = wx.MessageDialog(self, "Parameters seem to be correct.\nYou may be able to work on this connection",'Connection succeeded',wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
+        connection.disconnect()
