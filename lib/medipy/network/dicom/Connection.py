@@ -21,13 +21,12 @@ class Connection(ConnectionBase) :
     """
     
     def __init__(self, host, port, calling_ae_title, called_ae_title, connect=False) :
-        ConnectionBase.__init__(self, host, port, calling_ae_title, called_ae_title)
+        ConnectionBase.__init__(self, host, port, calling_ae_title, called_ae_title, connect)
         
-        if connect :
-            self.connect()
-    
     def connect(self) :
+        # Do nothing
         pass
     
     def disconnect(self) :
+        # Do nothing
         pass
