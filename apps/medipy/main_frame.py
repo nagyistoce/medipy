@@ -578,11 +578,7 @@ class MainFrame(medipy.gui.base.Frame):
 
     def OnDicomQueryRetrieve(self,dummy):
     
-        self.query_dlg = wx.Dialog(self,size=(900,500),style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
-        self.query_panel = medipy.gui.network.dicom.QueryDialog(self.query_dlg)
-        sizer = wx.BoxSizer()
-        sizer.Add(self.query_panel, 1, wx.EXPAND)
-        self.query_dlg.SetSizer(sizer)
+        self.query_dlg = medipy.gui.network.dicom.QueryDialog(self)
         
         self.query_dlg.ShowModal()
         self.query_dlg.Destroy()
