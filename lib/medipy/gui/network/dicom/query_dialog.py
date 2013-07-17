@@ -11,12 +11,13 @@ import wx
 import medipy.gui.base
 import medipy.gui.network.dicom
 import medipy.gui.control
+import medipy.gui.xrc_wrapper
 import medipy.base
 import medipy.io.dicom
 import medipy.network.dicom
 
 
-class QueryDialog(medipy.gui.base.Panel):
+class QueryDialog(medipy.gui.base.Dialog):
 
     _connections = "network/dicom/connections"
     _current_connection = "network/dicom/current_connection"
@@ -28,60 +29,47 @@ class QueryDialog(medipy.gui.base.Panel):
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
-            self.qu_panel = None
+            self.node = None
+            self.patient_based = None
+            self.trial_based = None
+            self.edit_nodes = None
+            self.edit_elements = None
+            self.elements_container = None
             self.search = None
-            self.download = None
-            self.directory = None
-            self.preferences = None
-            self.selected_connection = None
             self.results = None
-            self.radio_dl = None
-            self.radio_view = None
-            self.set_queries = None
+            self.cancel = None
+            self.save = None
+            self.open = None
                         
-            self.controls = ["qu_panel","search","download","directory",
-                "preferences","selected_connection","results",
-                "radio_dl","radio_view","set_queries"]
+            self.controls = ["node", "patient_based", "trial_based",
+                "edit_nodes", "edit_elements", "elements_container",
+                "search", "results", "cancel", "save", "open"]
             
     def __init__(self, parent=None, *args, **kwargs):        
-        self.connection = None
         self.query_ctrl={}      #Dictionary for wx.controls
         
         # User interface
         self.ui = QueryDialog.UI()
         
-        xrc_file = medipy.base.find_resource(os.path.join("resources", "gui", "query_dialog.xrc"))
-        wrappers = []
-        medipy.gui.base.Panel.__init__(self, xrc_file, "Search and Download", 
+        xrc_file = medipy.base.find_resource(os.path.join("resources", "gui", "dicom_qr.xrc"))
+        wrappers = [medipy.gui.xrc_wrapper.TreeListCtrlXmlHandler()]
+        medipy.gui.base.Dialog.__init__(self, xrc_file, "dicom_qr", 
             wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
 
-        #Set Controls
-        self.destination = medipy.gui.control.Directory(self.ui.directory)
-        sizer=self.ui.directory.GetSizer()
-        sizer.Add(self.destination,1,wx.EXPAND|wx.BOTTOM)
-        self.queries = self.ui.qu_panel.GetSizer()
-        
-        self.tree = wx.gizmos.TreeListCtrl(self,name='Patient',
-            style=wx.TR_DEFAULT_STYLE|wx.TR_HIDE_ROOT|wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_EXTENDED|wx.TR_MULTIPLE)
-        treesizer=self.ui.results.GetSizer()
-        treesizer.Add(self.tree,1,wx.EXPAND)
+        self.ui.cancel.SetId(wx.ID_CANCEL)
         
         #Set Events
         self.ui.search.Bind(wx.EVT_BUTTON,self.OnSearch)
-        self.ui.download.Bind(wx.EVT_BUTTON,self.OnDownLoad)
-        self.destination.add_observer("value", self.OnDestination)
-        self.ui.results.Bind(wx.EVT_LIST_ITEM_SELECTED,self.OnResult)
-        self.ui.results.Bind(wx.EVT_LIST_ITEM_DESELECTED,self.OnResult)
-        self.ui.preferences.Bind(wx.EVT_BUTTON,self.OnPreferences)
-        self.ui.selected_connection.Bind(wx.EVT_CHOICE,self.OnChoice)
-        self.ui.radio_dl.Bind(wx.EVT_RADIOBOX,self._update_download)
-        self.ui.set_queries.Bind(wx.EVT_BUTTON,self.OnSetQueries)
+        self.ui.open.Bind(wx.EVT_BUTTON,self.OnOpen)
+        self.ui.save.Bind(wx.EVT_BUTTON,self.OnSave)
+        self.ui.results.Bind(wx.EVT_TREE_SEL_CHANGED,self._update_download)
+        self.ui.edit_nodes.Bind(wx.EVT_BUTTON,self.OnEditNodes)
+        self.ui.node.Bind(wx.EVT_CHOICE,self.OnNode)
+        self.ui.edit_elements.Bind(wx.EVT_BUTTON,self.OnEditElements)
 
         self._update_choice()
         self._update_queries()
         self.update_tree_column()
-        
-        self.Show(True)
     
     ##############
     # GUI Update #
@@ -92,7 +80,8 @@ class QueryDialog(medipy.gui.base.Panel):
         """
         #TODO : Catch exception when an unknown label is entered for name_dictionary
         
-        self.queries.Clear(True)
+        queries = self.ui.elements_container.GetSizer()
+        queries.Clear(True)
         self.query_ctrl = {}
         self.update_tree()
         
@@ -103,25 +92,26 @@ class QueryDialog(medipy.gui.base.Panel):
         
         if self.fields == []:
             self.fields = ['patients_name','series_description','study_description']
-        self.queries.SetRows(len(self.fields))
+        queries.SetRows(len(self.fields))
                     
         for field in self.fields:
             tag = medipy.io.dicom.dictionary.name_dictionary[field]
             label = medipy.io.dicom.dictionary.data_dictionary[tag][2]
-            self.query_ctrl[field] = wx.TextCtrl(self.ui.qu_panel)
-            self.queries.Add(wx.StaticText(self.ui.qu_panel,label=label),
-                    flag=wx.ALIGN_CENTER_VERTICAL)
-            self.queries.Add(self.query_ctrl[field],proportion=1,
+            self.query_ctrl[field] = wx.TextCtrl(self.ui.elements_container)
+            queries.Add(wx.StaticText(self.ui.elements_container,label=label),
+                    flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT)
+            queries.Add(self.query_ctrl[field],proportion=1,
                     flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
             
-        self.queries.Layout()
+        #queries.Layout()
+        self.Fit()
         
     def _update_choice(self, *args):
         """ Connection list update based on stored preferences
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        self.ui.selected_connection.Clear()
+        self.ui.node.Clear()
 
         choice,_ = preferences.get(self._current_connection, [None, None])
 
@@ -129,35 +119,41 @@ class QueryDialog(medipy.gui.base.Panel):
         if list_connections != []:
             for connection in list_connections:
                 if isinstance(connection[1],medipy.network.dicom.SSHTunnelConnection):
-                    self.ui.selected_connection.Append(connection[1].remote_host+' --- '+
+                    self.ui.node.Append(connection[1].remote_host+' --- '+
                         str(connection[1].remote_port)+' --- '+connection[0])
                 else :
-                    self.ui.selected_connection.Append(connection[1].host+' --- '+
+                    self.ui.node.Append(connection[1].host+' --- '+
                         str(connection[1].port)+' --- '+connection[0])
 
-        if choice :
-            self.ui.selected_connection.SetSelection(int(choice))
-            self.OnChoice()
+        if choice!=None :
+            self.ui.node.SetSelection(int(choice))
+            self._update_download()
+            self.OnNode()
 
     def _update_download(self, *args, **kwargs):
-        self.ui.download.Enable(
-            (self.destination.validate() or self.ui.radio_dl.GetSelection()==1)
-            and self.tree.GetSelections()!=-1)
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        _,connection = preferences.get(self._current_connection, [None, None])
+
+        self.ui.open.Enable(self.ui.results.GetSelections()!=[]
+            and connection!=None)
+        self.ui.save.Enable(self.ui.results.GetSelections()!=[]
+            and connection!=None)
 
     def update_tree_column(self):    
-        self.tree.AddColumn("Patient Tree",width=250)
-        self.tree.AddColumn("",width=100)
-        self.tree.AddColumn("",width=100)
-        self.tree.AddColumn("",width=100)
+        self.ui.results.AddColumn("Patient Tree",width=150)
+        self.ui.results.AddColumn("",width=65)
+        self.ui.results.AddColumn("",width=65)
+        self.ui.results.AddColumn("",width=20)
     
     def update_tree(self,datasets=[]):
         """ TreeCtrl update based on selected view (study or patient):
         """
-        self.tree.DeleteAllItems()
-        self.root = self.tree.AddRoot(text='Root')
+        self.ui.results.DeleteAllItems()
+        self.root = self.ui.results.AddRoot(text='Root')
         for dataset in datasets:
             # Build the hierarchy as a list of (level, label, key)
-            if self.ui.radio_view.GetSelection()==0:
+            if self.ui.patient_based.GetValue():
                 hierarchy = [
                     ("patient", dataset.patients_name.value, dataset.patient_id.value),
                     ("study", dataset.study_description.value, dataset.study_instance_uid.value),
@@ -178,13 +174,13 @@ class QueryDialog(medipy.gui.base.Panel):
                 found, child = self.IsChild(item, (level,key))
                 if not found :
                     # Add the node in the tree
-                    child = self.tree.AppendItem(item, label)
-                    self.tree.SetItemPyData(child, (level,key))
+                    child = self.ui.results.AppendItem(item, label)
+                    self.ui.results.SetItemPyData(child, (level,key))
                     self.SetInformations(child, level, dataset)
-                    self.tree.SortChildren(item)
+                    self.ui.results.SortChildren(item)
                 item = child
             
-        self.tree.SortChildren(self.root)
+        self.ui.results.SortChildren(self.root)
     
     ##########################
     # Tree related functions #
@@ -197,51 +193,50 @@ class QueryDialog(medipy.gui.base.Panel):
         if level == "patient":
             date = str(dataset['patients_birth_date'].value)
             date = date[6:]+'/'+date[4:6]+'/'+date[:4]
-            self.tree.SetItemText(item,str(dataset['patients_sex'].value),1)
-            self.tree.SetItemText(item,date,2)
+            self.ui.results.SetItemText(item,str(dataset['patients_sex'].value),1)
+            self.ui.results.SetItemText(item,date,2)
         
         elif level == "study":
             date = str(dataset['study_date'].value)
             date = date[6:]+'/'+date[4:6]+'/'+date[:4]
             hour = str(dataset['study_time'].value)
             hour = hour[:2]+':'+hour[2:4]+':'+hour[4:6]
-            self.tree.SetItemText(item,date,1)
-            self.tree.SetItemText(item,hour,2)
+            self.ui.results.SetItemText(item,date,1)
+            self.ui.results.SetItemText(item,hour,2)
             
             modalities = dataset['modalities_in_study'].value
             if isinstance(modalities, list) :
                 modalities = ", ".join(sorted(modalities))
-            self.tree.SetItemText(item, modalities,3)
+            self.ui.results.SetItemText(item, modalities,3)
         
         elif level == "series":
-            self.tree.SetItemText(item,
+            self.ui.results.SetItemText(item,
                str(dataset['number_of_series_related_instances'].value)+' instances',1)
-            self.tree.SetItemText(item,str(dataset['modality'].value),2)
+            self.ui.results.SetItemText(item,str(dataset['modality'].value),2)
 
     def ItemQuery(self,item):
         """ Build query (dictionary) based on treectrl item
             If item has child, recursive call until not
             Return a list of queries
         """
-        
         queries=[]
-        if self.tree.ItemHasChildren(item):
-            count = self.tree.GetChildrenCount(item,False)
-            child,cookie = self.tree.GetFirstChild(item)
+        if self.ui.results.ItemHasChildren(item):
+            count = self.ui.results.GetChildrenCount(item,False)
+            child,cookie = self.ui.results.GetFirstChild(item)
             for index in range(count):
                 results = self.ItemQuery(child)
                 queries = queries + results
-                child,cookie = self.tree.GetNextChild(item,cookie)
+                child,cookie = self.ui.results.GetNextChild(item,cookie)
         else:
             query={}
-            while self.tree.GetItemText(item)!="Root":
-                level,key = self.tree.GetItemPyData(item)
+            while self.ui.results.GetItemText(item)!="Root":
+                level,key = self.ui.results.GetItemPyData(item)
                 if level!=None:
                     if level == "patient":
                         query["patient_id"]=key
                     else :
                         query["{0}_instance_uid".format(level)]=key
-                item = self.tree.GetItemParent(item)
+                item = self.ui.results.GetItemParent(item)
             queries.append(query)
         return queries
 
@@ -249,15 +244,15 @@ class QueryDialog(medipy.gui.base.Panel):
         """ Search text in item.text of any child in itemid
             Return boolean and focused item if found, None if not
         """
-        item,cookie = self.tree.GetFirstChild(itemid)
-        count = self.tree.GetChildrenCount(itemid,False)
+        item,cookie = self.ui.results.GetFirstChild(itemid)
+        count = self.ui.results.GetChildrenCount(itemid,False)
         found = False
         for index in range(count):
-            if key == self.tree.GetItemPyData(item):
+            if key == self.ui.results.GetItemPyData(item):
                 found = True
                 break
             else:
-                item,cookie = self.tree.GetNextChild(itemid,cookie)
+                item,cookie = self.ui.results.GetNextChild(itemid,cookie)
         if found == False:
             item = None
             
@@ -265,14 +260,8 @@ class QueryDialog(medipy.gui.base.Panel):
             
     ##################
     # Event handlers #
-    ##################
-    def OnResult(self, _):
-        self._update_download()
-    
-    def OnDestination(self, _):
-        self._update_download()
-
-    def OnSetQueries(self,_):
+    ##################  
+    def OnEditElements(self,_):
         self.quer_dlg = wx.Dialog(self,size=(250,300))
         self.quer_panel = medipy.gui.network.dicom.SetQueriesDialog(self.quer_dlg)
         sizer = wx.BoxSizer()
@@ -283,21 +272,21 @@ class QueryDialog(medipy.gui.base.Panel):
         
         self._update_queries()
 
-    def OnChoice(self,*args,**kwargs):
+    def OnNode(self,*args,**kwargs):
         """ Store current connection in preferences (index)
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         
         list_connections = preferences.get(self._connections,[])
-        choice = self.ui.selected_connection.GetCurrentSelection()
+        choice = self.ui.node.GetCurrentSelection()
         
         if choice == -1 :
             return
         
         preferences.set(self._current_connection,(choice,list_connections[choice]))
 
-    def OnPreferences(self,_):       
+    def OnEditNodes(self,_):       
         self.pref_dlg = wx.Dialog(self,size=(1100,200),
                     style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
         self.pref_panel = medipy.gui.network.dicom.PreferencesDialog(self.pref_dlg)
@@ -323,7 +312,7 @@ class QueryDialog(medipy.gui.base.Panel):
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection : {0}'.format(connection.user))
             dlg.ShowModal()
             connection.password = dlg.GetValue()
             dlg.Destroy()
@@ -343,10 +332,8 @@ class QueryDialog(medipy.gui.base.Panel):
             dlg.Destroy()
         else:
             query = medipy.io.dicom.DataSet(**list_queries)
-
             for key in ["patient_id", "study_description","series_description"] :
                 query.setdefault(key,"")
-            
             for key in self.tree_headers:
                 query.setdefault(key,"")
 
@@ -361,10 +348,52 @@ class QueryDialog(medipy.gui.base.Panel):
                 self.update_tree(datasets)
 
         connection.disconnect()
+        self._update_download()
     
-    def OnDownLoad(self,_):
-        """ DownLoad selected object in TreeListCtrl
-            A path should be specified with control.Directory if stored
+    def OnSave(self,_):
+        """ Ask user for a path directory
+            Then save selected objects in query results in a DICOMDIR
+            at this location
+        """
+        #Dialog Directory
+        dlg = wx.DirDialog(self, style=wx.DD_DIR_MUST_EXIST)
+        dlg.ShowModal()
+        path = dlg.GetPath()
+        dlg.Destroy()
+        
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        _,current = preferences.get(self._current_connection,[None, None])
+        connection = current[1]
+        retrieve = current[2]
+        retrieve_data = current[3]
+        
+        if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
+            #Ask Password to user
+            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
+            dlg.ShowModal()
+            connection.password = dlg.GetValue()
+            dlg.Destroy()
+
+        connection.connect()
+        
+        query = self.build_retrieve_query(connection)
+        retrieve_function = getattr(self, "{0}_dl".format(retrieve))
+        datasets = retrieve_function(connection,retrieve_data, query)
+        
+        save = medipy.io.dicom.routing.SaveDataSet(str(path),mode="hierarchical")
+        for dataset in datasets:
+            save(dataset)
+        
+        dlg = wx.MessageDialog(self, "Successful DownLoad",'Success',
+                    wx.OK|wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
+        
+        connection.disconnect()
+        
+    def OnOpen(self,_):
+        """ Open with MediPy selected objects in query results
         """
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
@@ -385,32 +414,26 @@ class QueryDialog(medipy.gui.base.Panel):
         query = self.build_retrieve_query(connection)
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
         datasets = retrieve_function(connection,retrieve_data, query)
-
-        if self.ui.radio_dl.GetSelection()==0:  #Store is selected
-            save = medipy.io.dicom.routing.SaveDataSet(
-                                str(self.destination.value),mode="hierarchical")
-            for dataset in datasets:
-                save(dataset)
-        else:
-            series = medipy.io.dicom.series(datasets)
-            for serie in series:
-                stacks = medipy.io.dicom.split.stacks(serie)
-                # Display dialog
-                if len(stacks)>1:
-                    dialog = medipy.gui.dicom.StacksDialog(self,False)
-                    dialog.set_stacks(stacks)
-                    if dialog.ShowModal() != wx.ID_OK :
-                        stacks=[]
-                    stacks = dialog.get_selected_stacks()
-                images = [medipy.io.dicom.image(stack) for stack in stacks]
-                wx.GetApp().frame.append_image([{"image":image} for image in images])
-                            
+        
+        series = medipy.io.dicom.series(datasets)
+        for serie in series:
+            stacks = medipy.io.dicom.split.stacks(serie)
+            # Display dialog
+            if len(stacks)>1:
+                dialog = medipy.gui.dicom.StacksDialog(self,False)
+                dialog.set_stacks(stacks)
+                if dialog.ShowModal() != wx.ID_OK :
+                    stacks=[]
+                stacks = dialog.get_selected_stacks()
+            images = [medipy.io.dicom.image(stack) for stack in stacks]
+            wx.GetApp().frame.append_image([{"image":image} for image in images])
+                        
         dlg = wx.MessageDialog(self, "Successful DownLoad",'Success',
                     wx.OK|wx.ICON_INFORMATION)
         dlg.ShowModal()
         dlg.Destroy()
         
-        connection.disconnect()    
+        connection.disconnect()
             
     ############
     # Retrieve #
@@ -422,7 +445,7 @@ class QueryDialog(medipy.gui.base.Panel):
         """
         retrieve_query = []
         
-        for item in self.tree.GetSelections():
+        for item in self.ui.results.GetSelections():
             list_queries = self.ItemQuery(item)
             for queries in list_queries:
                 #Query for any useful uid
