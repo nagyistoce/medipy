@@ -39,6 +39,11 @@ class TreeListCtrlXmlHandler(xrc.XmlResourceHandler):
 
         self.AddStyle('wxTR_DONT_ADJUST_MAC', gizmos.TR_DONT_ADJUST_MAC)
         self.AddStyle('wxTR_DEFAULT_STYLE', wx.TR_DEFAULT_STYLE)
+        
+        self.AddStyle('wxTR_HIDE_ROOT', wx.TR_HIDE_ROOT)
+        self.AddStyle('wxTR_FULL_ROW_HIGHLIGHT',wx.TR_FULL_ROW_HIGHLIGHT)
+        self.AddStyle('wxTR_EXTENDED',wx.TR_EXTENDED)
+        self.AddStyle('wxTR_MULTIPLE',wx.TR_MULTIPLE)
 
     def CanHandle(self, node):
         return self.IsOfClass(node, 'TreeListCtrl')
