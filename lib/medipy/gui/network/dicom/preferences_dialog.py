@@ -57,6 +57,8 @@ class PreferencesDialog(medipy.gui.base.Panel):
 
         self.sizer = self.ui.connections.GetSizer()
         
+        self.ui.close.SetId(wx.ID_CANCEL)
+        
         #Set Events
         self.ui.add.Bind(wx.EVT_BUTTON,self.OnAdd)
         self.list_connections.add_observer("any", self._save_connections)
