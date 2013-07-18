@@ -613,10 +613,19 @@ GDCMToPython
     }
     else if(vr == gdcm::VR::DS)
     {
+        // Make sure the string is null-terminated before calling strtod
+        char * buffer = new char[end-begin+2];
+        std::copy(begin, end, buffer);
+        buffer[end-begin+1]='\0';
+        
         char * old_numeric = setlocale(LC_NUMERIC, NULL);
         setlocale(LC_NUMERIC, "C");
         char* endptr;
-        double const d = std::strtod(begin, &endptr);
+        double const d = std::strtod(buffer, &endptr);
+        
+        // Clean-up
+        delete[] buffer;
+        
         setlocale(LC_NUMERIC, old_numeric);
         if(endptr == begin)
         {
@@ -638,10 +647,19 @@ GDCMToPython
     }
     else if(vr == gdcm::VR::IS)
     {
+        // Make sure the string is null-terminated before calling strtol
+        char * buffer = new char[end-begin+2];
+        std::copy(begin, end, buffer);
+        buffer[end-begin+1]='\0';
+        
         char * old_numeric = setlocale(LC_NUMERIC, NULL);
         setlocale(LC_NUMERIC, "C");
         char* endptr;
-        long const d = std::strtol(begin, &endptr, 10);
+        long const d = std::strtol(buffer, &endptr, 10);
+        
+        // Clean-up
+        delete[] buffer;
+        
         setlocale(LC_NUMERIC, old_numeric);
         if(endptr == begin)
         {
