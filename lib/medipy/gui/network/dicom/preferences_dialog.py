@@ -29,9 +29,10 @@ class PreferencesDialog(medipy.gui.base.Panel):
     class UI(medipy.gui.base.UI):
         def __init__(self):
             self.add = None
+            self.close = None
             self.connections = None
                         
-            self.controls = ["add","connections"]
+            self.controls = ["add","close","connections"]
             
     def __init__(self, parent=None, *args, **kwargs):
         
@@ -49,9 +50,9 @@ class PreferencesDialog(medipy.gui.base.Panel):
         # User interface
         self.ui = PreferencesDialog.UI()
         
-        xrc_file = medipy.base.find_resource(os.path.join("resources","gui","preferences_dialog.xrc"))
+        xrc_file = medipy.base.find_resource(os.path.join("resources","gui","connection_preferences.xrc"))
         wrappers = []
-        medipy.gui.base.Panel.__init__(self, xrc_file, "preferences", 
+        medipy.gui.base.Panel.__init__(self, xrc_file, "ConnectionPreferences", 
             wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
 
         self.sizer = self.ui.connections.GetSizer()
@@ -79,38 +80,46 @@ class PreferencesDialog(medipy.gui.base.Panel):
         self.panels=[]
         
         for row,(description,connection,method,option) in enumerate(self.list_connections):
-            hrz_sizer=wx.BoxSizer(wx.HORIZONTAL)
             
             connection_panel = medipy.gui.network.dicom.Connection(self,connection)
             retrieve_panel = medipy.gui.network.dicom.Retrieve(self,method,option)
-            text = wx.TextCtrl(self.ui.connections,value=description)
+            description_text = wx.TextCtrl(self.ui.connections,value=description,name=str(row))
             delete = wx.Button(self.ui.connections,label='Delete',name=str(row))
             validate = wx.Button(self.ui.connections,label='Validate',name=str(row))
             
+            box = wx.StaticBox(self.ui.connections, label=description)
+            sizer = wx.StaticBoxSizer(box,wx.VERTICAL)
+                        
             self.panels.append([connection_panel,
                                 retrieve_panel,
-                                text,
+                                description_text,
                                 delete,
-                                validate])
+                                validate,
+                                box])
             
             connection_panel.add_observer("modify",self._update_connections)
             retrieve_panel.add_observer("modify",self._update_connections)
-            text.Bind(wx.EVT_TEXT,self._update_connections)
+            description_text.Bind(wx.EVT_TEXT,self._update_connections)
             delete.Bind(wx.EVT_BUTTON,self.OnDelete)
             validate.Bind(wx.EVT_BUTTON,self.OnValidate)
             
-            hrz_sizer.AddMany([
-                (connection_panel,5,wx.EXPAND),
-                (text,1,wx.EXPAND),
-                (retrieve_panel,2,wx.EXPAND),
-                (delete,0,wx.EXPAND),
-                (validate,0,wx.EXPAND)])
+            hrz_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            hrz_sizer.AddMany([delete,validate])
             
-            self.sizer.Add(hrz_sizer,0,wx.EXPAND)
+            sizer.AddMany([(description_text,0,wx.EXPAND), (connection_panel,1,wx.EXPAND),
+                retrieve_panel, hrz_sizer])
+            
+            self.sizer.Add(sizer,0,wx.EXPAND)
         
         self.sizer.Layout()
     
-    def _update_connections(self,*args,**kwargs):
+    def _update_label(self,event):
+        source = event.GetEventObject()
+        row = int(source.GetName())
+        description = self.panels[row][2].GetValue()
+        self.panels[row][5].SetLabel(description)
+    
+    def _update_connections(self,event=None,*args,**kwargs):
         """ Update and save connections observable list from ui entry
         """
         
@@ -121,7 +130,8 @@ class PreferencesDialog(medipy.gui.base.Panel):
             self.list_connections[row][3] = item[1].retrieve[1]
 
         self._save_connections()
-    
+        if isinstance(event,wx.Event):
+            self._update_label(event)
     
     def _save_connections(self, *args) :
         """ Save the connections to the preferences. This function can also be

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <resource>
-  <object class="wxPanel" name="preferences">
+  <object class="wxPanel" name="ConnectionPreferences">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
@@ -18,12 +18,15 @@
             <object class="wxButton" name="add">
               <label>Add</label>
             </object>
-            <option>1</option>
-            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="close">
+              <label>Close</label>
+            </object>
           </object>
           <orient>wxHORIZONTAL</orient>
         </object>
-        <option>1</option>
+        <option>0</option>
         <flag>wxALIGN_CENTRE</flag>
       </object>
     </object>
