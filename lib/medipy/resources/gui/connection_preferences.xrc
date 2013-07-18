@@ -2,7 +2,6 @@
 <resource>
   <object class="wxPanel" name="ConnectionPreferences">
     <object class="wxBoxSizer">
-      <orient>wxVERTICAL</orient>
       <object class="sizeritem">
         <object class="wxPanel" name="connections">
           <object class="wxBoxSizer">
@@ -29,6 +28,7 @@
         <option>0</option>
         <flag>wxALIGN_CENTRE</flag>
       </object>
+      <orient>wxVERTICAL</orient>
     </object>
   </object>
 </resource>

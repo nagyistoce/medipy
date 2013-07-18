@@ -11,6 +11,7 @@ import socket
 
 import wx
 import wx.grid
+import wx.lib.scrolledpanel
 
 import medipy.network.dicom
 import medipy.gui.base
@@ -55,7 +56,14 @@ class PreferencesDialog(medipy.gui.base.Panel):
         medipy.gui.base.Panel.__init__(self, xrc_file, "ConnectionPreferences", 
             wrappers, self.ui, self.ui.controls, parent, *args, **kwargs)
 
-        self.sizer = self.ui.connections.GetSizer()
+        sizer = self.ui.connections.GetSizer()
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        self.scroll_panel = wx.lib.scrolledpanel.ScrolledPanel(self.ui.connections)
+        self.scroll_panel.SetupScrolling(scroll_x=False)
+        self.scroll_panel.SetSizer(self.sizer)
+        self.scroll_panel.SetAutoLayout(1)
+        sizer.Add(self.scroll_panel,1,wx.EXPAND)
         
         self.ui.close.SetId(wx.ID_CANCEL)
         
@@ -83,13 +91,13 @@ class PreferencesDialog(medipy.gui.base.Panel):
         
         for row,(description,connection,method,option) in enumerate(self.list_connections):
             
-            connection_panel = medipy.gui.network.dicom.Connection(self,connection)
-            retrieve_panel = medipy.gui.network.dicom.Retrieve(self,method,option)
-            description_text = wx.TextCtrl(self.ui.connections,value=description,name=str(row))
-            delete = wx.Button(self.ui.connections,label='Delete',name=str(row))
-            validate = wx.Button(self.ui.connections,label='Validate',name=str(row))
+            connection_panel = medipy.gui.network.dicom.Connection(self.scroll_panel,connection)
+            retrieve_panel = medipy.gui.network.dicom.Retrieve(self.scroll_panel,method,option)
+            description_text = wx.TextCtrl(self.scroll_panel,value=description,name=str(row))
+            delete = wx.Button(self.scroll_panel,label='Delete',name=str(row))
+            validate = wx.Button(self.scroll_panel,label='Validate',name=str(row))
             
-            box = wx.StaticBox(self.ui.connections, label=description)
+            box = wx.StaticBox(self.scroll_panel, label=description)
             sizer = wx.StaticBoxSizer(box,wx.VERTICAL)
                         
             self.panels.append([connection_panel,
@@ -152,6 +160,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
         """
         connection =medipy.network.dicom.Connection('----',0,socket.gethostname(),'----')
         self.list_connections.append(["----", connection, "get", ' '])
+        self.scroll_panel.FitInside()
 
     def OnDelete(self,event):
         """ Delete selected connection from the connections ObservableList
