@@ -140,6 +140,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
             self.list_connections[row][3] = item[1].retrieve[1]
 
         self._save_connections()
+        self.scroll_panel.FitInside()
         if isinstance(event,wx.Event):
             self._update_label(event)
     
@@ -167,6 +168,7 @@ class PreferencesDialog(medipy.gui.base.Panel):
         """
         source = event.GetEventObject()
         del self.list_connections[int(source.GetName())]
+        self.scroll_panel.FitInside()
 
     def OnValidate(self,event):
         """ Test the selected connection
