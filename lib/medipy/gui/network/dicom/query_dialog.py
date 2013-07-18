@@ -22,6 +22,7 @@ class QueryDialog(medipy.gui.base.Dialog):
     _connections = "network/dicom/connections"
     _current_connection = "network/dicom/current_connection"
     _queries_fields = "network/dicom/queries"
+    _hierarchy = "network/dicom/hierarchy"
   
     tree_headers = ['patients_birth_date','patients_sex',
     'modalities_in_study','study_date',
@@ -66,7 +67,10 @@ class QueryDialog(medipy.gui.base.Dialog):
         self.ui.edit_nodes.Bind(wx.EVT_BUTTON,self.OnEditNodes)
         self.ui.node.Bind(wx.EVT_CHOICE,self.OnNode)
         self.ui.edit_elements.Bind(wx.EVT_BUTTON,self.OnEditElements)
+        self.ui.patient_based.Bind(wx.EVT_RADIOBUTTON,self.OnRadio)
+        self.ui.trial_based.Bind(wx.EVT_RADIOBUTTON,self.OnRadio)
 
+        self._update_hierarchy()
         self._update_choice()
         self._update_queries()
         self.update_tree_column()
@@ -74,6 +78,17 @@ class QueryDialog(medipy.gui.base.Dialog):
     ##############
     # GUI Update #
     ##############
+    
+    def  _update_hierarchy(self):
+        preferences = medipy.gui.base.Preferences(
+                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
+        
+        hierarchy = preferences.get(self._hierarchy,None)
+        
+        if hierarchy!=None:
+            getattr(self.ui, "{0}_based".format(hierarchy)).SetValue(1)
+        else :
+            self.ui.patient_based.SetValue(1)
         
     def _update_queries(self):
         """ Query fields update based on stored queries preferences
@@ -103,7 +118,7 @@ class QueryDialog(medipy.gui.base.Dialog):
             queries.Add(self.query_ctrl[field],proportion=1,
                     flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
             
-        #queries.Layout()
+        queries.Layout()
         self.Fit()
         
     def _update_choice(self, *args):
@@ -287,8 +302,7 @@ class QueryDialog(medipy.gui.base.Dialog):
         preferences.set(self._current_connection,(choice,list_connections[choice]))
 
     def OnEditNodes(self,_):       
-        self.pref_dlg = wx.Dialog(self,size=(1100,200),
-                    style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
+        self.pref_dlg = wx.Dialog(self,style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
         self.pref_panel = medipy.gui.network.dicom.PreferencesDialog(self.pref_dlg)
 
         sizer = wx.BoxSizer()
@@ -434,7 +448,17 @@ class QueryDialog(medipy.gui.base.Dialog):
         dlg.Destroy()
         
         connection.disconnect()
+    
+    def OnRadio(self,_):
+        preferences = medipy.gui.base.Preferences(
+            wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
             
+        if self.ui.patient_based.GetValue():
+            hierarchy = "patient"
+        else :
+            hierarchy = "trial"
+        preferences.set(self._hierarchy, hierarchy)
+    
     ############
     # Retrieve #
     ############
