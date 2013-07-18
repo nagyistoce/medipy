@@ -113,8 +113,8 @@ class QueryDialog(medipy.gui.base.Dialog):
             tag = medipy.io.dicom.dictionary.name_dictionary[field]
             label = medipy.io.dicom.dictionary.data_dictionary[tag][2]
             self.query_ctrl[field] = wx.TextCtrl(self.ui.elements_container)
-            queries.Add(wx.StaticText(self.ui.elements_container,label=label),
-                    flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT)
+            queries.Add(wx.StaticText(self.ui.elements_container,label=label+" :"),
+                    flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
             queries.Add(self.query_ctrl[field],proportion=1,
                     flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
             
