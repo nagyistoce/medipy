@@ -3,6 +3,8 @@ import os
 import shutil
 import subprocess
 
+import medipy.base
+
 import arguments
 
 def submit(job_script, script_arguments, working_directory, 
