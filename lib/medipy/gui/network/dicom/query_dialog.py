@@ -7,6 +7,7 @@
 ##########################################################################
 import os
 import wx
+from math import pow
 
 import medipy.gui.base
 import medipy.gui.network.dicom
@@ -503,11 +504,27 @@ class QueryDialog(medipy.gui.base.Dialog):
         """ Move SCU call to download specified query to desination
             Return a list of DataSets
         """
-        move_query = medipy.io.dicom.DataSet(
-            sop_instance_uid="\\".join(
-                x.sop_instance_uid.value for x in retrieve_query))
-            
-        move = medipy.network.dicom.scu.Move(connection, "patient", "image",
-                destination, move_query)
-        results = move()
+        queries = []
+        move_query = medipy.io.dicom.DataSet(sop_instance_uid="")
+        sop_uids=""
+        for query in retrieve_query:
+            sop_value = str(query.sop_instance_uid.value)
+            if len(sop_uids)+len(sop_value)+1 < pow(2,16):
+                if sop_uids=="":
+                    sop_uids = sop_value
+                else:
+                    sop_uids = sop_uids + "\\" + sop_value
+            else:
+                move_query.__setattr__('sop_instance_uid',sop_uids)
+                queries.append(move_query)
+                sop_uids = sop_value
+                
+        move_query.__setattr__('sop_instance_uid',sop_uids)
+        queries.append(move_query)
+        
+        results=[]
+        for query in queries:    
+            move = medipy.network.dicom.scu.Move(connection, "patient", "image",
+                destination, query)
+            results = results + move()
         return results
