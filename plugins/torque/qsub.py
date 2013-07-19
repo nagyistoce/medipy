@@ -31,6 +31,7 @@ def submit(job_script, script_arguments, working_directory,
     environment = "medipy_torque={0}".format(arguments.encode(script_arguments))
     
     command = _get_command_line(remote_job_script, environment, None,
+                                working_directory,
                                 mail, mail_on_begin, mail_on_abort, mail_on_terminate)
     
     process = subprocess.Popen(command, cwd=working_directory, 
@@ -62,6 +63,7 @@ def submit_array(job_script, scripts_arguments_list, working_directory,
     
     command = _get_command_line(remote_job_script, environment, 
                                 (0, len(scripts_arguments_list)-1),
+                                working_directory,
                                 mail, mail_on_begin, mail_on_abort, mail_on_terminate)
     
     process = subprocess.Popen(command, cwd=working_directory, 
@@ -74,11 +76,12 @@ def submit_array(job_script, scripts_arguments_list, working_directory,
         raise medipy.base.Exception(stderr.strip())
 
 def _get_command_line(script, environment, array,
+                      working_directory,
                       mail, mail_on_begin, mail_on_abort, mail_on_terminate):
     """ Return the qsub command line for the given options.
     """
     
-    command = ["qsub", script, "-v", environment]
+    command = ["qsub", script, "-d", working_directory, "-v", environment]
     if array :
         command.extend(["-t", "{0}-{1}".format(*array)])
     command.extend(_parse_mail_options(mail, mail_on_begin, mail_on_abort, mail_on_terminate))
