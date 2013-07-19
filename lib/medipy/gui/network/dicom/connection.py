@@ -94,7 +94,7 @@ class Connection(wx.Panel,medipy.base.Observable):
         "Hostname" : 'host',"Port" : 'port',"Calling AE" : 'calling_ae_title',
         "Called AE" : 'called_ae_title'}
 
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
         self._set_connection(connection) 
         
@@ -156,17 +156,20 @@ class Connection(wx.Panel,medipy.base.Observable):
     
     def _set_connection(self,connection):
 
+        ssh_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        connection_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         self.checkbox = wx.CheckBox(self)
         self.checkbox.Bind(wx.EVT_CHECKBOX,self.modify)
-        self.sizer.Add(wx.StaticText(self,label='SSH :'),0,wx.ALIGN_CENTER)
-        self.sizer.Add(self.checkbox,0,wx.EXPAND)
+        ssh_sizer.Add(wx.StaticText(self,label='SSH :'),0,wx.ALIGN_CENTER)
+        ssh_sizer.Add(self.checkbox,0,wx.EXPAND)
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             self.checkbox.SetValue(True)
             self.user = wx.TextCtrl(self,value=connection.user)
             self.user.Bind(wx.EVT_TEXT,self.modify)
-            self.sizer.Add(wx.StaticText(self,label='Username :'),0,wx.ALIGN_CENTER)
-            self.sizer.Add(self.user,1,wx.EXPAND)
+            ssh_sizer.Add(wx.StaticText(self,label='Username :'),0,wx.ALIGN_CENTER)
+            ssh_sizer.Add(self.user,1,wx.EXPAND)
         else:
             self.checkbox.SetValue(False)
 
@@ -180,13 +183,14 @@ class Connection(wx.Panel,medipy.base.Observable):
             self.text[header] = wx.TextCtrl(self, value=str(connection.__getattribute__(name)))
             self.text[header].Bind(wx.EVT_TEXT,self.modify)
             if header!="Port":
-                self.sizer.Add(wx.StaticText(self,label=header+' :'),
+                connection_sizer.Add(wx.StaticText(self,label=header+' :'),
                     0,wx.ALIGN_CENTER)
-                self.sizer.Add(self.text[header],1,wx.EXPAND)
+                connection_sizer.Add(self.text[header],1,wx.EXPAND)
             else :
-                self.sizer.Add(wx.StaticText(self,label=':'),0,wx.ALIGN_CENTER)
-                self.sizer.Add(self.text[header],0,wx.EXPAND)
+                connection_sizer.Add(wx.StaticText(self,label=':'),0,wx.ALIGN_CENTER)
+                connection_sizer.Add(self.text[header],1,wx.EXPAND)
 
+        self.sizer.AddMany([(connection_sizer,0,wx.EXPAND),ssh_sizer])
         self._connection = connection
 
     connection = property(_get_connection, _set_connection)

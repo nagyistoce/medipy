@@ -302,7 +302,8 @@ class QueryDialog(medipy.gui.base.Dialog):
         preferences.set(self._current_connection,(choice,list_connections[choice]))
 
     def OnEditNodes(self,_):       
-        self.pref_dlg = wx.Dialog(self,style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
+        self.pref_dlg = wx.Dialog(self, size = (800,600),
+            style=wx.DEFAULT_DIALOG_STYLE|wx.THICK_FRAME)
         self.pref_panel = medipy.gui.network.dicom.PreferencesDialog(self.pref_dlg)
 
         sizer = wx.BoxSizer()
