@@ -9,6 +9,7 @@
 import os
 import subprocess
 import tempfile
+import shutil
 
 import medipy.io.dicom
 
@@ -64,6 +65,8 @@ class Store(SCU):
         # context is correct, even for private SOP classes. The TS associated
         # with the presentation context defaults to Explicit VR Little Endian.
         
+        main_tmpdir = tempfile.mkdtemp()
+        
         contexts={}
         for dataset in self.datasets:
             transfer_syntax = getattr(dataset, "header", {}).get(
@@ -75,6 +78,7 @@ class Store(SCU):
         packages = [keys[i:i+128] for i in range(0, len(keys), 128)]
         datasets = []
         for package in packages :
+            datasets_tmpdir = tempfile.mkdtemp(dir=main_tmpdir)
             syntaxes = set()
             classes = set()
             for ts, class_ in package :
@@ -84,69 +88,47 @@ class Store(SCU):
                 "TransferSyntax{0} = {1}".format(1+index, ts) for index, ts in enumerate(syntaxes))
             classes = "\n".join(
                 "PresentationContext{0} = {1}\\MediPyTS".format(1+index, class_) for index, class_ in enumerate(classes))
-            datasets.extend(contexts[item] for item in package)
+            for item in package:
+                datasets.extend(contexts[item])
         
             config = config_template.format(syntaxes=syntaxes, classes=classes)
             
-            # write
-            f, config_filename = tempfile.mkstemp()
+            # Save config
+            f, config_filename = tempfile.mkstemp(dir=main_tmpdir)
             os.write(f,config)
             os.close(f)
             
-            # save datasets
-            f, dataset_filename = tempfile.mkstemp()
-            os.close(f)
-            medipy.io.dicom.write(datasets, dataset_filename)
+            # Save datasets
+            for dataset in datasets:
+                f, dataset_filename = tempfile.mkstemp(dir=datasets_tmpdir)
+                os.close(f)
+                medipy.io.dicom.write(dataset, dataset_filename)
+            
+            # Call storescu
+            self._build_command(config_filename, datasets_tmpdir)
 
-            print dataset_filename, config_filename
+            # Remove the temporary files
+            shutil.rmtree(datasets_tmpdir)
+            os.unlink(config_filename)
             
-            # call storescu
-            #self._build_command(config_filename, dataset_filename)
-            
-        #~ package={}
-        #~ for key in keys:
-            #~ if len(package.keys()<127):
-                #~ package[key]=contexts[key]
-            #~ else:
-                #~ f, dataset_filename = tempfile.mkstemp()
-                #~ os.close(f)
-                #~ medipy.io.dicom.write(package.values(), dataset_filename)
-                #~ 
-                #~ f, config_filename = tempfile.mkstemp()
-                #~ for transfer_syntax,sop_class_uid in package.keys():
-                    #~ config = config_template.format(
-                        #~ transfer_syntax=transfer_syntax,
-                        #~ sop_class_uid=sop_class_uid)
-                #~ os.write(f, config)
-                #~ os.close(f)
-                #~ 
-                #~ self._build_command(config_filename, dataset_filename)
-                #~ 
-                #~ #Reset
-                #~ package = {}
-                #~ package[key]=contexts[key]
+        shutil.rmtree(main_tmpdir)
         
-    def _build_command(self,config_filename,dataset_filename):
+    def _build_command(self,config_filename,dataset_tmpdir):
         
         command = ["storescu"]
         
         command.extend(["--config-file", config_filename, "MediPyProfile"])
-        
+        command.append("--scan-directories")
         command.extend(["--aetitle", self.connection.calling_ae_title])
         command.extend(["--call", self.connection.called_ae_title])
         
         command.append(self.connection.host)
         command.append(str(self.connection.port))
-        
-        command.append(dataset_filename)
+        command.append(dataset_tmpdir)
         
         process = subprocess.Popen(command, 
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
-        
-        # Remove the temporary files
-        os.unlink(dataset_filename)
-        os.unlink(config_filename)
         
         if process.returncode != 0 :
             raise medipy.base.Exception(stderr)
