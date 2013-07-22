@@ -20,12 +20,12 @@ config_template = r"""
 [[TransferSyntaxes]]
 
 [MediPyTS]
-TransferSyntax1 = {transfer_syntax}
+{syntaxes}
 
 [[PresentationContexts]]
 
 [MediPyContext]
-PresentationContext1 = {sop_class_uid}\MediPyTS
+{classes}
 
 [[Profiles]]
 
@@ -50,27 +50,83 @@ class Store(SCU):
                 store()
     """
     
-    def __init__(self, connection, dataset) :
+    def __init__(self, connection, datasets) :
         SCU.__init__(self, connection)
-        self.dataset = dataset
+        
+        if isinstance(datasets,medipy.io.dicom.DataSet):
+            datasets = [datasets]
+        
+        self.datasets = datasets
     
     def __call__(self) :
-        
-        f, dataset_filename = tempfile.mkstemp()
-        os.close(f)
-        medipy.io.dicom.write(self.dataset, dataset_filename)
-        
+                
         # Generate a custom configuration file to make sure that the presentation
         # context is correct, even for private SOP classes. The TS associated
         # with the presentation context defaults to Explicit VR Little Endian.
-        transfer_syntax = getattr(self.dataset, "header", {}).get(
+        
+        contexts={}
+        for dataset in self.datasets:
+            transfer_syntax = getattr(dataset, "header", {}).get(
             "transfer_syntax_uid", medipy.io.dicom.UI("1.2.840.10008.1.2.1")).value
-        f, config_filename = tempfile.mkstemp()
-        config = config_template.format(
-            transfer_syntax=transfer_syntax,
-            sop_class_uid=self.dataset.sop_class_uid.value)
-        os.write(f, config)
-        os.close(f)
+            sop_class_uid = dataset.sop_class_uid.value
+            contexts.setdefault((transfer_syntax,sop_class_uid),[]).append(dataset)
+        
+        keys = contexts.keys()
+        packages = [keys[i:i+128] for i in range(0, len(keys), 128)]
+        datasets = []
+        for package in packages :
+            syntaxes = set()
+            classes = set()
+            for ts, class_ in package :
+                syntaxes.add(ts)
+                classes.add(class_)
+            syntaxes = "\n".join(
+                "TransferSyntax{0} = {1}".format(1+index, ts) for index, ts in enumerate(syntaxes))
+            classes = "\n".join(
+                "PresentationContext{0} = {1}\\MediPyTS".format(1+index, class_) for index, class_ in enumerate(classes))
+            datasets.extend(contexts[item] for item in package)
+        
+            config = config_template.format(syntaxes=syntaxes, classes=classes)
+            
+            # write
+            f, config_filename = tempfile.mkstemp()
+            os.write(f,config)
+            os.close(f)
+            
+            # save datasets
+            f, dataset_filename = tempfile.mkstemp()
+            os.close(f)
+            medipy.io.dicom.write(datasets, dataset_filename)
+
+            print dataset_filename, config_filename
+            
+            # call storescu
+            #self._build_command(config_filename, dataset_filename)
+            
+        #~ package={}
+        #~ for key in keys:
+            #~ if len(package.keys()<127):
+                #~ package[key]=contexts[key]
+            #~ else:
+                #~ f, dataset_filename = tempfile.mkstemp()
+                #~ os.close(f)
+                #~ medipy.io.dicom.write(package.values(), dataset_filename)
+                #~ 
+                #~ f, config_filename = tempfile.mkstemp()
+                #~ for transfer_syntax,sop_class_uid in package.keys():
+                    #~ config = config_template.format(
+                        #~ transfer_syntax=transfer_syntax,
+                        #~ sop_class_uid=sop_class_uid)
+                #~ os.write(f, config)
+                #~ os.close(f)
+                #~ 
+                #~ self._build_command(config_filename, dataset_filename)
+                #~ 
+                #~ #Reset
+                #~ package = {}
+                #~ package[key]=contexts[key]
+        
+    def _build_command(self,config_filename,dataset_filename):
         
         command = ["storescu"]
         
