@@ -36,6 +36,11 @@ class Retrieve(wx.Panel,medipy.base.Observable):
             Modify retrieve object as specified in gui
             Notify modification to observer (in preferences_dialog)
         """
+        if self.choice[self.choicebox.GetSelection()]=='wado':
+            self.option.SetMaxLength(100)
+        elif self.choice[self.choicebox.GetSelection()]=='move':
+            self.option.SetMaxLength(16)
+        
         if self.choice[self.choicebox.GetSelection()]=='get':
             self.sizer.Clear(True)
             self._set_retrieve(["get",' '])
@@ -66,7 +71,7 @@ class Retrieve(wx.Panel,medipy.base.Observable):
         self.sizer.Add(self.choicebox,0,wx.EXPAND)
         
         if retrieve[0]!='get':
-            self.option = wx.TextCtrl(self,value=retrieve[1])
+            self.option = wx.TextCtrl(self,value=retrieve[1],size=(150,30))
             self.option.Bind(wx.EVT_TEXT,self.modify)
             self.sizer.Add(self.option,1,wx.EXPAND)
 
@@ -182,6 +187,8 @@ class Connection(wx.Panel,medipy.base.Observable):
                     name = "remote_{0}".format(name)
             self.text[header] = wx.TextCtrl(self, value=str(connection.__getattribute__(name)))
             self.text[header].Bind(wx.EVT_TEXT,self.modify)
+            if header == "Calling AE" or header == "Called AE":
+                self.text[header].SetMaxLength(16)
             if header!="Port":
                 connection_sizer.Add(wx.StaticText(self,label=header+' :'),
                     0,wx.ALIGN_CENTER)
