@@ -40,6 +40,13 @@ def display(*args, **kwargs) :
             ]
             
             medipy.gui.image.display(layers=layers)
+        
+        This functions returns the instance of :class:`~medipy.gui.image.Image`
+        that was created. This can be used for example to retrieve the cursor
+        position after the image was closed: ::
+        
+            gui_image = medipy.gui.image.display(layers=layers)
+            print gui_image.cursor_index_position
     """
     
     app = wx.GetApp()
@@ -57,6 +64,7 @@ def display(*args, **kwargs) :
     sizer.SetSizeHints(dialog)
     
     dialog.ShowModal()
+    return gui_image
 
 def get_informations(image):
     """ Return the informations to be displayed on image.
