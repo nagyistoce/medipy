@@ -53,6 +53,11 @@ def streamline(model, step=0.5, minimum_fa=0.2, maximum_angle=numpy.pi/3,
     tractography_filter.SetMaximumAngle(maximum_angle)
     tractography_filter.SetMinimumFA(minimum_fa)
     
+    mask_itk = None
+    if mask :
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+        tractography_filter.SetMask(mask_itk)
+    
     tractography_filter.Update()
 
     fibers = []
