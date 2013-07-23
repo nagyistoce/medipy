@@ -153,17 +153,17 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 {
     VectorType pd;
 
+    // Check if the point is still the the model
+    typename ModelType::IndexType modelIndex;
+    this->m_InputModel->TransformPhysicalPointToIndex(point, modelIndex);
+    if ( ((unsigned int)modelIndex[0]>=(this->m_size[0]-1)) || ((unsigned int)modelIndex[1]>=(this->m_size[1]-1)) || ((unsigned int)modelIndex[2]>=(this->m_size[2]-1)) ||
+         ((unsigned int)modelIndex[0]<=0) || ((unsigned int)modelIndex[1]<=0) || ((unsigned int)modelIndex[2]<=0) ) { stop = true; }
+
     // Check if the point is in the mask
-    if (this->m_Mask.IsNotNull()) {
+    if (not stop && this->m_Mask.IsNotNull()) {
         typename MaskType::IndexType maskIndex;
         this->m_Mask->TransformPhysicalPointToIndex(point, maskIndex);
         if(this->m_Mask->GetPixel(maskIndex)==0) { stop = true; }
-    }
-    else {
-        typename ModelType::IndexType modelIndex;
-        this->m_InputModel->TransformPhysicalPointToIndex(point, modelIndex);
-        if ( ((unsigned int)modelIndex[0]>=(this->m_size[0]-1)) || ((unsigned int)modelIndex[1]>=(this->m_size[1]-1)) || ((unsigned int)modelIndex[2]>=(this->m_size[2]-1)) ||
-             ((unsigned int)modelIndex[0]<=0) || ((unsigned int)modelIndex[1]<=0) || ((unsigned int)modelIndex[2]<=0) ) { stop = true; }
     }
 
     if (!stop) {
