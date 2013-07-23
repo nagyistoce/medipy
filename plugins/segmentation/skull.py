@@ -1,20 +1,21 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import numpy
 
 from medipy.denoising import median_filter
 from medipy.intensity import otsu, binary_threshold
-from medipy.morphology import fill_2d_cavities
+from medipy.morphology import fill_2d_cavities, grayscale_open
 from medipy.segmentation.label import label_connected_components, largest_connected_component
 
 def skull(input):
-    """ Segment the skull, using an algorithm from Medimax
+    """ Segment the skull, using an algorithm from Medimax. This function 
+        assumes an axial-sliced input.
         
         <gui>
             <item name="input" type="Image" label="Input"/>
@@ -25,6 +26,8 @@ def skull(input):
     
     # Three-classes Otsu thresholding
     output = otsu(input, 3)
+    # Remove small isolated components (usually background noise)
+    output = grayscale_open(output, "ball", 1)
     # Binarize image : everything that is non-0 is set to 1
     output = binary_threshold(output, 0, 0, 0, 1)
     # Label image, using a cross-shaped neighborhood
