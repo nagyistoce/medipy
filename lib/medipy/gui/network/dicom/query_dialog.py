@@ -471,9 +471,17 @@ class QueryDialog(medipy.gui.base.Dialog):
             Return a list of DataSets
         """
         datasets_wado = []
-        for query in retrieve_query:
+        progress = wx.ProgressDialog(
+                    title="Retrieving data from server",
+                    message="Downloading data...",
+                    maximum=len(retrieve_query),
+                    parent=self,
+                    style=wx.PD_AUTO_HIDE)
+
+        for index,query in enumerate(retrieve_query):
+            progress.Update(index,"Retrieve object {0} in {1}".format(index,len(retrieve_query)))
             datasets_wado.append(medipy.network.dicom.wado.get(wado_url,query))
-            
+        progress.Destroy()
         return datasets_wado
     
     def move_dl(self,connection,destination,retrieve_query):
