@@ -62,8 +62,8 @@ class QueryDialog(medipy.gui.base.Dialog):
         
         #Set Events
         self.ui.search.Bind(wx.EVT_BUTTON,self.OnSearch)
-        self.ui.open.Bind(wx.EVT_BUTTON,self.OnOpen)
-        self.ui.save.Bind(wx.EVT_BUTTON,self.OnSave)
+        self.ui.open.Bind(wx.EVT_BUTTON,self.OnDownLoad)
+        self.ui.save.Bind(wx.EVT_BUTTON,self.OnDownLoad)
         self.ui.results.Bind(wx.EVT_TREE_SEL_CHANGED,self._update_download)
         self.ui.edit_nodes.Bind(wx.EVT_BUTTON,self.OnEditNodes)
         self.ui.node.Bind(wx.EVT_CHOICE,self.OnNode)
@@ -327,11 +327,7 @@ class QueryDialog(medipy.gui.base.Dialog):
         connection = current[1]
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
-            #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection : {0}'.format(connection.user))
-            dlg.ShowModal()
-            connection.password = dlg.GetValue()
-            dlg.Destroy()
+            self._get_SSHPasswd(connection)
         
         connection.connect()
         
@@ -366,16 +362,19 @@ class QueryDialog(medipy.gui.base.Dialog):
         connection.disconnect()
         self._update_download()
     
-    def OnSave(self,_):
+    def OnDownLoad(self,event):
         """ Ask user for a path directory
             Then save selected objects in query results in a DICOMDIR
             at this location
         """
-        #Dialog Directory
-        dlg = wx.DirDialog(self, style=wx.DD_DIR_MUST_EXIST)
-        dlg.ShowModal()
-        path = dlg.GetPath()
-        dlg.Destroy()
+        source = event.GetEventObject()
+        
+        if source.GetName()== "save":        
+            #Dialog Directory
+            dlg = wx.DirDialog(self, style=wx.DD_DIR_MUST_EXIST)
+            dlg.ShowModal()
+            path = dlg.GetPath()
+            dlg.Destroy()
         
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
@@ -383,23 +382,22 @@ class QueryDialog(medipy.gui.base.Dialog):
         connection = current[1]
         retrieve = current[2]
         retrieve_data = current[3]
-        
+              
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
-            #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
-            dlg.ShowModal()
-            connection.password = dlg.GetValue()
-            dlg.Destroy()
-
+            self._get_SSHPasswd(connection)
+        
         connection.connect()
         
         query = self.build_retrieve_query(connection)
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
         datasets = retrieve_function(connection,retrieve_data, query)
         
-        save = medipy.io.dicom.routing.SaveDataSet(str(path),mode="hierarchical")
-        for dataset in datasets:
-            save(dataset)
+        if source.GetName()== "save": 
+            save = medipy.io.dicom.routing.SaveDataSet(str(path),mode="hierarchical")
+            for dataset in datasets:
+                save(dataset)
+        else :
+            self._open(datasets)
         
         dlg = wx.MessageDialog(self, "Successful DownLoad",'Success',
                     wx.OK|wx.ICON_INFORMATION)
@@ -407,30 +405,15 @@ class QueryDialog(medipy.gui.base.Dialog):
         dlg.Destroy()
         
         connection.disconnect()
-        
-    def OnOpen(self,_):
-        """ Open with MediPy selected objects in query results
-        """
-        preferences = medipy.gui.base.Preferences(
-                wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
-        _,current = preferences.get(self._current_connection,[None, None])
-        connection = current[1]
-        retrieve = current[2]
-        retrieve_data = current[3]
-        
-        if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
-            #Ask Password to user
-            dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
-            dlg.ShowModal()
-            connection.password = dlg.GetValue()
-            dlg.Destroy()
-
-        connection.connect()
-        
-        query = self.build_retrieve_query(connection)
-        retrieve_function = getattr(self, "{0}_dl".format(retrieve))
-        datasets = retrieve_function(connection,retrieve_data, query)
-        
+    
+    def _get_SSHPasswd(self,connection):
+        #Ask Password to user
+        dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
+        dlg.ShowModal()
+        connection.password = dlg.GetValue()
+        dlg.Destroy()
+    
+    def _open(self,datasets):
         series = medipy.io.dicom.series(datasets)
         for serie in series:
             stacks = medipy.io.dicom.split.stacks(serie)
@@ -443,13 +426,6 @@ class QueryDialog(medipy.gui.base.Dialog):
                 stacks = dialog.get_selected_stacks()
             images = [medipy.io.dicom.image(stack) for stack in stacks]
             wx.GetApp().frame.append_image([{"image":image} for image in images])
-                        
-        dlg = wx.MessageDialog(self, "Successful DownLoad",'Success',
-                    wx.OK|wx.ICON_INFORMATION)
-        dlg.ShowModal()
-        dlg.Destroy()
-        
-        connection.disconnect()
     
     def OnRadio(self,_):
         preferences = medipy.gui.base.Preferences(
