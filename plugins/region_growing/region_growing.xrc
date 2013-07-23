@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxPanel" name="root">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Source layer : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxChoice" name="source_layer"/>
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Destination layer : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxChoice" name="destination_layer"/>
+              </object>
+              <object class="spacer">
+                <size>10</size>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Bool" name="new_destination_layer"/>
+                <flag>wxALIGN_CENTRE_VERTICAL</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>(new)</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+          </object>
+          <cols>2</cols>
+          <rows>2</rows>
+          <growablecols>1</growablecols>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxFlexGridSizer">
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Threshold : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Float" name="threshold"/>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="wxChoice" name="threshold_type">
+                  <content>
+                    <item>Above</item>
+                    <item>Below</item>
+                  </content>
+                </object>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Radius : </label>
+            </object>
+            <flag>wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="medipy.gui.control.Float" name="radius"/>
+            <option>1</option>
+          </object>
+          <cols>2</cols>
+          <rows>2</rows>
+          <growablecols>1</growablecols>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      
+      <object class="sizeritem">
+        <object class="wxButton" name="accept">
+          <label>Accept</label>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+    </object>
+  </object>
+</resource>
