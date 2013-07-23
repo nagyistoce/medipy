@@ -78,6 +78,22 @@ class StreamlineTractographyAlgorithm : public TractographyAlgorithm<ModelType, 
 
         itkSetMacro(MinimumFA,float);
         itkGetConstMacro(MinimumFA,float);
+        
+        itkSetMacro(MinimumLength,float);
+        /**
+         * @brief Set the minimum length of the fiber in mm.
+         * 
+         * Any fiber that would be shorter than this length will be set to empty.
+         */
+        itkGetConstMacro(MinimumLength,float);
+        
+        itkSetMacro(MaximumLength,float);
+        /**
+         * @brief Set the maximum length of the fiber in mm.
+         * 
+         * Any fiber that would be longer than this length will be set to empty.
+         */
+        itkGetConstMacro(MaximumLength,float);
 
         itkSetMacro(UseRungeKuttaOrder4,bool);
         itkGetConstMacro(UseRungeKuttaOrder4,bool);
@@ -116,6 +132,10 @@ class StreamlineTractographyAlgorithm : public TractographyAlgorithm<ModelType, 
         float m_MaximumAngle;
         // Minimum FA allowed for propagation.
         float m_MinimumFA;
+        
+        float m_MinimumLength;
+        float m_MaximumLength;
+        
         // Calculator to extract principal direction
         CalculatorType m_Calculator;
 };
