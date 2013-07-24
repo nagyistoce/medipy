@@ -7,7 +7,7 @@
 ##########################################################################
 import os
 import wx
-from math import pow
+from math import pow, ceil
 
 import medipy.gui.base
 import medipy.gui.network.dicom
@@ -491,6 +491,14 @@ class QueryDialog(medipy.gui.base.Dialog):
         queries = []
         move_query = medipy.io.dicom.DataSet(sop_instance_uid="")
         sop_uids=""
+        
+        self.progress = wx.ProgressDialog(
+                    title="Retrieving data from server",
+                    message="Downloading data...",
+                    maximum=100,
+                    parent=self,
+                    style=wx.PD_AUTO_HIDE)
+        
         for query in retrieve_query:
             sop_value = str(query.sop_instance_uid.value)
             if len(sop_uids)+len(sop_value)+1 < pow(2,16):
@@ -510,5 +518,12 @@ class QueryDialog(medipy.gui.base.Dialog):
         for query in queries:    
             move = medipy.network.dicom.scu.Move(connection, "patient", "image",
                 destination, query)
+            move.add_observer("progress",self._update_progress)
             results = results + move()
+        self.progress.Destroy()
         return results
+    
+    def _update_progress(self,event=None,*args,**kwargs):
+        value = ceil(event.value*100)
+        self.progress.Update(value,"Retrieving data : {0}%".format(value))
+        

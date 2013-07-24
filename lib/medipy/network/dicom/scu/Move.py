@@ -11,13 +11,14 @@ import os
 import shutil
 import subprocess
 import tempfile
+import re
 
 import medipy.base
 import medipy.io.dicom
 
 from SCU import SCU
 
-class Move(SCU):
+class Move(SCU, medipy.base.Observable):
     """ The Move SCU retrieves data from a source DICOM node to a destination 
         node. This SCU has four parameters :
         
@@ -46,6 +47,7 @@ class Move(SCU):
                  move_destination=None, query_parameters=None) :
 
         SCU.__init__(self, connection)
+        medipy.base.Observable.__init__(self,["progress"])
         
         self.root = root
         self.query_level = query_level
@@ -60,6 +62,8 @@ class Move(SCU):
 
         #Build the command    
         command = ["movescu"]
+        
+        command.append("-v")
                 
         root_option = { "patient":"-P", "study":"-S" }
         command.append(root_option[self.root])
@@ -84,7 +88,23 @@ class Move(SCU):
         #Subshell : exec cmd
         process = subprocess.Popen(command, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, cwd=temporary_directory)
-        stdout, stderr = process.communicate()
+            
+        stderr = ""
+        # regex
+        received = r"^I: Received Store Request: MsgID (\d+),.*$"
+        #~ completed = r"^.: Completed Suboperations\s: (\d+)$"
+        #~ failed = r"^.: Failed Suboperations\s: (\d+)$"
+        #~ warning = r"^.: Warning Suboperations\s: (\d+)$"
+        
+        while process.poll() is None:
+            line = process.stderr.readline()
+            stderr += line
+            line.strip()
+            match=re.match(received, line)
+            if match :
+                message_id = int(match.group(1))
+                progress = float(message_id)/float(len(self.query_parameters.sop_instance_uid.value.split("\\")))
+                self.notify_observers("progress", value=progress)
 
         if process.returncode != 0:
             raise medipy.base.Exception(stderr)
@@ -102,7 +122,6 @@ class Move(SCU):
         shutil.rmtree(temporary_directory)
             
         return datasets
-
 
     def _create_query_file(self, query, temporary_directory) :
         f, query_file = tempfile.mkstemp(dir=temporary_directory)
