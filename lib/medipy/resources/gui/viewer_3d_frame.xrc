@@ -1,0 +1,711 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxFrame" name="main_frame">
+		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<size>865,759</size>
+		<title>3D Viewer</title>
+		<object class="wxSplitterWindow" name="splitter_window">
+			<style>wxSP_3D</style>
+			<sashpos>367</sashpos>
+			<gravity>0</gravity>
+			<minsize>0</minsize>
+			<orientation>vertical</orientation>
+			<object class="wxPanel" name="left_panel">
+				<style>wxTAB_TRAVERSAL</style>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxSplitterWindow" name="m_splitter4">
+							<style>wxSP_3D</style>
+							<sashpos>0</sashpos>
+							<gravity>0</gravity>
+							<minsize>0</minsize>
+							<orientation>horizontal</orientation>
+							<object class="wxPanel" name="3d_objects_list_panel">
+								<style>wxTAB_TRAVERSAL</style>
+								<object class="wxBoxSizer">
+									<orient>wxVERTICAL</orient>
+									<object class="sizeritem">
+										<option>1</option>
+										<flag>wxALL|wxEXPAND</flag>
+										<border>0</border>
+										<object class="wxCheckListBox" name="objects_check_list_box">
+											<content />
+										</object>
+									</object>
+								</object>
+							</object>
+							<object class="wxPanel" name="object_editor_panel">
+								<style>wxTAB_TRAVERSAL</style>
+								<object class="wxBoxSizer">
+									<orient>wxVERTICAL</orient>
+									<object class="sizeritem">
+										<option>1</option>
+										<flag>wxEXPAND | wxALL</flag>
+										<border>5</border>
+										<object class="wxNotebook" name="m_notebook1">
+											<object class="notebookpage">
+												<label>Display</label>
+												<selected>1</selected>
+												<object class="wxPanel" name="inner_display_panel">
+													<style>wxTAB_TRAVERSAL</style>
+													<object class="wxBoxSizer">
+														<orient>wxVERTICAL</orient>
+														<object class="sizeritem">
+															<option>1</option>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<object class="wx.lib.scrolledpanel.ScrolledPanel" name="inner_display_scrolled_panel" />
+														</object>
+													</object>
+												</object>
+											</object>
+											<object class="notebookpage">
+												<label>Clipping planes</label>
+												<selected>0</selected>
+												<object class="wxPanel" name="inner_clipping_planes_panel">
+													<style>wxTAB_TRAVERSAL</style>
+													<object class="wxBoxSizer">
+														<orient>wxVERTICAL</orient>
+														<object class="sizeritem">
+															<option>1</option>
+															<flag>wxALL|wxEXPAND</flag>
+															<border>5</border>
+															<object class="wx.lib.scrolledpanel.ScrolledPanel" name="inner_clipping_planes_scrolled_panel" />
+														</object>
+													</object>
+												</object>
+											</object>
+											<object class="notebookpage">
+												<label>Transformation</label>
+												<selected>0</selected>
+												<object class="wxPanel" name="transformation_panel">
+													<style>wxTAB_TRAVERSAL</style>
+												</object>
+											</object>
+											<object class="notebookpage">
+												<label>Information</label>
+												<selected>0</selected>
+												<object class="wxPanel" name="information_panel">
+													<style>wxTAB_TRAVERSAL</style>
+													<object class="wxBoxSizer">
+														<orient>wxVERTICAL</orient>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxEXPAND</flag>
+															<border>5</border>
+															<object class="wxBoxSizer">
+																<orient>wxHORIZONTAL</orient>
+																<object class="sizeritem">
+																	<option>0</option>
+																	<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+																	<border>5</border>
+																	<object class="wxStaticText" name="file_name_label">
+																		<label>File name : </label>
+																	</object>
+																</object>
+																<object class="sizeritem">
+																	<option>1</option>
+																	<flag>wxALL</flag>
+																	<border>5</border>
+																	<object class="wxTextCtrl" name="m_textCtrl1">
+																		<style>wxTE_READONLY</style>
+																		<value></value>
+																		<maxlength>0</maxlength>
+																	</object>
+																</object>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxEXPAND</flag>
+															<border>5</border>
+															<object class="wxBoxSizer">
+																<orient>wxHORIZONTAL</orient>
+																<object class="sizeritem">
+																	<option>0</option>
+																	<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+																	<border>5</border>
+																	<object class="wxStaticText" name="m_staticText10">
+																		<label>File type : </label>
+																	</object>
+																</object>
+																<object class="sizeritem">
+																	<option>0</option>
+																	<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+																	<border>5</border>
+																	<object class="wxStaticText" name="file_type_label">
+																		<label></label>
+																	</object>
+																</object>
+															</object>
+														</object>
+													</object>
+												</object>
+											</object>
+										</object>
+									</object>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="wxPanel" name="right_panel">
+				<style>wxTAB_TRAVERSAL</style>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="medipy.gui.viewer_3d.Viewer3D" name="viewer_3d" />
+					</object>
+				</object>
+			</object>
+		</object>
+		<object class="wxMenuBar" name="menu_bar">
+			<label>MyMenuBar</label>
+			<object class="wxMenu" name="file_menu">
+				<label>_File</label>
+				<object class="wxMenuItem" name="open_menu_item">
+					<label>&amp;Open ...\tCtrl+O</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="save_menu_item">
+					<label>&amp;Save ...\tCtrl+S</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="close_menu_item">
+					<label>&amp;Close\tCtrl+W</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="objects_menu">
+				<label>_Objects</label>
+				<object class="wxMenuItem" name="delete_menu_item">
+					<label>&amp;Delete\tWXK_DELETE</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="new_drawing_menu_item">
+					<label>New dra&amp;wing\tCtrl+D</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="view_menu">
+				<label>_View</label>
+				<object class="wxMenuItem" name="view_all_menu_item">
+					<label>View &amp;all\tCtrl+Shift+0</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="cine_3d_menu">
+				<label>_Cine 3D</label>
+				<object class="wxMenuItem" name="animation_menu_item">
+					<label>Animation</label>
+					<help></help>
+				</object>
+				<object class="wxMenuItem" name="save_animation_menu_item">
+					<label>Save animation</label>
+					<help></help>
+				</object>
+			</object>
+		</object>
+		<object class="wxToolBar" name="tool_bar">
+			<style>wxTB_HORIZONTAL</style>
+			<bitmapsize></bitmapsize>
+			<margins></margins>
+			<packing>1</packing>
+			<separation>5</separation>
+			<object class="tool" name="rotate_tool">
+				<label>Rotate camera</label>
+				<tooltip>Rotate camera</tooltip>
+				<longhelp></longhelp>
+				<bitmap>rotate_tool.png</bitmap>
+				<radio>1</radio>
+			</object>
+			<object class="tool" name="pick_tool">
+				<label>Pick object</label>
+				<tooltip>Pick object</tooltip>
+				<longhelp></longhelp>
+				<bitmap>pick_tool.png</bitmap>
+				<radio>1</radio>
+			</object>
+			<object class="tool" name="distance_tool">
+				<label>Measure object</label>
+				<tooltip>Distance measure</tooltip>
+				<longhelp></longhelp>
+				<bitmap>distance_tool.png</bitmap>
+				<radio>1</radio>
+			</object>
+			<object class="separator" />
+		</object>
+	</object>
+	<object class="wxPanel" name="outer_display_panel">
+		<style>wxTAB_TRAVERSAL</style>
+		<size>500,300</size>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxStaticBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<label>Color</label>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>1</option>
+								<flag></flag>
+								<border>5</border>
+								<object class="wxChoice" name="color_type_choice">
+									<selection>0</selection>
+									<content>
+										<item>Color</item>
+										<item>Pseudo-texture</item>
+										<item>Point array</item>
+									 </content>
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="color_label">
+									<label>Color :</label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxButton" name="color_button">
+									<size>20,20</size>
+									<label></label>
+									<default>0</default>
+								</object>
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="opacity_label">
+									<label>Opacity :</label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxSlider" name="opacity_slider">
+									<style>wxSL_HORIZONTAL</style>
+									<size>100,-1</size>
+									<value>50</value>
+									<min>0</min>
+									<max>100</max>
+								</object>
+							</object>
+						</object>
+					</object>
+
+
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="array_name_label">
+									<label>Array name :</label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxComboBox" name="array_name_combobox">
+									<style>wxCB_DROPDOWN|wxCB_READONLY</style>
+								</object>
+							</object>
+						</object>
+					</object>
+
+
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="texture_image_label">
+									<label>Image : </label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="medipy.gui.control.Image" name="texture_image_chooser" />
+							</object>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag></flag>
+						<border>5</border>
+						<object class="wxBoxSizer">
+							<orient>wxHORIZONTAL</orient>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="depth_label">
+									<label>Depth : </label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<option>0</option>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxSlider" name="depth_slider">
+									<style>wxSL_HORIZONTAL</style>
+									<size>100,-1</size>
+									<value>90</value>
+									<min>0</min>
+									<max>100</max>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxStaticBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<label>Representation</label>
+					<object class="sizeritem">
+						<option>1</option>
+						<flag>wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxGridBagSizer">
+							<vgap>0</vgap>
+							<hgap>0</hgap>
+							<growablecols>2</growablecols>
+							<growablerows>2</growablerows>
+							<object class="sizeritem">
+								<cellpos>0,0</cellpos>
+								<cellspan>1,2</cellspan>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxComboBox" name="representation_combobox">
+									<style>wxCB_DROPDOWN|wxCB_READONLY</style>
+									<value>Surface</value>
+									<content>
+										<item>Surface</item>
+										<item>Wireframe</item>
+										<item>Points</item>
+									</content>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<cellpos>1,0</cellpos>
+								<cellspan>1,1</cellspan>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxStaticText" name="points_size_label">
+									<label>Points size : </label>
+								</object>
+							</object>
+							<object class="sizeritem">
+								<cellpos>1,2</cellpos>
+								<cellspan>1,1</cellspan>
+								<flag>wxALL</flag>
+								<border>5</border>
+								<object class="wxSlider" name="points_size_slider">
+									<style>wxSL_HORIZONTAL</style>
+									<size>100,-1</size>
+									<value>1</value>
+									<min>1</min>
+									<max>20</max>
+								</object>
+							</object>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxStaticBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<label>Shading</label>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxComboBox" name="shading_combobox">
+							<style>wxCB_DROPDOWN|wxCB_READONLY</style>
+							<value>Gouraud</value>
+							<content>
+								<item>Flat</item>
+								<item>Gouraud</item>
+								<item>Phong</item>
+							</content>
+						</object>
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+	<object class="wxPanel" name="outer_clipping_planes_panel">
+		<style>wxTAB_TRAVERSAL</style>
+		<size>500,300</size>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxVERTICAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxCheckBox" name="synchronize_checkbox">
+							<label>Synchronize clipping planes</label>
+							<checked>0</checked>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL</flag>
+						<border>5</border>
+						<object class="wxCheckBox" name="inside_out_checkbox">
+							<label>Outside of the clipping planes</label>
+							<checked>0</checked>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxFlexGridSizer">
+					<rows>3</rows>
+					<cols>5</cols>
+					<vgap>0</vgap>
+					<hgap>0</hgap>
+					<growablecols></growablecols>
+					<growablerows></growablerows>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="axial_label">
+							<label>Axial :</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText12">
+							<label>I</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxSlider" name="axial_slider">
+							<style>wxSL_AUTOTICKS|wxSL_HORIZONTAL|wxSL_LABELS</style>
+							<size>100,-1</size>
+							<value>100</value>
+							<min>0</min>
+							<max>200</max>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText13">
+							<label>S</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxChoice" name="axial_choice">
+							<selection>0</selection>
+							<content>
+								<item>Inactive</item>
+								<item>Keep inferior</item>
+								<item>Keep superior</item>
+							</content>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="coronal_label">
+							<label>Coronal :</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText14">
+							<label>P</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxSlider" name="coronal_slider">
+							<style>wxSL_AUTOTICKS|wxSL_HORIZONTAL|wxSL_LABELS</style>
+							<size>100,-1</size>
+							<value>100</value>
+							<min>0</min>
+							<max>200</max>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText15">
+							<label>A</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxChoice" name="coronal_choice">
+							<selection>0</selection>
+							<content>
+								<item>Inactive</item>
+								<item>Keep posterior</item>
+								<item>Keep anterior</item>
+							</content>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="sagittal_label">
+							<label>Sagittal :</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText16">
+							<label>L</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxSlider" name="sagittal_slider">
+							<style>wxSL_AUTOTICKS|wxSL_HORIZONTAL|wxSL_LABELS</style>
+							<size>100,-1</size>
+							<value>100</value>
+							<min>0</min>
+							<max>200</max>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="m_staticText17">
+							<label>R</label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALL|wxEXPAND</flag>
+						<border>5</border>
+						<object class="wxChoice" name="sagittal_choice">
+							<selection>0</selection>
+							<content>
+								<item>Inactive</item>
+								<item>Keep left</item>
+								<item>Keep right</item>
+							</content>
+						</object>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxEXPAND</flag>
+				<border>5</border>
+				<object class="wxBoxSizer">
+					<orient>wxHORIZONTAL</orient>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_TOP|wxALL</flag>
+						<border>5</border>
+						<object class="wxStaticText" name="images_label">
+							<label>Image : </label>
+						</object>
+					</object>
+					<object class="sizeritem">
+						<option>0</option>
+						<flag>wxALIGN_CENTER|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL|wxALIGN_TOP|wxALL</flag>
+						<border>5</border>
+						<object class="medipy.gui.control.Image" name="clipping_image_chooser" />
+					</object>
+				</object>
+			</object>
+		</object>
+	</object>
+</resource>
