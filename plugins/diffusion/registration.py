@@ -75,7 +75,7 @@ def interpolate_field(points,field):
         The resampling is done with scipy.ndimage.
     """
     
-    points_voxel = points.T
+    points_voxel = numpy.transpose(points)
 
     comps = []
     for i in range(3):
