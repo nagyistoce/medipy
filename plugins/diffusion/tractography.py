@@ -36,8 +36,8 @@ def streamline(model, step=0.5, minimum_fa=0.2, maximum_angle=numpy.pi/3,
     """
 
     if seed_spacing is None : 
-        seed_spacing = model.ndim*(2.0,)
-    seeds = _generate_image_sampling(model, seed_spacing, mask)
+        seed_spacing = model.spacing*(2.0,)
+    seeds = _generate_image_sampling(model, seed_spacing/model.spacing, mask)
 
     itk_model = medipy.itk.medipy_image_to_itk_image(model, False)
 
@@ -101,7 +101,7 @@ def create_object_3d(fibers, clusters=None) :
     fusion = vtk.vtkAppendPolyData()
 
     for fiber_index, fiber in enumerate(fibers) :
-        nb_points = fiber.shape[0]
+        nb_points = len(fiber)
         
         if clusters :
             cluster = vtk.vtkFloatArray()
@@ -225,7 +225,7 @@ def skeleton_gui(model, step, minimum_fa, maximum_angle, minimum_length,
     
     return create_object_3d(fibers, clusters)
 
-def _generate_image_sampling(image,step=(1,1,1),mask=None) :
+def _generate_image_sampling(image, step, mask=None) :
     """ Generate seeds in physical space to initialize tractography. ``step`` is
         expressed in continuous index coordinates and in numpy order
     """
@@ -236,16 +236,14 @@ def _generate_image_sampling(image,step=(1,1,1),mask=None) :
     grid = numpy.mgrid[[slice(b,e,s) for b,e,s in zip(begin, end, step)]]
     
     if mask is None :
-        seeds = grid.reshape(3, -1).T
+        seeds = [image.index_to_physical(i) for i in grid.reshape(3, -1).T]
     else :
         seeds = []
-        for seed in grid.reshape(3, -1).T :
-            point = image.index_to_physical(seed)
-            index = tuple(mask.physical_to_index(point).round().astype(int))
-            if mask.is_inside(index) and mask[index] != 0 :
-                seeds.append(seed)
-    
-    seeds = [image.index_to_physical(seed) for seed in seeds]
+        for index_image in grid.reshape(3, -1).T :
+            point_image = image.index_to_physical(index_image)
+            index_mask = tuple(mask.physical_to_index(point_image, True))
+            if mask.is_inside(index_mask) and mask[index_mask] != 0 :
+                seeds.append(point_image)
     
     return seeds
 
