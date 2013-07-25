@@ -166,7 +166,8 @@ def metadata(datasets, skipped_tags="default"):
             
             if key.private :
                 if key.element != 0x0010 :
-                    private_creator = dataset.get((key.group, 0x0010), None)
+                    private_creator = dataset.get(
+                        (key.group, 0x0010), medipy.io.dicom.LO(None))
                     key = (private_creator, key)
                 else :
                     # Private Creator : useless in here, skip it
