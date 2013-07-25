@@ -7,7 +7,7 @@
 ##########################################################################
 import os
 import wx
-from math import pow, ceil
+from math import ceil
 
 import medipy.gui.base
 import medipy.gui.network.dicom
@@ -489,9 +489,10 @@ class QueryDialog(medipy.gui.base.Dialog):
         """ Move SCU call to download specified query to desination
             Return a list of DataSets
         """
-        queries = []
-        move_query = medipy.io.dicom.DataSet(sop_instance_uid="")
-        sop_uids=""
+        
+        # Build a list of UIDs concatenations so that the length can be encoded
+        # with explicit VR (VL is 2 bytes long)
+        uids_lists = [""]
         
         self.progress = wx.ProgressDialog(
                     title="Retrieving data from server",
@@ -501,26 +502,22 @@ class QueryDialog(medipy.gui.base.Dialog):
                     style=wx.PD_AUTO_HIDE)
         
         for query in retrieve_query:
-            sop_value = str(query.sop_instance_uid.value)
-            if len(sop_uids)+len(sop_value)+1 < pow(2,16):
-                if sop_uids=="":
-                    sop_uids = sop_value
+            sop_instance_uid = str(query.sop_instance_uid.value)
+            if len(uids_lists[-1])+len(sop_instance_uid)<2**16:
+                if not uids_lists[-1]:
+                    uids_lists[-1] = sop_instance_uid
                 else:
-                    sop_uids = sop_uids + "\\" + sop_value
+                    uids_lists[-1] = uids_lists[-1] + "\\" + sop_instance_uid
             else:
-                move_query.__setattr__('sop_instance_uid',sop_uids)
-                queries.append(move_query)
-                sop_uids = sop_value
-                
-        move_query.__setattr__('sop_instance_uid',sop_uids)
-        queries.append(move_query)
+                uids_lists.append(sop_instance_uid)
         
-        results=[]
-        for query in queries:    
+        results = []
+        for uids_list in uids_lists:
+            move_query = medipy.io.dicom.DataSet(sop_instance_uid=uids_list)
             move = medipy.network.dicom.scu.Move(connection, "patient", "image",
-                destination, query)
+                destination, move_query)
             move.add_observer("progress",self._update_progress)
-            results = results + move()
+            results.extend(move())
         self.progress.Destroy()
         return results
     
