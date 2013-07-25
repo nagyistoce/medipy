@@ -479,7 +479,8 @@ class QueryDialog(medipy.gui.base.Dialog):
                     style=wx.PD_AUTO_HIDE)
 
         for index,query in enumerate(retrieve_query):
-            progress.Update(index,"Retrieve object {0} in {1}".format(index,len(retrieve_query)))
+            value = ceil(float(index)/float(len(retrieve_query))*100)
+            progress.Update(index,"Retrieving data : {0}%".format(value))
             datasets_wado.append(medipy.network.dicom.wado.get(wado_url,query))
         progress.Destroy()
         return datasets_wado

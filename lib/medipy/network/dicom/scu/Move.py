@@ -92,9 +92,6 @@ class Move(SCU, medipy.base.Observable):
         stderr = ""
         # regex
         received = r"^I: Received Store Request: MsgID (\d+),.*$"
-        #~ completed = r"^.: Completed Suboperations\s: (\d+)$"
-        #~ failed = r"^.: Failed Suboperations\s: (\d+)$"
-        #~ warning = r"^.: Warning Suboperations\s: (\d+)$"
         
         while process.poll() is None:
             line = process.stderr.readline()
