@@ -45,7 +45,9 @@ namespace itk
 template<typename ModelType, typename MaskType>
 StreamlineTractographyAlgorithm<ModelType, MaskType>
 ::StreamlineTractographyAlgorithm() 
-: Superclass(), m_StepSize(0.5), m_UseRungeKuttaOrder4(false), m_MaximumAngle(M_PI/3.0f), m_MinimumFA(0.2)
+: Superclass(), m_StepSize(0.5), m_UseRungeKuttaOrder4(false), 
+  m_MaximumAngle(M_PI/3.0f), m_MinimumFA(0.2), m_MinimumLength(10), 
+  m_MaximumLength(800)
 {
     m_Calculator.SetDimension(3);
 }
@@ -77,6 +79,11 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
     else {
         currentFiber = PropagateSeedRK1(seed,interpolate,adaptor);
     }
+    
+    if(currentFiber.size()*this->m_StepSize < m_MinimumLength)
+    {
+        currentFiber = FiberType();
+    }
 
     return currentFiber;
 }
@@ -106,22 +113,33 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
         VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         // Select the best propagation direction
         d1 = SelectClosestDirectionT2(d,d1,stop);
+        if(points1.size()*this->m_StepSize > this->m_MaximumLength)
+        {
+            stop = true;
+        }
     }
     
     // Track towards the opposite direction
-    stop = false;
+    stop = (points1.size()*this->m_StepSize <= this->m_MaximumLength);
     nextPoint = seed;
     while (!stop) {
         points2.push_back(nextPoint);
         nextPoint = points2.back() + (d2*m_StepSize);
         VectorType d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         d2 = SelectClosestDirectionT2(d,d2,stop);
+        if(points2.size()*this->m_StepSize > this->m_MaximumLength)
+        {
+            stop = true;
+        }
     }
     
     // Concatenate
     std::vector< PointType > points;
-    for (unsigned int i=0; i<points2.size()-1; i++) { points.push_back(points2[points2.size()-1-i]); }
-    for (unsigned int i=0; i<points1.size(); i++) { points.push_back(points1[i]); }
+    if(!points2.empty())
+    {
+        std::copy(points2.rbegin(), points2.rend()-1, std::back_inserter(points));
+    }
+    std::copy(points1.begin(), points1.end(), std::back_inserter(points));
     
     return points;
 }
@@ -135,17 +153,17 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
 {
     VectorType pd;
 
+    // Check if the point is still the the model
+    typename ModelType::IndexType modelIndex;
+    this->m_InputModel->TransformPhysicalPointToIndex(point, modelIndex);
+    if ( ((unsigned int)modelIndex[0]>=(this->m_size[0]-1)) || ((unsigned int)modelIndex[1]>=(this->m_size[1]-1)) || ((unsigned int)modelIndex[2]>=(this->m_size[2]-1)) ||
+         ((unsigned int)modelIndex[0]<=0) || ((unsigned int)modelIndex[1]<=0) || ((unsigned int)modelIndex[2]<=0) ) { stop = true; }
+
     // Check if the point is in the mask
-    if (this->m_Mask.IsNotNull()) {
+    if (not stop && this->m_Mask.IsNotNull()) {
         typename MaskType::IndexType maskIndex;
         this->m_Mask->TransformPhysicalPointToIndex(point, maskIndex);
         if(this->m_Mask->GetPixel(maskIndex)==0) { stop = true; }
-    }
-    else {
-        typename ModelType::IndexType modelIndex;
-        this->m_InputModel->TransformPhysicalPointToIndex(point, modelIndex);
-        if ( ((unsigned int)modelIndex[0]>=(this->m_size[0]-1)) || ((unsigned int)modelIndex[1]>=(this->m_size[1]-1)) || ((unsigned int)modelIndex[2]>=(this->m_size[2]-1)) ||
-             ((unsigned int)modelIndex[0]<=0) || ((unsigned int)modelIndex[1]<=0) || ((unsigned int)modelIndex[2]<=0) ) { stop = true; }
     }
 
     if (!stop) {
@@ -255,11 +273,15 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
         nextPoint = points1.back() + (k1 + k2*2.f + k3*2.f + k4) * stepSize_6;
         d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         d1 = SelectClosestDirectionT2(d,k1,stop);
+        if(points1.size()*this->m_StepSize > this->m_MaximumLength)
+        {
+            stop = true;
+        }
     }
 
 
     // Track towards the opposite direction
-    stop = false;
+    stop = (points1.size()*this->m_StepSize <= this->m_MaximumLength);
     nextPoint = seed;
     while (!stop) {
         // Insert new point 
@@ -286,12 +308,19 @@ StreamlineTractographyAlgorithm<ModelType, MaskType>
         nextPoint = points2.back() + (k1 + k2*2.f + k3*2.f + k4) * stepSize_6;
         d = PropagationDirectionT2At(nextPoint,stop,interpolate,adaptor);
         d2 = SelectClosestDirectionT2(d,k1,stop);
+        if(points2.size()*this->m_StepSize > this->m_MaximumLength)
+        {
+            stop = true;
+        }
     }
 
     // Concatenate
     std::vector< PointType > points;
-    for (unsigned int i=0; i<points2.size()-1; i++) { points.push_back(points2[points2.size()-1-i]); }
-    for (unsigned int i=0; i<points1.size(); i++) { points.push_back(points1[i]); }
+    if(!points2.empty())
+    {
+        std::copy(points2.rbegin(), points2.rend()-1, std::back_inserter(points));
+    }
+    std::copy(points1.begin(), points1.end(), std::back_inserter(points));
 
     return points;
 }
