@@ -36,11 +36,6 @@ class Retrieve(wx.Panel,medipy.base.Observable):
             Modify retrieve object as specified in gui
             Notify modification to observer (in preferences_dialog)
         """
-        if self.choice[self.choicebox.GetSelection()]=='wado':
-            self.option.SetMaxLength(100)
-        elif self.choice[self.choicebox.GetSelection()]=='move':
-            self.option.SetMaxLength(16)
-        
         if self.choice[self.choicebox.GetSelection()]=='get':
             self.sizer.Clear(True)
             self._set_retrieve(["get",' '])
@@ -54,7 +49,11 @@ class Retrieve(wx.Panel,medipy.base.Observable):
             index = self.choicebox.GetSelection()
             self._retrieve = [self.choice[index],self.option.GetValue()]
 
-
+        if self.choice[self.choicebox.GetSelection()]=='wado':
+            self.option.SetMaxLength(100)
+        elif self.choice[self.choicebox.GetSelection()]=='move':
+            self.option.SetMaxLength(16)
+            
         self.notify_observers("modify")
     
     def _get_retrieve(self):
