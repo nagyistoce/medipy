@@ -1,4 +1,3 @@
-
 ##########################################################################
 # MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
@@ -52,25 +51,25 @@ def compute_statistic_section(dt1,dt2,C_hits_1,C_hits_2,nb_plane=1,nbClust=27):
             points2 = np.zeros((0,3))
             weights2 = np.zeros((0,))
             for cnt2 in range(cnt1-shift_plane,cnt1+nb_plane):
-	            pop1_tmp = []
-	            for point in population1[cnt2]:
-		            k = (point<dim1).all()
-		            if k:
-			            pop1_tmp.append( point )
-	            if pop1_tmp!=[]:
-		            pop1_tmp = np.asarray( pop1_tmp )
-		            points1 = np.concatenate( (points1,pop1_tmp) )
-		            weights1 = np.concatenate( (weights1,np.repeat(np.abs(cnt2-cnt1),pop1_tmp.shape[0])) )
+                pop1_tmp = []
+                for point in population1[cnt2]:
+                    k = (point<dim1).all()
+                    if k:
+                        pop1_tmp.append( point )
+                if pop1_tmp!=[]:
+                    pop1_tmp = np.asarray( pop1_tmp )
+                    points1 = np.concatenate( (points1,pop1_tmp) )
+                    weights1 = np.concatenate( (weights1,np.repeat(np.abs(cnt2-cnt1),pop1_tmp.shape[0])) )
 
-	            pop2_tmp = []
-	            for point in population2[cnt2]:
-		            k = (point<dim2).all()
-		            if k:
-			            pop2_tmp.append( point )
-	            if pop2_tmp!=[]:
-		            pop2_tmp = np.asarray( pop2_tmp )
-		            points2 = np.concatenate( (points2,pop2_tmp) )
-		            weights2 = np.concatenate( (weights2,np.repeat(np.abs(cnt2-cnt1),pop2_tmp.shape[0])) )
+                pop2_tmp = []
+                for point in population2[cnt2]:
+                    k = (point<dim2).all()
+                    if k:
+                        pop2_tmp.append( point )
+                if pop2_tmp!=[]:
+                    pop2_tmp = np.asarray( pop2_tmp )
+                    points2 = np.concatenate( (points2,pop2_tmp) )
+                    weights2 = np.concatenate( (weights2,np.repeat(np.abs(cnt2-cnt1),pop2_tmp.shape[0])) )
 
             # reduce data set
             if points1.shape[0]>0:
@@ -84,13 +83,13 @@ def compute_statistic_section(dt1,dt2,C_hits_1,C_hits_2,nb_plane=1,nbClust=27):
             N1 = float(points1.shape[0])
             N2 = float(points2.shape[0])
             if N1>=nbClust and N2>=nbClust:
-	            N1 = float(nbClust)
-	            points1 = points1[:nbClust]
-	            N2 = float(nbClust)
-	            points2 = points2[:nbClust]
+                N1 = float(nbClust)
+                points1 = points1[:nbClust]
+                N2 = float(nbClust)
+                points2 = points2[:nbClust]
             else:
-	            N1 = 1.
-	            N2 = 1.
+                N1 = 1.
+                N2 = 1.
 
             N = N1
             if N==nbClust:
@@ -108,29 +107,29 @@ def compute_statistic_section(dt1,dt2,C_hits_1,C_hits_2,nb_plane=1,nbClust=27):
 		            t2.append( dt2[int(tmp[0]),int(tmp[1]),int(tmp[2])] )
 	            t2 = np.asarray(t2).T
 
-	            # compute parameters
-	            m1 = np.mean(t1,1)
-	            m2 = np.mean(t2,1)
-	            d1 = t1 - np.reshape( np.repeat(m1,N1),(6,N1) )
-	            d2 = t2 - np.reshape( np.repeat(m2,N2),(6,N2) )
-	            s1 = np.sum( np.sum(d1[:3,:]**2,0) + 2*np.sum(d1[3:,:]**2,0),0 )
-	            s2 = np.sum( np.sum(d2[:3,:]**2,0) + 2*np.sum(d2[3:,:]**2,0),0 )
-	            s1 = np.sqrt( s1/(6*(N1-1)) )
-	            s2 = np.sqrt( s2/(6*(N2-1)) )
+                # compute parameters
+                m1 = np.mean(t1,1)
+                m2 = np.mean(t2,1)
+                d1 = t1 - np.reshape( np.repeat(m1,N1),(6,N1) )
+                d2 = t2 - np.reshape( np.repeat(m2,N2),(6,N2) )
+                s1 = np.sum( np.sum(d1[:3,:]**2,0) + 2*np.sum(d1[3:,:]**2,0),0 )
+                s2 = np.sum( np.sum(d2[:3,:]**2,0) + 2*np.sum(d2[3:,:]**2,0),0 )
+                s1 = np.sqrt( s1/(6*(N1-1)) )
+                s2 = np.sqrt( s2/(6*(N2-1)) )
 
-	            # statistic
-	            m1_33 = np.array([[m1[0],m1[3],m1[4]],[m1[5],m1[1],m1[3]],[m1[4],m1[5],m1[2]]])
-	            m2_33 = np.array([[m2[0],m2[3],m2[4]],[m2[5],m2[1],m2[3]],[m2[4],m2[5],m2[2]]])
-	            L1,V1 = np.linalg.eigh(m1_33)
-	            L2,V2 = np.linalg.eigh(m2_33)
-	            stat = np.sum( (L1 - L2)**2 )
-	            s = 0.5 * ( s1**2+s2**2 )
-	            if s!=0 and (N-1)>0:
-		            stat = ((N-1.)*stat)/(6.*s)
-	            else:
-		            stat = 0.
+                # statistic
+                m1_33 = np.array([[m1[0],m1[3],m1[4]],[m1[5],m1[1],m1[3]],[m1[4],m1[5],m1[2]]])
+                m2_33 = np.array([[m2[0],m2[3],m2[4]],[m2[5],m2[1],m2[3]],[m2[4],m2[5],m2[2]]])
+                L1,V1 = np.linalg.eigh(m1_33)
+                L2,V2 = np.linalg.eigh(m2_33)
+                stat = np.sum( (L1 - L2)**2 )
+                s = 0.5 * ( s1**2+s2**2 )
+                if s!=0 and (N-1)>0:
+                    stat = ((N-1.)*stat)/(6.*s)
+                else:
+                    stat = 0.
             else:
-	            stat = 0.
+                stat = 0.
 
             # normalize stat
             df1 = 3.
@@ -203,10 +202,10 @@ def compute_statistic_bundle(dt1,dt2,C_hits_1,C_hits_2,d_thr=4.):
 		            if (point<dim).all():
 			            pop2_tmp.append( dt2[point[0],point[1],point[2]] )
 
-	            pop1_tmp = np.asarray(pop1_tmp).T
-	            pop2_tmp = np.asarray(pop2_tmp).T
-	            skel1.append( np.mean(pop1_tmp,1) )
-	            skel2.append( np.mean(pop2_tmp,1) )
+                pop1_tmp = np.asarray(pop1_tmp).T
+                pop2_tmp = np.asarray(pop2_tmp).T
+                skel1.append( np.mean(pop1_tmp,1) )
+                skel2.append( np.mean(pop2_tmp,1) )
 
         if kk:
             t1 = np.asarray(skel1).T
@@ -228,9 +227,9 @@ def compute_statistic_bundle(dt1,dt2,C_hits_1,C_hits_2,d_thr=4.):
             stat = np.sum( (L1 - L2)**2 )
             s = s**2
             if s!=0 and (N-1)>0:
-	            stat = ((float(N)-1.)*stat)/(3*s)
+                stat = ((float(N)-1.)*stat)/(3*s)
             else:
-	            stat = 0.
+                stat = 0.
         else:
             stat = 0.
 
@@ -294,18 +293,18 @@ def bundle_cross_sections_voxel(hits,spacing,cutoff,pv_thr) :
 
     N_hits = {}
     for cnt,key in enumerate(hits.keys()) :
-	    sys.stdout.write("\riteration= %d / %d" %(cnt,len(hits.keys())))
-	    sys.stdout.flush()
+        sys.stdout.write("\riteration= %d / %d" %(cnt,len(hits.keys())))
+        sys.stdout.flush()
 
-	    c_hits = hits[key]['indices']
-	    skel = hits[key]['skel']
-	    new_hits = []
+        c_hits = hits[key]['indices']
+        skel = hits[key]['skel']
+        new_hits = []
 
-	    for hit,center in zip(c_hits,skel) :
+        for hit,center in zip(c_hits,skel) :
             # generate voxel neighborhood
-		    d = np.sqrt( np.sum( (hit-center)**2,1 ) )
-		    hit = hit[d<cutoff]
-		    c = cluster_voxel(hit,spacing)
+            d = np.sqrt( np.sum( (hit-center)**2,1 ) )
+            hit = hit[d<cutoff]
+            c = cluster_voxel(hit,model)
 
 		    # remove partial volume effect voxels based on histogram
 		    hist = np.zeros((c.shape[0],),dtype=int)
@@ -319,7 +318,7 @@ def bundle_cross_sections_voxel(hits,spacing,cutoff,pv_thr) :
 		    thr = np.floor(float(hist.min()) + float(dynamic)*(1.0-pv_thr))
 		    new_hits.append( c[hist>=thr] )
 
-	    N_hits[key]={'indices':new_hits,'skel':skel}
+        N_hits[key]={'indices':new_hits,'skel':skel}
 
     return N_hits
 
@@ -415,7 +414,7 @@ def cut_bundle_single(hits,skel):
     Nhits = len(hits)
     if Nskel!=Nhits :
         raise IOError('shape mismatched')
-	
+    
     hits_single = []
     for hit,ref in zip(hits,sk) :
         # L2 intersection point distances to skeleton
@@ -423,7 +422,7 @@ def cut_bundle_single(hits,skel):
         n = np.where(dt==0)
         d = np.sqrt(dt)
         d[n] = 0
-	
+    
         # find duplicate
         C = {}
         Npoints = hit.shape[0]
@@ -446,9 +445,9 @@ def cut_bundle_single(hits,skel):
         hit_single.append(tmp)
         for c in C.keys():
             hit_single.append(hit[C[c]['a_min']])
-		
+        
         hits_single.append(np.asarray(hit_single))
-	
+    
     return hits_single
 
 
