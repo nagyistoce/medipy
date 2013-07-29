@@ -133,7 +133,7 @@ def least_squares(limages, accu="First"):
     return tensors
     
 
-def weighted_least_squares(images, mask=None, nb_iter=None):
+def weighted_least_squares(images, mask=None, nb_iter=1):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
         in the list) and a set of float diffusion weighted images (on shell, 
