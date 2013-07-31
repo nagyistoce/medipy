@@ -7,19 +7,16 @@
 ##########################################################################
 
 import wx
-import os
 
-import medipy.network.dicom
-import medipy.io.dicom
-import medipy.gui.base
 import medipy.base
-
-    ########################
-    # Retrieve Panel Class #
-    ########################
+import medipy.gui.base
+import medipy.network.dicom
 
 class Retrieve(wx.Panel,medipy.base.Observable):
-    def __init__(self, parent=None, retrieve_by="get", retrieve_option='',
+    """ Panel displaying the retrieve options associated with a DICOM connection.
+    """
+    
+    def __init__(self, parent, retrieve_by="get", retrieve_option='',
                     *args,**kwargs):
         wx.Panel.__init__(self,parent,*args,**kwargs)
         medipy.base.Observable.__init__(self,["modify"])
@@ -27,34 +24,32 @@ class Retrieve(wx.Panel,medipy.base.Observable):
         #retrieve = [retrieve_by,retrieve_option] such as [wado,url_wado]
         self._retrieve=[]
         self.choice = ["wado","move","get"]
+
+        # Widgets
+        self.choicebox = wx.Choice(self, choices=self.choice)
+        self.option = wx.TextCtrl(self, size=(150,30))
+        
+        # Layout
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.choicebox,0,wx.EXPAND)
+        self.sizer.Add(self.option,1,wx.EXPAND)
         self.SetSizer(self.sizer)
-        self._set_retrieve([retrieve_by,retrieve_option])
+        
+        # Events
+        self.choicebox.Bind(wx.EVT_CHOICE,self.modify)
+        self.option.Bind(wx.EVT_TEXT,self.modify)
+        
+        # Initialize GUI
+        self.retrieve = [retrieve_by,retrieve_option]
     
     def modify(self,event):
         """ Event handler
             Modify retrieve object as specified in gui
             Notify modification to observer (in preferences_dialog)
         """
-        if self.choice[self.choicebox.GetSelection()]=='wado':
-            self.option.SetMaxLength(100)
-        elif self.choice[self.choicebox.GetSelection()]=='move':
-            self.option.SetMaxLength(16)
         
-        if self.choice[self.choicebox.GetSelection()]=='get':
-            self.sizer.Clear(True)
-            self._set_retrieve(["get",' '])
-            self.sizer.Layout()
-        elif self._retrieve[1]==' ':
-            index = self.choicebox.GetSelection()
-            self.sizer.Clear(True)
-            self._set_retrieve([self.choice[index],'option'])
-            self.sizer.Layout()
-        else:
-            index = self.choicebox.GetSelection()
-            self._retrieve = [self.choice[index],self.option.GetValue()]
-
-
+        method = self.choice[self.choicebox.GetSelection()]
+        self.retrieve = (method, self.option.GetValue())
         self.notify_observers("modify")
     
     def _get_retrieve(self):
@@ -65,26 +60,22 @@ class Retrieve(wx.Panel,medipy.base.Observable):
         return self._retrieve
 
     def _set_retrieve(self,retrieve):
-        self.choicebox = wx.Choice(self,choices=self.choice)
         self.choicebox.SetSelection(self.choice.index(retrieve[0]))
-        self.choicebox.Bind(wx.EVT_CHOICE,self.modify)
-        self.sizer.Add(self.choicebox,0,wx.EXPAND)
-        
-        if retrieve[0]!='get':
-            self.option = wx.TextCtrl(self,value=retrieve[1],size=(150,30))
-            self.option.Bind(wx.EVT_TEXT,self.modify)
-            self.sizer.Add(self.option,1,wx.EXPAND)
-
         self._retrieve = retrieve
-
+        
+        self.option.ChangeValue(retrieve[1])
+        self.option.Show(retrieve[0] != "get")
+        if retrieve[0] == "wado":
+            self.option.SetMaxLength(100)
+        elif retrieve[0] == "move":
+            self.option.SetMaxLength(16)
+        
     retrieve = property(_get_retrieve,_set_retrieve)
 
-    ##########################
-    # Connection Panel Class #
-    ##########################
-
 class Connection(wx.Panel,medipy.base.Observable):
-   
+    """ GUI representation of a DICOM connection
+    """
+    
     def __init__(self,parent=None,connection=None,*args,**kwargs):
 
         wx.Panel.__init__(self,parent,*args,**kwargs)
