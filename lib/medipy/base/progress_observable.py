@@ -12,7 +12,8 @@ def progress_observable(f):
     """ Decorator allowing observers to report the progress of a function. The 
         observer must be a function taking a single argument: the progress, 
         a number between 0 (processing has not yet begun) and 1 (processing is 
-        done). ::
+        done). The observer *should be removed* after use to avoid multiple
+        calls. ::
         
             import itk
 
@@ -37,6 +38,8 @@ def progress_observable(f):
 
             image = medipy.io.load("image.nii.gz")
             filtered = median(image, 1)
+            
+            median.remove_progress_observer(reporter)
     """
     
     def progress(value):
@@ -47,9 +50,16 @@ def progress_observable(f):
         def wrapper(event):
             observer(event.progress)
         f._observable.add_observer("progress", wrapper)
+        f._observers[observer] = wrapper
+    
+    def remove_progress_observer(observer):
+        f._observable.remove_observer("progress", f._observers[observer])
+        del f._observers[observer]
     
     f._observable = medipy.base.Observable(["progress"])
+    f._observers = {}
     f.progress = progress
     f.add_progress_observer = add_progress_observer
+    f.remove_progress_observer = remove_progress_observer
     
     return f
