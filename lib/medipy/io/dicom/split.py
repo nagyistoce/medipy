@@ -82,7 +82,7 @@ def stacks_dictionary(datasets):
         used to form the stacks.
     """
     
-    def orientation_comparator(o1, o2):
+    def orientation_comparator(o1, o2, epsilon=0.05):
         """ Compare two values of Image Orientation Patient.
         """
         
@@ -136,6 +136,15 @@ def stacks_dictionary(datasets):
             o2 = key[Tag(0x0020,0x0037)]
             if orientation_comparator(o1, o2) :
                 dataset_key[Tag(0x0020,0x0037)] = o2
+                break
+        
+        # If a close value of Image Orientation Patient exists, use it
+        o1 = dataset_key[Tag(0x0018,0x9089)] #values[0]
+        for key in dictionary.keys() :
+            key = dict(key)
+            o2 = key[Tag(0x0018,0x9089)]
+            if orientation_comparator(o1, o2, 1e-4) :
+                dataset_key[Tag(0x0018,0x9089)] = o2
                 break
         
         dictionary.setdefault(tuple(dataset_key.items()), []).append(dataset)
