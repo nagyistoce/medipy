@@ -69,6 +69,9 @@ class DataSetList(wx.ListCtrl) :
     def _add_dataset(self, dataset, indent=""):
         
         for tag in sorted(dataset.keys()):
+            if tag == 0x52009230 :
+                # Per-frame functional groups sequence. This is processed in update_ui
+                continue
             value = dataset[tag]
             vr = value.__class__.__name__
             value = value.value
