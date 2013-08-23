@@ -1,7 +1,17 @@
-from Echo import Echo
-from Find import Find
 from Move import Move
-from SCU import SCU
-from Store import Store
+from scu import Echo, Get, Find, SCU
 
-__all__ = ["Echo", "Find", "Move", "SCU", "Store"]
+#: Query keys for each level.
+keys = {
+    "patient" : {
+        "patient" : [(0x0010,0x0020)], # Patient ID 
+        "study" : [(0x0020,0x000d)], # Study Instance UID
+        "series" : [(0x0020,0x000e)], # Series Instance UID
+        "image" : [(0x0008,0x0018)], # SOP Instance UID 
+    },
+    "study" : {
+        "study" : [(0x0020,0x000d)], # Study Instance UID
+        "series" : [(0x0020,0x000e)], # Series Instance UID
+        "image" : [(0x0008,0x0018)], # SOP Instance UID
+    }
+}

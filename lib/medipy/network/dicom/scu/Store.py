@@ -13,7 +13,7 @@ import shutil
 
 import medipy.io.dicom
 
-from SCU import SCU
+from scu import SCU
 
 # Configuration file template for DCMTK Store SCU.
 # Parameters: transfer_syntax and sop_class_uid

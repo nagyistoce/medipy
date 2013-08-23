@@ -16,7 +16,7 @@ import re
 import medipy.base
 import medipy.io.dicom
 
-from SCU import SCU
+from scu import SCU
 
 class Move(SCU, medipy.base.Observable):
     """ The Move SCU retrieves data from a source DICOM node to a destination 
@@ -88,7 +88,7 @@ class Move(SCU, medipy.base.Observable):
         #Subshell : exec cmd
         process = subprocess.Popen(command, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, cwd=temporary_directory)
-            
+
         stderr = ""
         # regex
         received = r"^I: Received Store Request: MsgID (\d+),.*$"

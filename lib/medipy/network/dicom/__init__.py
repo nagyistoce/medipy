@@ -1,4 +1,5 @@
 from Connection import Connection
+from connection_base import ConnectionBase
 import image_io
 import query
 import scu
