@@ -14,8 +14,8 @@ class PropertySynchronized(Observable) :
     """ A PropertySynchronized object will replicate any event to a child.
         This class expects the following formalism :
             
-            * each value to be synchronized is a property
-            * each property generate an event bearing its name
+        * each value to be synchronized is a property
+        * each property generate an event bearing its name
         
         >>> class Image(PropertySynchronized) :
         ...     def __init__(self, position=None, zoom=None) :
@@ -42,16 +42,19 @@ class PropertySynchronized(Observable) :
         >>> image2 = Image("nowhere", 0.5)
         
         Upon creation, the images are not synchronized
+        
         >>> image1.position = "north_pole"
         >>> image2.position
         'nowhere'
         
         Define each image to be the child of the other : image1 will propagate
         events to image2, and vice versa. No infinite loop will occur
+        
         >>> image1.append_child(image2)
         >>> image2.append_child(image1)
         
         The position and zoom properties are now synchronized.
+        
         >>> image1.position = "here"
         >>> image2.position
         'here'
@@ -60,6 +63,7 @@ class PropertySynchronized(Observable) :
         1.0
         
         An event can be de-synchronized and the re-synchronized
+        
         >>> image1.synchronize_on_event["position"] = False
         >>> image1.position = "away"
         >>> image2.position
@@ -71,6 +75,7 @@ class PropertySynchronized(Observable) :
         
         It is possible to deactivate all synchronization events and 
         reactivate them all :
+        
         >>> image1.synchronize_on_no_event()
         >>> image1.zoom = 0.5
         >>> image2.zoom

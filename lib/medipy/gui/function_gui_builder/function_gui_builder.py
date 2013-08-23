@@ -124,48 +124,48 @@ class FunctionGUIBuilder(Observable):
         if worker_thread.exception :
             wx.MessageBox("Could not run function : {0}".format(worker_thread.exception),
                           "Could not run function")
-        
-        # Update controls and application
-        for parameter in self._parameters :
-            if parameter.get("role", "") not in ["return", "output"] :
-                # Parameter has not been modified
-                continue 
-            else :
-                name = parameter["name"]
-                value = namespace[name]
-                control = self._controls[name]
-                
-                # Special case for Image and Object3D
-                if parameter["type"] == "Image" :
-                    if control.output_checked :
-                        self.notify_observers("new_image", image=value)
-                    else :
-                        self.notify_observers("replace_image", 
-                            old=control.value, new=value)
-                elif parameter["type"] == "Object3D" :
-                    if control.output_checked :
-                        viewer = Viewer3DFrame(parent=None, objects_3d = ObservableList())
-                        viewer.Show()
-                        # TODO
-                        # self.notify_observers("new_viewer_3d", viewer=viewer)
-                        wx.GetApp().append_viewer_3d(viewer)
-                        control.value = self._viewer_3ds[-1]
-                    viewer_3d = control.value 
-                    viewer_3d.objects_3d.append(value)
-                    # If object has an associated image, set the GUI image
-                    image = value.image
-                    if image is not None :
-                        #self.notify_observers("set_image_to_object_3d", image=XXX, object_3d=YYY)
-                        index = wx.GetApp().images.index(image)
-                        value.gui_image = wx.GetApp().gui_images[index]
-                    if len(viewer_3d.objects_3d) == 1 :
-                        viewer_3d.view_all()
-                        viewer_3d.update_object_editor()
-                
-                # In any case but Object3D (whose value is a Viewer3D),
-                # update the control
-                if parameter["type"] != "Object3D" :
-                    control.value = value
+        else:
+            # Update controls and application
+            for parameter in self._parameters :
+                if parameter.get("role", "") not in ["return", "output"] :
+                    # Parameter has not been modified
+                    continue 
+                else :
+                    name = parameter["name"]
+                    value = namespace[name]
+                    control = self._controls[name]
+                    
+                    # Special case for Image and Object3D
+                    if parameter["type"] == "Image" :
+                        if control.output_checked :
+                            self.notify_observers("new_image", image=value)
+                        else :
+                            self.notify_observers("replace_image", 
+                                old=control.value, new=value)
+                    elif parameter["type"] == "Object3D" :
+                        if control.output_checked :
+                            viewer = Viewer3DFrame(parent=None, objects_3d = ObservableList())
+                            viewer.Show()
+                            # TODO
+                            # self.notify_observers("new_viewer_3d", viewer=viewer)
+                            wx.GetApp().append_viewer_3d(viewer)
+                            control.value = self._viewer_3ds[-1]
+                        viewer_3d = control.value 
+                        viewer_3d.objects_3d.append(value)
+                        # If object has an associated image, set the GUI image
+                        image = value.image
+                        if image is not None :
+                            #self.notify_observers("set_image_to_object_3d", image=XXX, object_3d=YYY)
+                            index = wx.GetApp().images.index(image)
+                            value.gui_image = wx.GetApp().gui_images[index]
+                        if len(viewer_3d.objects_3d) == 1 :
+                            viewer_3d.view_all()
+                            viewer_3d.update_object_editor()
+                    
+                    # In any case but Object3D (whose value is a Viewer3D),
+                    # update the control
+                    if parameter["type"] != "Object3D" :
+                        control.value = value
 #        
 #        for parameter in self._parameters :
 #            if parameter["type"] != "Image" :
