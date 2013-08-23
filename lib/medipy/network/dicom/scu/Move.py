@@ -89,19 +89,7 @@ class Move(SCU, medipy.base.Observable):
         process = subprocess.Popen(command, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, cwd=temporary_directory)
 
-        stderr = ""
-        # regex
-        received = r"^I: Received Store Request: MsgID (\d+),.*$"
-        
-        while process.poll() is None:
-            line = process.stderr.readline()
-            stderr += line
-            line.strip()
-            match=re.match(received, line)
-            if match :
-                message_id = int(match.group(1))
-                progress = float(message_id)/float(len(self.query_parameters.sop_instance_uid.value.split("\\")))
-                self.notify_observers("progress", value=progress)
+        stdout, stderr = process.communicate()
 
         if process.returncode != 0:
             raise medipy.base.Exception(stderr)

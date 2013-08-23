@@ -13,6 +13,7 @@ import medipy.gui.base
 import medipy.gui.network.dicom
 import medipy.gui.control
 import medipy.gui.xrc_wrapper
+from medipy.gui import PeriodicProgressDialog, WorkerThread
 import medipy.base
 import medipy.io.dicom
 import medipy.network.dicom
@@ -233,28 +234,19 @@ class QueryDialog(medipy.gui.base.Dialog):
     def ItemQuery(self,item):
         """ Build query (dictionary) based on treectrl item
             If item has child, recursive call until not
-            Return a list of queries
+            Return a dataset
         """
-        queries=[]
-        if self.ui.results.ItemHasChildren(item):
-            count = self.ui.results.GetChildrenCount(item,False)
-            child,cookie = self.ui.results.GetFirstChild(item)
-            for index in range(count):
-                results = self.ItemQuery(child)
-                queries = queries + results
-                child,cookie = self.ui.results.GetNextChild(item,cookie)
-        else:
-            query={}
-            while self.ui.results.GetItemText(item)!="Root":
-                level,key = self.ui.results.GetItemPyData(item)
-                if level!=None:
-                    if level == "patient":
-                        query["patient_id"]=key
-                    else :
-                        query["{0}_instance_uid".format(level)]=key
-                item = self.ui.results.GetItemParent(item)
-            queries.append(query)
-        return queries
+        query={}
+        while self.ui.results.GetItemText(item)!="Root":
+            level,key = self.ui.results.GetItemPyData(item)
+            if level!=None:
+                if level == "patient":
+                    query["patient_id"]=key
+                else :
+                    query["{0}_instance_uid".format(level)]=key
+            item = self.ui.results.GetItemParent(item)
+
+        return medipy.io.dicom.DataSet(**query)
 
     def IsChild(self,itemid,key):
         """ Search text in item.text of any child in itemid
@@ -327,7 +319,8 @@ class QueryDialog(medipy.gui.base.Dialog):
         connection = current[1]
 
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
-            self._get_SSHPasswd(connection)
+            if not self._get_SSHPasswd(connection):
+                return
         
         connection.connect()
         
@@ -339,7 +332,9 @@ class QueryDialog(medipy.gui.base.Dialog):
         try:
             echo()
         except medipy.base.Exception, e:
-            dlg = wx.MessageDialog(self, "Cannot contact entity.\nMake sure you entered the right parameters.",'Connection failure',wx.OK|wx.ICON_ERROR)
+            dlg = wx.MessageDialog(self,
+            "Cannot contact entity.\nMake sure you entered the right parameters.",
+            'Connection failure',wx.OK|wx.ICON_ERROR)
             dlg.ShowModal()
             dlg.Destroy()
         else:
@@ -372,10 +367,12 @@ class QueryDialog(medipy.gui.base.Dialog):
         if source.GetName()== "save":        
             #Dialog Directory
             dlg = wx.DirDialog(self, style=wx.DD_DIR_MUST_EXIST)
-            dlg.ShowModal()
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
             path = dlg.GetPath()
             dlg.Destroy()
-        
+            
         preferences = medipy.gui.base.Preferences(
                 wx.GetApp().GetAppName(), wx.GetApp().GetVendorName())
         _,current = preferences.get(self._current_connection,[None, None])
@@ -384,13 +381,13 @@ class QueryDialog(medipy.gui.base.Dialog):
         retrieve_data = current[3]
               
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
-            self._get_SSHPasswd(connection)
+            if not self._get_SSHPasswd(connection):
+                return
         
         connection.connect()
         
-        query = self.build_retrieve_query(connection)
         retrieve_function = getattr(self, "{0}_dl".format(retrieve))
-        datasets = retrieve_function(connection,retrieve_data, query)
+        datasets = retrieve_function(connection,retrieve_data)
         
         if source.GetName()== "save": 
             save = medipy.io.dicom.routing.SaveDataSet(str(path),mode="hierarchical")
@@ -408,8 +405,11 @@ class QueryDialog(medipy.gui.base.Dialog):
     
     def _get_SSHPasswd(self,connection):
         #Ask Password to user
-        dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
-        dlg.ShowModal()
+        dlg = wx.PasswordEntryDialog(self,'Enter Your Password',
+                    'SSH Connection, {0}'.format(connection.user))
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return None
         connection.password = dlg.GetValue()
         dlg.Destroy()
     
@@ -441,35 +441,33 @@ class QueryDialog(medipy.gui.base.Dialog):
     # Retrieve #
     ############
 
-    def build_retrieve_query(self,connection):
+    def build_wado_query(self,connection):
         """ Build a list of queries based on selected area in ListCtrl
             Return a list of DataSet
         """
         retrieve_query = []
-        
         for item in self.ui.results.GetSelections():
-            list_queries = self.ItemQuery(item)
-            for queries in list_queries:
-                #Query for any useful uid
-                query = medipy.io.dicom.DataSet(**queries)
-                for key in ["patient_id", "study_instance_uid", 
-                                "series_instance_uid", "sop_instance_uid"] :
-                    query.setdefault(key, None)
-                datasets =  medipy.network.dicom.query.relational(
-                        connection,"patient","patient",query)
-                for dataset in datasets:
-                    retrieve_query.append(medipy.io.dicom.DataSet(
-                        patient_id = dataset.patient_id.value,
-                        study_instance_uid = dataset.study_instance_uid.value,
-                        series_instance_uid = dataset.series_instance_uid.value,
-                        sop_instance_uid = dataset.sop_instance_uid.value))
+            query = self.ItemQuery(item)
+            for key in ["patient_id", "study_instance_uid", 
+                            "series_instance_uid", "sop_instance_uid"] :
+                query.setdefault(key, None)
+            datasets =  medipy.network.dicom.query.relational(
+                    connection,"patient","patient",query)
+            for dataset in datasets:
+                retrieve_query.append(medipy.io.dicom.DataSet(
+                    patient_id = dataset.patient_id.value,
+                    study_instance_uid = dataset.study_instance_uid.value,
+                    series_instance_uid = dataset.series_instance_uid.value,
+                    sop_instance_uid = dataset.sop_instance_uid.value))
                         
         return retrieve_query
 
-    def wado_dl(self,connection,wado_url,retrieve_query):
+    def wado_dl(self,connection,wado_url):
         """ Download data specified in query from wado_url
             Return a list of DataSets
         """
+        retrieve_query = self.build_wado_query(connection)
+        
         datasets_wado = []
         progress = wx.ProgressDialog(
                     title="Retrieving data from server",
@@ -485,43 +483,71 @@ class QueryDialog(medipy.gui.base.Dialog):
         progress.Destroy()
         return datasets_wado
     
-    def move_dl(self,connection,destination,retrieve_query):
-        """ Move SCU call to download specified query to desination
+    def GetSelectedUids(self):
+        """ Build query based on selected objects in TreeCtrl
+            Returns query dataset
+        """
+        query=[]
+        for item in self.ui.results.GetSelections():
+            query.append(self.ItemQuery(item))
+        
+        return query
+        
+    def GetQueryLevel(self,dataset):
+        """ Returns query_level associated to specified dataset
+        """
+        if "sop_instance_uid" in dataset:
+            return "image"
+        elif "series_instance_uid" in dataset:
+            return "series"
+        elif "study_instance_uid" in dataset:
+            return "study"
+        elif "patient_id" in dataset:
+            return "patient"
+        
+    def move_dl(self,connection,destination):
+        """ Move SCU call to send selected objects to specified desination
             Return a list of DataSets
         """
-        
-        # Build a list of UIDs concatenations so that the length can be encoded
-        # with explicit VR (VL is 2 bytes long)
-        uids_lists = [""]
-        
-        self.progress = wx.ProgressDialog(
-                    title="Retrieving data from server",
-                    message="Downloading data...",
-                    maximum=100,
-                    parent=self,
-                    style=wx.PD_AUTO_HIDE)
-        
-        for query in retrieve_query:
-            sop_instance_uid = str(query.sop_instance_uid.value)
-            if len(uids_lists[-1])+len(sop_instance_uid)<2**16:
-                if not uids_lists[-1]:
-                    uids_lists[-1] = sop_instance_uid
-                else:
-                    uids_lists[-1] = uids_lists[-1] + "\\" + sop_instance_uid
-            else:
-                uids_lists.append(sop_instance_uid)
+        periodic_progress_dialog = PeriodicProgressDialog(0.2, "Move Retrieve",
+                                    "Retrieving Data From Server ...")
+        move_query = self.GetSelectedUids()
         
         results = []
-        for uids_list in uids_lists:
-            move_query = medipy.io.dicom.DataSet(sop_instance_uid=uids_list)
-            move = medipy.network.dicom.scu.Move(connection, "patient", "image",
-                destination, move_query)
-            move.add_observer("progress",self._update_progress)
-            results.extend(move())
-        self.progress.Destroy()
+        for query in move_query:
+            query_level = self.GetQueryLevel(query)
+            move = medipy.network.dicom.scu.Move(connection, "patient", query_level,
+                destination, query)
+            worker_thread = WorkerThread(periodic_progress_dialog,target=move)
+            worker_thread.start()
+            periodic_progress_dialog.start()
+            worker_thread.join()
+            
+            results.extend(worker_thread.result)
+
+        periodic_progress_dialog.Destroy()
+
         return results
     
-    def _update_progress(self,event=None,*args,**kwargs):
-        value = ceil(event.value*100)
-        self.progress.Update(value,"Retrieving data : {0}%".format(value))
+    def get_dl(self,connection,dummy):
+        """ Get SCU call, download selected objects
+            Return a list of DataSets
+        """
+        periodic_progress_dialog = PeriodicProgressDialog(0.2, "Get Retrieve", 
+                                    "Retrieving Data From Server ...")
+        get_query = self.GetSelectedUids()
+
+        results=[]
+        for query in get_query:
+            query_level = self.GetQueryLevel(query)
+            get = medipy.network.dicom.scu.Get(connection, "patient", query_level, query)
+            worker_thread = WorkerThread(periodic_progress_dialog,target=get)
+            worker_thread.start()
+            periodic_progress_dialog.start()
+            worker_thread.join()
+            
+            results.extend(worker_thread.result)
         
+        periodic_progress_dialog.Destroy()
+        
+        return results      
