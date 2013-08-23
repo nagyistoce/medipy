@@ -43,7 +43,7 @@ def relational(connection, root, level, query) :
     """
     
     # Add the current level key if needed
-    keys = medipy.network.dicom.scu.Find.keys[root][level]
+    keys = medipy.network.dicom.scu.keys[root][level]
     for key in keys :
         if key not in query :
             query[key] = ""
@@ -84,7 +84,7 @@ def relational(connection, root, level, query) :
     # Build a query at the sub-level
     sub_query = medipy.io.dicom.DataSet()
     # Set the key for the current level using the current level result
-    keys = medipy.network.dicom.scu.Find.keys[root][level]
+    keys = medipy.network.dicom.scu.keys[root][level]
     for key in keys :
         value = "\\".join(x[key].value for x in result)
         sub_query[key] = value
@@ -93,7 +93,7 @@ def relational(connection, root, level, query) :
         if not matched[attribute] :
             sub_query[attribute] = value
         else :
-            keys = medipy.network.dicom.scu.Find.keys[root].values()
+            keys = medipy.network.dicom.scu.keys[root].values()
             if attribute in itertools.chain(*keys) and attribute not in sub_query:
                 sub_query[attribute] = "\\".join(x[attribute].value for x in result)
     # Add the key for the lower-level if not already specified
@@ -102,7 +102,7 @@ def relational(connection, root, level, query) :
         "study" : "series",
         "series" : "image"
     }[level]
-    keys = medipy.network.dicom.scu.Find.keys[root][sub_level]
+    keys = medipy.network.dicom.scu.keys[root][sub_level]
     for key in keys :
         if key not in sub_query :
             sub_query[key] = ""
@@ -111,7 +111,7 @@ def relational(connection, root, level, query) :
     
     # Index the result of the current level with the key of the current level
     result_index = {}
-    keys = medipy.network.dicom.scu.Find.keys[root][level]
+    keys = medipy.network.dicom.scu.keys[root][level]
     for dataset in result :
         result_index[tuple([dataset[key].value for key in keys])] = dataset
     # Update the sub_result with the matched attributes of the current level
