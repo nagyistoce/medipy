@@ -57,7 +57,7 @@ class DataSetList(wx.ListCtrl) :
             item = self.InsertStringItem(sys.maxint, "Per-frame elements")
             self.SetItemBackgroundColour(item, (201,237,255))
             if "perframe_functional_groups_sequence" in dataset :
-                self._add_dataset(dataset.perframe_functional_groups_sequence[frame_number])
+                self._add_dataset(dataset.perframe_functional_groups_sequence.value[frame_number])
         
         for i in range(self.GetColumnCount()):
             self.SetColumnWidth(i, wx.LIST_AUTOSIZE)
@@ -69,6 +69,9 @@ class DataSetList(wx.ListCtrl) :
     def _add_dataset(self, dataset, indent=""):
         
         for tag in sorted(dataset.keys()):
+            if tag == 0x52009230 :
+                # Per-frame functional groups sequence. This is processed in update_ui
+                continue
             value = dataset[tag]
             vr = value.__class__.__name__
             value = value.value

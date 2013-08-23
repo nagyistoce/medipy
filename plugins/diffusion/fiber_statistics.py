@@ -1,4 +1,3 @@
-
 ##########################################################################
 # MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
@@ -52,85 +51,82 @@ def compute_statistic_section(dt1,dt2,C_hits_1,C_hits_2,nb_plane=1,nbClust=27):
             points2 = np.zeros((0,3))
             weights2 = np.zeros((0,))
             for cnt2 in range(cnt1-shift_plane,cnt1+nb_plane):
-	            pop1_tmp = []
-	            for point in population1[cnt2]:
-		            k = (point<dim1).all()
-		            if k:
-			            pop1_tmp.append( point )
-	            if pop1_tmp!=[]:
-		            pop1_tmp = np.asarray( pop1_tmp )
-		            points1 = np.concatenate( (points1,pop1_tmp) )
-		            weights1 = np.concatenate( (weights1,np.repeat(np.abs(cnt2-cnt1),pop1_tmp.shape[0])) )
+                pop1_tmp = []
+                for point in population1[cnt2]:
+                    k = (point<dim1).all()
+                    if k:
+                        pop1_tmp.append( point )
+                if pop1_tmp!=[]:
+                    pop1_tmp = np.asarray( pop1_tmp )
+                    points1 = np.concatenate( (points1,pop1_tmp) )
+                    weights1 = np.concatenate( (weights1,np.repeat(np.abs(cnt2-cnt1),pop1_tmp.shape[0])) )
 
-	            pop2_tmp = []
-	            for point in population2[cnt2]:
-		            k = (point<dim2).all()
-		            if k:
-			            pop2_tmp.append( point )
-	            if pop2_tmp!=[]:
-		            pop2_tmp = np.asarray( pop2_tmp )
-		            points2 = np.concatenate( (points2,pop2_tmp) )
-		            weights2 = np.concatenate( (weights2,np.repeat(np.abs(cnt2-cnt1),pop2_tmp.shape[0])) )
+                pop2_tmp = []
+                for point in population2[cnt2]:
+                    k = (point<dim2).all()
+                    if k:
+                        pop2_tmp.append( point )
+                if pop2_tmp!=[]:
+                    pop2_tmp = np.asarray( pop2_tmp )
+                    points2 = np.concatenate( (points2,pop2_tmp) )
+                    weights2 = np.concatenate( (weights2,np.repeat(np.abs(cnt2-cnt1),pop2_tmp.shape[0])) )
 
             # reduce data set
             if points1.shape[0]>0:
-	            center1 = skel1[cnt1]
-	            points1 = cluster_voxel_2(points1,center1,weights1,spacing1)
+                center1 = skel1[cnt1]
+                points1 = cluster_voxel_2(points1,center1,weights1,dt1)
             if points2.shape[0]>0:
-	            center2 = skel2[cnt1]
-	            points2 = cluster_voxel_2(points2,center2,weights2,spacing2)
+                center2 = skel2[cnt1]
+                points2 = cluster_voxel_2(points2,center2,weights2,dt2)
 
             # statistic
             N1 = float(points1.shape[0])
             N2 = float(points2.shape[0])
             if N1>=nbClust and N2>=nbClust:
-	            N1 = float(nbClust)
-	            points1 = points1[:nbClust]
-	            N2 = float(nbClust)
-	            points2 = points2[:nbClust]
+                N1 = float(nbClust)
+                points1 = points1[:nbClust]
+                N2 = float(nbClust)
+                points2 = points2[:nbClust]
             else:
-	            N1 = 1.
-	            N2 = 1.
+                N1 = 1.
+                N2 = 1.
 
             N = N1
             if N==nbClust:
 
-	            # interpolation 
-	            t1 = []
-	            for point in points1:
-		            tmp = point/spacing1
-		            #print tmp, shape
-		            t1.append( dt1[int(tmp[0]),int(tmp[1]),int(tmp[2])] )
-	            t1 = np.asarray(t1).T
-	            t2 = []
-	            for point in points2:
-		            tmp = point/spacing2
-		            t2.append( dt2[int(tmp[0]),int(tmp[1]),int(tmp[2])] )
-	            t2 = np.asarray(t2).T
+                # interpolation 
+                t1 = []
+                for point in points1:
+                    t1.append(dt1[tuple(dt1.physical_to_index(point, True))])
+                t1 = np.asarray(t1).T
+                t2 = []
+                for point in points2:
+                    t2.append(dt2[tuple(dt2.physical_to_index(point, True))])
+                t2 = np.asarray(t2).T
 
-	            # compute parameters
-	            m1 = np.mean(t1,1)
-	            m2 = np.mean(t2,1)
-	            d1 = t1 - np.reshape( np.repeat(m1,N1),(6,N1) )
-	            d2 = t2 - np.reshape( np.repeat(m2,N2),(6,N2) )
-	            s1 = np.sum( np.sum(d1[:3,:]**2,0) + 2*np.sum(d1[3:,:]**2,0),0 )
-	            s2 = np.sum( np.sum(d2[:3,:]**2,0) + 2*np.sum(d2[3:,:]**2,0),0 )
-	            s1 = np.sqrt( s1/(6*(N1-1)) )
-	            s2 = np.sqrt( s2/(6*(N2-1)) )
+                # compute parameters
+                m1 = np.mean(t1,1)
+                m2 = np.mean(t2,1)
+                d1 = t1 - np.reshape( np.repeat(m1,N1),(6,N1) )
+                d2 = t2 - np.reshape( np.repeat(m2,N2),(6,N2) )
+                s1 = np.sum( np.sum(d1[:3,:]**2,0) + 2*np.sum(d1[3:,:]**2,0),0 )
+                s2 = np.sum( np.sum(d2[:3,:]**2,0) + 2*np.sum(d2[3:,:]**2,0),0 )
+                s1 = np.sqrt( s1/(6*(N1-1)) )
+                s2 = np.sqrt( s2/(6*(N2-1)) )
 
-	            # statistic
-	            m1_33 = np.array([[m1[0],m1[3],m1[4]],[m1[5],m1[1],m1[3]],[m1[4],m1[5],m1[2]]])
-	            m2_33 = np.array([[m2[0],m2[3],m2[4]],[m2[5],m2[1],m2[3]],[m2[4],m2[5],m2[2]]])
-	            L1,V1 = np.linalg.eigh(m1_33)
-	            L2,V2 = np.linalg.eigh(m2_33)
-	            stat = np.sum( (L1 - L2)**2 )
-	            s = 0.5 * ( s1**2+s2**2 )
-	            if s!=0 and (N-1)>0:
-		            stat = ((N-1.)*stat)/(6.*s)
-	            else:
-		            stat = 0.
+                # statistic
+                m1_33 = np.array([[m1[0],m1[3],m1[4]],[m1[5],m1[1],m1[3]],[m1[4],m1[5],m1[2]]])
+                m2_33 = np.array([[m2[0],m2[3],m2[4]],[m2[5],m2[1],m2[3]],[m2[4],m2[5],m2[2]]])
+                L1,V1 = np.linalg.eigh(m1_33)
+                L2,V2 = np.linalg.eigh(m2_33)
+                stat = np.sum( (L1 - L2)**2 )
+                s = 0.5 * ( s1**2+s2**2 )
+                if s!=0 and (N-1)>0:
+                    stat = ((N-1.)*stat)/(6.*s)
+                else:
+                    stat = 0.
             else:
-	            stat = 0.
+                stat = 0.
 
             # normalize stat
             df1 = 3.
@@ -188,25 +184,25 @@ def compute_statistic_bundle(dt1,dt2,C_hits_1,C_hits_2,d_thr=4.):
 
         if kk:
             for cnt in range(N):
-	            pnts1 = population1[cnt]
-	            pnts2 = population2[cnt]
-	            pntref = np.cast[int](np.round(ref1[cnt]/spacing1))     
-	            pop1_tmp = []
-	            pop2_tmp = []
-	            if not (pntref<dim).all():
-		            kk = False
-		            break
-	            for point in pnts1:
-		            if (point<dim).all():
-			            pop1_tmp.append( dt1[point[0],point[1],point[2]] )
-	            for point in pnts2:
-		            if (point<dim).all():
-			            pop2_tmp.append( dt2[point[0],point[1],point[2]] )
+                pnts1 = population1[cnt]
+                pnts2 = population2[cnt]
+                pntref = dt1.physical_to_index(ref1[cnt], True)
+                pop1_tmp = []
+                pop2_tmp = []
+                if not (pntref<dim).all():
+                    kk = False
+                    break
+                for point in pnts1:
+                    if (point<dim).all():
+                        pop1_tmp.append( dt1[point[0],point[1],point[2]] )
+                for point in pnts2:
+                    if (point<dim).all():
+                        pop2_tmp.append( dt2[point[0],point[1],point[2]] )
 
-	            pop1_tmp = np.asarray(pop1_tmp).T
-	            pop2_tmp = np.asarray(pop2_tmp).T
-	            skel1.append( np.mean(pop1_tmp,1) )
-	            skel2.append( np.mean(pop2_tmp,1) )
+                pop1_tmp = np.asarray(pop1_tmp).T
+                pop2_tmp = np.asarray(pop2_tmp).T
+                skel1.append( np.mean(pop1_tmp,1) )
+                skel2.append( np.mean(pop2_tmp,1) )
 
         if kk:
             t1 = np.asarray(skel1).T
@@ -228,9 +224,9 @@ def compute_statistic_bundle(dt1,dt2,C_hits_1,C_hits_2,d_thr=4.):
             stat = np.sum( (L1 - L2)**2 )
             s = s**2
             if s!=0 and (N-1)>0:
-	            stat = ((float(N)-1.)*stat)/(3*s)
+                stat = ((float(N)-1.)*stat)/(3*s)
             else:
-	            stat = 0.
+                stat = 0.
         else:
             stat = 0.
 
@@ -287,51 +283,48 @@ def project_fiber_stat_nn(spm,C_hits,model):
 
 
 
-def bundle_cross_sections_voxel(hits,spacing,cutoff,pv_thr) :
+def bundle_cross_sections_voxel(hits,model,cutoff,pv_thr) :
     """ Compute bundle cross sections at a voxel level and reduce partial volume effects by thresholding the neighborhood
     """
     #spacing = spacing[::-1]
 
     N_hits = {}
     for cnt,key in enumerate(hits.keys()) :
-	    sys.stdout.write("\riteration= %d / %d" %(cnt,len(hits.keys())))
-	    sys.stdout.flush()
+        sys.stdout.write("\riteration= %d / %d" %(cnt,len(hits.keys())))
+        sys.stdout.flush()
 
-	    c_hits = hits[key]['indices']
-	    skel = hits[key]['skel']
-	    new_hits = []
+        c_hits = hits[key]['indices']
+        skel = hits[key]['skel']
+        new_hits = []
 
-	    for hit,center in zip(c_hits,skel) :
+        for hit,center in zip(c_hits,skel) :
             # generate voxel neighborhood
-		    d = np.sqrt( np.sum( (hit-center)**2,1 ) )
-		    hit = hit[d<cutoff]
-		    c = cluster_voxel(hit,spacing)
+            d = np.sqrt( np.sum( (hit-center)**2,1 ) )
+            hit = hit[d<cutoff]
+            c = cluster_voxel(hit,model)
 
-		    # remove partial volume effect voxels based on histogram
-		    hist = np.zeros((c.shape[0],),dtype=int)
-		    for point in hit:
-			    point = np.round(point/spacing)
-			    l = list(point==c)
-			    l = [l[i].all() for i in range(len(l))]
-			    indx = l.index(True)
-			    hist[indx] += 1
-		    dynamic = hist.max()-hist.min()
-		    thr = np.floor(float(hist.min()) + float(dynamic)*(1.0-pv_thr))
-		    new_hits.append( c[hist>=thr] )
+            # remove partial volume effect voxels based on histogram
+            hist = np.zeros((c.shape[0],),dtype=int)
+            for point in hit:
+                index = model.physical_to_index(point, True)
+                l = list(index==c)
+                l = [l[i].all() for i in range(len(l))]
+                indx = l.index(True)
+                hist[indx] += 1
+            dynamic = hist.max()-hist.min()
+            thr = np.floor(float(hist.min()) + float(dynamic)*(1.0-pv_thr))
+            new_hits.append( c[hist>=thr] )
 
-	    N_hits[key]={'indices':new_hits,'skel':skel}
+        N_hits[key]={'indices':new_hits,'skel':skel}
 
     return N_hits
 
-def cluster_voxel(data,spacing):
-    data_nn = np.round(data/spacing)
-    data_nn = np.cast[int](data_nn)
-    list1 = list(data_nn)
-    list2 = [ list(y) for y in set([tuple(x) for x in list1]) ]
-    list2 = [ np.asarray(x) for x in list2 ]
-    return np.asarray(list2)
+def cluster_voxel(points, model):
+    indices = [model.physical_to_index(p, True) for p in points]
+    unique_indices = set([tuple(x) for x in indices])
+    return np.asarray([np.asarray(x) for x in unique_indices])
 
-def cluster_voxel_2(data,center,weights,spacing):
+def cluster_voxel_2(data,center,weights,model):
 
     # sort by plane
     argmax = np.argsort(weights)
@@ -341,24 +334,21 @@ def cluster_voxel_2(data,center,weights,spacing):
     points = np.zeros((0,3))
     for key in keys:
         idx = np.where(weights==key)
-        tmp = data[idx]*spacing
+        tmp = np.asarray([model.index_to_physical(p) for p in data[idx]])
         d = np.sqrt( np.sum( (tmp-center)**2,1 ) )
         argmax = np.argsort(d)
         tmp = tmp[argmax]
         points = np.concatenate( (points,tmp) )
 
-    points = np.cast[int]( np.round(points/spacing) )
+    indices = [model.physical_to_index(p, True) for p in points]
+    unique_indices = set([tuple(x) for x in indices])
+    unique_points = np.asarray([np.asarray(model.index_to_physical(x)) for x in unique_indices])
 
-    list1 = list(points)
-    list2 = [ list(y) for y in set([tuple(x) for x in list1]) ]
-    list2 = [ np.asarray(x) for x in list2 ]
-    list2 = np.asarray(list2)*spacing
-
-    d = np.sqrt( np.sum( (list2-center)**2,1 ) )
+    d = np.sqrt( np.sum( (unique_points-center)**2,1 ) )
     argmax = np.argsort(d)
-    list2 = list2[argmax]
+    unique_points = unique_points[argmax]
 
-    return list2
+    return unique_points
 
 
 
@@ -410,12 +400,12 @@ def cut_bundle_single(hits,skel):
     """ Remove multiple fiber crossing points using L2-norm
     """
       
-    sk = skel[1:-1].copy()
+    sk = np.copy(skel[1:-1])
     Nskel = sk.shape[0]
     Nhits = len(hits)
     if Nskel!=Nhits :
         raise IOError('shape mismatched')
-	
+    
     hits_single = []
     for hit,ref in zip(hits,sk) :
         # L2 intersection point distances to skeleton
@@ -423,7 +413,7 @@ def cut_bundle_single(hits,skel):
         n = np.where(dt==0)
         d = np.sqrt(dt)
         d[n] = 0
-	
+    
         # find duplicate
         C = {}
         Npoints = hit.shape[0]
@@ -446,9 +436,9 @@ def cut_bundle_single(hits,skel):
         hit_single.append(tmp)
         for c in C.keys():
             hit_single.append(hit[C[c]['a_min']])
-		
+        
         hits_single.append(np.asarray(hit_single))
-	
+    
     return hits_single
 
 

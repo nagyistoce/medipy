@@ -99,6 +99,7 @@ def get_child_file_records(record):
     
     return result
 
+@medipy.base.progress_observable
 def load_dicomdir_records(datasets):
     """ If a Data Set is a DICOMDIR Record, replace it by the file it 
         (or its children) references.
@@ -116,9 +117,11 @@ def load_dicomdir_records(datasets):
         else :
             result.append(dataset)
 
-    for path, file_id in file_ids :
+    for index, (path, file_id) in enumerate(file_ids) :
         filename = find_dicomdir_file(os.path.dirname(path), file_id)
         result.append(dataset_io.read(filename))
+        load_dicomdir_records.progress(float(1+index)/float(len(file_ids)))
+    load_dicomdir_records.progress(1.0)
     
     return result
 

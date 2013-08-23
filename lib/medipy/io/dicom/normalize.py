@@ -273,8 +273,8 @@ def multi_frame(dataset):
     for frame_number in range(dataset.number_of_frames.value) :
         frame = DataSet()
         
-        for key, value in dataset.items() :
-            value = value.value
+        for key, element in dataset.items() :
+            value = element.value
             if key == (0x0028,0x0008) :
                 # Number of Frames : do not store it in frame dataset
                 pass
@@ -309,7 +309,7 @@ def multi_frame(dataset):
                     dataset.pixel_data.value[offset:offset+frame_size])
             else :
                 # Otherwise add the element to the frame dataset as is
-                frame[key] = value
+                frame[key] = element
         result.append(frame)
     
     return result

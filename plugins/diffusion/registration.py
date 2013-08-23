@@ -75,7 +75,7 @@ def interpolate_field(points,field):
         The resampling is done with scipy.ndimage.
     """
     
-    points_voxel = points.T
+    points_voxel = numpy.transpose(points)
 
     comps = []
     for i in range(3):
@@ -86,22 +86,21 @@ def interpolate_field(points,field):
 
     return numpy.asarray(comps).T
 
-def register_multi(points,field,spacing_wrap,origin_wrap,spacing,origin):
+def register_multi(points,field, moving, fixed):
     """
     Register a track.
     """
-    points_voxel = (points-origin_wrap)/spacing_wrap # in index
-    transfo = interpolate_field(points_voxel,field)
-    points_wrap_voxel = points_voxel+transfo # in index
-    return points_wrap_voxel*spacing + origin # in physical
+    
+    indices_moving = [moving.physical_to_index(p) for p in points]
+    transfo = interpolate_field(indices_moving,field)
+    indices_fixed = indices_moving+transfo
+    return [fixed.index_to_physical(i) for i in indices_fixed]
 
 def register_fibers(fibers,ftrf,model1,model2):
     field_backward_inv = load_trf(ftrf,model1,100.0)
     fout = [] 
     for f in fibers :
-        f_registered = register_multi(f,field_backward_inv,
-            model2.spacing,model2.origin,
-            model1.spacing,model1.origin)
+        f_registered = register_multi(f,field_backward_inv, model2, model1)
         fout.append(f_registered)
     return fout
 
