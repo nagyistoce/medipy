@@ -181,7 +181,9 @@ class PreferencesDialog(medipy.gui.base.Panel):
         if isinstance(connection,medipy.network.dicom.SSHTunnelConnection):
             #Ask Password to user
             dlg = wx.PasswordEntryDialog(self,'Enter Your Password','SSH Connection, {0}'.format(connection.user))
-            dlg.ShowModal()
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
             connection.password = dlg.GetValue()
             dlg.Destroy()
         
