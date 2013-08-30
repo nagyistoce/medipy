@@ -119,8 +119,9 @@ class NewSegment(Tool):
               an image to the MNI space
         """
         
-        def __init__(self, reg=4, affreg="mni", samp=3, 
+        def __init__(self, mrf=0, reg=4, affreg="mni", samp=3, 
                      save_inverse=False, save_forward=False):
+            self.mrf = 0
             self.reg = 4
             self.affreg = "mni"
             self.samp = 3
@@ -129,6 +130,7 @@ class NewSegment(Tool):
         
         def _get_parameters(self):
             result = {
+                "mrf": self.mrf,
                 "reg" : self.reg,
                 "affreg" : self.affreg,
                 "samp" : self.samp,
