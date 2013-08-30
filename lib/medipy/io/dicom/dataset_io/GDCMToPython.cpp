@@ -25,6 +25,9 @@
 #include <gdcmTag.h>
 #include <gdcmVR.h>
 
+#include <dcmtk/config/osconfig.h>
+#include <dcmtk/ofstd/ofstd.h>
+
 template<typename TIterator1, typename TIterator2>
 TIterator1 find_first_not_of(TIterator1 first1, TIterator1 last1,
                             TIterator2 first2, TIterator2 last2)
@@ -614,20 +617,15 @@ GDCMToPython
     else if(vr == gdcm::VR::DS)
     {
         // Make sure the string is null-terminated before calling strtod
-        char * buffer = new char[end-begin+2];
+        char * buffer = new char[end-begin+1];
         std::copy(begin, end, buffer);
-        buffer[end-begin+1]='\0';
+        buffer[end-begin]='\0';
         
-        char * old_numeric = setlocale(LC_NUMERIC, NULL);
-        setlocale(LC_NUMERIC, "C");
-        char* endptr;
-        double const d = std::strtod(buffer, &endptr);
-        
-        // Clean-up
+        bool success=true;
+        double const d = OFStandard::atof(buffer, &success);
         delete[] buffer;
         
-        setlocale(LC_NUMERIC, old_numeric);
-        if(endptr == begin)
+        if(!success)
         {
             PyErr_SetString(PyExc_Exception, "Cannot parse DS");
             return NULL;
@@ -647,26 +645,22 @@ GDCMToPython
     }
     else if(vr == gdcm::VR::IS)
     {
-        // Make sure the string is null-terminated before calling strtol
-        char * buffer = new char[end-begin+2];
+        // Make sure the string is null-terminated before calling strtod
+        char * buffer = new char[end-begin+1];
         std::copy(begin, end, buffer);
-        buffer[end-begin+1]='\0';
+        buffer[end-begin]='\0';
         
-        char * old_numeric = setlocale(LC_NUMERIC, NULL);
-        setlocale(LC_NUMERIC, "C");
-        char* endptr;
-        long const d = std::strtol(buffer, &endptr, 10);
-        
-        // Clean-up
+        bool success=true;
+        long const i = OFStandard::atof(buffer, &success);
         delete[] buffer;
         
-        setlocale(LC_NUMERIC, old_numeric);
-        if(endptr == begin)
+        if(!success)
         {
-            PyErr_SetString(PyExc_Exception, "Cannot parse IS");
+            PyErr_SetString(PyExc_Exception, "Cannot parse DS");
             return NULL;
         }
-        return PyInt_FromLong(d);
+
+        return PyInt_FromLong(i);
     }
     else if(vr == gdcm::VR::SL)
     {
