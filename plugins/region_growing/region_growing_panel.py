@@ -128,6 +128,9 @@ class RegionGrowingPanel(medipy.gui.base.Panel):
             # Un-check the "new" checkbox
             self.ui.new_destination_layer.value = False
         
+            # Set the destination layer to the newly-created layer
+            self.destination_layer = self.image.number_of_layers-1
+            
         max = numpy.max(self._image.get_layer_image(self.destination_layer))
         
         # Update the image
@@ -135,6 +138,7 @@ class RegionGrowingPanel(medipy.gui.base.Panel):
         region = numpy.nonzero(region_image)
         destination[region] = 1+max
         destination.modified()
+        self.source_layer = 0
         
         # Update the colormap display range to include the new region 
         self.image.get_layer_colormap(self.destination_layer).display_range = (
