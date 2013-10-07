@@ -24,8 +24,8 @@ public:
     HMCInitializer();
     ~HMCInitializer();
     
-    void operator()(vnl_matrix<double> const & Chain, 
-                    InputParameters const & params);
+    void operator()(vnl_matrix<double> const & Chain, unsigned int NbMod, 
+                    unsigned int NbClasses);
     
     vnl_vector<double> const & GetPIi() const;
     vnl_matrix<double> const & Getaij() const;
@@ -45,17 +45,17 @@ private:
     
     static void KMeans(vnl_matrix<double> const & Chain, int TailleEch, 
                        vnl_matrix<double> & Mu, vnl_matrix<double> & Sig,
-                       InputParameters const & params);
+                       unsigned int NbMod, unsigned int NbClasses);
     
     vnl_vector<double> PIi;
     vnl_matrix<double> aij;
     vnl_matrix<double> Mu;
     std::vector<vnl_matrix<double> > Sigma;
     
-    void IniPI(InputParameters const & params);
-    void Iniaij(InputParameters const & params);
+    void IniPI(unsigned int NbClasses);
+    void Iniaij(unsigned int NbClasses);
     void IniKMeans(vnl_matrix<double> const & Chain, 
-                   InputParameters const & params);
+                   unsigned int NbMod, unsigned int NbClasses);
 };
 
 #endif // _8dfbf825_3e8d_410a_b192_93f36f8329d5
