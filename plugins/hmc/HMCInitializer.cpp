@@ -30,16 +30,17 @@ HMCInitializer
 }
 
 void HMCInitializer
-::operator()(vnl_matrix<double> const & Chain, InputParameters const & params)
+::operator()(vnl_matrix<double> const & Chain, unsigned int NbMod, 
+             unsigned int NbClasses)
 {
     //initialisation PIi
-    this->IniPI(params);
+    this->IniPI(NbClasses);
     
     //initialisation aij
-    this->Iniaij(params);
+    this->Iniaij(NbClasses);
     
     //initialisation moyennes et variances par les KMeans
-    this->IniKMeans(Chain, params);
+    this->IniKMeans(Chain, NbMod, NbClasses);
 }
 
 vnl_vector<double> const &
@@ -311,22 +312,22 @@ void
 HMCInitializer
 ::KMeans(vnl_matrix<double> const & Chain, int TailleEch, 
          vnl_matrix<double> & Mu, vnl_matrix<double> & Sig, 
-         InputParameters const & params)
+         unsigned int NbMod, unsigned int NbClasses)
 {
     int const Taille=Chain.columns();
     int const n=Taille/TailleEch;
     int const r=Taille%TailleEch;
     
-    vnl_matrix<double> c(n, 2*params.NbMod);
+    vnl_matrix<double> c(n, 2*NbMod);
     
     //on insere les resultats de l'em dans les kmeans comme centroides initiaux
-    vnl_matrix<double> C(params.NbClasses, 2*params.NbMod);
-    for(int i=0; i!=params.NbClasses; i++)
+    vnl_matrix<double> C(NbClasses, 2*NbMod);
+    for(unsigned int i=0; i!=NbClasses; i++)
     {
-        for(int j=0; j!=params.NbMod; j++)
+        for(unsigned int j=0; j!=NbMod; j++)
         {
             C(i,j)=Mu(j,i);
-            C(i,j+params.NbMod)=Sig(j,i);
+            C(i,j+NbMod)=Sig(j,i);
         }
     }
     
@@ -335,14 +336,14 @@ HMCInitializer
         for(int l=0; l!=n; l++)
         {
             //on isole des mini vecteurs de la chaine
-            vnl_matrix<double> y(params.NbMod, TailleEch);
+            vnl_matrix<double> y(NbMod, TailleEch);
             for(int i=0; i!=TailleEch; i++)
             {
                 y.set_column(i, Chain.get_column(i+l*TailleEch));
             }
             
             //calcul de la moyenne pour chaque mini vecteur
-            vnl_matrix<double> mu_prov(params.NbMod, 1, 0);
+            vnl_matrix<double> mu_prov(NbMod, 1, 0);
             for(int j=0; j!=TailleEch; j++)
             {
                 mu_prov.set_column(0, 
@@ -350,7 +351,7 @@ HMCInitializer
             }
             
             //calcul de la moyenne pour chaque mini vecteur
-            vnl_matrix<double> Sigma_prov(params.NbMod,1, 0);
+            vnl_matrix<double> Sigma_prov(NbMod,1, 0);
             for(int j=0; j!=TailleEch; j++)
             {
                 Sigma_prov.set_column(0, 
@@ -361,10 +362,10 @@ HMCInitializer
             }
             
             //mise à jour de c
-            for(int j=0; j!=params.NbMod; j++)
+            for(unsigned int j=0; j!=NbMod; j++)
             {
                 c(l,j)=mu_prov(j,0);
-                c(l,j+params.NbMod)=sqrt(Sigma_prov(j,0));
+                c(l,j+NbMod)=sqrt(Sigma_prov(j,0));
             }
         }
     }
@@ -373,14 +374,14 @@ HMCInitializer
         for(int l=0; l!=n-1; l++)
         {
             //on isole des mini vecteurs de la chaine
-            vnl_matrix<double> y(params.NbMod, TailleEch);
+            vnl_matrix<double> y(NbMod, TailleEch);
             for(int i=0; i!=TailleEch; i++)
             {
                 y.set_column(i, Chain.get_column(i+l*TailleEch));
             }
             
             //calcul de la moyenne pour chaque mini vecteur
-            vnl_matrix<double> mu_prov(params.NbMod,1, 0);
+            vnl_matrix<double> mu_prov(NbMod,1, 0);
             for(int j=0; j!=TailleEch; j++)
             {
                 mu_prov.set_column(0, 
@@ -388,7 +389,7 @@ HMCInitializer
             }
             
             //calcul de Sigma pour chaque mini vecteur
-            vnl_matrix<double> Sigma_prov(params.NbMod,1, 0);
+            vnl_matrix<double> Sigma_prov(NbMod,1, 0);
             for(int j=0; j!=TailleEch; j++)
             {
                 Sigma_prov.set_column(0, 
@@ -399,31 +400,31 @@ HMCInitializer
             }
             
             //mise à jour de c
-            for(int j=0; j!=params.NbMod; j++)
+            for(unsigned int j=0; j!=NbMod; j++)
             {
                 c(l,j)=mu_prov(j,0);
-                c(l,j+params.NbMod)=sqrt(Sigma_prov(j,0));
+                c(l,j+NbMod)=sqrt(Sigma_prov(j,0));
             }
         }
         
         //pour le dernier element
         
         //on isole des mini vecteurs de la chaine
-        vnl_matrix<double> y(params.NbMod, TailleEch);
+        vnl_matrix<double> y(NbMod, TailleEch);
         for(int i=0; i!=r; i++)
         {
             y.set_column(i, Chain.get_column(i+(n-1)*TailleEch));
         }
         
         //calcul de la moyenne pour chaque mini vecteur
-        vnl_matrix<double> mu_prov(params.NbMod,1, 0);
+        vnl_matrix<double> mu_prov(NbMod,1, 0);
         for(int j=0; j!=r; j++)
         {
             mu_prov.set_column(0, mu_prov.get_column(0)+y.get_column(j)/float(r));
         }
         
         //calcul de la moyenne pour chaque mini vecteur
-        vnl_matrix<double> Sigma_prov(params.NbMod,1, 0);
+        vnl_matrix<double> Sigma_prov(NbMod,1, 0);
         for(int j=0; j!=r; j++)
         {
             Sigma_prov.set_column(0, 
@@ -434,10 +435,10 @@ HMCInitializer
         }
         
         //mise à jour de c
-        for(int j=0; j!=params.NbMod; j++)
+        for(unsigned int j=0; j!=NbMod; j++)
         {
             c(n-1,j)=mu_prov(j,0);
-            c(n-1,j+params.NbMod)=sqrt(Sigma_prov(j,0));
+            c(n-1,j+NbMod)=sqrt(Sigma_prov(j,0));
         }
     }
     
@@ -448,30 +449,30 @@ HMCInitializer
     {
         int const par=Ini%2;
         
-        vnl_vector<int> ind(n);
+        vnl_vector<unsigned int> ind(n);
         
         //ini card
-        vnl_vector<int> card(params.NbClasses, 0);
+        vnl_vector<int> card(NbClasses, 0);
         for(int i=0; i!=n; i++)
         {
             //calcul tab
-            vnl_vector<double> tab(params.NbClasses, 0);
-            for(int j=0; j!=params.NbClasses; j++)
+            vnl_vector<double> tab(NbClasses, 0);
+            for(unsigned int j=0; j!=NbClasses; j++)
             {
-                for(int k=0; k!=params.NbMod; k++)
+                for(unsigned int k=0; k!=NbMod; k++)
                 {
                     tab[j]+=(C(j,k)-c(i,k))*(C(j,k)-c(i,k));
                 }
             }
                 
-            for(int j=0; j!=params.NbClasses; j++)
+            for(unsigned int j=0; j!=NbClasses; j++)
             {
                 tab[j]=sqrt(tab[j]);
             }
             
             double mini=tab[0];
             ind[i]=0;
-            for(int j=0; j!=params.NbClasses; j++)
+            for(unsigned int j=0; j!=NbClasses; j++)
             {
                 if(tab[j]<=mini)
                 {
@@ -484,9 +485,9 @@ HMCInitializer
         }
         
         //ini Mu et Sigma
-        Mu=vnl_matrix<double>(params.NbMod, params.NbClasses, 0);
-        Sig=vnl_matrix<double>(params.NbMod, params.NbClasses, 0);
-        for(int j=0; j!=params.NbClasses; j++)
+        Mu=vnl_matrix<double>(NbMod, NbClasses, 0);
+        Sig=vnl_matrix<double>(NbMod, NbClasses, 0);
+        for(unsigned int j=0; j!=NbClasses; j++)
         {
             vnl_vector<int> masque(card[j]);
             int m=0;
@@ -499,46 +500,46 @@ HMCInitializer
                 }
             }
                 
-            for(int i=0; i!=params.NbMod; i++)
+            for(unsigned int i=0; i!=NbMod; i++)
             {
                 for(int k=0; k!=card[j]; k++)
                 {
                     Mu(i,j)+=(1./(float)card[j])*c(masque[k],i);
-                    Sig(i,j)+=(1./(float)card[j])*c(masque[k],i+params.NbMod);
+                    Sig(i,j)+=(1./(float)card[j])*c(masque[k],i+NbMod);
                 }
             }
         }
         
         //calcul changement
         Norme[par]=0;
-        for(int i=0; i!=params.NbMod; i++)
+        for(unsigned int i=0; i!=NbMod; i++)
         {
-            for(int j=0; j!=params.NbClasses; j++)
+            for(unsigned int j=0; j!=NbClasses; j++)
             {
                 Norme[par]+=
                     (Mu(i,j)-C(j,i))*(Mu(i,j)-C(j,i))+
-                    (Sig(i,j)-C(j,i+params.NbMod))*(Sig(i,j)-C(j,i+params.NbMod));
+                    (Sig(i,j)-C(j,i+NbMod))*(Sig(i,j)-C(j,i+NbMod));
             }
         }
         Norme[par]=sqrt(Norme[par]);
         
-        for(int i=0; i!=params.NbMod; i++)
+        for(unsigned int i=0; i!=NbMod; i++)
         {
-            for(int j=0; j!=params.NbClasses; j++)
+            for(unsigned int j=0; j!=NbClasses; j++)
             {
                 C(j,i)=Mu(i,j);
-                C(j,i+params.NbMod)=Sig(i,j);
+                C(j,i+NbMod)=Sig(i,j);
             }
         }
         Ini++;
     }
     
-    for(int i=0; i!=params.NbMod; i++)
+    for(unsigned int i=0; i!=NbMod; i++)
     {
-        for(int j=0; j!=params.NbClasses; j++)
+        for(unsigned int j=0; j!=NbClasses; j++)
         {
             Mu(i,j)=C(j,i);
-            Sig(i,j)=C(j,i+params.NbMod);
+            Sig(i,j)=C(j,i+NbMod);
         }
     }
         
@@ -546,28 +547,28 @@ HMCInitializer
 
 void 
 HMCInitializer
-::IniPI(InputParameters const & params)
+::IniPI(unsigned int const NbClasses)
 {
-    this->PIi = vnl_vector<double>(params.NbClassesFlou);
-    for(int i=0; i!=params.NbClassesFlou; i++)
+    this->PIi = vnl_vector<double>(NbClasses);
+    for(unsigned int i=0; i!=NbClasses; i++)
     {
-        this->PIi[i]=1./(params.NbClassesFlou);
+        this->PIi[i]=1./(NbClasses);
     }
 }
 
 void 
 HMCInitializer
-::Iniaij(InputParameters const & params)
+::Iniaij(unsigned int const NbClasses)
 {
-    this->aij=vnl_matrix<double>(params.NbClassesFlou, params.NbClassesFlou);
+    this->aij=vnl_matrix<double>(NbClasses, NbClasses);
     
-    for(int i=0; i!=params.NbClassesFlou; i++)
+    for(unsigned int i=0; i!=NbClasses; i++)
     {
-        for(int j=0; j!=params.NbClassesFlou; j++)
+        for(unsigned int j=0; j!=NbClasses; j++)
         {
             if(j!=i)
             {
-                this->aij(i,j)=1./(4*(params.NbClassesFlou-1));
+                this->aij(i,j)=1./(4*(NbClasses-1));
             }
             else
             {
@@ -579,25 +580,25 @@ HMCInitializer
 
 void
 HMCInitializer
-::IniKMeans(vnl_matrix<double> const & Chain, InputParameters const & params)
+::IniKMeans(vnl_matrix<double> const & Chain, unsigned int NbMod, unsigned int NbClasses)
 {
     int const TailleEch=8;
     int const Taille=Chain.columns();
     vnl_vector<double> const Chain1(Chain.get_row(0));
     
     //EM sur l'histogramme
-    vnl_vector<double> Mu1(params.NbClasses, 0);
-    vnl_vector<double> Sigma1(params.NbClasses, 0);
-    Self::Histogramme(Chain1, Taille, params.NbClasses, Mu1, Sigma1);
+    vnl_vector<double> Mu1(NbClasses, 0);
+    vnl_vector<double> Sigma1(NbClasses, 0);
+    Self::Histogramme(Chain1, Taille, NbClasses, Mu1, Sigma1);
     
     //carte de segmentation issue de l'EM
     float Max_V=0.;
-    vnl_vector<int> MP(Taille);
+    vnl_vector<unsigned int> MP(Taille);
     for(int i=0; i!=Taille; i++)
     {
         Max_V=-1;
         MP[i]=-1;
-        for(int k=0; k!=params.NbClasses; k++)
+        for(unsigned int k=0; k!=NbClasses; k++)
         {
             double const value = gauss1(Chain1[i],Mu1[k],Sigma1[k]);
             if(value>Max_V)
@@ -609,15 +610,15 @@ HMCInitializer
     }
     
     //calcul du nb de voxels appartenant à chaque classe
-    vnl_vector<int> NbVox(params.NbClasses);
-    for(int k=0; k!=params.NbClasses; k++)
+    vnl_vector<int> NbVox(NbClasses);
+    for(unsigned int k=0; k!=NbClasses; k++)
     {
         NbVox[k] = std::count(MP.begin(), MP.end(), k);
     }
     
     //calcul de la moyenne pour chaque classe
-    vnl_matrix<double> MuProv(params.NbMod, params.NbClasses, 0);
-    for(int k=0; k!=params.NbClasses; k++)
+    vnl_matrix<double> MuProv(NbMod, NbClasses, 0);
+    for(unsigned int k=0; k!=NbClasses; k++)
     {
         for(int i=0; i!=Taille; i++)
         {
@@ -630,8 +631,8 @@ HMCInitializer
     }
     
     //calcul de l'ecart-type
-    vnl_matrix<double> SigmaProv(params.NbMod, params.NbClasses, 0);
-    for(int k=0; k!=params.NbClasses; k++)
+    vnl_matrix<double> SigmaProv(NbMod, NbClasses, 0);
+    for(unsigned int k=0; k!=NbClasses; k++)
     {
         for(int i=0; i!=Taille; i++)
         {
@@ -644,23 +645,23 @@ HMCInitializer
             }
         }
             
-        for(int m=0; m!=params.NbMod; m++)
+        for(unsigned int m=0; m!=NbMod; m++)
         {
             SigmaProv(m,k)=sqrt(SigmaProv(m,k)/(NbVox[k]-1.));
         }
     }
     
     //KMoyennes
-    Self::KMeans(Chain, TailleEch, MuProv, SigmaProv, params);
+    Self::KMeans(Chain, TailleEch, MuProv, SigmaProv, NbMod, NbClasses);
     
     //Mu, Sigma
     this->Mu = MuProv;
     
-    this->Sigma = std::vector<vnl_matrix<double> >(params.NbClasses, 
-        vnl_matrix<double>(params.NbMod, params.NbMod, 0));
-    for(int i=0; i!=params.NbClasses; i++)
+    this->Sigma = std::vector<vnl_matrix<double> >(NbClasses, 
+        vnl_matrix<double>(NbMod, NbMod, 0));
+    for(unsigned int i=0; i!=NbClasses; i++)
     {
-        for(int j=0; j!=params.NbMod; j++)
+        for(unsigned int j=0; j!=NbMod; j++)
         {
             this->Sigma[i](j,j)=SigmaProv(j,i)*SigmaProv(j,i);
         }
