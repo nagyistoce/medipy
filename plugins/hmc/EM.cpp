@@ -41,14 +41,15 @@ void
 EM
 ::HMCRobusteAtlasFlair(vnl_matrix<double> const & Chain, 
                        vnl_matrix<double> const & ChainAtlas,
-                       InputParameters const & params)
+                       unsigned int iterations, 
+                       int FlairImage, int RobusteType, float threshold)
 {
 
     this->PositionOutliers=vnl_vector<int>(Chain.columns(), 0);
     
     //boucle jusqu à convergence ou NbIter
-    int iter=0;
-    while(iter!=params.NbIter && this->Changement>0.01)
+    unsigned int iter=0;
+    while(iter!=iterations && this->Changement>0.01)
     {
         //Etape E
         this->CalculForwardRobusteAtlas(Chain, ChainAtlas);
@@ -64,17 +65,16 @@ EM
         this->EstimateMuRobuste(Chain);
         this->EstimateSigmaRobuste(Chain);
         
-        this->CalculResidusAtlasFlair(Chain, ChainAtlas, params.FlairImage);
+        this->CalculResidusAtlasFlair(Chain, ChainAtlas, FlairImage);
         
-        if(params.RobusteType==0)
+        if(RobusteType==0)
         {
-            this->FindPositionOutliers(Chain, params.FlairImage, 
-                                       params.PourcentageResidus);
+            this->FindPositionOutliers(Chain, FlairImage, threshold);
         }
         else
         {
             this->FindPositionOutliersAtlasSeuil(Chain, ChainAtlas, 
-                                                 params.FlairImage, params.Seuil);
+                                                 FlairImage, threshold);
         }
         
         this->CalculChangement(iter);
@@ -88,21 +88,15 @@ EM
 ::SegMPMRobusteAtlas(vnl_matrix<double> const & Chain, 
                      vnl_matrix<double> const & AtlasChain, 
                      vnl_vector<int> & ChainSeg,
-                     vnl_vector<int> & ChainLesions, 
-                     InputParameters const & params)
+                     vnl_vector<int> & ChainLesions, bool AfficheOutliers)
 {
     this->CalculForwardRobusteAtlas(Chain, AtlasChain);
     this->CalculBackwardRobusteAtlas(Chain, AtlasChain);
     this->CalculForwardBackward();
     
-    //this->Forward.clear();
-    //this->Backward.clear();
-
     Self::MPM(ForwardBackward, ChainSeg);
-    //this->ForwardBackward.clear();
 
-    //affichage des outliers
-    if(params.AfficheOutliers==1)
+    if(AfficheOutliers)
     {
         for(unsigned int i=0;i!=Chain.columns();i++)
         {

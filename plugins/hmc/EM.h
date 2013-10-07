@@ -28,13 +28,14 @@ public:
     
     void HMCRobusteAtlasFlair(vnl_matrix<double> const & Chain, 
                               vnl_matrix<double> const & ChainAtlas,
-                              InputParameters const & params);
+                              unsigned int iterations,
+                              int FlairImage, int RobusteType, float threshold);
     
     void SegMPMRobusteAtlas(vnl_matrix<double> const & Chain, 
                             vnl_matrix<double> const & AtlasChain,
                             vnl_vector<int> & ChainSeg,
                             vnl_vector<int> & ChainLesions,
-                            InputParameters const & params);
+                            bool AfficheOutliers);
 
 private:
     vnl_matrix<double> Forward;
