@@ -21,14 +21,14 @@
 namespace itk
 {
 
-class HMCSegmentationImageFilter : 
-    public ImageToImageFilter<Image<float, 3>, Image<float, 3> >
+template<typename TInputImage, typename TMaskImage=TInputImage, typename TOutputImage=TInputImage>
+class HMCSegmentationImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
 
     /** Standard class typedefs. */
     typedef HMCSegmentationImageFilter Self;
-    typedef ImageToImageFilter<Image<float, 3>, Image<float, 3> > Superclass;
+    typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
     
@@ -39,15 +39,14 @@ public:
     itkTypeMacro(HMCSegmentationImageFilter, ImageToImageFilter);
 
     /** Type of the input image. */
-    typedef Image<float, 3> InputImageType;
+    typedef TInputImage InputImageType;
 
-    typedef Image<float, 3> MaskImageType;
-    typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef TMaskImage MaskImageType;
     typedef typename MaskImageType::ConstPointer MaskImageConstPointer;
 
     /** Type of the output image. */
-    typedef Image<float, 3> OutputImageType;
-    typedef typename OutputImageType::IndexType OutputImageIndexType;
+    typedef TOutputImage OutputImageType;
+    typedef typename OutputImageType::Pointer OutputImagePointer;
     
     /// @brief Return the mask. 
     itkGetConstObjectMacro(MaskImage, MaskImageType);
@@ -93,10 +92,10 @@ public:
     itkSetMacro(Threshold, float);
     
     /// @brief Return the segmentation image.
-    OutputImageType::Pointer GetSegmentationImage();
+    OutputImagePointer GetSegmentationImage();
     
     /// @brief Return the outliers image.
-    OutputImageType::Pointer GetOutliersImage();
+    OutputImagePointer GetOutliersImage();
 
 protected:
     HMCSegmentationImageFilter();
@@ -106,8 +105,7 @@ protected:
     DataObject::Pointer MakeOutput(unsigned int index);
     
 private:
-    typedef HilbertCurveChainGenerator<InputImageType, MaskImageType> 
-        ChainGeneratorType;
+    typedef HilbertCurveChainGenerator<InputImageType, MaskImageType> ChainGeneratorType;
     
     MaskImageConstPointer m_MaskImage;    
     int m_FlairImage;
@@ -119,10 +117,12 @@ private:
     
     static void _chain_to_image(vnl_vector<int> const & chain, 
                                 vnl_vector<int> const & chain_mask,
-                                ChainGeneratorType::ScanConstPointer const & scan, 
-                                OutputImageType::Pointer image);
+                                typename ChainGeneratorType::ScanConstPointer const & scan, 
+                                OutputImagePointer image);
 };
 
 }
+
+#include "itkHMCSegmentationImageFilter.txx"
 
 #endif // _7e14fdcd_5a32_4318_9136_2231262e46aa
