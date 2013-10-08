@@ -24,21 +24,24 @@
 namespace itk
 {
 
-HMCSegmentationImageFilter::OutputImageType::Pointer
-HMCSegmentationImageFilter
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
+typename HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>::OutputImagePointer
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GetSegmentationImage()
 {
     return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(0));
 }
 
-HMCSegmentationImageFilter::OutputImageType::Pointer
-HMCSegmentationImageFilter
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
+typename HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>::OutputImagePointer
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GetOutliersImage()
 {
     return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(1));
 }
 
-HMCSegmentationImageFilter
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::HMCSegmentationImageFilter()
 : m_MaskImage(0), m_FlairImage(-1), m_Iterations(5), m_Modalities(0), 
   m_DisplayOutliers(true), m_OutliersCriterion(0), m_Threshold(0)
@@ -50,31 +53,33 @@ HMCSegmentationImageFilter
     this->SetNthOutput(1, this->MakeOutput(1));
 }
 
-HMCSegmentationImageFilter
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::~HMCSegmentationImageFilter()
 {
     // Nothing to do.
 }
 
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
-HMCSegmentationImageFilter
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GenerateData()
 {
-    //InputParameters params; // FIXME
+    typedef typename InputImageType::ConstPointer InputImageConstPointer;
     
-    std::vector<InputImageType::ConstPointer> images;
+    std::vector<InputImageConstPointer> images;
     for(unsigned int i=0; i < this->m_Modalities; i++)
     {
         images.push_back(static_cast<InputImageType const *>(this->GetInput(i)));
     }
 
-    std::vector<InputImageType::ConstPointer> atlas;
+    std::vector<InputImageConstPointer> atlas;
     for(unsigned int i=this->m_Modalities; i <this->GetNumberOfInputs(); i++)
     {
         atlas.push_back(static_cast<InputImageType const *>(this->GetInput(i)));
     }
     
-    std::vector<InputImageType::ConstPointer> all_images;
+    std::vector<InputImageConstPointer> all_images;
     std::copy(images.begin(), images.end(), std::back_inserter(all_images));
     std::copy(atlas.begin(), atlas.end(), std::back_inserter(all_images));
     
@@ -83,18 +88,18 @@ HMCSegmentationImageFilter
     ChainGeneratorType chain_generator;
     chain_generator(all_images, this->m_MaskImage);
     
-    ChainGeneratorType::ImageChainsType const & image_chains = 
+    typename ChainGeneratorType::ImageChainsType const & image_chains = 
         chain_generator.GetImageChains();
     
     int const taille=image_chains.columns();
     
-    ChainGeneratorType::ImageChainsType chain(images.size(), taille);
+    typename ChainGeneratorType::ImageChainsType chain(images.size(), taille);
     for(unsigned int i=0; i!=images.size(); i++)
     {
         chain.set_row(i, image_chains.get_row(i));
     }
     
-    ChainGeneratorType::ImageChainsType chain_atlas(atlas.size(), taille);
+    typename ChainGeneratorType::ImageChainsType chain_atlas(atlas.size(), taille);
     for(unsigned int i=0; i!=atlas.size(); i++)
     {
         chain_atlas.set_row(i, image_chains.get_row(i+images.size()));
@@ -122,11 +127,11 @@ HMCSegmentationImageFilter
     
     //Parcours d Hilbert-Peano inverse pour obtenir l image segmentée
     //mettre l'image à la bonne taille
-    OutputImageType::Pointer segmentation = this->GetSegmentationImage();
+    OutputImagePointer segmentation = this->GetSegmentationImage();
     segmentation->SetRegions(images[0]->GetLargestPossibleRegion());
     segmentation->Allocate();
 
-    OutputImageType::Pointer outliers = this->GetOutliersImage();
+    OutputImagePointer outliers = this->GetOutliersImage();
     outliers->SetRegions(images[0]->GetLargestPossibleRegion());
     outliers->Allocate();
     
@@ -136,8 +141,9 @@ HMCSegmentationImageFilter
                           chain_generator.GetScan(), outliers);
 }
 
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 DataObject::Pointer
-HMCSegmentationImageFilter
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::MakeOutput(unsigned int index)
 {
     DataObject::Pointer output;
@@ -158,11 +164,12 @@ HMCSegmentationImageFilter
     return output.GetPointer();
 }
 
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
-HMCSegmentationImageFilter
+HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::_chain_to_image(vnl_vector<int> const & chain, vnl_vector<int> const & chain_mask,
-                  ChainGeneratorType::ScanConstPointer const & scan, 
-                  OutputImageType::Pointer image)
+                  typename ChainGeneratorType::ScanConstPointer const & scan, 
+                  OutputImagePointer image)
 {
     //chaine complete avec le fond
     vnl_vector<double> chain_prov(chain_mask.size(), 0);
@@ -176,17 +183,18 @@ HMCSegmentationImageFilter
         }
     }
     
-    OutputImageType::SizeType const & size = image->GetRequestedRegion().GetSize();
+    typename OutputImageType::SizeType const & size = 
+        image->GetRequestedRegion().GetSize();
     
     typedef itk::ImageRegionIteratorWithIndex<OutputImageType> IteratorType;
     for(IteratorType it(image, image->GetRequestedRegion());
         !it.IsAtEnd(); ++it)
     {
-        IteratorType::IndexType const & index = it.GetIndex();
+        typename IteratorType::IndexType const & index = it.GetIndex();
         
         // Match scan order from Medimax with regular scan order: switch and 
         // mirror the Y and Z axes.
-        OutputImageType::IndexType const modified_index = 
+        typename IteratorType::IndexType const modified_index = 
             {{ index[0], size[2]-index[2]-1, size[1]-index[1]-1 }};
         
         int const chain_index = 
