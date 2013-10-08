@@ -21,8 +21,10 @@
 namespace itk
 {
 
-template<typename TInputImage, typename TMaskImage=TInputImage, typename TOutputImage=TInputImage>
-class HMCSegmentationImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
+template<typename TInputImage, typename TMaskImage=TInputImage, 
+    typename TOutputImage=TInputImage>
+class HMCSegmentationImageFilter : 
+    public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
 
@@ -105,7 +107,9 @@ protected:
     DataObject::Pointer MakeOutput(unsigned int index);
     
 private:
-    typedef HilbertCurveChainGenerator<InputImageType, MaskImageType> ChainGeneratorType;
+    typedef HilbertCurveChainGenerator<InputImageType, MaskImageType> 
+        ChainGeneratorType;
+    typedef typename ChainGeneratorType::ScanConstPointer ScanConstPointer;
     
     MaskImageConstPointer m_MaskImage;    
     int m_FlairImage;
@@ -116,9 +120,8 @@ private:
     float m_Threshold;
     
     static void _chain_to_image(vnl_vector<int> const & chain, 
-                                vnl_vector<int> const & chain_mask,
-                                typename ChainGeneratorType::ScanConstPointer const & scan, 
-                                OutputImagePointer image);
+        vnl_vector<int> const & chain_mask, ScanConstPointer const & scan, 
+        OutputImagePointer image);
 };
 
 }

@@ -68,39 +68,41 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
     
     std::vector<InputImageConstPointer> images;
-    for(unsigned int i=0; i < this->m_Modalities; i++)
+    for(unsigned int i=0; i < this->m_Modalities; ++i)
     {
-        images.push_back(static_cast<InputImageType const *>(this->GetInput(i)));
+        images.push_back(this->GetInput(i));
     }
 
     std::vector<InputImageConstPointer> atlas;
-    for(unsigned int i=this->m_Modalities; i <this->GetNumberOfInputs(); i++)
+    for(unsigned int i=this->m_Modalities; i <this->GetNumberOfInputs(); ++i)
     {
-        atlas.push_back(static_cast<InputImageType const *>(this->GetInput(i)));
+        atlas.push_back(this->GetInput(i));
     }
     
     std::vector<InputImageConstPointer> all_images;
-    std::copy(images.begin(), images.end(), std::back_inserter(all_images));
-    std::copy(atlas.begin(), atlas.end(), std::back_inserter(all_images));
+    for(unsigned int i=0; i <this->GetNumberOfInputs(); ++i)
+    {
+        all_images.push_back(this->GetInput(i));
+    }
     
     //parcours Hilbert-Peano pour récuperer des vecteurs et suppression des 
     // données non masquées
     ChainGeneratorType chain_generator;
     chain_generator(all_images, this->m_MaskImage);
     
-    typename ChainGeneratorType::ImageChainsType const & image_chains = 
-        chain_generator.GetImageChains();
+    typedef typename ChainGeneratorType::ImageChainsType ImageChainsType;
     
-    int const taille=image_chains.columns();
+    ImageChainsType const & image_chains = chain_generator.GetImageChains();
+    unsigned int const chain_size=image_chains.columns();
     
-    typename ChainGeneratorType::ImageChainsType chain(images.size(), taille);
-    for(unsigned int i=0; i!=images.size(); i++)
+    ImageChainsType chain(images.size(), chain_size);
+    for(unsigned int i=0; i!=images.size(); ++i)
     {
         chain.set_row(i, image_chains.get_row(i));
     }
     
-    typename ChainGeneratorType::ImageChainsType chain_atlas(atlas.size(), taille);
-    for(unsigned int i=0; i!=atlas.size(); i++)
+    ImageChainsType chain_atlas(atlas.size(), chain_size);
+    for(unsigned int i=0; i!=atlas.size(); ++i)
     {
         chain_atlas.set_row(i, image_chains.get_row(i+images.size()));
     }
@@ -117,28 +119,29 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
     //Estimation des paramètres (EM)
     EM em(PIi, aij, Mu, Sigma);
     em.HMCRobusteAtlasFlair(chain, chain_atlas, this->m_Iterations,
-        this->m_FlairImage, this->m_OutliersCriterion, m_Threshold);
+                            this->m_FlairImage, this->m_OutliersCriterion, 
+                            m_Threshold);
     
     // MPM
-    vnl_vector<int> ChainSeg(taille);
-    vnl_vector<int> ChainLesions(taille);
+    vnl_vector<int> ChainSeg(chain_size);
+    vnl_vector<int> ChainLesions(chain_size);
     em.SegMPMRobusteAtlas(chain, chain_atlas, ChainSeg, ChainLesions, 
                           this->m_DisplayOutliers);
     
     //Parcours d Hilbert-Peano inverse pour obtenir l image segmentée
     //mettre l'image à la bonne taille
+    vnl_vector<int> const & mask_chain = chain_generator.GetMaskChain();
+    ScanConstPointer const scan = chain_generator.GetScan();
+    
     OutputImagePointer segmentation = this->GetSegmentationImage();
     segmentation->SetRegions(images[0]->GetLargestPossibleRegion());
     segmentation->Allocate();
-
+    Self::_chain_to_image(ChainSeg, mask_chain, scan, segmentation);
+    
     OutputImagePointer outliers = this->GetOutliersImage();
     outliers->SetRegions(images[0]->GetLargestPossibleRegion());
     outliers->Allocate();
-    
-    Self::_chain_to_image(ChainSeg, chain_generator.GetMaskChain(), 
-                          chain_generator.GetScan(), segmentation);
-    Self::_chain_to_image(ChainLesions, chain_generator.GetMaskChain(), 
-                          chain_generator.GetScan(), outliers);
+    Self::_chain_to_image(ChainLesions, mask_chain, scan, outliers);
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
@@ -167,14 +170,14 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
-::_chain_to_image(vnl_vector<int> const & chain, vnl_vector<int> const & chain_mask,
-                  typename ChainGeneratorType::ScanConstPointer const & scan, 
-                  OutputImagePointer image)
+::_chain_to_image(vnl_vector<int> const & chain, 
+    vnl_vector<int> const & chain_mask, ScanConstPointer const & scan, 
+    OutputImagePointer image)
 {
     //chaine complete avec le fond
     vnl_vector<double> chain_prov(chain_mask.size(), 0);
     vnl_vector<int>::const_iterator chain_it=chain.begin();
-    for(unsigned int j=0; j!=chain_mask.size(); j++)
+    for(unsigned int j=0; j!=chain_mask.size(); ++j)
     {
         if(chain_mask[j]!=0)
         {
@@ -187,8 +190,7 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
         image->GetRequestedRegion().GetSize();
     
     typedef itk::ImageRegionIteratorWithIndex<OutputImageType> IteratorType;
-    for(IteratorType it(image, image->GetRequestedRegion());
-        !it.IsAtEnd(); ++it)
+    for(IteratorType it(image, image->GetRequestedRegion()); !it.IsAtEnd(); ++it)
     {
         typename IteratorType::IndexType const & index = it.GetIndex();
         
@@ -197,8 +199,7 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
         typename IteratorType::IndexType const modified_index = 
             {{ index[0], size[2]-index[2]-1, size[1]-index[1]-1 }};
         
-        int const chain_index = 
-            scan->GetPixel(modified_index);
+        int const chain_index = scan->GetPixel(modified_index);
         it.Set(chain_prov[chain_index]);
     }
 }
