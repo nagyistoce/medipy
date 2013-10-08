@@ -139,8 +139,12 @@ HilbertCurveChainGenerator<TImage, TMask>
             !it.IsAtEnd(); ++it)
         {
             ScanType::IndexType const & source=it.GetIndex();
-            ScanType::IndexType const destination = 
-                {{ iOrig+source[2], jOrig+source[1], kOrig+source[0] }};
+            
+            ScanType::IndexType destination;
+            destination[0] = iOrig+source[2]; 
+            destination[1] = jOrig+source[1];
+            destination[2] = kOrig+source[0];
+            
             cube->SetPixel(destination, posOrig+it.Get());
         }
 
@@ -153,8 +157,12 @@ HilbertCurveChainGenerator<TImage, TMask>
             !it.IsAtEnd(); ++it)
         {
             ScanType::IndexType const & source=it.GetIndex();
-            ScanType::IndexType const destination = 
-                {{ iOrig+source[1], jOrig+source[0], kOrig+source[2] }};
+            
+            ScanType::IndexType destination;
+            destination[0] = iOrig+source[1]; 
+            destination[1] = jOrig+source[0];
+            destination[2] = kOrig+source[2];
+            
             cube->SetPixel(destination, posOrig+it.Get());
         }
 
@@ -166,8 +174,12 @@ HilbertCurveChainGenerator<TImage, TMask>
             !it.IsAtEnd(); ++it)
         {
             ScanType::IndexType const & source=it.GetIndex();
-            ScanType::IndexType const destination = 
-                {{ iOrig+source[0], jOrig+source[1], kOrig+source[2] }};
+            
+            ScanType::IndexType destination;
+            destination[0] = iOrig+source[0]; 
+            destination[1] = jOrig+source[1];
+            destination[2] = kOrig+source[2];
+            
             cube->SetPixel(destination, posOrig+it.Get());
         }
 
@@ -180,8 +192,12 @@ HilbertCurveChainGenerator<TImage, TMask>
             !it.IsAtEnd(); ++it)
         {
             ScanType::IndexType const & source=it.GetIndex();
-            ScanType::IndexType const destination = 
-                {{ iOrig-source[1], jOrig+source[2], kOrig-source[0] }};
+            
+            ScanType::IndexType destination;
+            destination[0] = iOrig-source[1]; 
+            destination[1] = jOrig+source[2];
+            destination[2] = kOrig-source[0];
+            
             cube->SetPixel(destination, posOrig+it.Get());
         }
 
@@ -192,10 +208,16 @@ HilbertCurveChainGenerator<TImage, TMask>
             {
                 for(int k=0;k!=cube_size;k++)
                 {
-                    ScanType::IndexType const source = 
-                        {{ sub_cube_size-(i+1), j, k }};
-                    ScanType::IndexType const destination = 
-                        {{ sub_cube_size+i, j, k }};
+                    ScanType::IndexType source;
+                    source[0] = sub_cube_size-(i+1);
+                    source[1] = j;
+                    source[2] = k;
+                    
+                    ScanType::IndexType destination;
+                    destination[0] = sub_cube_size+i; 
+                    destination[1] = j;
+                    destination[2] = k;
+                    
                     cube->SetPixel(destination, nbVox-(cube->GetPixel(source)+1));
                 }
             }
@@ -227,8 +249,10 @@ HilbertCurveChainGenerator<TImage, TMask>
         // mirror the Y and Z axes.
         typename ImageType::SizeType const & size = 
             images[0]->GetRequestedRegion().GetSize();
-        typename ImageType::IndexType const modified_index = 
-            {{ index[0], size[2]-index[2]-1, size[1]-index[1]-1 }};
+        typename ImageType::IndexType modified_index;
+        modified_index[0] = index[0];
+        modified_index[1] = size[2]-index[2]-1;
+        modified_index[2] = size[1]-index[1]-1;
     
         for(unsigned int modality=0; modality!=images.size(); modality++)
         {

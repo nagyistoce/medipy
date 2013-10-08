@@ -252,8 +252,10 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
         
         // Match scan order from Medimax with regular scan order: switch and 
         // mirror the Y and Z axes.
-        typename IteratorType::IndexType const modified_index = 
-            {{ index[0], size[2]-index[2]-1, size[1]-index[1]-1 }};
+        typename IteratorType::IndexType modified_index;
+        modified_index[0] = index[0];
+        modified_index[1] = size[2]-index[2]-1;
+        modified_index[2] = size[1]-index[1]-1;
         
         int const chain_index = scan->GetPixel(modified_index);
         it.Set(chain_prov[chain_index]);
