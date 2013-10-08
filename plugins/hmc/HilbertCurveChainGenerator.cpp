@@ -29,7 +29,7 @@ HilbertCurveChainGenerator
 
 void 
 HilbertCurveChainGenerator
-::operator()(std::vector<ImagePointer> const & images, MaskPointer mask)
+::operator()(std::vector<ImageConstPointer> const & images, MaskConstPointer mask)
 {
     //creation du parcours d'hilbert-peano
     this->m_Scan = this->_hilbert_peano_scan(this->_find_cube_length(images[0]));
@@ -52,16 +52,16 @@ HilbertCurveChainGenerator
     return this->m_MaskChain;
 }
 
-HilbertCurveChainGenerator::ScanPointer
+HilbertCurveChainGenerator::ScanConstPointer
 HilbertCurveChainGenerator
 ::GetScan() const
 {
-    return this->m_Scan;
+    return ScanConstPointer(this->m_Scan);
 }
 
 unsigned int 
 HilbertCurveChainGenerator
-::_find_cube_length(ImagePointer image)
+::_find_cube_length(ImageType const * image)
 {
     ImageType::SizeType const & size = image->GetRequestedRegion().GetSize();
 	
@@ -198,7 +198,7 @@ HilbertCurveChainGenerator
 
 void 
 HilbertCurveChainGenerator
-::_image_scan(std::vector<ImagePointer> const & images, MaskPointer mask)
+::_image_scan(std::vector<ImageConstPointer> const & images, MaskConstPointer mask)
 {
     unsigned long const scan_length = std::pow(Self::_find_cube_length(images[0]), 3);
     vnl_matrix<double> chain(images.size(), scan_length, 0);

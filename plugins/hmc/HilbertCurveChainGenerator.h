@@ -25,10 +25,10 @@ public:
     typedef HilbertCurveChainGenerator Self;
     
     typedef itk::Image<float, 3> ImageType;
-    typedef ImageType::Pointer ImagePointer;
+    typedef ImageType::ConstPointer ImageConstPointer;
     
     typedef itk::Image<float, 3> MaskType;
-    typedef MaskType::Pointer MaskPointer;
+    typedef MaskType::ConstPointer MaskConstPointer;
     
     typedef itk::Image<int, 3> ScanType;
     typedef ScanType::Pointer ScanPointer;
@@ -40,22 +40,22 @@ public:
     HilbertCurveChainGenerator();
     ~HilbertCurveChainGenerator();
 
-    void operator()(std::vector<ImagePointer> const & images, 
-                    MaskPointer mask=MaskPointer());
+    void operator()(std::vector<ImageConstPointer> const & images, 
+                    MaskConstPointer mask=MaskConstPointer());
     
     ImageChainsType const & GetImageChains() const;
     MaskChainType const & GetMaskChain() const;
-    ScanPointer GetScan() const;
+    ScanConstPointer GetScan() const;
 
 private:
     ImageChainsType m_ImageChains;
     MaskChainType m_MaskChain;
     ScanPointer m_Scan;
     
-    static unsigned int _find_cube_length(ImagePointer image);
+    static unsigned int _find_cube_length(ImageType const * image);
     static ScanPointer _hilbert_peano_scan(int cube_size);
 
-    void _image_scan(std::vector<ImagePointer> const & images, MaskPointer mask);
+    void _image_scan(std::vector<ImageConstPointer> const & images, MaskConstPointer mask);
 };
 
 #endif // _520dc57b_a1d1_4849_8e56_f982399ef678
