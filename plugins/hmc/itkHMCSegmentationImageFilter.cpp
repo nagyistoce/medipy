@@ -80,21 +80,21 @@ HMCSegmentationImageFilter
     
     //parcours Hilbert-Peano pour récuperer des vecteurs et suppression des 
     // données non masquées
-    HilbertCurveChainGenerator chain_generator;
+    ChainGeneratorType chain_generator;
     chain_generator(all_images, this->m_MaskImage);
     
-    HilbertCurveChainGenerator::ImageChainsType const & image_chains = 
+    ChainGeneratorType::ImageChainsType const & image_chains = 
         chain_generator.GetImageChains();
     
     int const taille=image_chains.columns();
     
-    HilbertCurveChainGenerator::ImageChainsType chain(images.size(), taille);
+    ChainGeneratorType::ImageChainsType chain(images.size(), taille);
     for(unsigned int i=0; i!=images.size(); i++)
     {
         chain.set_row(i, image_chains.get_row(i));
     }
     
-    HilbertCurveChainGenerator::ImageChainsType chain_atlas(atlas.size(), taille);
+    ChainGeneratorType::ImageChainsType chain_atlas(atlas.size(), taille);
     for(unsigned int i=0; i!=atlas.size(); i++)
     {
         chain_atlas.set_row(i, image_chains.get_row(i+images.size()));
@@ -161,8 +161,8 @@ HMCSegmentationImageFilter
 void
 HMCSegmentationImageFilter
 ::_chain_to_image(vnl_vector<int> const & chain, vnl_vector<int> const & chain_mask,
-                 HilbertCurveChainGenerator::ScanConstPointer const & scan, 
-                 OutputImageType::Pointer image)
+                  ChainGeneratorType::ScanConstPointer const & scan, 
+                  OutputImageType::Pointer image)
 {
     //chaine complete avec le fond
     vnl_vector<double> chain_prov(chain_mask.size(), 0);

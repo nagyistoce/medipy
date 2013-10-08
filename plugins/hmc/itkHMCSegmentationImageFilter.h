@@ -106,6 +106,9 @@ protected:
     DataObject::Pointer MakeOutput(unsigned int index);
     
 private:
+    typedef HilbertCurveChainGenerator<InputImageType, MaskImageType> 
+        ChainGeneratorType;
+    
     MaskImageConstPointer m_MaskImage;    
     int m_FlairImage;
     unsigned int m_Iterations;
@@ -116,7 +119,7 @@ private:
     
     static void _chain_to_image(vnl_vector<int> const & chain, 
                                 vnl_vector<int> const & chain_mask,
-                                HilbertCurveChainGenerator::ScanConstPointer const & scan, 
+                                ChainGeneratorType::ScanConstPointer const & scan, 
                                 OutputImageType::Pointer image);
 };
 

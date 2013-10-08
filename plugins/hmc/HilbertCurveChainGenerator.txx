@@ -15,20 +15,23 @@
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_vector.h>
 
-HilbertCurveChainGenerator
+template<typename TImage, typename TMask>
+HilbertCurveChainGenerator<TImage, TMask>
 ::HilbertCurveChainGenerator()
 { 
     // Nothing to do.
 }
 
-HilbertCurveChainGenerator
+template<typename TImage, typename TMask>
+HilbertCurveChainGenerator<TImage, TMask>
 ::~HilbertCurveChainGenerator()
 {
     // Nothing to do.
 }
 
+template<typename TImage, typename TMask>
 void 
-HilbertCurveChainGenerator
+HilbertCurveChainGenerator<TImage, TMask>
 ::operator()(std::vector<ImageConstPointer> const & images, MaskConstPointer mask)
 {
     //creation du parcours d'hilbert-peano
@@ -38,32 +41,37 @@ HilbertCurveChainGenerator
     this->_image_scan(images, mask);
 }
 
-HilbertCurveChainGenerator::ImageChainsType const & 
-HilbertCurveChainGenerator
+template<typename TImage, typename TMask>
+typename HilbertCurveChainGenerator<TImage, TMask>::ImageChainsType const & 
+HilbertCurveChainGenerator<TImage, TMask>
 ::GetImageChains() const
 {
     return this->m_ImageChains;
 }
 
-HilbertCurveChainGenerator::MaskChainType const & 
-HilbertCurveChainGenerator
+template<typename TImage, typename TMask>
+typename HilbertCurveChainGenerator<TImage, TMask>::MaskChainType const & 
+HilbertCurveChainGenerator<TImage, TMask>
 ::GetMaskChain() const
 {
     return this->m_MaskChain;
 }
 
-HilbertCurveChainGenerator::ScanConstPointer
-HilbertCurveChainGenerator
+template<typename TImage, typename TMask>
+typename HilbertCurveChainGenerator<TImage, TMask>::ScanConstPointer
+HilbertCurveChainGenerator<TImage, TMask>
 ::GetScan() const
 {
     return ScanConstPointer(this->m_Scan);
 }
 
+template<typename TImage, typename TMask>
 unsigned int 
-HilbertCurveChainGenerator
+HilbertCurveChainGenerator<TImage, TMask>
 ::_find_cube_length(ImageType const * image)
 {
-    ImageType::SizeType const & size = image->GetRequestedRegion().GetSize();
+    typename ImageType::SizeType const & size = 
+        image->GetRequestedRegion().GetSize();
 	
     //on cherche le max
     unsigned int const max = *std::max_element(size.m_Size, size.m_Size+size.GetSizeDimension());
@@ -78,8 +86,9 @@ HilbertCurveChainGenerator
     return power;
 }
 
-HilbertCurveChainGenerator::ScanPointer
-HilbertCurveChainGenerator
+template<typename TImage, typename TMask>
+typename HilbertCurveChainGenerator<TImage, TMask>::ScanPointer
+HilbertCurveChainGenerator<TImage, TMask>
 ::_hilbert_peano_scan(int cube_size)
 {
     ScanPointer cube=ScanType::New();
@@ -196,8 +205,9 @@ HilbertCurveChainGenerator
     return cube;
 }
 
+template<typename TImage, typename TMask>
 void 
-HilbertCurveChainGenerator
+HilbertCurveChainGenerator<TImage, TMask>
 ::_image_scan(std::vector<ImageConstPointer> const & images, MaskConstPointer mask)
 {
     unsigned long const scan_length = std::pow(Self::_find_cube_length(images[0]), 3);
@@ -210,14 +220,14 @@ HilbertCurveChainGenerator
     for(IteratorType it(images[0], images[0]->GetRequestedRegion());
         !it.IsAtEnd(); ++it)
     {
-        ImageType::IndexType const & index = it.GetIndex();
+        typename ImageType::IndexType const & index = it.GetIndex();
         unsigned int const chain_index = this->m_Scan->GetPixel(index);
         
         // Match scan order from Medimax with regular scan order: switch and 
         // mirror the Y and Z axes.
-        ImageType::SizeType const & size = 
+        typename ImageType::SizeType const & size = 
             images[0]->GetRequestedRegion().GetSize();
-        ImageType::IndexType modified_index = 
+        typename ImageType::IndexType const modified_index = 
             {{ index[0], size[2]-index[2]-1, size[1]-index[1]-1 }};
     
         for(unsigned int modality=0; modality!=images.size(); modality++)
