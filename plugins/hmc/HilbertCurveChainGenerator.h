@@ -19,16 +19,17 @@
  * @brief Generate chains from a vector of images and an optional mask, 
  *        according to a Hilbert-Peano scan.
  */
+template<typename TImage, typename TMask>
 class HilbertCurveChainGenerator
 {
 public:
     typedef HilbertCurveChainGenerator Self;
     
-    typedef itk::Image<float, 3> ImageType;
-    typedef ImageType::ConstPointer ImageConstPointer;
+    typedef TImage ImageType;
+    typedef typename ImageType::ConstPointer ImageConstPointer;
     
-    typedef itk::Image<float, 3> MaskType;
-    typedef MaskType::ConstPointer MaskConstPointer;
+    typedef TMask MaskType;
+    typedef typename MaskType::ConstPointer MaskConstPointer;
     
     typedef itk::Image<int, 3> ScanType;
     typedef ScanType::Pointer ScanPointer;
@@ -57,5 +58,7 @@ private:
 
     void _image_scan(std::vector<ImageConstPointer> const & images, MaskConstPointer mask);
 };
+
+#include "HilbertCurveChainGenerator.txx"
 
 #endif // _520dc57b_a1d1_4849_8e56_f982399ef678
