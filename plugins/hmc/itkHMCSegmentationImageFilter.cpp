@@ -24,18 +24,18 @@
 namespace itk
 {
 
-HMCSegmentationImageFilter::OutputImageType::ConstPointer
+HMCSegmentationImageFilter::OutputImageType::Pointer
 HMCSegmentationImageFilter
-::GetSegmentationImage() const
+::GetSegmentationImage()
 {
-    return dynamic_cast<OutputImageType const *>(this->ProcessObject::GetOutput(0));
+    return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(0));
 }
 
-HMCSegmentationImageFilter::OutputImageType::ConstPointer
+HMCSegmentationImageFilter::OutputImageType::Pointer
 HMCSegmentationImageFilter
-::GetOutliersImage() const
+::GetOutliersImage()
 {
-    return dynamic_cast<OutputImageType const *>(this->ProcessObject::GetOutput(1));
+    return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(1));
 }
 
 HMCSegmentationImageFilter
@@ -73,9 +73,6 @@ HMCSegmentationImageFilter
     {
         atlas.push_back(static_cast<InputImageType const *>(this->GetInput(i)));
     }
-    
-    OutputImageType::Pointer segmentation = this->GetSegmentationImage();
-    OutputImageType::Pointer lesions = this->GetOutliersImage();
     
     std::vector<InputImageType::ConstPointer> all_images;
     std::copy(images.begin(), images.end(), std::back_inserter(all_images));
@@ -120,14 +117,23 @@ HMCSegmentationImageFilter
     // MPM
     vnl_vector<int> ChainSeg(taille);
     vnl_vector<int> ChainLesions(taille);
-    em.SegMPMRobusteAtlas(chain, chain_atlas, ChainSeg, ChainLesions, this->m_DisplayOutliers);
+    em.SegMPMRobusteAtlas(chain, chain_atlas, ChainSeg, ChainLesions, 
+                          this->m_DisplayOutliers);
     
     //Parcours d Hilbert-Peano inverse pour obtenir l image segmentée
     //mettre l'image à la bonne taille
+    OutputImageType::Pointer segmentation = this->GetSegmentationImage();
+    segmentation->SetRegions(images[0]->GetLargestPossibleRegion());
+    segmentation->Allocate();
+
+    OutputImageType::Pointer outliers = this->GetOutliersImage();
+    outliers->SetRegions(images[0]->GetLargestPossibleRegion());
+    outliers->Allocate();
+    
     Self::_chain_to_image(ChainSeg, chain_generator.GetMaskChain(), 
                           chain_generator.GetScan(), segmentation);
     Self::_chain_to_image(ChainLesions, chain_generator.GetMaskChain(), 
-                          chain_generator.GetScan(), lesions);
+                          chain_generator.GetScan(), outliers);
 }
 
 DataObject::Pointer
@@ -150,20 +156,6 @@ HMCSegmentationImageFilter
     }
     
     return output.GetPointer();
-}
-
-HMCSegmentationImageFilter::OutputImageType::Pointer
-HMCSegmentationImageFilter
-::GetSegmentationImage()
-{
-    return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(0));
-}
-
-HMCSegmentationImageFilter::OutputImageType::Pointer
-HMCSegmentationImageFilter
-::GetOutliersImage()
-{
-    return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(1));
 }
 
 void

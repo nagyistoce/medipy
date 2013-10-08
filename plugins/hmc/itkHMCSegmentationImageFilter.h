@@ -93,10 +93,10 @@ public:
     itkSetMacro(Threshold, float);
     
     /// @brief Return the segmentation image.
-    OutputImageType::ConstPointer GetSegmentationImage() const;
+    OutputImageType::Pointer GetSegmentationImage();
     
     /// @brief Return the outliers image.
-    OutputImageType::ConstPointer GetOutliersImage() const;
+    OutputImageType::Pointer GetOutliersImage();
 
 protected:
     HMCSegmentationImageFilter();
@@ -105,9 +105,6 @@ protected:
     void GenerateData();
     DataObject::Pointer MakeOutput(unsigned int index);
     
-    OutputImageType::Pointer GetSegmentationImage();
-    OutputImageType::Pointer GetOutliersImage();
-
 private:
     MaskImageConstPointer m_MaskImage;    
     int m_FlairImage;
