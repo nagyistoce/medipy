@@ -15,8 +15,6 @@
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_vector.h>
 
-#include "InputParameters.h"
-
 HMCInitializer
 ::HMCInitializer()
 {

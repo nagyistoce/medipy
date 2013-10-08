@@ -17,8 +17,6 @@
 #include <vnl/algo/vnl_determinant.h>
 #include <vnl/algo/vnl_qr.h>
 
-#include "InputParameters.h"
-
 EM
 ::EM(vnl_vector<double> const & PIi,
      vnl_matrix<double> const & aij, vnl_matrix<double> const & Mu, 
