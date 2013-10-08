@@ -1,3 +1,5 @@
+from HMC import segmentation
+
 import os.path
 import medipy.itk
 
