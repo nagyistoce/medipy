@@ -71,8 +71,8 @@ def dwi_normalize(dataset_or_datasets):
                 dwi_dataset.diffusion_directionality = CS(directionality)
             if "DiffusionGradientDirection" in image_csa :
                 gradient_dataset = DataSet()
-                gradient_dataset.diffusion_gradient_orientation = \
-                    FD(image_csa['DiffusionGradientDirection'])
+                gradient_dataset.diffusion_gradient_orientation = FD(
+                    [float(x) for x in image_csa['DiffusionGradientDirection']])
                 dwi_dataset.diffusion_gradient_direction_sequence = \
                     SQ([gradient_dataset])
         return dwi_dataset
@@ -92,7 +92,8 @@ def dwi_normalize(dataset_or_datasets):
                 dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value)
         if tag_bvec in dataset.keys() :
             gradient_dataset = DataSet()
-            gradient_dataset.diffusion_gradient_orientation = FD(dataset[tag_bvec].value)
+            gradient_dataset.diffusion_gradient_orientation = FD(
+                [float(x) for x in dataset[tag_bvec].value])
             dwi_dataset.diffusion_gradient_direction_sequence = SQ([gradient_dataset])
             dwi_dataset.diffusion_directionality = CS("DIRECTIONAL")
         return dwi_dataset
@@ -115,7 +116,8 @@ def dwi_normalize(dataset_or_datasets):
         if tag_bvec_z in dataset.keys() :
             bvec.append(dataset[tag_bvec_z].value)
         gradient_dataset = DataSet()
-        gradient_dataset.diffusion_gradient_orientation = FD(bvec)
+        gradient_dataset.diffusion_gradient_orientation = FD(
+            [float(x) for x in bvec])
         dwi_dataset.diffusion_gradient_direction_sequence = SQ([gradient_dataset])
         if len(bvec)==3 :
             dwi_dataset.diffusion_directionality = CS("DIRECTIONAL")
