@@ -138,7 +138,7 @@ def stacks_dictionary(datasets):
                 dataset_key[Tag(0x0020,0x0037)] = o2
                 break
         
-        # If a close value of Image Orientation Patient exists, use it
+        # If a close value of Diffusion Gradient Orientation exists, use it
         o1 = dataset_key[Tag(0x0018,0x9089)] #values[0]
         for key in dictionary.keys() :
             key = dict(key)
