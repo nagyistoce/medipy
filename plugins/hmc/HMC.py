@@ -54,7 +54,6 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
 
     padded_mask_itk = None
     if mask:
-        print "setting mask"
         padded_mask_itk = medipy.itk.medipy_image_to_itk_image(
             padded_mask, False)
         hmc_segmentation_filter.SetMaskImage(padded_mask_itk)
