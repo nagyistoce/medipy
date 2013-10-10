@@ -63,66 +63,10 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
-std::vector<typename HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>::InputImageConstPointer>
-HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
-::_pad_inputs()
-{
-    typedef typename InputImageType::SizeType::SizeValueType SizeValueType;
-    
-    // Find the maximum size along all axes of all inputs
-    SizeValueType dimension = 0;
-    for(unsigned int i=0; i <this->GetNumberOfInputs(); ++i)
-    {
-        InputImageConstPointer image = this->GetInput(i);
-        typename InputImageType::SizeType const & size = 
-            image->GetRequestedRegion().GetSize();
-        dimension = std::max(dimension, *std::max_element(
-            size.m_Size, size.m_Size+image->GetImageDimension()));
-    }
-    
-    // Find the smallest power of two which is larger than dimension
-    unsigned int power=1;
-    while(power<dimension)
-    {
-        power <<= 1;
-    }
-    
-    typename InputImageType::SizeType final_size;
-    final_size.Fill(power);
-    
-    // Resize all inputs to the same size
-    std::vector<InputImageConstPointer> padded_images;
-    for(unsigned int i=0; i <this->GetNumberOfInputs(); ++i)
-    {
-        InputImageConstPointer image = this->GetInput(i);
-        typename InputImageType::SizeType const & size = 
-            image->GetRequestedRegion().GetSize();
-        
-        typename InputImageType::SizeType padding;
-        std::transform(
-            final_size.m_Size, final_size.m_Size+image->GetImageDimension(),
-            size.m_Size, padding.m_Size, std::minus<SizeValueType>());
-        
-        typedef itk::ConstantPadImageFilter<InputImageType, InputImageType> PadFilter;
-        typename PadFilter::Pointer pad_filter = PadFilter::New();
-        pad_filter->SetInput(image);
-        pad_filter->SetPadUpperBound(padding);
-        pad_filter->SetConstant(0);
-        
-        pad_filter->Update();
-        padded_images.push_back(pad_filter->GetOutput());
-    }
-    
-    return padded_images;
-}
-
-template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GenerateData()
 {
-    std::vector<InputImageConstPointer> const padded_images = this->_pad_inputs();
-    
     std::vector<InputImageConstPointer> images;
     for(unsigned int i=0; i < this->m_Modalities; ++i)
     {

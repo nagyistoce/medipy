@@ -123,8 +123,6 @@ private:
     static void _chain_to_image(vnl_vector<int> const & chain, 
         vnl_vector<int> const & chain_mask, ScanConstPointer const & scan, 
         OutputImagePointer image);
-    
-    std::vector<InputImageConstPointer> _pad_inputs();
 };
 
 }
