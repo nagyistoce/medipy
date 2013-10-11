@@ -18,6 +18,12 @@ os.remove(filename)
 build_directory = os.path.join(os.getcwd(), "InsightToolkit-3.14.0-build")
 os.makedirs(build_directory)
 
+# Patch InsightToolkit-3.14.0/Utilities/MetaIO/CMakeLists.txt to use VTK and
+# GDCM packages
+source_directory = os.path.join(os.getcwd(), "InsightToolkit-3.14.0")
+patch_file = os.path.join(os.path.dirname(__file__), "MetaIO_CMakeLists.patch")
+subprocess.call(["patch", "-p1"], stdin=open(patch_file))
+
 # Prepare the CMakeCache.txt
 cmake_cache = open(os.path.join(build_directory, "CMakeCache.txt"), "w")
 cmake_cache.write("""BUILD_TESTING:BOOL=OFF
@@ -27,6 +33,7 @@ BUILD_DOXYGEN:BOOL=ON
 BUILD_DOCUMENTATION:BOOL=ON
 BUILD_EXAMPLES:BOOL=OFF
 ITK_USE_REVIEW:BOOL=ON
+ITK_USE_SYSTEM_GDCM:BOOL=ON
 """)
 if sys.platform != "win32" :
     command = ["gcc", "-dumpversion"]
