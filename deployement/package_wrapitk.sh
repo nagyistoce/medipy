@@ -117,7 +117,7 @@ cp InstallOnly/FindWrapITK.cmake local_install/${CMAKE_ROOT}/Modules
 mkdir -p local_install/DEBIAN
 cat <<EOF > local_install/DEBIAN/control
 Package: wrapitk
-Version: 0.3.0
+Version: 0.3.0-ipb1
 Section: libs
 Priority: extra
 Architecture: $ARCHITECTURE
