@@ -79,7 +79,7 @@ def _pad_image(image, padded_size):
     
     padded_image = medipy.base.Image(
         shape=image.ndim*(padded_size,), dtype=image.dtype, value=0)
-    
     padded_image[[slice(0, x) for x in image.shape]]=image.data
+    padded_image.copy_information(image)
     
     return padded_image
