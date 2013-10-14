@@ -129,9 +129,9 @@ class Sienax(FSLTool):
             command.extend(["-lm", "{0}".format(self.lesion_mask)])
         
         if self.bet_options :
-            command.extend(["-B", "\"{0}\"".format(self.bet_options)])
+            command.extend(["-B", "{0}".format(self.bet_options)])
         if self.fast_options :
-            command.append(["-S", "\"{0}\"".format(self.fast_options)])
+            command.append(["-S", "{0}".format(self.fast_options)])
         
         return command
     
