@@ -33,6 +33,7 @@ class LayersPanel(medipy.gui.base.Panel):
             self.cut_high = None
             self.layers = None
             self.load = None
+            self.save = None
             self.delete = None
             self.move_up = None
             self.move_down = None
@@ -46,8 +47,9 @@ class LayersPanel(medipy.gui.base.Panel):
            
             self.controls = ["colormaps", "transparent_background", "opacity",
                              "cut_low", "display_range", "cut_high", "layers",
-                             "load", "delete", "move_up", "move_down","layer_value",
-                             "layer_slider","speed_value","speed_slider","play","stop"]
+                             "load", "save", "delete", "move_up", "move_down",
+                             "layer_value", "layer_slider", "speed_value",
+                             "speed_slider", "play", "stop"]
         
         def from_window(self, window, names):
             medipy.gui.base.UI.from_window(self, window, names)
@@ -101,6 +103,7 @@ class LayersPanel(medipy.gui.base.Panel):
         self.ui.layers.Bind(wx.EVT_LISTBOX, self.OnLayers)
         self.ui.layers.Bind(wx.EVT_CHECKLISTBOX, self.OnLayersCheck)
         self.ui.load.Bind(wx.EVT_BUTTON, self.OnLoad)
+        self.ui.save.Bind(wx.EVT_BUTTON, self.OnSave)
         self.ui.delete.Bind(wx.EVT_BUTTON, self.OnDelete)
         self.ui.move_up.Bind(wx.EVT_BUTTON, self.OnMoveUp)
         self.ui.move_down.Bind(wx.EVT_BUTTON, self.OnMoveDown)
@@ -356,6 +359,13 @@ class LayersPanel(medipy.gui.base.Panel):
         
         self.insert_layer(self._current_layer+1, images[0])
         self.select_layer(self._current_layer+1)
+    
+    def OnSave(self, dummy):
+        """ Called when the save button is clicked.
+        """
+        
+        medipy.gui.io.save(self.image.get_layer_image(self._current_layer), 
+                           self.GetParent())
     
     def OnDelete(self, dummy):
         """ Called when the delete button is clicked.

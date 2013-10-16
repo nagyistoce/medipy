@@ -30,6 +30,7 @@ class BET(FSLTool):
             is set to half of this. Automatically computed if not specified.
           * center_of_gravity : center of gravity (voxels not mm) of initial
             mesh surface. Automatically computed if not specified.
+          * robust: robust brain center estimation.
     
         Outputs :
           * output
@@ -45,7 +46,8 @@ class BET(FSLTool):
     def __init__(self, input=None, output=None, 
                  create_outline=False, create_brain_mask=False, create_skull=False,
                  intensity_threshold=None, gradient_threshold=None, 
-                 head_radius=None, center_of_gravity=None,
+                 head_radius=None, center_of_gravity=None, 
+                 robust=False,
                  *args, **kwargs):
         
         super(BET, self).__init__(*args, **kwargs)
@@ -62,6 +64,8 @@ class BET(FSLTool):
         
         self.head_radius = head_radius
         self.center_of_gravity = center_of_gravity
+        
+        self.robust = robust
     
     def _get_outline(self):
         if self.create_outline :
@@ -90,7 +94,7 @@ class BET(FSLTool):
     def _get_command(self):
         if None in [self.input, self.output] :
             raise Exception("Both input and output must be specified") 
-        command = ["bet", self.input, self.output]
+        command = ["bet", self.input, self.output, "-R"]
         
         if self.create_outline :
             command.append("-o")
@@ -111,6 +115,9 @@ class BET(FSLTool):
                             "{0}".format(self.center_of_gravity[1]),
                             "{0}".format(self.center_of_gravity[2])])
         
+        if self.robust:
+            command.append("-R")
+        
         return command
 
     outline = property(_get_outline)
@@ -119,7 +126,7 @@ class BET(FSLTool):
 
 def bet(input, create_outline=False, create_brain_mask=False, create_skull=False,
         intensity_threshold=0.5, gradient_threshold=None, 
-        head_radius=None, center_of_gravity=None, *args, **kwargs) :
+        head_radius=None, center_of_gravity=None, robust=False, *args, **kwargs) :
     """ BET (Brain Extraction Tool) from FSL.
     
         <gui>
@@ -134,6 +141,8 @@ def bet(input, create_outline=False, create_brain_mask=False, create_skull=False
                   initializer="0.5" />
             <item name="gradient_threshold" type="Float" label="Gradient threshold"
                   initializer="0" />
+            <item name="robust" type="Bool" label="Robust center estimation"
+                  initializer="False" />
             <item name="output" type="Image" label="Output" 
                   initializer="output=True" role="return" />
         </gui>
@@ -148,7 +157,7 @@ def bet(input, create_outline=False, create_brain_mask=False, create_skull=False
 
     bet = BET(input_filename, output_filename, create_outline, create_brain_mask,
               create_skull, intensity_threshold, gradient_threshold, head_radius,
-              center_of_gravity, *args, **kwargs)
+              center_of_gravity, robust, *args, **kwargs)
     bet()
     
     output = medipy.io.load(output_filename)

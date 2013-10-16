@@ -38,7 +38,8 @@ class HierarchyTree(wx.TreeCtrl):
             
             studies = sorted(patients[patient].items(), self._study_comparator)
             for study_uid, study in studies :
-                study_item = self.AppendItem(patient_item, study["description"])
+                study_item = self.AppendItem(
+                    patient_item, study["description"] or "(no description)")
                 
                 series = sorted(patients[patient][study_uid]["series"].items(), 
                                 self._series_comparator)

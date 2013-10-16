@@ -14,7 +14,7 @@ import medipy.gui.control
 import medipy.base
 import medipy.io
 
-from HMC import hmc
+from HMC import segmentation
 
 
 class HMCPanel(wx.Panel):
