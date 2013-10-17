@@ -101,34 +101,19 @@ GDCMToPython
     this->_medipy_io_dicom_Tag = PyObject_GetAttrString(medipy_io_dicom, "Tag"); // New reference
     
     // New references
-    this->_medipy_io_dicom_vr[gdcm::VR::AE] = PyObject_GetAttrString(medipy_io_dicom, "AE");
-    this->_medipy_io_dicom_vr[gdcm::VR::AS] = PyObject_GetAttrString(medipy_io_dicom, "AS");
-    this->_medipy_io_dicom_vr[gdcm::VR::AT] = PyObject_GetAttrString(medipy_io_dicom, "AT");
-    this->_medipy_io_dicom_vr[gdcm::VR::CS] = PyObject_GetAttrString(medipy_io_dicom, "CS");
-    this->_medipy_io_dicom_vr[gdcm::VR::DA] = PyObject_GetAttrString(medipy_io_dicom, "DA");
-    this->_medipy_io_dicom_vr[gdcm::VR::DS] = PyObject_GetAttrString(medipy_io_dicom, "DS");
-    this->_medipy_io_dicom_vr[gdcm::VR::DT] = PyObject_GetAttrString(medipy_io_dicom, "DT");
-    this->_medipy_io_dicom_vr[gdcm::VR::FD] = PyObject_GetAttrString(medipy_io_dicom, "FD");
-    this->_medipy_io_dicom_vr[gdcm::VR::FL] = PyObject_GetAttrString(medipy_io_dicom, "FL");
-    this->_medipy_io_dicom_vr[gdcm::VR::IS] = PyObject_GetAttrString(medipy_io_dicom, "IS");
-    this->_medipy_io_dicom_vr[gdcm::VR::LO] = PyObject_GetAttrString(medipy_io_dicom, "LO");
-    this->_medipy_io_dicom_vr[gdcm::VR::LT] = PyObject_GetAttrString(medipy_io_dicom, "LT");
-    this->_medipy_io_dicom_vr[gdcm::VR::OB] = PyObject_GetAttrString(medipy_io_dicom, "OB");
-    this->_medipy_io_dicom_vr[gdcm::VR::OF] = PyObject_GetAttrString(medipy_io_dicom, "OF");
-    this->_medipy_io_dicom_vr[gdcm::VR::OW] = PyObject_GetAttrString(medipy_io_dicom, "OW");
-    this->_medipy_io_dicom_vr[gdcm::VR::PN] = PyObject_GetAttrString(medipy_io_dicom, "PN");
-    this->_medipy_io_dicom_vr[gdcm::VR::SH] = PyObject_GetAttrString(medipy_io_dicom, "SH");
-    this->_medipy_io_dicom_vr[gdcm::VR::SQ] = PyObject_GetAttrString(medipy_io_dicom, "SQ");
-    this->_medipy_io_dicom_vr[gdcm::VR::SL] = PyObject_GetAttrString(medipy_io_dicom, "SL");
-    this->_medipy_io_dicom_vr[gdcm::VR::SS] = PyObject_GetAttrString(medipy_io_dicom, "SS");
-    this->_medipy_io_dicom_vr[gdcm::VR::ST] = PyObject_GetAttrString(medipy_io_dicom, "ST");
-    this->_medipy_io_dicom_vr[gdcm::VR::TM] = PyObject_GetAttrString(medipy_io_dicom, "TM");
-    this->_medipy_io_dicom_vr[gdcm::VR::UI] = PyObject_GetAttrString(medipy_io_dicom, "UI");
-    this->_medipy_io_dicom_vr[gdcm::VR::UL] = PyObject_GetAttrString(medipy_io_dicom, "UL");
-    this->_medipy_io_dicom_vr[gdcm::VR::UN] = PyObject_GetAttrString(medipy_io_dicom, "UN");
-    this->_medipy_io_dicom_vr[gdcm::VR::US] = PyObject_GetAttrString(medipy_io_dicom, "US");
-    this->_medipy_io_dicom_vr[gdcm::VR::UT] = PyObject_GetAttrString(medipy_io_dicom, "UT");
+#define ADD_VR_TO_MAP(vr) \
+    this->_medipy_io_dicom_vr[gdcm::VR::vr] = PyObject_GetAttrString(medipy_io_dicom, #vr)
     
+    ADD_VR_TO_MAP(AE); ADD_VR_TO_MAP(AS); ADD_VR_TO_MAP(AT); ADD_VR_TO_MAP(CS);
+    ADD_VR_TO_MAP(DA); ADD_VR_TO_MAP(DS); ADD_VR_TO_MAP(DT); ADD_VR_TO_MAP(FD);
+    ADD_VR_TO_MAP(FL); ADD_VR_TO_MAP(IS); ADD_VR_TO_MAP(LO); ADD_VR_TO_MAP(LT);
+    ADD_VR_TO_MAP(OB); ADD_VR_TO_MAP(OF); ADD_VR_TO_MAP(OW); ADD_VR_TO_MAP(PN);
+    ADD_VR_TO_MAP(SH); ADD_VR_TO_MAP(SQ); ADD_VR_TO_MAP(SL); ADD_VR_TO_MAP(SS);
+    ADD_VR_TO_MAP(ST); ADD_VR_TO_MAP(TM); ADD_VR_TO_MAP(UI); ADD_VR_TO_MAP(UL);
+    ADD_VR_TO_MAP(UN); ADD_VR_TO_MAP(US); ADD_VR_TO_MAP(UT);
+
+#undef ADD_VR_TO_MAP
+
     Py_DECREF(medipy_io_dicom);
     Py_DECREF(medipy_io);
     Py_DECREF(medipy);
@@ -186,7 +171,7 @@ GDCMToPython
         for(VRMap::iterator it=this->_medipy_io_dicom_vr.begin();
             it!=this->_medipy_io_dicom_vr.end(); ++it)
         {
-            Py_XDECREF(it->second);
+            Py_XINCREF(it->second);
         }
         Py_XINCREF(this->_medipy_io_dicom_DataSet);
         Py_XINCREF(this->_medipy_io_dicom_Tag);
@@ -255,7 +240,7 @@ GDCMToPython
 ::operator()(gdcm::DataSet const & dataset)
 {
     PyObject* python_dataset = PyObject_CallFunction(
-        this->_medipy_io_dicom_DataSet, "()");
+        this->_medipy_io_dicom_DataSet, NULL);
     
     for(gdcm::DataSet::ConstIterator it=dataset.Begin(); it!=dataset.End(); ++it)
     {
@@ -486,7 +471,8 @@ GDCMToPython
     }
     PyObject* MediPyVR = vr_it->second; // Borrowed reference
 
-    PyObject* python_element = PyObject_CallFunction(MediPyVR, "(O)", value);
+    PyObject* python_element = PyObject_CallFunction(MediPyVR, 
+        const_cast<char*>("(O)"), value);
     Py_DECREF(value);
     
     if(python_element == NULL)
@@ -505,7 +491,7 @@ GDCMToPython
 ::operator()(gdcm::Tag const & gdcm_tag) const
 {
     PyObject* python_tag = PyObject_CallFunction(
-        this->_medipy_io_dicom_Tag, "(II)", 
+        this->_medipy_io_dicom_Tag, const_cast<char*>("(II)"), 
         gdcm_tag.GetGroup(), gdcm_tag.GetElement());
     if(python_tag == NULL)
     {
@@ -612,7 +598,8 @@ GDCMToPython
     {
         uint16_t e0 = *reinterpret_cast<uint16_t const *>(begin);
         uint16_t e1 = *(1+reinterpret_cast<uint16_t const *>(begin));
-        return PyObject_CallFunction(this->_medipy_io_dicom_Tag, "(II)", e0, e1);
+        return PyObject_CallFunction(this->_medipy_io_dicom_Tag, 
+            const_cast<char*>("(II)"), e0, e1);
     }
     else if(vr == gdcm::VR::DS)
     {
