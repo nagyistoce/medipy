@@ -79,7 +79,7 @@ class Slice(PropertySynchronized) :
 
         self._interpolation = None
         self._display_coordinates = None
-        self._scalar_bar_visibility = None
+        self._scalar_bar_visibility = True
         self._orientation_visibility = None
         self._corner_annotations_visibility = None
         self._crosshair = None
