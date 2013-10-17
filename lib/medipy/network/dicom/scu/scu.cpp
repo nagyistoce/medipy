@@ -21,6 +21,7 @@ SCU
 ::SCU()
 : _connection(Py_None)
 {
+    Py_INCREF(Py_None);
     this->GetPythonClasses();
 }
 
@@ -28,6 +29,8 @@ SCU
 ::SCU(PyObject* connection) throw(SCUException)
 : _connection(Py_None)
 {
+    Py_INCREF(Py_None);
+    
     this->GetPythonClasses();
     this->SetConnection(connection);
     if(PyErr_Occurred())
@@ -94,17 +97,14 @@ SCU
 ::SetConnection(PyObject* connection)
 {
     //Reset Params and Drop Network
-    if(this->_connection != Py_None)
+    try
     {
-        try
-        {
-            this->CloseConnection();
-        }
-        catch(std::exception const & e)
-        {
-            PyErr_SetString(this->_medipy_base_exception, e.what());
-            return NULL;
-        }
+        this->CloseConnection();
+    }
+    catch(std::exception const & e)
+    {
+        PyErr_SetString(this->_medipy_base_exception, e.what());
+        return NULL;
     }
     
     if(!PyObject_IsInstance(connection, this->_medipy_network_dicom_connection))
@@ -145,7 +145,6 @@ void
 SCU
 ::CloseConnection()
 {
-
     Py_DECREF(this->_connection);
     this->_connection = NULL;
 }

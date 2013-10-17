@@ -24,14 +24,14 @@ Find
 ::Find(PyObject* connection, PyObject* root_lvl, PyObject* query_lvl, PyObject* dataset) throw(SCUException)
 :SCU(connection)
 {
-    this->_root_level = root_lvl;
+    std::string const root_level = PyString_AsString(root_lvl);
     this->_query_dataset = dataset;
     
     std::string const level = PyString_AsString(query_lvl);
-    if(level == "patient") this->_query_level = PyString_FromString("PATIENT");
-    else if(level == "study") this->_query_level = PyString_FromString("STUDY");
-    else if(level == "series") this->_query_level = PyString_FromString("SERIES");
-    else if(level == "image") this->_query_level = PyString_FromString("IMAGE");
+    if(level == "patient") this->_query_level = "PATIENT";
+    else if(level == "study") this->_query_level = "STUDY";
+    else if(level == "series") this->_query_level = "SERIES";
+    else if(level == "image") this->_query_level = "IMAGE";
     else
     {
         throw SCUException(
@@ -42,12 +42,11 @@ Find
     syntaxes.push_back(UID_LittleEndianImplicitTransferSyntax);
     
     //Set abstract syntax associated to root_level
-    std::string const root = PyString_AsString(this->_root_level);
-    if(root == "patient")
+    if(root_level == "patient")
     {
         this->_abstractSyntax = UID_FINDPatientRootQueryRetrieveInformationModel;
     }
-    else if(root == "study")
+    else if(root_level == "study")
     {
         this->_abstractSyntax = UID_FINDStudyRootQueryRetrieveInformationModel;
     }
@@ -76,7 +75,6 @@ Find
     {
         PyErr_SetString(this->_medipy_base_exception, "No adequate Presentation Contexts");
         return NULL;
-
     }
     
     //Translate Python DataSet into DCMTK's
@@ -84,13 +82,8 @@ Find
     DcmDataset dcmtk_dataset = converter(this->_query_dataset);
     
     //Set query level option (-k # overridekeys)
-    const char* value = PyString_AsString(this->_query_level);
-    
-    //Create DcmElement
-    DcmTag tag(0x0008, 0x0052);
-    tag.setVR(EVR_CS);
-    DcmCodeString* element = new DcmCodeString(tag);
-    element->putString(value);
+    DcmCodeString* element = new DcmCodeString(DCM_QueryRetrieveLevel);
+    element->putString(this->_query_level.c_str());
     
     //Put the override key into dset replacing existing tags
     dcmtk_dataset.insert(element, OFTrue);
@@ -116,6 +109,12 @@ Find
     {
         DcmDataset* dataset = dcmtk_results[index];
         PyList_SetItem(results, index, py_converter(dataset));
+    }
+    
+    // Clean-up the responses
+    for(OFIterator<QRResponse*> iter=responses.begin(); iter!=responses.end(); iter++)
+    {
+        delete *iter;
     }
     
     return results;
