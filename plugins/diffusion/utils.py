@@ -12,9 +12,45 @@
 
 import numpy as np
 import medipy.base
+import medipy.segmentation
 
 import itkutils
 import spectral_analysis
+
+def get_mask(images) :
+    """ Return a mask computed from baseline image
+    """
+    b0 = None
+    for image in images :
+        mr_diffusion = image.metadata["mr_diffusion_sequence"][0]
+        gradient = mr_diffusion.diffusion_gradient_direction_sequence.value[0].\
+            diffusion_gradient_orientation.value
+        if np.allclose(gradient, 0) :
+            b0 = image
+            break
+    
+    return medipy.segmentation.skull(b0)
+
+def baseline(images) :
+    """ Return the baseline image
+
+    <gui>
+        <item name="images" type="ImageSerie" label="Input"/>
+        <item name="output" type="Image" initializer="output=True" 
+              role="return" label="Output"/>
+    </gui>
+        
+    """
+    b0 = None
+    for image in images :
+        mr_diffusion = image.metadata["mr_diffusion_sequence"][0]
+        gradient = mr_diffusion.diffusion_gradient_direction_sequence.value[0].\
+            diffusion_gradient_orientation.value
+        if np.allclose(gradient, 0) :
+            b0 = image
+            break
+    
+    return b0
 
 def get_diffusion_information(image) :
     """ Return the diffusion information from the ``image`` metadata. The 
