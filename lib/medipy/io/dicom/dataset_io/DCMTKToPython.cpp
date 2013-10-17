@@ -31,34 +31,19 @@ DCMTKToPython
     this->_medipy_io_dicom_Tag = PyObject_GetAttrString(medipy_io_dicom, "Tag"); // New reference
     
     // New references
-    this->_medipy_io_dicom_vr[EVR_AE] = PyObject_GetAttrString(medipy_io_dicom, "AE");
-    this->_medipy_io_dicom_vr[EVR_AS] = PyObject_GetAttrString(medipy_io_dicom, "AS");
-    this->_medipy_io_dicom_vr[EVR_AT] = PyObject_GetAttrString(medipy_io_dicom, "AT");
-    this->_medipy_io_dicom_vr[EVR_CS] = PyObject_GetAttrString(medipy_io_dicom, "CS");
-    this->_medipy_io_dicom_vr[EVR_DA] = PyObject_GetAttrString(medipy_io_dicom, "DA");
-    this->_medipy_io_dicom_vr[EVR_DS] = PyObject_GetAttrString(medipy_io_dicom, "DS");
-    this->_medipy_io_dicom_vr[EVR_DT] = PyObject_GetAttrString(medipy_io_dicom, "DT");
-    this->_medipy_io_dicom_vr[EVR_FD] = PyObject_GetAttrString(medipy_io_dicom, "FD");
-    this->_medipy_io_dicom_vr[EVR_FL] = PyObject_GetAttrString(medipy_io_dicom, "FL");
-    this->_medipy_io_dicom_vr[EVR_IS] = PyObject_GetAttrString(medipy_io_dicom, "IS");
-    this->_medipy_io_dicom_vr[EVR_LO] = PyObject_GetAttrString(medipy_io_dicom, "LO");
-    this->_medipy_io_dicom_vr[EVR_LT] = PyObject_GetAttrString(medipy_io_dicom, "LT");
-    this->_medipy_io_dicom_vr[EVR_OB] = PyObject_GetAttrString(medipy_io_dicom, "OB");
-    this->_medipy_io_dicom_vr[EVR_OF] = PyObject_GetAttrString(medipy_io_dicom, "OF");
-    this->_medipy_io_dicom_vr[EVR_OW] = PyObject_GetAttrString(medipy_io_dicom, "OW");
-    this->_medipy_io_dicom_vr[EVR_PN] = PyObject_GetAttrString(medipy_io_dicom, "PN");
-    this->_medipy_io_dicom_vr[EVR_SH] = PyObject_GetAttrString(medipy_io_dicom, "SH");
-    this->_medipy_io_dicom_vr[EVR_SQ] = PyObject_GetAttrString(medipy_io_dicom, "SQ");
-    this->_medipy_io_dicom_vr[EVR_SL] = PyObject_GetAttrString(medipy_io_dicom, "SL");
-    this->_medipy_io_dicom_vr[EVR_SS] = PyObject_GetAttrString(medipy_io_dicom, "SS");
-    this->_medipy_io_dicom_vr[EVR_ST] = PyObject_GetAttrString(medipy_io_dicom, "ST");
-    this->_medipy_io_dicom_vr[EVR_TM] = PyObject_GetAttrString(medipy_io_dicom, "TM");
-    this->_medipy_io_dicom_vr[EVR_UI] = PyObject_GetAttrString(medipy_io_dicom, "UI");
-    this->_medipy_io_dicom_vr[EVR_UL] = PyObject_GetAttrString(medipy_io_dicom, "UL");
-    this->_medipy_io_dicom_vr[EVR_UN] = PyObject_GetAttrString(medipy_io_dicom, "UN");
-    this->_medipy_io_dicom_vr[EVR_US] = PyObject_GetAttrString(medipy_io_dicom, "US");
-    this->_medipy_io_dicom_vr[EVR_UT] = PyObject_GetAttrString(medipy_io_dicom, "UT");
+#define ADD_VR_TO_MAP(vr) \
+    this->_medipy_io_dicom_vr[EVR_##vr] = PyObject_GetAttrString(medipy_io_dicom, #vr)
     
+    ADD_VR_TO_MAP(AE); ADD_VR_TO_MAP(AS); ADD_VR_TO_MAP(AT); ADD_VR_TO_MAP(CS);
+    ADD_VR_TO_MAP(DA); ADD_VR_TO_MAP(DS); ADD_VR_TO_MAP(DT); ADD_VR_TO_MAP(FD);
+    ADD_VR_TO_MAP(FL); ADD_VR_TO_MAP(IS); ADD_VR_TO_MAP(LO); ADD_VR_TO_MAP(LT);
+    ADD_VR_TO_MAP(OB); ADD_VR_TO_MAP(OF); ADD_VR_TO_MAP(OW); ADD_VR_TO_MAP(PN);
+    ADD_VR_TO_MAP(SH); ADD_VR_TO_MAP(SQ); ADD_VR_TO_MAP(SL); ADD_VR_TO_MAP(SS);
+    ADD_VR_TO_MAP(ST); ADD_VR_TO_MAP(TM); ADD_VR_TO_MAP(UI); ADD_VR_TO_MAP(UL);
+    ADD_VR_TO_MAP(UN); ADD_VR_TO_MAP(US); ADD_VR_TO_MAP(UT);
+
+#undef ADD_VR_TO_MAP
+
     Py_DECREF(medipy_io_dicom);
     Py_DECREF(medipy_io);
     Py_DECREF(medipy);
@@ -115,7 +100,7 @@ DCMTKToPython
         for(std::map<DcmEVR, PyObject *>::iterator it=this->_medipy_io_dicom_vr.begin();
             it!=this->_medipy_io_dicom_vr.end(); ++it)
         {
-            Py_XDECREF(it->second);
+            Py_XINCREF(it->second);
         }
         Py_XINCREF(this->_medipy_io_dicom_DataSet);
         Py_XINCREF(this->_medipy_io_dicom_Tag);
@@ -182,9 +167,8 @@ PyObject *
 DCMTKToPython
 ::operator()(DcmObject * dataset)
 {
-    PyObject* args = PyTuple_New(0);
-    PyObject* python_dataset = PyObject_CallObject(this->_medipy_io_dicom_DataSet, args);
-    Py_DECREF(args);
+    PyObject* python_dataset = PyObject_CallFunction(
+        this->_medipy_io_dicom_DataSet, NULL);
     
     DcmObject * it = NULL;
     while(NULL != (it = dataset->nextInContainer(it)))
@@ -223,11 +207,9 @@ PyObject *
 DCMTKToPython
 ::_to_python_tag(DcmTagKey const & dcmtk_tag) const
 {
-    PyObject* key = Py_BuildValue("(II)", dcmtk_tag.getGroup(), dcmtk_tag.getElement());
-    PyObject* tag_args = Py_BuildValue("(O)", key);
-    PyObject* python_tag = PyObject_CallObject(this->_medipy_io_dicom_Tag, tag_args);
-    Py_DECREF(tag_args);
-    Py_DECREF(key);
+    PyObject* python_tag = PyObject_CallFunction(
+        this->_medipy_io_dicom_Tag, const_cast<char*>("(II)"), 
+        dcmtk_tag.getGroup(), dcmtk_tag.getElement());
     
     return python_tag;
 }
@@ -235,7 +217,7 @@ DCMTKToPython
 /*******************************************************************************
  * Specializations of DCMTKToPython::_to_python for the different VRs.
  ******************************************************************************/
- 
+
 template<>
 PyObject *
 DCMTKToPython
@@ -667,20 +649,23 @@ DCMTKToPython
     
     if(dcmtk_vr == EVR_SQ)
     {
-        python_value = PyList_New(0);
-        
         DcmSequenceOfItems * sequence = dynamic_cast<DcmSequenceOfItems*>(element);
+        python_value = PyList_New(sequence->card());
+        
         DcmObject * sequence_it = NULL;
+        unsigned int index=0;
         while(NULL != (sequence_it = sequence->nextInContainer(sequence_it)))
         {
             DCMTKToPython converter(*this);
             PyObject * item_value = converter(sequence_it);
-            PyList_Append(python_value, item_value);
+            PyList_SetItem(python_value, index, item_value);
+            ++index;
         }
     }
     else if(element->getLength() == 0)
     {
         python_value = Py_None;
+        Py_INCREF(python_value);
     }
     else
     {
@@ -719,11 +704,8 @@ DCMTKToPython
     }
 
     // Build the tag
-    PyObject* key = Py_BuildValue("(II)", element->getGTag(), element->getETag());
-    PyObject* tag_args = Py_BuildValue("(O)", key);
-    PyObject* tag = PyObject_CallObject(this->_medipy_io_dicom_Tag, tag_args);
-    Py_DECREF(tag_args);
-    Py_DECREF(key);
+    PyObject* tag = PyObject_CallFunction(this->_medipy_io_dicom_Tag, 
+        const_cast<char*>("(II)"), element->getGTag(), element->getETag());
     
     // Build the value
     std::map<DcmEVR, PyObject *>::const_iterator const vr_it = 
@@ -734,10 +716,8 @@ DCMTKToPython
     }
     PyObject* MediPyVR = vr_it->second; // Borrowed reference
 
-    PyObject* args = Py_BuildValue("(O)", python_value);
-    PyObject* typed_value = PyObject_CallObject(MediPyVR, args);
-    
-    Py_DECREF(args);
+    PyObject* typed_value = PyObject_CallFunction(MediPyVR, 
+        const_cast<char*>("(O)"), python_value);
     Py_DECREF(python_value);
 
     // Update the dictionary
