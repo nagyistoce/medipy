@@ -6,6 +6,28 @@ find_package(WrapITK REQUIRED)
 file(GLOB files "*.py")
 install_py_files(${files})
 
+add_definitions(-DHAVE_CONFIG_H)
+swig_python_module(generate_dicomdir 
+    generate_dicomdir.i generate_dicomdir.cpp DicomDirGenerator.cpp)
+
+get_directory_property(include_directories INCLUDE_DIRECTORIES)
+set_directory_properties(PROPERTIES
+    INCLUDE_DIRECTORIES "${include_directories};${DCMTK_INCLUDE_DIRS};${PYTHON_INCLUDE_DIRS}"
+)
+
+if("${DCMTK_LIBRARIES}" STREQUAL "")
+    set(DCMTK_LIBRARIES dcmdata dcmimage dcmimgle dcmjpeg dcmnet dcmpstat 
+        dcmqrdb dcmsr dcmtls ijg12 ijg16 ijg8 ofstd)
+endif()
+find_library(oflog oflog)
+if(NOT ${oflog} STREQUAL "oflog-NOTFOUND")
+    set(DCMTK_LIBRARIES ${DCMTK_LIBRARIES} oflog)
+endif()
+
+swig_link_libraries(generate_dicomdir 
+    dcmdsig ${DCMTK_LIBRARIES} gdcmMSFF wrap pthread)
+install_swig_python_module(generate_dicomdir)
+
 prepare_wrap_library()
 wrap_library("AssembleTilesImageFilter" python)
     set(WRAPPER_LIBRARY_DEPENDS Base)
