@@ -47,6 +47,7 @@ wrap_*.xml
 # Module-specific files
 MediPy*Python.cpp
 lib/medipy/io/dicom/dataset_io/dataset_io.py
+lib/medipy/io/dicom/generate_dicomdir.py
 {lib/medipy/vtk,plugins/visualization_3d}/vtk*Python.cxx
 {lib/medipy/vtk,plugins/visualization_3d}/*Init.cxx
 lib/medipy/gui/image/helpers.py

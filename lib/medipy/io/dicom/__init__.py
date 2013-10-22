@@ -12,6 +12,7 @@ from dataset_io import can_read, read, write
 from dicom_series import DicomSeries
 import dictionary
 import encapsulated_document
+from generate_dicomdir import generate_dicomdir
 from misc import generate_uid, load_dicomdir_records, uid_and_description
 from reconstruction import image
 import routing
