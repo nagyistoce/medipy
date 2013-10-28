@@ -146,18 +146,15 @@ class FunctionGUIBuilder(Observable):
                         if control.output_checked :
                             viewer = Viewer3DFrame(parent=None, objects_3d = ObservableList())
                             viewer.Show()
-                            # TODO
-                            # self.notify_observers("new_viewer_3d", viewer=viewer)
-                            wx.GetApp().append_viewer_3d(viewer)
+                            self.notify_observers("new_viewer_3d", viewer=viewer)
                             control.value = self._viewer_3ds[-1]
                         viewer_3d = control.value 
                         viewer_3d.objects_3d.append(value)
                         # If object has an associated image, set the GUI image
                         image = value.image
                         if image is not None :
-                            #self.notify_observers("set_image_to_object_3d", image=XXX, object_3d=YYY)
-                            index = wx.GetApp().images.index(image)
-                            value.gui_image = wx.GetApp().gui_images[index]
+                            self.notify_observers("set_image_to_object_3d", 
+                                image=image, object_3d=value)
                         if len(viewer_3d.objects_3d) == 1 :
                             viewer_3d.view_all()
                             viewer_3d.update_object_editor()
