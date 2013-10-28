@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011-2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -786,7 +786,6 @@ class Viewer3DFrame(medipy.gui.xrc_wrapper.Frame, Observable):
         
     def _create_image_layers(self, state, _object) :
         image = _object.image
-        print image
         colormap_name = image.metadata["colormap"] if "colormap" in image.metadata else "gray"
         colormap = Colormap(get_colormap_from_name(colormap_name), None)
         for axis, matrice in self.slicing_matrices.items() :

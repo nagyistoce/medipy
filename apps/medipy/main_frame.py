@@ -377,7 +377,11 @@ class MainFrame(medipy.gui.base.Frame):
                     self.current_ui.remove_observer("new_image", 
                         self.on_function_gui_builder_new_image)
                     self.current_ui.remove_observer("replace_image", 
-                        self.on_function_gui_builder_new_image)
+                        self.on_function_gui_builder_replace_image)
+                    self.current_ui.remove_observer("new_viewer_3d", 
+                        self.on_function_gui_builder_new_viewer_3d)
+                    self.current_ui.remove_observer("set_image_to_object_3d", 
+                        self.on_function_gui_builder_set_image_to_object_3d)
                 
                 if hasattr(self._current_ui, "Close") :
                     self._current_ui.Close() 
@@ -395,8 +399,14 @@ class MainFrame(medipy.gui.base.Frame):
                             if isinstance(control, medipy.gui.control.Coordinates) :
                                 control.image = self.ui.image_grid[self.ui.image_grid.active]
                     
-                    function_gui.add_observer("new_image", self.on_function_gui_builder_new_image)
-                    function_gui.add_observer("replace_image", self.on_function_gui_builder_replace_image)
+                    function_gui.add_observer("new_image", 
+                        self.on_function_gui_builder_new_image)
+                    function_gui.add_observer("replace_image", 
+                        self.on_function_gui_builder_replace_image)
+                    function_gui.add_observer("new_viewer_3d", 
+                        self.on_function_gui_builder_new_viewer_3d)
+                    function_gui.add_observer("set_image_to_object_3d", 
+                        self.on_function_gui_builder_set_image_to_object_3d)
                     
                     self._current_ui = function_gui
                     self.ui.function_ui_sizer.Add(function_gui.panel, 1, wx.EXPAND)
@@ -717,6 +727,13 @@ class MainFrame(medipy.gui.base.Frame):
         index = self.images.index(event.old)
         self.delete_image(index)
         self.insert_image(index, [{"image":event.new}])
+
+    def on_function_gui_builder_new_viewer_3d(self, event):
+        wx.GetApp().append_viewer_3d(event.viewer)
+    
+    def on_function_gui_builder_set_image_to_object_3d(self, event):
+        index = self.images.index(event.image)
+        event.object_3d.gui_image = self.ui.image_grid[index]
 
     def on_active_search(self, event) :
         # Search in tree
