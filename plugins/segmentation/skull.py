@@ -14,8 +14,7 @@ from medipy.morphology import fill_2d_cavities, grayscale_open
 from medipy.segmentation.label import label_connected_components, largest_connected_component
 
 def skull(input):
-    """ Segment the skull, using an algorithm from Medimax. This function 
-        assumes an axial-sliced input.
+    """ Segment the skull.
         
         <gui>
             <item name="input" type="Image" label="Input"/>
@@ -50,14 +49,34 @@ def skull(input):
     label_connected_components(output, output)
     # Keep the label with the largest volume (in voxels)
     largest_connected_component(output, output)
-    # Keep the top 18 cm of the image
-    nonzero=numpy.nonzero(output)
-    z_end = nonzero[-3][-1]
-    z_begin = max(0, z_end-180/input.spacing[-3])
     
-    if z_begin != 0 :
-        # Zero everything below
-        output[...,:z_begin,:,:]=0 
+    ###################################
+    # Keep the top 18 cm of the image #
+    ###################################
+    
+    # Inferior-superior axis in voxel space and corresponding coordinate index
+    is_axis = input.direction[0]
+    is_coordinate_index = numpy.argmax(numpy.abs(is_axis))
+    
+    nonzero=numpy.nonzero(output)
+    size = 180/input.spacing[is_coordinate_index] # 18 cm in voxels on the IS axis
+    
+    if is_axis[is_coordinate_index]>0:
+        end = numpy.max(nonzero[is_coordinate_index])
+        begin = max(0, int(numpy.round(end-size)))
+    else:
+        begin = numpy.min(nonzero[is_coordinate_index])
+        end = min(output.shape[is_coordinate_index], int(numpy.round(begin+size)))
+    
+    s = [slice(0, x) for x in output.shape]
+    
+    # Zero the "lower" part of the image
+    s[is_coordinate_index] = slice(0,begin)
+    output[s] = 0
+    
+    # Zero the "upper" part of the image
+    s[is_coordinate_index] = slice(end, output.shape[is_coordinate_index])
+    output[s] = 0
     
     output.copy_information(input)
     return output
