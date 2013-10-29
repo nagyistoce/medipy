@@ -42,42 +42,46 @@ default_skipped_tags = set([
     Tag(0x0028,0x1051), # Window Center
 ])
 
-def to_axis_aligned_ras_space(image):
-    """ Transform the image to the closest axis-aligned approximation of RAS
-        (i.e. Nifti) space
+def to_axis_aligned_space(image, destination):
+    """ Transform the image to an axis-aligned frame of reference.
     """
     
-    MatrixType = itk.Matrix[itk.D, 3, 3]
-    MatrixBridge = itk.MatrixBridge[MatrixType]
+    if destination is None:
+        destination=medipy.base.coordinate_system.RAS
     
-    # Transform a point from the (L,P,S) DICOM frame to the (R,A,S) NIfTI frame
-    # ITK coordinates order (x,y,z)
-    dicom_to_nifti = numpy.asarray([[-1, 0, 0],
-                                    [ 0,-1, 0],
-                                    [ 0, 0, 1]], dtype=numpy.float64)
-    if image.ndim == 4 :
-        numpy.insert(
-            numpy.insert(dicom_to_nifti, 0, (0,0,0), 0), 
-            0, (1,0,0,0), 1)
-    dicom_to_nifti = MatrixBridge.GetMatrixFromArray(dicom_to_nifti)
-    
-    original_direction = image.direction
-    
-    direction = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
-    if (direction==medipy.base.coordinate_system.RAS).all() :
+    source_aa = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(image.direction)
+    if (source_aa==destination).all() :
         # No need to reorient
         return
     
-    itk_direction = numpy.fliplr(numpy.flipud(direction))
-    itk_direction = MatrixBridge.GetMatrixFromArray(itk_direction)
+    # Adjust the destination to the number of dimensions of image, add ones on
+    # the diagonal if necessary
+    destination_padded = medipy.base.array.reshape(destination,
+        (image.ndim, image.ndim), "constant", False, value=0)
+    for rank in range(image.ndim):
+        if numpy.less_equal(max(medipy.base.coordinate_system.RAS.shape), rank).all():
+            destination_padded[image.ndim-rank-1, image.ndim-rank-1] = 1
+    
+    # Convert from numpy to ITK coordinates (x,y,z) and structure
+    destination_itk = numpy.fliplr(numpy.flipud(destination_padded))
+    MatrixType = itk.Matrix[
+        medipy.itk.dtype_to_itk[destination_itk.dtype.type], 
+        destination_itk.shape[-1], destination_itk.shape[-2]]
+    MatrixBridge = itk.MatrixBridge[MatrixType]
+    destination_itk = MatrixBridge.GetMatrixFromArray(destination_itk)
+    
+    source = image.direction
+    
+    source_aa_itk = numpy.fliplr(numpy.flipud(source_aa))
+    source_aa_itk = MatrixBridge.GetMatrixFromArray(source_aa_itk)
     
     itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
-    itk_image.SetDirection(itk_direction)
+    itk_image.SetDirection(source_aa_itk)
     
     orienter = itk.OrientImageFilter[itk_image, itk_image].New()
     orienter.UseImageDirectionOn()
     orienter.SetInput(itk_image)
-    orienter.SetDesiredCoordinateDirection(dicom_to_nifti)
+    orienter.SetDesiredCoordinateDirection(destination_itk)
     orienter.Update()
     
     medipy.itk.itk_image_to_medipy_image(orienter.GetOutput(), image, True)
@@ -85,8 +89,16 @@ def to_axis_aligned_ras_space(image):
     # Restore real orientation : the ideal original direction D_o has been 
     # transformed to D_t : D_t = M.D_o, hence M = D_t.D_o^-1
     # Since directions are orthogonal matrices, we have :
-    transformation = numpy.dot(image.direction, direction.T)
-    image.direction = numpy.dot(transformation, original_direction)
+    transformation = numpy.dot(image.direction, source_aa.T)
+    image.direction = numpy.dot(transformation, source)
+
+def to_axis_aligned_ras_space(image):
+    """ Transform the image to the closest axis-aligned approximation of RAS
+        (i.e. Nifti) space
+    """
+    
+    return to_axis_aligned_space(image, medipy.base.coordinate_system.RAS)
+
 
 def data(datasets):
     """ Build 3-D or 4-D data from datasets.
