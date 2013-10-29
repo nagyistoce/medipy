@@ -5,4 +5,4 @@ from scalars import fractional_anisotropy, mean_diffusivity
 from statistics import (
     spatial_parameter_estimation, bootstrap_parameter_estimation, 
     tensor_voxel_test)
-from tractography import streamline
+from tractography import streamline_gui as streamline_tractography
