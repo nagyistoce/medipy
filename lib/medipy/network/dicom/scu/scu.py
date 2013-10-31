@@ -81,6 +81,10 @@ class SCU(_object):
     def GetConnection(self): return _scu.SCU_GetConnection(self)
     def SetConnection(self, *args): return _scu.SCU_SetConnection(self, *args)
     def __call__(self): return _scu.SCU___call__(self)
+    __swig_getmethods__["connection"] = GetConnection
+    __swig_setmethods__["connection"] = SetConnection
+    if _newclass: x = property(GetConnection, SetConnection)
+
 SCU_swigregister = _scu.SCU_swigregister
 SCU_swigregister(SCU)
 

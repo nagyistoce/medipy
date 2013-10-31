@@ -56,6 +56,7 @@ PyObject*
 SCU
 ::GetConnection() const
 {
+    Py_INCREF(this->_connection);
     return this->_connection;
 }
 
