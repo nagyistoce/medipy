@@ -19,3 +19,13 @@
 %include "echoscu.h"
 %include "findscu.h"
 %include "getscu.h"
+
+%extend SCU
+{
+    %pythoncode 
+    %{
+         __swig_getmethods__["connection"] = GetConnection
+         __swig_setmethods__["connection"] = SetConnection
+         if _newclass: x = property(GetConnection, SetConnection)
+    %}
+};
