@@ -43,7 +43,7 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
         FlairImage=flair_image, Iterations=iterations, Modalities=len(images),
         DisplayOutliers=display_outliers, OutliersCriterion=outliers_criterion, 
         Threshold=threshold)
-    
+        
     inputs = []
     for (index, image) in enumerate(padded_images):
         inputs.append(medipy.itk.medipy_image_to_itk_image(image, False))
@@ -51,25 +51,25 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
     for (index, image) in enumerate(padded_atlas):
         inputs.append(medipy.itk.medipy_image_to_itk_image(image, False))
         hmc_segmentation_filter.SetInput(len(images)+index, inputs[-1])
-
+        
     padded_mask_itk = None
     if mask:
         padded_mask_itk = medipy.itk.medipy_image_to_itk_image(
             padded_mask, False)
         hmc_segmentation_filter.SetMaskImage(padded_mask_itk)
-    
+    print "g"
     hmc_segmentation_filter()
-    
+    print "h"
     segmentation_itk = hmc_segmentation_filter.GetSegmentationImage()
     segmentation = medipy.itk.itk_image_to_medipy_image(segmentation_itk, None, True)
-    
+    print "i"
     outliers_itk = hmc_segmentation_filter.GetOutliersImage()
     outliers = medipy.itk.itk_image_to_medipy_image(outliers_itk, None, True)
-    
+    print "j"
     # Un-pad the output images
     for image in segmentation, outliers:
         image.data = image.data[[slice(0, x) for x in images[0].shape]]
-    
+    print "k"
     return (segmentation, outliers)
 
 def _pad_image(image, padded_size):
