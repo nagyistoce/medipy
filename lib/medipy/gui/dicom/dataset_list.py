@@ -25,6 +25,8 @@ class DataSetList(wx.ListCtrl) :
         self.InsertColumn(0, "Name")
         self.InsertColumn(1, "Tag")
         self.InsertColumn(2, "Value")
+        
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self._on_item_activated)
     
     def set_dataset(self, dataset, frame_number=None) :
         """ Set the information entities whose modules will appear in the list.
@@ -122,3 +124,12 @@ class DataSetList(wx.ListCtrl) :
             if index != len(sequence.value)-1 :
                 listctrl_item = self.InsertStringItem(sys.maxint, "")
                 self.SetStringItem(listctrl_item, 2, 20*"-")
+    
+    def _on_item_activated(self, event):
+        value = self.GetItem(self.GetFirstSelected(), 2).GetText()
+        data = wx.TextDataObject()
+        data.SetText(value)
+        wx.TheClipboard.Open()
+        wx.TheClipboard.SetData(data)
+        wx.TheClipboard.Close()
+        
