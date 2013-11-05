@@ -125,9 +125,10 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskI
     BMatrixType b2 = vnl_matrix_inverse<float>(b1*this->bmatrix);
     this->invbmatrix = b2*b1;
     
-    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
-        this->ProcessObject::GetOutput(0));
-    output->FillBuffer(0);
+    typename OutputImageType::Pointer output = this->GetOutput();
+    OutputPixelType zero(6);
+    zero.Fill(0);
+    output->FillBuffer(zero);
 }
 
 template<typename TInputImage, typename TOutputImage, typename TMaskImage>
@@ -139,8 +140,7 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskI
     const unsigned int VectorLength = 6;
     unsigned int const nb_dir = this->directions.size();
 
-    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
-        this->ProcessObject::GetOutput(0));
+    typename OutputImageType::Pointer output = this->GetOutput(0);
 
     // Create an iterator for each input
     typedef ImageRegionConstIterator<InputImageType> InputIterator;
