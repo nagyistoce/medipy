@@ -43,7 +43,7 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
         FlairImage=flair_image, Iterations=iterations, Modalities=len(images),
         DisplayOutliers=display_outliers, OutliersCriterion=outliers_criterion, 
         Threshold=threshold)
-    
+        
     inputs = []
     for (index, image) in enumerate(padded_images):
         inputs.append(medipy.itk.medipy_image_to_itk_image(image, False))
@@ -51,13 +51,13 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
     for (index, image) in enumerate(padded_atlas):
         inputs.append(medipy.itk.medipy_image_to_itk_image(image, False))
         hmc_segmentation_filter.SetInput(len(images)+index, inputs[-1])
-
+        
     padded_mask_itk = None
     if mask:
         padded_mask_itk = medipy.itk.medipy_image_to_itk_image(
             padded_mask, False)
         hmc_segmentation_filter.SetMaskImage(padded_mask_itk)
-    
+        
     hmc_segmentation_filter()
     
     segmentation_itk = hmc_segmentation_filter.GetSegmentationImage()

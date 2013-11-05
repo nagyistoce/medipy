@@ -14,15 +14,15 @@
 #include <vector>
 
 #include "itkImageRegionConstIterator.h"
-#include "itkImageRegionIterator.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include <vnl/vnl_vector_fixed.h>
 
 namespace itk
 {
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::AllocateOutputs()
 {
     typename OutputImageType::Pointer outputPtr;
@@ -36,9 +36,9 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     }
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     std::locale C("C");
@@ -54,21 +54,31 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
         os << indent.GetNextIndent()
            << "Direction " << (i+1) << ": " << this->directions[i] << "\n";
     }
-
+    
+    os << indent << "Mask image: \n";
+    if(this->m_MaskImage.IsNull())
+    {
+        os << indent.GetNextIndent() << "None\n";
+    }
+    else
+    {
+        this->m_MaskImage->Print(os, indent.GetNextIndent());
+    }
+    
     os.imbue( originalLocale );
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 unsigned int
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::GetNumberOfGradientDirections() const
 {
     return this->directions.size();
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::SetGradientDirection(unsigned int i, DirectionType bvec)
 {
     if (i>=this->directions.size()) {
@@ -77,17 +87,24 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     this->directions.insert(this->directions.begin()+i,bvec);
 }
 
-template<typename TInputImage, typename TOutputImage>
-typename SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>::DirectionType const &
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
+typename SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>::DirectionType const &
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::GetGradientDirection(unsigned int i) const
 {
     return this->directions[i];
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
+::SecondOrderSymmetricTensorReconstructionFilter() 
+{
+    this->SetMaskImage(NULL);
+}
+
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void 
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::BeforeThreadedGenerateData()
 {
     const unsigned int VectorLength = 6;
@@ -107,11 +124,15 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
     BMatrixType b1 = this->bmatrix.transpose();
     BMatrixType b2 = vnl_matrix_inverse<float>(b1*this->bmatrix);
     this->invbmatrix = b2*b1;
+    
+    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
+        this->ProcessObject::GetOutput(0));
+    output->FillBuffer(0);
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void 
-SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
+SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
 {
     const InputImagePixelType min_signal = 5;
@@ -132,36 +153,56 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage>
 
     vnl_vector<float> S(nb_dir-1, 0.0);
 
-    typedef ImageRegionIterator<OutputImageType> OutputIterator;
+    typedef ImageRegionIteratorWithIndex<OutputImageType> OutputIterator;
     for(OutputIterator outputIt(output, outputRegionForThread);
         !outputIt.IsAtEnd(); ++outputIt)
     {
-        // Set the signal vector to 0, to avoid using previous values if S0<Si
-        S.fill(0.);
-
-        InputImagePixelType S0 = inputIterators[0].Get();
-        if (S0<min_signal)
+        // Skip pixels that are not in mask
+        bool process=true;
+        if(this->m_MaskImage.GetPointer() != 0)
         {
-            S0=min_signal;
-        }
-
-        for (unsigned int i=1; i<nb_dir; ++i) {
-            InputImagePixelType Si = inputIterators[i].Get();
-            if (Si<min_signal)
+            typename TOutputImage::PointType point; 
+            output->TransformIndexToPhysicalPoint(outputIt.GetIndex(), point);
+            
+            typename TMaskImage::IndexType mask_index;
+            this->m_MaskImage->TransformPhysicalPointToIndex(point, mask_index);
+            
+            if(!this->m_MaskImage->GetLargestPossibleRegion().IsInside(mask_index) || 
+               this->m_MaskImage->GetPixel(mask_index) == 0)
             {
-                Si=min_signal;
-            }
-            if (S0>=Si)
-            {
-                S(i-1) = log(S0/Si);
+                process=false;
             }
         }
 
-        vnl_vector_fixed<float, VectorLength> dt6;
-        dt6 = this->invbmatrix*S;
+        if(process)
+        {
+            // Set the signal vector to 0, to avoid using previous values if S0<Si
+            S.fill(0.);
 
-        OutputPixelType vec = outputIt.Get();
-        std::copy(dt6.begin(), dt6.end(), &vec[0]);
+            InputImagePixelType S0 = inputIterators[0].Get();
+            if (S0<min_signal)
+            {
+                S0=min_signal;
+            }
+
+            for (unsigned int i=1; i<nb_dir; ++i) {
+                InputImagePixelType Si = inputIterators[i].Get();
+                if (Si<min_signal)
+                {
+                    Si=min_signal;
+                }
+                if (S0>=Si)
+                {
+                    S(i-1) = log(S0/Si);
+                }
+            }
+
+            vnl_vector_fixed<float, VectorLength> dt6;
+            dt6 = this->invbmatrix*S;
+
+            OutputPixelType vec = outputIt.Get();
+            std::copy(dt6.begin(), dt6.end(), &vec[0]);
+        }
 
         for(typename std::vector<InputIterator>::iterator inputIteratorsIt=inputIterators.begin();
             inputIteratorsIt!=inputIterators.end(); ++inputIteratorsIt)

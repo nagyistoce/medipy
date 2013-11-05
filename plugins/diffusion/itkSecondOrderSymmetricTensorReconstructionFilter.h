@@ -27,7 +27,7 @@ namespace itk
  * All inputs are supposed to have the same Region.
  */
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 class SecondOrderSymmetricTensorReconstructionFilter :
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -37,9 +37,17 @@ public :
     typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
-
-     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-
+    
+    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+    
+    typedef TMaskImage MaskImageType;
+    typedef typename MaskImageType::Pointer MaskImagePointer;
+    typedef typename MaskImageType::ConstPointer MaskImageConstPointer;
+    /// @brief Return the mask. 
+    itkGetConstObjectMacro(MaskImage, MaskImageType);
+    /// @brief Set the mask, default to NULL (no mask is used). 
+    itkSetObjectMacro(MaskImage, MaskImageType);
+    
     /** Method for creation through the object factory. */
     itkNewMacro(Self);
 
@@ -69,7 +77,7 @@ public :
     DirectionType const & GetGradientDirection(unsigned int i) const;
 
 protected :
-    SecondOrderSymmetricTensorReconstructionFilter() {}
+    SecondOrderSymmetricTensorReconstructionFilter();
     ~SecondOrderSymmetricTensorReconstructionFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
     void AllocateOutputs();
@@ -81,7 +89,9 @@ private :
     float m_BVal;
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
-
+    
+    MaskImagePointer m_MaskImage;
+    
     SecondOrderSymmetricTensorReconstructionFilter(Self const &); // purposely not implemented
     Self const & operator=(Self const &); // purposely not implemented
 
