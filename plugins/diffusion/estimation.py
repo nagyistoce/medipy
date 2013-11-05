@@ -173,16 +173,28 @@ def weighted_least_squares(limages, accu="First", mask=None, nb_iter=5):
     
     images = _get_filter_inputs(limages, accu)
     
+    ScalarImage = itk.Image[itk.F, images[0].ndim]
+    
+    mask_itk = None
+    MaskImage = ScalarImage
+    if mask :
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+        MaskImage = mask_itk.__class__
+    
     PixelType = medipy.itk.dtype_to_itk[images[0].dtype.type]
     Dimension = images[0].ndim
     InputImage = itk.Image[PixelType, Dimension]
     OutputImage = itk.VectorImage[PixelType, Dimension]
     EstimationFilter = itk.WeightedLeastSquaresImageFilter[
-        InputImage, OutputImage]
+        InputImage, OutputImage, MaskImage]
     
     estimation_filter = EstimationFilter.New()
     estimation_filter.SetBVal(float(images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value))
     estimation_filter.SetIterationCount(nb_iter)
+    
+    if mask :
+        estimation_filter.SetMaskImage(mask_itk)
+    
     for cnt,image in enumerate(images) :
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         estimation_filter.SetInput(cnt,itk_image)
@@ -194,15 +206,6 @@ def weighted_least_squares(limages, accu="First", mask=None, nb_iter=5):
     itk_output = estimation_filter()[0]
     tensors = medipy.itk.itk_image_to_medipy_image(itk_output,None,True)
     tensors.image_type = "tensor_2"
-    
-    #masking
-    if mask:
-        [Tz, Ty, Tx] = mask.shape
-        D0 = np.asmatrix(np.zeros((6,1), dtype=tensors.dtype))
-        for x in range(Tx):
-            for y in range(Ty):
-                for z in range(Tz):
-                    if mask[z,y,x] == 0.0:
-                        tensors[z,y,x] = D0.T
+
     
     return tensors
