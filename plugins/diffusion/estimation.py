@@ -81,7 +81,7 @@ def _get_filter_inputs(limages, accu):
     
     return images
 
-def least_squares(limages, accu="First"):
+def least_squares(limages, accu="First", mask=None):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
         in the list) and a set of float diffusion weighted images (on shell, 
@@ -102,6 +102,8 @@ def least_squares(limages, accu="First"):
         <gui>
             <item name="limages" type="ImageSerie" label="Input"/>
             <item name="accu" type="Enum" initializer="('First', 'Mean', 'Overall Mean')" label="Accumulation Type" />
+            <item name="mask" type="Image" initializer="may_be_empty=True, may_be_empty_checked=True" 
+                  label="Mask"/>
             <item name="output" type="Image" initializer="output=True" 
                   role="return" label="Output"/>
         </gui>
@@ -112,16 +114,28 @@ def least_squares(limages, accu="First"):
     
     images = _get_filter_inputs(limages, accu)
     
+    ScalarImage = itk.Image[itk.F, images[0].ndim]
+    
+    mask_itk = None
+    MaskImage = ScalarImage
+    if mask :
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+        MaskImage = mask_itk.__class__
+        
     PixelType = medipy.itk.dtype_to_itk[images[0].dtype.type]
     Dimension = images[0].ndim
     InputImage = itk.Image[PixelType, Dimension]
     OutputImage = itk.VectorImage[PixelType, Dimension]
     EstimationFilter = itk.SecondOrderSymmetricTensorReconstructionFilter[
-        InputImage, OutputImage]
+        InputImage, OutputImage, MaskImage]
     
     estimation_filter = EstimationFilter.New()
     estimation_filter.SetBVal(float(
         images[1].metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value))
+    
+    if mask :
+        estimation_filter.SetMaskImage(mask_itk)
+        
     for cnt,image in enumerate(images) :
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         estimation_filter.SetInput(cnt,itk_image)
