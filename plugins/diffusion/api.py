@@ -6,3 +6,4 @@ from statistics import (
     spatial_parameter_estimation, bootstrap_parameter_estimation, 
     tensor_voxel_test)
 from tractography import streamline_gui as streamline_tractography
+from utils import baseline
