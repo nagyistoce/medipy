@@ -49,7 +49,10 @@ SpatialDWIStatisticsImageFilter<TInputImage, TMeanImage,
 {
     typename TMeanImage::Pointer mean_image = 
         dynamic_cast<TMeanImage*>(this->ProcessObject::GetOutput(0));
-    mean_image->FillBuffer(0);
+    typename TMeanImage::PixelType zero(6);
+    zero.Fill(0);
+    mean_image->FillBuffer(zero);
+    
     typename TStandardDeviationImage::Pointer standard_deviation_image = 
         dynamic_cast<TStandardDeviationImage*>(this->ProcessObject::GetOutput(1));
     standard_deviation_image->FillBuffer(0);
