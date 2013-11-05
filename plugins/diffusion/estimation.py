@@ -11,76 +11,6 @@ import medipy.itk
 import medipy.base
 import numpy as np
 
-from medipy.segmentation import bet
-
-def _get_filter_inputs(limages, accu):
-    images = [x.astype(x.dtype) for x in limages]
-    
-    # reference must be at the begining of the diffusion images list
-    bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value 
-        for image in images]
-    if 0 in bval :
-        nb_ref = bval.count(0)
-        argb = np.argsort(bval)
-        if accu=="First" :
-            reference = images[argb[0]]
-            images.remove(reference)
-            images.insert(0,reference)
-        elif accu=="Mean" :
-            references = []
-            for index in argb[:nb_ref] :
-                references.append( images[index] )
-            reference = references[0]
-            images.remove(reference)
-            for r in references[1:] :
-                images.remove(r)
-                reference.data += r
-            reference.data /= nb_ref        
-            images.insert(0,reference)
-        elif accu=="Overall Mean" :
-            if len(bval)%nb_ref==0 :
-                # Track gradient directions if possible 
-                sequences = []
-                while len(images)>0 :
-                    image = images.pop(0)
-                    cbvec = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
-                    bvec = [im.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value for im in images]
-                    check = [np.allclose(cbvec,v,atol=1e-3) for v in bvec]
-                    if check.count(True)==(nb_ref-1) :
-                        stack = []
-                        stack.append( image )
-                        index = np.where(np.asarray(check)==True)[0][::-1].tolist()
-                        for i in index :
-                            image = images.pop(i)
-                            stack.append( image )
-                        sequences.append( stack )
-                    else :
-                        raise medipy.base.Exception("Impossible to average the whole diffusion serie")
-
-                images = []
-                for stack in sequences :
-                    image = stack[0]
-                    for im in stack[1:] :
-                        image.data += im.data
-                    image.data /= nb_ref
-                    images.append( image )
-
-                bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue for image in images]
-                argb = np.argsort(bval)
-                reference = images[argb[0]]
-                images.remove(reference)
-                images.insert(0,reference)
-
-            else :
-                raise medipy.base.Exception("Impossible to average the whole diffusion serie")
-
-        else :
-            raise medipy.base.Exception("Uknown accumlation option")
-    else :
-        raise medipy.base.Exception("No reference image in diffusion sequence")
-    
-    return images
-
 def least_squares(limages, accu="First", mask=None):
     """ Least Square Second Order Symmetric Tensor Estimation.
         A diffusion serie is composed of a float reference image (first element 
@@ -223,3 +153,71 @@ def weighted_least_squares(limages, accu="First", mask=None, nb_iter=5):
 
     
     return tensors
+
+def _get_filter_inputs(limages, accu):
+    images = [x.astype(x.dtype) for x in limages]
+    
+    # reference must be at the begining of the diffusion images list
+    bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value 
+        for image in images]
+    if 0 in bval :
+        nb_ref = bval.count(0)
+        argb = np.argsort(bval)
+        if accu=="First" :
+            reference = images[argb[0]]
+            images.remove(reference)
+            images.insert(0,reference)
+        elif accu=="Mean" :
+            references = []
+            for index in argb[:nb_ref] :
+                references.append( images[index] )
+            reference = references[0]
+            images.remove(reference)
+            for r in references[1:] :
+                images.remove(r)
+                reference.data += r
+            reference.data /= nb_ref        
+            images.insert(0,reference)
+        elif accu=="Overall Mean" :
+            if len(bval)%nb_ref==0 :
+                # Track gradient directions if possible 
+                sequences = []
+                while len(images)>0 :
+                    image = images.pop(0)
+                    cbvec = image.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
+                    bvec = [im.metadata["mr_diffusion_sequence"][0].diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value for im in images]
+                    check = [np.allclose(cbvec,v,atol=1e-3) for v in bvec]
+                    if check.count(True)==(nb_ref-1) :
+                        stack = []
+                        stack.append( image )
+                        index = np.where(np.asarray(check)==True)[0][::-1].tolist()
+                        for i in index :
+                            image = images.pop(i)
+                            stack.append( image )
+                        sequences.append( stack )
+                    else :
+                        raise medipy.base.Exception("Impossible to average the whole diffusion serie")
+
+                images = []
+                for stack in sequences :
+                    image = stack[0]
+                    for im in stack[1:] :
+                        image.data += im.data
+                    image.data /= nb_ref
+                    images.append( image )
+
+                bval = [image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue for image in images]
+                argb = np.argsort(bval)
+                reference = images[argb[0]]
+                images.remove(reference)
+                images.insert(0,reference)
+
+            else :
+                raise medipy.base.Exception("Impossible to average the whole diffusion serie")
+
+        else :
+            raise medipy.base.Exception("Unknown accumlation option")
+    else :
+        raise medipy.base.Exception("No reference image in diffusion sequence")
+    
+    return images
