@@ -63,8 +63,8 @@ wrap_library("MediPyDiffusion" python)
             wrap_class("itk::${filter}" POINTER)
                 foreach(instantiation ${instantiations})
                     wrap_template(
-                        "I${instantiation}VI${instantiation}" 
-                        "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}")
+                        "I${instantiation}VI${instantiation}I${instantiation}" 
+                        "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}, ${ITKT_I${instantiation}}")
                 endforeach()
             end_wrap_class()
         end_wrap_module()
