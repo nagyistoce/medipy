@@ -121,9 +121,10 @@ WeightedLeastSquaresImageFilter<TInputImage, TOutputImage, TMaskImage>
     BMatrixType b2 = vnl_matrix_inverse<float>(b1*this->bmatrix);
     this->invbmatrix = b2*b1;
 
-    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
-        this->ProcessObject::GetOutput(0));
-    output->FillBuffer(0);
+    typename OutputImageType::Pointer output = this->GetOutput();
+    OutputPixelType zero(6);
+    zero.Fill(0);
+    output->FillBuffer(zero);
 }
 
 template<typename TInputImage, typename TOutputImage, typename TMaskImage>
@@ -136,8 +137,7 @@ WeightedLeastSquaresImageFilter<TInputImage, TOutputImage, TMaskImage>
     unsigned int const nb_dir = this->directions.size();
     unsigned int nb_iter = this->m_IterationCount;
     
-    typename OutputImageType::Pointer output = static_cast<OutputImageType *>(
-        this->ProcessObject::GetOutput(0));
+    typename OutputImageType::Pointer output = this->GetOutput();
     
     // Create an iterator for each input
     typedef ImageRegionConstIterator<InputImageType> InputIterator;
