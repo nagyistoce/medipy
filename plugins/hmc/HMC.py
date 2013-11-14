@@ -13,6 +13,10 @@ import numpy
 
 import medipy.itk
 
+import medipy.intensity
+import medipy.logic
+import medipy.segmentation
+
 def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5, 
                  display_outliers=True, outliers_criterion=0, threshold=0):
     
@@ -50,3 +54,29 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
     outliers = medipy.itk.itk_image_to_medipy_image(outliers_itk, None, True)
     
     return (segmentation, outliers)
+
+def post_process_outliers(segmentation, outliers, white_matter_class, min_size=6):
+    """ Post-process the outliers by removing
+        
+        <gui>
+            <item name="segmentation" type="Image" label="Segmentation" />
+            <item name="outliers" type="Image" label="Outliers" />
+            <item name="white_matter_class" type="Int" label="White matter class" />
+            <item name="min_size" type="Float" label="Minimum size" initializer="6"/>
+            <item name="result" type="Image" role="return"
+                  initializer="output=True" label="Result"/>
+        </gui>
+    """
+    
+    # Only keep those in the white matter
+    white_matter = medipy.intensity.binary_threshold(segmentation, 
+        white_matter_class, white_matter_class, 1, 0)
+    outliers = medipy.logic.apply_mask(outliers, white_matter, 0, 0)
+    
+    # Only keep those with more than 6 voxels
+    connected_components = medipy.base.Image((1,1,1))
+    medipy.segmentation.label_connected_components(outliers, connected_components)
+    outliers = medipy.segmentation.order_connected_components(
+        connected_components, min_size)
+    
+    return outliers
