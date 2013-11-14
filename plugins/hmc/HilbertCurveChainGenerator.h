@@ -31,7 +31,7 @@ public:
     typedef TMask MaskType;
     typedef typename MaskType::ConstPointer MaskConstPointer;
     
-    typedef itk::Image<int, 3> ScanType;
+    typedef itk::Image<unsigned long, 3> ScanType;
     typedef ScanType::Pointer ScanPointer;
     typedef ScanType::ConstPointer ScanConstPointer;
     
