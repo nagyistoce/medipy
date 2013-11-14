@@ -1,4 +1,4 @@
-from HMC import segmentation
+from HMC import segmentation, post_process_outliers
 
 import os.path
 import medipy.itk
