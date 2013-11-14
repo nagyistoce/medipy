@@ -193,15 +193,15 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
     for(IteratorType it(image, image->GetRequestedRegion()); !it.IsAtEnd(); ++it)
     {
         typename IteratorType::IndexType const & index = it.GetIndex();
-        
+        /*
         // Match scan order from Medimax with regular scan order: switch and 
         // mirror the Y and Z axes.
         typename IteratorType::IndexType modified_index;
         modified_index[0] = index[0];
         modified_index[1] = size[2]-index[2]-1;
         modified_index[2] = size[1]-index[1]-1;
-        
-        int const chain_index = scan->GetPixel(modified_index);
+        */
+        int const chain_index = scan->GetPixel(/*modified_*/index);
         it.Set(chain_prov[chain_index]);
     }
 }
