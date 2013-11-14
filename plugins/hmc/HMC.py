@@ -6,9 +6,10 @@
 # for details.
 ##########################################################################
 
-import numpy
+import itertools
 
 import itk
+import numpy
 
 import medipy.itk
 
@@ -17,26 +18,11 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
     
     ImageType = itk.Image[medipy.itk.dtype_to_itk[images[0].dtype.type], images[0].ndim]
     
-    # Pad the inputs (images, atlas and mask) so that they have a cubic shape,
-    # with a size equal to a power of 2.
-    
-    dimension = numpy.max([image.shape for image in images+atlas])
-    if mask:
-        dimension = max(dimension, numpy.max(mask.shape))
-    padded_size = 2**int(numpy.ceil(numpy.log2(dimension)))
-    
-    padded_images = [_pad_image(image, padded_size) for image in images]
-    padded_atlas = [_pad_image(image, padded_size) for image in atlas]
-    padded_mask = None
-    if mask:
-        padded_mask = _pad_image(mask, padded_size)
-    
     # Create the filter and run it.
     
     MaskType = ImageType
     if mask:
-        MaskType = itk.Image[medipy.itk.dtype_to_itk[
-            padded_mask.dtype.type], padded_mask.ndim]
+        MaskType = itk.Image[medipy.itk.dtype_to_itk[mask.dtype.type], mask.ndim]
     
     hmc_segmentation_filter = itk.HMCSegmentationImageFilter[
         ImageType, MaskType, ImageType].New(
@@ -45,18 +31,15 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
         Threshold=threshold)
         
     inputs = []
-    for (index, image) in enumerate(padded_images):
-        inputs.append(medipy.itk.medipy_image_to_itk_image(image, False))
-        hmc_segmentation_filter.SetInput(index, inputs[-1])
-    for (index, image) in enumerate(padded_atlas):
-        inputs.append(medipy.itk.medipy_image_to_itk_image(image, False))
-        hmc_segmentation_filter.SetInput(len(images)+index, inputs[-1])
+    for (index, image) in enumerate(itertools.chain(images, atlas)):
+        itk_input = medipy.itk.medipy_image_to_itk_image(image, False)
+        inputs.append(itk_input)
+        hmc_segmentation_filter.SetInput(index, itk_input)
         
-    padded_mask_itk = None
+    mask_itk = None
     if mask:
-        padded_mask_itk = medipy.itk.medipy_image_to_itk_image(
-            padded_mask, False)
-        hmc_segmentation_filter.SetMaskImage(padded_mask_itk)
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+        hmc_segmentation_filter.SetMaskImage(mask_itk)
         
     hmc_segmentation_filter()
     
@@ -66,20 +49,4 @@ def segmentation(images, atlas, mask=None, flair_image=-1, iterations=5,
     outliers_itk = hmc_segmentation_filter.GetOutliersImage()
     outliers = medipy.itk.itk_image_to_medipy_image(outliers_itk, None, True)
     
-    # Un-pad the output images
-    for image in segmentation, outliers:
-        image.data = image.data[[slice(0, x) for x in images[0].shape]]
-    
     return (segmentation, outliers)
-
-def _pad_image(image, padded_size):
-    """ Pad the given image with zeros so that the resulting shape is 
-        imge.ndim*(padded_size,)
-    """
-    
-    padded_image = medipy.base.Image(
-        shape=image.ndim*(padded_size,), dtype=image.dtype, value=0)
-    padded_image[[slice(0, x) for x in image.shape]]=image.data
-    padded_image.copy_information(image)
-    
-    return padded_image
