@@ -245,6 +245,7 @@ HilbertCurveChainGenerator<TImage, TMask>
         typename ImageType::IndexType const & index = it.GetIndex();
         unsigned int const chain_index = this->m_Scan->GetPixel(index);
         
+        /*
         // Match scan order from Medimax with regular scan order: switch and 
         // mirror the Y and Z axes.
         typename ImageType::SizeType const & size = 
@@ -253,14 +254,15 @@ HilbertCurveChainGenerator<TImage, TMask>
         modified_index[0] = index[0];
         modified_index[1] = size[2]-index[2]-1;
         modified_index[2] = size[1]-index[1]-1;
+        */
     
         for(unsigned int modality=0; modality!=images.size(); modality++)
         {
-            chain(modality, chain_index) = images[modality]->GetPixel(modified_index);
+            chain(modality, chain_index) = images[modality]->GetPixel(/*modified_*/index);
         }
         
         // Update MaskChain and chain_size for pixels that are in the mask.
-        if(mask.IsNull() || mask->GetPixel(modified_index) != 0)
+        if(mask.IsNull() || mask->GetPixel(/*modified_*/index) != 0)
         {
             this->m_MaskChain[chain_index]=1;
             chain_size++;
