@@ -35,10 +35,48 @@ HilbertCurveChainGenerator<TImage, TMask>
 ::operator()(std::vector<ImageConstPointer> const & images, MaskConstPointer mask)
 {
     //creation du parcours d'hilbert-peano
-    this->m_Scan = this->_hilbert_peano_scan(this->_find_cube_length(images[0]));
-
-    //gestion du masque+parcours de la chaine
-    this->_image_scan(images, mask);
+    unsigned int const cube_size = this->_find_cube_length(images[0]);
+    
+    Cube::Pointer const cube = this->_hilbert_peano_scan(cube_size);
+    
+    // Convert the cube to a list of offsets in cube
+    typedef itk::ImageRegionConstIteratorWithIndex<Cube> CubeIteratorType;
+    ScanType scan(cube->GetRequestedRegion().GetNumberOfPixels(), 0);
+    ScanType::value_type offset=0;
+    for(CubeIteratorType it(cube, cube->GetRequestedRegion()); !it.IsAtEnd(); ++it)
+    {
+        scan[it.Get()] = offset;
+        ++offset;
+    }
+    
+    // Convert the list of offsets in cube to a list of offsets in images[0],
+    // using the mask and the image region.
+    this->m_Scan.clear();
+    for(ScanType::const_iterator it=scan.begin(); it!=scan.end(); ++it)
+    {
+        ScanType::value_type const & cube_offset = *it;
+        Cube::IndexType const index = cube->ComputeIndex(cube_offset);
+        
+        if(images[0]->GetRequestedRegion().IsInside(index) && 
+           (mask.IsNull() || mask->GetPixel(index) != 0))
+        {
+            typename ImageType::OffsetValueType const image_offset = 
+                images[0]->ComputeOffset(index);
+            this->m_Scan.push_back(image_offset);
+        }
+    }
+    
+    // Create the chains based on the scan
+    this->m_ImageChains = ImageChainsType(images.size(), this->m_Scan.size(), 0);
+    for(ScanType::size_type i=0; i<this->m_Scan.size(); ++i)
+    {
+        ScanType::value_type offset = this->m_Scan[i];
+        typename ImageType::IndexType const index = images[0]->ComputeIndex(offset);
+        for(unsigned int modality=0; modality!=images.size(); modality++)
+        {
+            this->m_ImageChains(modality, i) = images[modality]->GetPixel(index);
+        }
+    }
 }
 
 template<typename TImage, typename TMask>
@@ -50,19 +88,11 @@ HilbertCurveChainGenerator<TImage, TMask>
 }
 
 template<typename TImage, typename TMask>
-typename HilbertCurveChainGenerator<TImage, TMask>::MaskChainType const & 
-HilbertCurveChainGenerator<TImage, TMask>
-::GetMaskChain() const
-{
-    return this->m_MaskChain;
-}
-
-template<typename TImage, typename TMask>
-typename HilbertCurveChainGenerator<TImage, TMask>::ScanConstPointer
+typename HilbertCurveChainGenerator<TImage, TMask>::ScanType const & 
 HilbertCurveChainGenerator<TImage, TMask>
 ::GetScan() const
 {
-    return ScanConstPointer(this->m_Scan);
+    return this->m_Scan;
 }
 
 template<typename TImage, typename TMask>
@@ -74,28 +104,29 @@ HilbertCurveChainGenerator<TImage, TMask>
         image->GetRequestedRegion().GetSize();
 	
     //on cherche le max
-    unsigned int const max = *std::max_element(size.m_Size, size.m_Size+size.GetSizeDimension());
+    unsigned int const max = *std::max_element(
+        size.m_Size, size.m_Size+size.GetSizeDimension());
 
     //trouver la plus petite puissance de 2 superieure à max
     unsigned int power=1;
     while(power<max)
     {
-        power=power<<1;
+        power *= 2;
     }
 
     return power;
 }
 
 template<typename TImage, typename TMask>
-typename HilbertCurveChainGenerator<TImage, TMask>::ScanPointer
+HilbertCurveChainGenerator<TImage, TMask>::Cube::Pointer
 HilbertCurveChainGenerator<TImage, TMask>
-::_hilbert_peano_scan(int cube_size)
+::_hilbert_peano_scan(unsigned int cube_size)
 {
-    ScanPointer cube=ScanType::New();
+    Cube::Pointer cube=Cube::New();
     {
-        ScanType::IndexType start; start.Fill(0);
-        ScanType::SizeType size; size.Fill(cube_size);
-        ScanType::RegionType region(start, size);
+        Cube::IndexType start; start.Fill(0);
+        Cube::SizeType size; size.Fill(cube_size);
+        Cube::RegionType region(start, size);
         cube->SetRegions(region);
         cube->Allocate();
     }
@@ -103,7 +134,7 @@ HilbertCurveChainGenerator<TImage, TMask>
     //parcours de Peano dans un cube de taille 2
     if(cube_size==2)
     {
-        ScanType::IndexType index;
+        Cube::IndexType index;
         index[0] = 0; index[1] = 0; index[2] = 0; cube->SetPixel(index, 0);
         index[0] = 0; index[1] = 0; index[2] = 1; cube->SetPixel(index, 1);
         index[0] = 0; index[1] = 1; index[2] = 1; cube->SetPixel(index, 2);
@@ -122,25 +153,25 @@ HilbertCurveChainGenerator<TImage, TMask>
         int posOrig=0;
         
         //nombre de voxels ds le cube
-        int const nbVox=std::pow(cube_size, 3);
+        unsigned int const nbVox=std::pow(cube_size, 3);
         
         //taille du sous-cube 
-        int const sub_cube_size=cube_size/2;
+        unsigned int const sub_cube_size=cube_size/2;
         
         //nombre de voxels ds le sous-cube
         int const nbVoxInf=std::pow(sub_cube_size, 3);
         
-        ScanPointer sub_cube = Self::_hilbert_peano_scan(sub_cube_size);
+        Cube::Pointer sub_cube = Self::_hilbert_peano_scan(sub_cube_size);
       
-        typedef itk::ImageRegionConstIteratorWithIndex<ScanType> IteratorType;
+        typedef itk::ImageRegionConstIteratorWithIndex<Cube> IteratorType;
         
         //calcul du demicube gauche (4 cubes de taille cube_size/2)
         for(IteratorType it(sub_cube, sub_cube->GetRequestedRegion());
             !it.IsAtEnd(); ++it)
         {
-            ScanType::IndexType const & source=it.GetIndex();
+            Cube::IndexType const & source=it.GetIndex();
             
-            ScanType::IndexType destination;
+            Cube::IndexType destination;
             destination[0] = iOrig+source[2]; 
             destination[1] = jOrig+source[1];
             destination[2] = kOrig+source[0];
@@ -156,9 +187,9 @@ HilbertCurveChainGenerator<TImage, TMask>
         for(IteratorType it(sub_cube, sub_cube->GetRequestedRegion());
             !it.IsAtEnd(); ++it)
         {
-            ScanType::IndexType const & source=it.GetIndex();
+            Cube::IndexType const & source=it.GetIndex();
             
-            ScanType::IndexType destination;
+            Cube::IndexType destination;
             destination[0] = iOrig+source[1]; 
             destination[1] = jOrig+source[0];
             destination[2] = kOrig+source[2];
@@ -173,9 +204,9 @@ HilbertCurveChainGenerator<TImage, TMask>
         for(IteratorType it(sub_cube, sub_cube->GetRequestedRegion());
             !it.IsAtEnd(); ++it)
         {
-            ScanType::IndexType const & source=it.GetIndex();
+            Cube::IndexType const & source=it.GetIndex();
             
-            ScanType::IndexType destination;
+            Cube::IndexType destination;
             destination[0] = iOrig+source[0]; 
             destination[1] = jOrig+source[1];
             destination[2] = kOrig+source[2];
@@ -191,9 +222,9 @@ HilbertCurveChainGenerator<TImage, TMask>
         for(IteratorType it(sub_cube, sub_cube->GetRequestedRegion());
             !it.IsAtEnd(); ++it)
         {
-            ScanType::IndexType const & source=it.GetIndex();
+            Cube::IndexType const & source=it.GetIndex();
             
-            ScanType::IndexType destination;
+            Cube::IndexType destination;
             destination[0] = iOrig-source[1]; 
             destination[1] = jOrig+source[2];
             destination[2] = kOrig-source[0];
@@ -202,18 +233,18 @@ HilbertCurveChainGenerator<TImage, TMask>
         }
 
         //le reste du cube est obtenu par symetrie
-        for(int i=0;i!=sub_cube_size;i++)
+        for(unsigned int i=0;i!=sub_cube_size;i++)
         {
-            for(int j=0;j!=cube_size;j++)
+            for(unsigned int j=0;j!=cube_size;j++)
             {
-                for(int k=0;k!=cube_size;k++)
+                for(unsigned int k=0;k!=cube_size;k++)
                 {
-                    ScanType::IndexType source;
+                    Cube::IndexType source;
                     source[0] = sub_cube_size-(i+1);
                     source[1] = j;
                     source[2] = k;
                     
-                    ScanType::IndexType destination;
+                    Cube::IndexType destination;
                     destination[0] = sub_cube_size+i; 
                     destination[1] = j;
                     destination[2] = k;
@@ -225,59 +256,4 @@ HilbertCurveChainGenerator<TImage, TMask>
     }
     
     return cube;
-}
-
-template<typename TImage, typename TMask>
-void 
-HilbertCurveChainGenerator<TImage, TMask>
-::_image_scan(std::vector<ImageConstPointer> const & images, MaskConstPointer mask)
-{
-    unsigned long const scan_length = std::pow(Self::_find_cube_length(images[0]), 3);
-    vnl_matrix<double> chain(images.size(), scan_length, 0);
-    this->m_MaskChain=vnl_vector<int>(scan_length, 0);
-    
-    int chain_size=0;
-
-    typedef itk::ImageRegionConstIteratorWithIndex<ImageType> IteratorType;
-    for(IteratorType it(images[0], images[0]->GetRequestedRegion());
-        !it.IsAtEnd(); ++it)
-    {
-        typename ImageType::IndexType const & index = it.GetIndex();
-        unsigned int const chain_index = this->m_Scan->GetPixel(index);
-        
-        /*
-        // Match scan order from Medimax with regular scan order: switch and 
-        // mirror the Y and Z axes.
-        typename ImageType::SizeType const & size = 
-            images[0]->GetRequestedRegion().GetSize();
-        typename ImageType::IndexType modified_index;
-        modified_index[0] = index[0];
-        modified_index[1] = size[2]-index[2]-1;
-        modified_index[2] = size[1]-index[1]-1;
-        */
-    
-        for(unsigned int modality=0; modality!=images.size(); modality++)
-        {
-            chain(modality, chain_index) = images[modality]->GetPixel(/*modified_*/index);
-        }
-        
-        // Update MaskChain and chain_size for pixels that are in the mask.
-        if(mask.IsNull() || mask->GetPixel(/*modified_*/index) != 0)
-        {
-            this->m_MaskChain[chain_index]=1;
-            chain_size++;
-        }
-    }
-    
-    // Fill ImageChains only with columns that are in the mask.
-    this->m_ImageChains = ImageChainsType(images.size(), chain_size, 0);
-    unsigned int column=0;
-    for(unsigned int j=0; j!= this->m_MaskChain.size(); ++j)
-    {
-        if(this->m_MaskChain[j]!=0)
-        {
-            this->m_ImageChains.set_column(column, chain.get_column(j));
-            ++column;
-        }
-    }
 }
