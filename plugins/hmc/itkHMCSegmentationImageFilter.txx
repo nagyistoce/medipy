@@ -130,18 +130,17 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
     
     //Parcours d Hilbert-Peano inverse pour obtenir l image segmentée
     //mettre l'image à la bonne taille
-    vnl_vector<int> const & mask_chain = chain_generator.GetMaskChain();
-    ScanConstPointer const scan = chain_generator.GetScan();
+    ScanType const & scan = chain_generator.GetScan();
     
     OutputImagePointer segmentation = this->GetSegmentationImage();
     segmentation->SetRegions(images[0]->GetLargestPossibleRegion());
     segmentation->Allocate();
-    Self::_chain_to_image(ChainSeg, mask_chain, scan, segmentation);
+    Self::_chain_to_image(ChainSeg, scan, segmentation);
     
     OutputImagePointer outliers = this->GetOutliersImage();
     outliers->SetRegions(images[0]->GetLargestPossibleRegion());
     outliers->Allocate();
-    Self::_chain_to_image(ChainLesions, mask_chain, scan, outliers);
+    Self::_chain_to_image(ChainLesions, scan, outliers);
 }
 
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
@@ -170,39 +169,17 @@ HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 HMCSegmentationImageFilter<TInputImage, TMaskImage, TOutputImage>
-::_chain_to_image(vnl_vector<int> const & chain, 
-    vnl_vector<int> const & chain_mask, ScanConstPointer const & scan, 
+::_chain_to_image(vnl_vector<int> const & chain, ScanType const & scan, 
     OutputImagePointer image)
 {
-    //chaine complete avec le fond
-    vnl_vector<double> chain_prov(chain_mask.size(), 0);
-    vnl_vector<int>::const_iterator chain_it=chain.begin();
-    for(unsigned int j=0; j!=chain_mask.size(); ++j)
-    {
-        if(chain_mask[j]!=0)
-        {
-            chain_prov[j]=*chain_it;
-            ++chain_it;
-        }
-    }
+    image->FillBuffer(0);
     
-    typename OutputImageType::SizeType const & size = 
-        image->GetRequestedRegion().GetSize();
-    
-    typedef itk::ImageRegionIteratorWithIndex<OutputImageType> IteratorType;
-    for(IteratorType it(image, image->GetRequestedRegion()); !it.IsAtEnd(); ++it)
+    for(unsigned int i=0; i<scan.size(); ++i)
     {
-        typename IteratorType::IndexType const & index = it.GetIndex();
-        /*
-        // Match scan order from Medimax with regular scan order: switch and 
-        // mirror the Y and Z axes.
-        typename IteratorType::IndexType modified_index;
-        modified_index[0] = index[0];
-        modified_index[1] = size[2]-index[2]-1;
-        modified_index[2] = size[1]-index[1]-1;
-        */
-        int const chain_index = scan->GetPixel(/*modified_*/index);
-        it.Set(chain_prov[chain_index]);
+        int const value = chain[i];
+        typename OutputImageType::IndexType const index = image->ComputeIndex(scan[i]);
+        
+        image->SetPixel(index, value);
     }
 }
 

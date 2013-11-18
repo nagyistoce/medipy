@@ -9,6 +9,7 @@
 #ifndef _520dc57b_a1d1_4849_8e56_f982399ef678
 #define _520dc57b_a1d1_4849_8e56_f982399ef678
 
+#include <stdint.h>
 #include <vector>
 
 #include <itkImage.h>
@@ -31,12 +32,9 @@ public:
     typedef TMask MaskType;
     typedef typename MaskType::ConstPointer MaskConstPointer;
     
-    typedef itk::Image<unsigned long, 3> ScanType;
-    typedef ScanType::Pointer ScanPointer;
-    typedef ScanType::ConstPointer ScanConstPointer;
+    typedef std::vector<uint32_t> ScanType;
     
     typedef vnl_matrix<double> ImageChainsType;
-    typedef vnl_vector<int> MaskChainType;
 
     HilbertCurveChainGenerator();
     ~HilbertCurveChainGenerator();
@@ -45,18 +43,16 @@ public:
                     MaskConstPointer mask=MaskConstPointer());
     
     ImageChainsType const & GetImageChains() const;
-    MaskChainType const & GetMaskChain() const;
-    ScanConstPointer GetScan() const;
+    ScanType const & GetScan() const;
 
 private:
+    typedef itk::Image<uint32_t, 3> Cube;
+    
     ImageChainsType m_ImageChains;
-    MaskChainType m_MaskChain;
-    ScanPointer m_Scan;
+    ScanType m_Scan;
     
     static unsigned int _find_cube_length(ImageType const * image);
-    static ScanPointer _hilbert_peano_scan(int cube_size);
-
-    void _image_scan(std::vector<ImageConstPointer> const & images, MaskConstPointer mask);
+    static Cube::Pointer _hilbert_peano_scan(unsigned int cube_size);
 };
 
 #include "HilbertCurveChainGenerator.txx"

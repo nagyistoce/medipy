@@ -110,7 +110,7 @@ private:
     typedef typename InputImageType::ConstPointer InputImageConstPointer;
     typedef HilbertCurveChainGenerator<InputImageType, MaskImageType> 
         ChainGeneratorType;
-    typedef typename ChainGeneratorType::ScanConstPointer ScanConstPointer;
+    typedef typename ChainGeneratorType::ScanType ScanType;
     
     MaskImageConstPointer m_MaskImage;    
     int m_FlairImage;
@@ -121,8 +121,7 @@ private:
     float m_Threshold;
     
     static void _chain_to_image(vnl_vector<int> const & chain, 
-        vnl_vector<int> const & chain_mask, ScanConstPointer const & scan, 
-        OutputImagePointer image);
+        ScanType const & scan, OutputImagePointer image);
 };
 
 }
