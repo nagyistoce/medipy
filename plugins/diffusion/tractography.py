@@ -117,8 +117,7 @@ def create_object_3d(fibers, clusters=None) :
             points.InsertPoint(i, fiber[i][::-1])
             line.InsertCellPoint(i)
             if clusters :
-                cluster.InsertTuple1(i, 
-                    float(fiber_to_cluster_id[fiber_index])/float(len(clusters)))
+                cluster.InsertTuple1(i, fiber_to_cluster_id[fiber_index])
                 skeleton.InsertTuple1(i, 0 if fiber_index in skeleton_fibers else 1)
 
         polydata = vtk.vtkPolyData()
