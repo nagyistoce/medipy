@@ -103,8 +103,13 @@ class AnnotationsPanel(medipy.gui.base.Panel):
             label = 1
         annotation = medipy.base.ImageAnnotation(label = "Annotation {0}".format(label))
         annotation.position = self._image.cursor_physical_position
-        annotation.size = 5
-        annotation.filled = True
+        
+        shape_string = self.ui.shape.GetStringSelection()
+        shape = getattr(medipy.base.ImageAnnotation.Shape, shape_string)
+        annotation.shape = shape
+        
+        annotation.size = self.ui.size.value
+        annotation.filled = self.ui.filled.IsChecked()
         annotation.color = colorsys.hsv_to_rgb(random.random(), 1, 1)
         
         command = AddAnnotation(self, annotation)
