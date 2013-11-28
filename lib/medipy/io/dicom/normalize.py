@@ -83,22 +83,40 @@ def dwi_normalize(dataset_or_datasets):
         tag_bvec_rl = Tag(0x2005,0x10b0)
         tag_bvec_ap = Tag(0x2005,0x10b1)
         tag_bvec_fh = Tag(0x2005,0x10b2)
+        
+        if not all(x in dataset for x in (tag_bval, tag_bvec)):
+            return None
+        
         dwi_dataset = DataSet()
-        dwi_dataset.diffusion_directionality = CS("")
-        if tag_bval in dataset.keys() :
-            if isinstance(dataset[tag_bval].value, (list, tuple)) and dataset[tag_bval].value :
-                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value[0])
-            else :
-                dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value)
-        if tag_bvec in dataset.keys() :
-            gradient_dataset = DataSet()
+        
+        if isinstance(dataset[tag_bval].value, (list, tuple)) and dataset[tag_bval].value :
+            dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value[0])
+        else :
+            dwi_dataset.diffusion_bvalue = FD(dataset[tag_bval].value)
+        
+        gradient_dataset = DataSet()
+        if not isinstance(dataset[tag_bvec], CS):
             gradient_dataset.diffusion_gradient_orientation = FD(
                 [float(x) for x in dataset[tag_bvec].value])
-            dwi_dataset.diffusion_gradient_direction_sequence = SQ([gradient_dataset])
-            dwi_dataset.diffusion_directionality = CS("DIRECTIONAL")
+        else:
+            gradient_dataset.diffusion_gradient_orientation = FD(
+                [float(dataset[x].value) for x in (tag_bvec_rl, tag_bvec_ap, tag_bvec_fh)])
+        
+        dwi_dataset.diffusion_gradient_direction_sequence = SQ([gradient_dataset])
+        dwi_dataset.diffusion_directionality = CS("DIRECTIONAL")
+        
         return dwi_dataset
 
     def dwi_ge(dataset):
+        version = int(dataset.software_versions.value[0])
+        if version>10:
+            number_of_directions = Tag(0x0019,0x10e0)
+        else:
+            number_of_directions = Tag(0x0019,0x10df)
+        number_of_directions = dataset[number_of_directions].value
+        if number_of_directions == 0:
+            return None
+        
         tag_bval = Tag(0x0043,0x1039)
         tag_bvec_x = Tag(0x0019,0x10bb)
         tag_bvec_y = Tag(0x0019,0x10bc)
@@ -130,17 +148,18 @@ def dwi_normalize(dataset_or_datasets):
             dwi_function = locals()[key]
             dwi_dataset = dwi_function(dataset_or_datasets)
             
-            # Normalize gradient direction
-            if "diffusion_gradient_direction_sequence" in dwi_dataset :
-                gradient_direction = dwi_dataset.\
-                    diffusion_gradient_direction_sequence.value[0].\
-                        diffusion_gradient_orientation
-                if not gradient_direction.value :
-                    gradient_direction = FD([0.,0.,0.])
-                    dwi_dataset.diffusion_gradient_direction_sequence.value[0].\
-                        diffusion_gradient_orientation = gradient_direction
-            
-            dataset_or_datasets.mr_diffusion_sequence = SQ([dwi_dataset])
+            if dwi_dataset:
+                # Normalize gradient direction
+                if "diffusion_gradient_direction_sequence" in dwi_dataset :
+                    gradient_direction = dwi_dataset.\
+                        diffusion_gradient_direction_sequence.value[0].\
+                            diffusion_gradient_orientation
+                    if not gradient_direction.value :
+                        gradient_direction = FD([0.,0.,0.])
+                        dwi_dataset.diffusion_gradient_direction_sequence.value[0].\
+                            diffusion_gradient_orientation = gradient_direction
+                
+                dataset_or_datasets.mr_diffusion_sequence = SQ([dwi_dataset])
         # Do nothing if the diffusion informations for the current manufacturer
         # are unknown
         return dataset_or_datasets      
