@@ -50,5 +50,3 @@ wrap_type("itk::Matrix" "M")
 end_wrap_type()
 set(itk_Wrap_Matrix ${WRAPPER_TEMPLATES})
 
-# Reset the INCLUDE_DIRECTORIES to avoid propagation to sub-directories
-set_directory_properties(PROPERTIES INCLUDE_DIRECTORIES "")

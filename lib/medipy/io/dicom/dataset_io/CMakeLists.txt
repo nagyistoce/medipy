@@ -1,5 +1,7 @@
 find_package(DCMTK REQUIRED)
-find_package(GDCM REQUIRED)
+if(NOT GDCM_FOUND)
+    find_package(GDCM REQUIRED)
+endif()
 
 add_definitions(-DHAVE_CONFIG_H)
 swig_python_module(dataset_io 
