@@ -94,7 +94,7 @@ class BET(FSLTool):
     def _get_command(self):
         if None in [self.input, self.output] :
             raise Exception("Both input and output must be specified") 
-        command = ["bet", self.input, self.output, "-R"]
+        command = ["bet", self.input, self.output]
         
         if self.create_outline :
             command.append("-o")

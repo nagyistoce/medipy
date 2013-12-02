@@ -44,5 +44,9 @@ class TestBET(unittest.TestCase):
         self.assertEqual(self.bet.command, ["bet", "foo.nii", "bar.nii", 
                                             "-c" , "10", "20", "30"])
     
+    def test_robust(self):
+        self.bet.robust = True
+        self.assertEqual(self.bet.command, ["bet", "foo.nii", "bar.nii", "-R"])
+    
 if __name__ == "__main__" :
     unittest.main()
