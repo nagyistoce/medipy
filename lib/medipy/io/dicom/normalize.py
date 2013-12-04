@@ -115,6 +115,10 @@ def dwi_normalize(dataset_or_datasets):
             number_of_directions = Tag(0x0019,0x10e0)
         else:
             number_of_directions = Tag(0x0019,0x10df)
+        
+        if number_of_directions not in dataset:
+            return None
+        
         number_of_directions = dataset[number_of_directions].value
         if number_of_directions == 0:
             return None
