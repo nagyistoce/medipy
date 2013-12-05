@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import numpy
@@ -18,40 +18,35 @@ def mean_stdev_normalization(reference, image, mask_ref=None, mask_image=None):
         <gui>
             <item name="reference" type="Image" label="Reference"/>
             <item name="image" type="Image" label="Image"/>
-            <item name="mask_ref" type="Image" initializer="may_be_empty=True" label="Mask of reference image" />
-            <item name="mask_image" type="Image" initializer="may_be_empty=True" label="Mask of the image to normalize" />       
+            <item name="mask_ref" type="Image" initializer="may_be_empty=True" 
+                  label="Mask of reference image" />
+            <item name="mask_image" type="Image" initializer="may_be_empty=True" 
+                  label="Mask of the image to normalize" />       
             <item name="output" type="Image" initializer="output=True"
-                role="return" label="Output"/>
+                  role="return" label="Output"/>
         </gui>
     """
     
     if mask_ref :
-        meanref=reference.data[numpy.nonzero(reference.data)].mean()
-        stdref=reference.data[numpy.nonzero(reference.data)].std()
+        meanref=reference[numpy.nonzero(mask_ref)].mean()
+        stdref=reference[numpy.nonzero(mask_ref)].std()
     else :
         meanref=reference.data.mean()
         stdref=reference.data.std()
         
     if mask_image :
-        meanimage=image.data[numpy.nonzero(image.data)].mean()
-        stdimage=image.data[numpy.nonzero(image.data)].std()
+        meanimage=image[numpy.nonzero(mask_image)].mean()
+        stdimage=image[numpy.nonzero(mask_image)].std()
     else :
         meanimage=image.data.mean()
         stdimage=image.data.std()
         
-    means = (meanref, meanimage)
-    stdevs = ( stdref,stdimage )
-    
-    alpha = stdevs[0]/stdevs[1]
-    beta = means[0]-means[1]*alpha
+    alpha = stdref/stdimage
+    beta = meanref-meanimage*alpha
     
     data = alpha*image.data+beta
     output = medipy.base.Image(data=data)
     output.copy_information(image)
-    
-    if mask_image :
-        output=medipy.logic.apply_mask( output, mask_image.astype(numpy.float32), 0, 0)
-    
     
     return output
 

@@ -65,6 +65,8 @@ def dwi_normalize(dataset_or_datasets):
             image_csa = medipy.io.dicom.csa2.parse_csa(dataset[0x0029,0x1010].value)
             if image_csa.get("B_value", "") :
                 dwi_dataset.diffusion_bvalue = FD(image_csa['B_value'][0])
+            else:
+                return None
             if image_csa.get("DiffusionDirectionality", "") :
                 directionality = image_csa['DiffusionDirectionality'][0].strip(
                     string.whitespace+"\0")
@@ -113,6 +115,10 @@ def dwi_normalize(dataset_or_datasets):
             number_of_directions = Tag(0x0019,0x10e0)
         else:
             number_of_directions = Tag(0x0019,0x10df)
+        
+        if number_of_directions not in dataset:
+            return None
+        
         number_of_directions = dataset[number_of_directions].value
         if number_of_directions == 0:
             return None
