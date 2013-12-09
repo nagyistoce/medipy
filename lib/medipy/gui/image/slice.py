@@ -35,7 +35,7 @@ class Slice(PropertySynchronized) :
           * "+" : zoom in
           * "-" : zoom out
           * "i" : toggle interpolation
-          * "s" : toggle scalar bar visibility
+          * "b" : toggle scalar bar visibility
           * "c" : toggle corner annotations visibility
           * "o" : toggle orientation annotations visibility
         
@@ -165,7 +165,7 @@ class Slice(PropertySynchronized) :
         self._scalar_bar_actor.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
         self._scalar_bar_actor.SetWidth(0.1)
         self._scalar_bar_actor.SetHeight(0.5)
-        self._scalar_bar_actor.SetPosition(0.9,0.3)
+        self._scalar_bar_actor.SetPosition(0.8,0.3)
         self._scalar_bar_actor.PickableOff()
         self._renderer.AddActor(self._scalar_bar_actor)
         
@@ -211,7 +211,7 @@ class Slice(PropertySynchronized) :
         self.set_keyboard_tool("+", keyboard_tools.Zoom(1.1))
         self.set_keyboard_tool("-", keyboard_tools.Zoom(1./1.1))
         self.set_keyboard_tool("i", keyboard_tools.ToggleInterpolation())
-        self.set_keyboard_tool("s", keyboard_tools.ToggleScalarBarVisibility())
+        self.set_keyboard_tool("b", keyboard_tools.ToggleScalarBarVisibility())
         self.set_keyboard_tool("c", keyboard_tools.ToggleCornerAnnotationsVisibility())
         self.set_keyboard_tool("o", keyboard_tools.ToggleOrientationVisibility())
     
