@@ -1,5 +1,5 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2012
+# MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
 # the CEA-CNRS-INRIA. Refer to the LICENSE file or to
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -114,10 +114,7 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
         image.add_observer("colormap_display_range", self._on_colormap_display_range)
             
         # Set children for synchronization :
-        for image_index, other_image in enumerate(self._images) :
-            next_image = self._images[(image_index+1)%len(self._images)]
-            other_image.delete_all_children()
-            other_image.append_child(next_image)
+        self._setup_synchronization_children()
         
         # Synchronize if more than one image
         if len(self) > 1 :
@@ -147,6 +144,9 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
         
         self._images[index].Close()
         del self._images[index]
+        
+        # Set children for synchronization :
+        self._setup_synchronization_children()
         
         # Adjust the active image
         if len(self._images) > 0 and self._active >= len(self._images) : 
@@ -373,3 +373,9 @@ class ImageGrid(wx.Panel, medipy.base.Observable):
         self._sizer.SetCols(rows)
         self._sizer.Layout()
     
+    def _setup_synchronization_children(self):
+        # Set children for synchronization :
+        for image_index, other_image in enumerate(self._images) :
+            next_image = self._images[(image_index+1)%len(self._images)]
+            other_image.delete_all_children()
+            other_image.append_child(next_image)
