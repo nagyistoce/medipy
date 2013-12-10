@@ -255,6 +255,9 @@ class Slice(PropertySynchronized) :
             raise medipy.base.Exception("Cannot create layer")
         
         # Create the layer and insert it
+        if self._layers and index == 0:
+            self._layers[0].remove_observer("colormap", self._on_layer_colormap)
+            
         layer = LayerClass(self.world_to_slice, image, self.display_coordinates,
                            colormap, opacity) 
         self._layers.insert(index, layer)
@@ -264,7 +267,8 @@ class Slice(PropertySynchronized) :
         
         # The scalar bar will always reflect layer 0
         if index == 0 :
-            self._scalar_bar_actor.SetLookupTable(layer.colormap.vtk_colormap)
+            self._on_layer_colormap(None)
+            self._layers[0].add_observer("colormap", self._on_layer_colormap)
         
         # Adjust layer w.r.t. the current state.
         self._update_layers_positions()
@@ -925,3 +929,7 @@ class Slice(PropertySynchronized) :
                 
                 self.renderer.AddActor(gui_annotation.shape_actor)
                 self.renderer.AddActor(gui_annotation.text_actor)
+    
+    def _on_layer_colormap(self, event):
+        if self._layers:
+            self._scalar_bar_actor.SetLookupTable(self._layers[0].colormap.vtk_colormap)
