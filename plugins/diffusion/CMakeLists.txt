@@ -70,6 +70,13 @@ wrap_library("MediPyDiffusion" python)
         end_wrap_module()
     endforeach()
     
+    # WeightedMeanImageFilter : Image -> VectorImage (float,3) only
+    wrap_module("itkWeightedMeanImageFilter")
+        wrap_class("itk::WeightedMeanImageFilter" POINTER)
+            wrap_template("IF3VIF3VIF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_VIF3}")
+        end_wrap_class()
+    end_wrap_module()
+    
     # Scalars : VectorImage -> Image
     foreach(filter "FractionalAnisotropyImageFilter" "MeanDiffusivityImageFilter")
         wrap_module("itk${filter}")
