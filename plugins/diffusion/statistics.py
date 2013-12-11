@@ -215,3 +215,46 @@ def _dtiLogTensorTestAS(test_flag, M1, M2, S1, S2, N1, N2):
         spacing=M1.spacing, origin=M1.origin, direction=M1.direction)
 
     return T, s, df
+
+def weighted_mean_filter(proba, tensor, size_plane_x=3, size_plane_y=3, size_depth=3):
+    """
+     Weighted mean filter.
+
+        <gui>
+            <item name="proba" type="Image" label="Filter"/>
+            <item name="tensor" type="Image" label="DTI data"/>
+            <item name="size_plane_x" type="Int" initializer="3" 
+                  label="Neighborhood plane size X"/>
+            <item name="size_plane_y" type="Int" initializer="3" 
+                  label="Neighborhood plane size Y"/>
+            <item name="size_depth" type="Int" initializer="3" 
+                  label="Neighborhood depth size"/>
+            <item name="mean" type="Image" initializer="output=True" 
+                  role="return" label="Mean image"/>
+        </gui>
+    """
+    
+    log_tensor = log_transformation(tensor)
+    log_tensor_itk = medipy.itk.medipy_image_to_itk_image(log_tensor, False)
+    OutputImage = log_tensor_itk.__class__
+    
+    proba_itk = medipy.itk.medipy_image_to_itk_image(proba, False)
+    WeightedImage = proba_itk.__class__
+    
+    Estimation_filter = itk.WeightedMeanImageFilter[
+        WeightedImage, OutputImage, OutputImage]
+
+    estimation_filter = Estimation_filter.New()
+    estimation_filter.SetInput(proba_itk)
+    estimation_filter.SetTensorImage(log_tensor_itk)
+    estimation_filter.SetSizePlaneX(size_plane_x)
+    estimation_filter.SetSizePlaneY(size_plane_y)
+    estimation_filter.SetSizeDepth(size_depth)
+    
+    mean_itk = estimation_filter()[0]
+    mean = medipy.itk.itk_image_to_medipy_image(mean_itk, None, True)
+    mean.image_type = "tensor_2"
+    mean = exp_transformation(mean)
+    
+    return mean
+
