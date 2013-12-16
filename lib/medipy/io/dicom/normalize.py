@@ -148,6 +148,9 @@ def dwi_normalize(dataset_or_datasets):
         return dwi_dataset
 
     if isinstance(dataset_or_datasets, DataSet) :
+        if dataset_or_datasets.get("sop_class_uid", UI(None)).value != "1.2.840.10008.5.1.4.1.1.4": # MR Image Storage
+            return dataset_or_datasets
+        
         key = "dwi_{0}".format(
             dataset_or_datasets.get("manufacturer", CS("")).value.lower().split(" ")[0])
         if key in locals() :
