@@ -71,7 +71,10 @@ class DataSet(dict):
                 shape = (self.number_of_frames.value,)+shape
             
             dtype = "int%d"%(self.bits_allocated.value)
-            if self.get("pixel_representation", 0) == 0 :
+            default_pixel_representation = {
+                "1.2.840.10008.5.1.4.1.1.2": 1, # CT Image Storage
+            }.get(self.get("sop_class_uid", UI(None)).value, 0)
+            if self.get("pixel_representation", US(default_pixel_representation)).value == 0 :
                 dtype = "u"+dtype
             dtype = numpy.dtype(dtype)
             
