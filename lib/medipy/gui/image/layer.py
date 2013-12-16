@@ -410,8 +410,15 @@ class Layer(medipy.base.Observable) :
                 "constant", False, value=0)
             changed_origin[0] = 0
 
-            changed_spacing = numpy.abs(numpy.dot(world_to_slice, 
-                                                  self._image.spacing))
+            matrix = None
+            if self.display_coordinates=="physical":
+                matrix = self._image.direction
+            else:
+                matrix = medipy.base.coordinate_system.best_fitting_axes_aligned_matrix(
+                    self._image.direction)
+
+            changed_spacing = numpy.abs(numpy.dot(
+                world_to_slice, numpy.dot(matrix, self._image.spacing)))
             changed_spacing = medipy.base.array.reshape(changed_spacing, (3,),
                 "constant", False, value=0)
         else :
