@@ -147,24 +147,26 @@ def dti33to6(dt33):
 def eigVec9to33(eigVec):
     """ Full eigen vectors from the 9 independent components.
         eigVec must be a numpy array, NOT a medipy.base.Image
+        eigVec is composed of row vectors
     """
     
     eigVec33 = np.zeros(eigVec.shape[:-1]+(3,3),dtype=eigVec.dtype)
-    eigVec33[...,0,0] = eigVec[...,0]
-    eigVec33[...,0,1] = eigVec[...,1]
-    eigVec33[...,0,2] = eigVec[...,2]
-    eigVec33[...,1,0] = eigVec[...,3]
-    eigVec33[...,1,1] = eigVec[...,4]
-    eigVec33[...,1,2] = eigVec[...,5]
-    eigVec33[...,2,0] = eigVec[...,6]
-    eigVec33[...,2,1] = eigVec[...,7]
-    eigVec33[...,2,2] = eigVec[...,8]
+    eigVec33[...,0,0] = eigVec[...,0]   #V1x
+    eigVec33[...,0,1] = eigVec[...,1]   #V1y
+    eigVec33[...,0,2] = eigVec[...,2]   #V1z
+    eigVec33[...,1,0] = eigVec[...,3]   #V2x
+    eigVec33[...,1,1] = eigVec[...,4]   #V2y
+    eigVec33[...,1,2] = eigVec[...,5]   #V2z
+    eigVec33[...,2,0] = eigVec[...,6]   #V3x
+    eigVec33[...,2,1] = eigVec[...,7]   #V3y
+    eigVec33[...,2,2] = eigVec[...,8]   #V3z
     
     return eigVec33
 
 def eigVec33to9(eigVec33):
     """ Nine independent components from the full eigen vectors.
         eigVec33 must be a numpy array, NOT a medipy.base.Image
+        eigVec is composed of row vectors
     """
     
     eigVec = np.zeros(eigVec33.shape[:-2]+(9,),dtype=eigVec33.dtype)
@@ -216,6 +218,7 @@ def rotation33todt6(dt6,R):
 
 def compose_spectral(eigVec, eigVal):
     """ Recovers the six independent components dt6 format [Dxx, Dyy, Dzz, Dxy, Dxz, Dyz]
+        (tensor is a numpy array, NOT a medipy.base.Image)
         eigVec must be a numpy array, NOT a medipy.base.Image
         eigVal must be a numpy array, NOT a medipy.base.Image
     """
