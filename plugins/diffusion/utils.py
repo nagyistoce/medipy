@@ -223,7 +223,7 @@ def compose_spectral(eigVec, eigVal):
         eigVal must be a numpy array, NOT a medipy.base.Image
     """
 
-    tensor = np.zeros(eigVal.shape+(6,),dtype=np.single)
+    tensor = np.zeros(eigVal.shape[:-1]+(6,),dtype=np.single)
 
     tensor[...,0] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,0]\
                   + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,0]\
