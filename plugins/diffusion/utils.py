@@ -98,18 +98,18 @@ def spectral_decomposition(image):
     
     shape = image.shape
 
-    eigVal = medipy.base.Image(data=np.zeros(shape+(3,),dtype=image.dtype),
+    imgEigVal = medipy.base.Image(data=np.zeros(shape+(3,),dtype=image.dtype),
                                data_type="vector")
-    eigVal_itk = medipy.itk.medipy_image_to_itk_image(eigVal, False)
+    imgEigVal_itk = medipy.itk.medipy_image_to_itk_image(imgEigVal, False)
     
-    eigVec = medipy.base.Image(data=np.zeros(shape+(9,),dtype=image.dtype),
+    imgEigVec = medipy.base.Image(data=np.zeros(shape+(9,),dtype=image.dtype),
                                data_type="vector")
-    eigVec_itk = medipy.itk.medipy_image_to_itk_image(eigVec, False)
+    imgEigVec_itk = medipy.itk.medipy_image_to_itk_image(imgEigVec, False)
     
     itk_tensors = medipy.itk.medipy_image_to_itk_image(image, False)
-    spectral_analysis.spectral_analysis(itk_tensors,eigVal_itk,eigVec_itk)
+    spectral_analysis.spectral_analysis(itk_tensors,imgEigVal_itk,imgEigVec_itk)
 
-    return eigVal,eigVec
+    return imgEigVal,imgEigVec
 
 def dti6to33(dt6):
     """ Full second order symmetric tensor from the six independent components.
@@ -216,32 +216,31 @@ def rotation33todt6(dt6,R):
     return dt6_r
 
 
-def compose_spectral(eigVec, eigVal):
+def compose_spectral(imgEigVec, imgEigVal):
     """ Recovers the six independent components dt6 format [Dxx, Dyy, Dzz, Dxy, Dxz, Dyz]
         (tensor is a numpy array, NOT a medipy.base.Image)
-        eigVec must be a numpy array, NOT a medipy.base.Image
-        eigVal must be a numpy array, NOT a medipy.base.Image
+        imgEigVec and imgEigVal are medipy.base.Image
     """
 
-    tensor = np.zeros(eigVal.shape[:-1]+(6,),dtype=np.single)
+    tensor = np.zeros(imgEigVal.shape+(6,),dtype=np.single)
 
-    tensor[...,0] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,0]\
-                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,0]\
-                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,0]
-    tensor[...,3] = eigVec[...,2,1]*eigVal[...,2]*eigVec[...,2,1]\
-                  + eigVec[...,1,1]*eigVal[...,1]*eigVec[...,1,1]\
-                  + eigVec[...,0,1]*eigVal[...,0]*eigVec[...,0,1]
-    tensor[...,5] = eigVec[...,2,2]*eigVal[...,2]*eigVec[...,2,2]\
-                  + eigVec[...,1,2]*eigVal[...,1]*eigVec[...,1,2]\
-                  + eigVec[...,0,2]*eigVal[...,0]*eigVec[...,0,2]
-    tensor[...,1] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,1]\
-                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,1]\
-                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,1]
-    tensor[...,2] = eigVec[...,2,0]*eigVal[...,2]*eigVec[...,2,2]\
-                  + eigVec[...,1,0]*eigVal[...,1]*eigVec[...,1,2]\
-                  + eigVec[...,0,0]*eigVal[...,0]*eigVec[...,0,2]
-    tensor[...,4] = eigVec[...,2,1]*eigVal[...,2]*eigVec[...,2,2]\
-               	  + eigVec[...,1,1]*eigVal[...,1]*eigVec[...,1,2]\
-                  + eigVec[...,0,1]*eigVal[...,0]*eigVec[...,0,2]	
+    tensor[...,0] = imgEigVec[...,2,0]*imgEigVal[...,2]*imgEigVec[...,2,0]\
+                  + imgEigVec[...,1,0]*imgEigVal[...,1]*imgEigVec[...,1,0]\
+                  + imgEigVec[...,0,0]*imgEigVal[...,0]*imgEigVec[...,0,0]
+    tensor[...,3] = imgEigVec[...,2,1]*imgEigVal[...,2]*imgEigVec[...,2,1]\
+                  + imgEigVec[...,1,1]*imgEigVal[...,1]*imgEigVec[...,1,1]\
+                  + imgEigVec[...,0,1]*imgEigVal[...,0]*imgEigVec[...,0,1]
+    tensor[...,5] = imgEigVec[...,2,2]*imgEigVal[...,2]*imgEigVec[...,2,2]\
+                  + imgEigVec[...,1,2]*imgEigVal[...,1]*imgEigVec[...,1,2]\
+                  + imgEigVec[...,0,2]*imgEigVal[...,0]*imgEigVec[...,0,2]
+    tensor[...,1] = imgEigVec[...,2,0]*imgEigVal[...,2]*imgEigVec[...,2,1]\
+                  + imgEigVec[...,1,0]*imgEigVal[...,1]*imgEigVec[...,1,1]\
+                  + imgEigVec[...,0,0]*imgEigVal[...,0]*imgEigVec[...,0,1]
+    tensor[...,2] = imgEigVec[...,2,0]*imgEigVal[...,2]*imgEigVec[...,2,2]\
+                  + imgEigVec[...,1,0]*imgEigVal[...,1]*imgEigVec[...,1,2]\
+                  + imgEigVec[...,0,0]*imgEigVal[...,0]*imgEigVec[...,0,2]
+    tensor[...,4] = imgEigVec[...,2,1]*imgEigVal[...,2]*imgEigVec[...,2,2]\
+               	  + imgEigVec[...,1,1]*imgEigVal[...,1]*imgEigVec[...,1,2]\
+                  + imgEigVec[...,0,1]*imgEigVal[...,0]*imgEigVec[...,0,2]	
 
     return tensor
