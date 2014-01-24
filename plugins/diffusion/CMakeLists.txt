@@ -78,9 +78,10 @@ wrap_library("MediPyDiffusion" python)
     end_wrap_module()
     
     # Scalars : VectorImage -> Image
-    foreach(filter "FractionalAnisotropyImageFilter" "MeanDiffusivityImageFilter")
+    foreach(scalar "AxialDiffusivity" "FractionalAnisotropy" "MeanDiffusivity" "RadialDiffusivity")
+        set(filter "${scalar}ImageFilter")
         wrap_module("itk${filter}")
-            wrap_class("itk::${filter}" POINTER)
+            wrap_class("itk::${filter}" POINTER_WITH_SUPERCLASS)
                 foreach(instantiation ${instantiations})
                     wrap_template(
                         "VI${instantiation}I${instantiation}" 
