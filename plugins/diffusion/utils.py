@@ -11,46 +11,18 @@
 """
 
 import numpy as np
+import os
+import tempfile
+import shutil
+
+import medipy.io
 import medipy.base
 import medipy.segmentation
+import medipy.fsl
+import medipy.logic
 
 import itkutils
 import spectral_analysis
-
-def get_mask(images) :
-    """ Return a mask computed from baseline image
-    """
-    b0 = None
-    for image in images :
-        mr_diffusion = image.metadata["mr_diffusion_sequence"][0]
-        gradient = mr_diffusion.diffusion_gradient_direction_sequence.value[0].\
-            diffusion_gradient_orientation.value
-        if np.allclose(gradient, 0) :
-            b0 = image
-            break
-    
-    return medipy.segmentation.skull(b0)
-
-def baseline(images) :
-    """ Return the baseline image
-
-    <gui>
-        <item name="images" type="ImageSerie" label="Input"/>
-        <item name="output" type="Image" initializer="output=True" 
-              role="return" label="Output"/>
-    </gui>
-        
-    """
-    b0 = None
-    for image in images :
-        mr_diffusion = image.metadata["mr_diffusion_sequence"][0]
-        gradient = mr_diffusion.diffusion_gradient_direction_sequence.value[0].\
-            diffusion_gradient_orientation.value
-        if np.allclose(gradient, 0) :
-            b0 = image
-            break
-    
-    return b0
 
 def get_diffusion_information(image) :
     """ Return the diffusion information from the ``image`` metadata. The 
@@ -73,6 +45,51 @@ def get_diffusion_information(image) :
                     diffusion_gradient_direction.diffusion_gradient_orientation.value
     
     return result
+
+def baseline(images, b_threshold=0) :
+    """ Return the baseline image
+
+    <gui>
+        <item name="images" type="ImageSerie" label="Input"/>
+        <item name="b_threshold" type="Int" initializer="0" label="Value B for Baseline"/>
+        <item name="output" type="Image" initializer="output=True" 
+              role="return" label="Output"/>
+    </gui>
+        
+    """
+    b0 = None
+    for image in images :
+        result = get_diffusion_information(image)
+        b_value = result["diffusion_bvalue"]
+        if b_value <= b_threshold:
+            b0 = image
+            break
+    
+    if b0 == None:
+        raise medipy.base.Exception("No reference image in diffusion sequence")
+    
+    return b0
+
+def get_mask(images, b_threshold=0) :
+    """ Return a mask computed from baseline image
+    """
+    b0 = baseline(images, b_threshold)
+    
+    skull_mask = medipy.segmentation.skull(b0)
+    skull = medipy.logic.apply_mask(b0, skull_mask, 0, 0)
+    
+    directory = tempfile.mkdtemp()
+    
+    medipy.io.save(skull, os.path.join(directory, "skull.nii.gz"))
+    bet = medipy.fsl.BET(
+        os.path.join(directory, "skull.nii.gz"), os.path.join(directory, "bet.nii.gz"),
+        intensity_threshold=0.2, create_brain_mask=True)
+    bet()
+    mask = medipy.io.load(bet.brain_mask)
+    
+    shutil.rmtree(directory)
+    
+    return mask
 
 def log_transformation(dt6,epsi=1e-5) :
     """ Compute Log tensors
