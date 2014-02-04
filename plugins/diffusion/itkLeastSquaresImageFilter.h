@@ -7,8 +7,8 @@
  ************************************************************************/
 
 
-#ifndef _itkWeightedLeastSquaresImageFilter_h
-#define _itkWeightedLeastSquaresImageFilter_h
+#ifndef _itkLeastSquaresImageFilter_h
+#define _itkLeastSquaresImageFilter_h
 
 #include <ostream>
 #include <vector>
@@ -22,8 +22,8 @@ namespace itk
 {
 
 /**
- * \class WeightedLeastSquaresImageFilter
- * \brief Weighted Least Squares Second Order Symmetric Tensor Reconstruction Filter
+ * \class LeastSquaresImageFilter
+ * \brief Least Square Second Order Symmetric Tensor Reconstruction Filter
  * 
  * This filter must have as many input images as it has gradient directions.
  * All inputs are supposed to have the same Region.
@@ -31,18 +31,18 @@ namespace itk
 
 template<typename TInputImage, typename TTensorsImage,
         typename TBaselineImage, typename TMaskImage>
-class WeightedLeastSquaresImageFilter :
+class LeastSquaresImageFilter :
     public TensorReconstructionImageFilter<TInputImage,
         TTensorsImage, TBaselineImage, TMaskImage>
 {
 public :
     /** Standard class typedefs. */
-    typedef WeightedLeastSquaresImageFilter Self;
+    typedef LeastSquaresImageFilter Self;
     typedef TensorReconstructionImageFilter<
         TInputImage, TTensorsImage, TBaselineImage,TMaskImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
-
+    
     typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
     
     typedef TMaskImage MaskImageType;
@@ -57,7 +57,7 @@ public :
     itkNewMacro(Self);
 
     /** Run-time type information (and related methods). */
-    itkTypeMacro(WeightedLeastSquaresImageFilter, TensorReconstructionImageFilter);
+    itkTypeMacro(LeastSquaresImageFilter, TensorReconstructionImageFilter);
 
     /** Useful typedefs */
     typedef typename Superclass::InputImageType InputImageType;
@@ -76,11 +76,6 @@ public :
     typedef float BValueType;
     typedef std::pair<BValueType, DirectionType> MetaDiffusionType;
     typedef vnl_matrix<float> BMatrixType;
-    
-    /** Return the nb of iter for WLS estimation. */
-    itkGetConstMacro(IterationCount, unsigned int);
-    /** Set the nb of iter for WLS estimation. */
-    itkSetMacro(IterationCount, unsigned int);
 
     /** Return the number of gradient directions. */
     unsigned int GetNumberOfGradientDirections() const;
@@ -92,8 +87,8 @@ public :
     void SetBvalueAndGradientDirection(unsigned int i, BValueType BVal, DirectionType bvec);
 
 protected :
-    WeightedLeastSquaresImageFilter();
-    ~WeightedLeastSquaresImageFilter() {}
+    LeastSquaresImageFilter();
+    ~LeastSquaresImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
@@ -102,14 +97,12 @@ private :
     std::vector<DirectionType> directions;
     std::vector<MetaDiffusionType> metadata_diffusion;
     
-    unsigned int m_IterationCount;
-    
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
     
     MaskImagePointer m_MaskImage;
-
-    WeightedLeastSquaresImageFilter(Self const &); // purposely not implemented
+    
+    LeastSquaresImageFilter(Self const &); // purposely not implemented
     Self const & operator=(Self const &); // purposely not implemented
 
 };
@@ -117,7 +110,7 @@ private :
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWeightedLeastSquaresImageFilter.txx"
+#include "itkLeastSquaresImageFilter.txx"
 #endif
 
 #endif 
