@@ -1,0 +1,25 @@
+-----------------------------------------------------------------------
+
+ SIENA - Structural Image Evaluation, using Normalisation, of Atrophy
+ part of FSL www.fmrib.ox.ac.uk/fsl
+ running cross-sectional atrophy measurement: sienax version 2.6
+ sienax 
+
+----------  extract brain  --------------------------------------------
+
+----------  register to standard space using brain and skull  --------
+(do not worry about histogram warnings)
+VSCALING 1.2580182223
+
+----------  mask with std mask  ---------------------------------------
+
+----------  segment tissue into types  --------------------------------
+
+----------  convert brain volume into normalised volume  --------------
+
+tissue             volume    unnormalised-volume
+pgrey              556299.24 442202.84 (peripheral grey)
+vcsf               75373.30 59914.32 (ventricular CSF)
+GREY               724097.23 575585.64
+WHITE              639077.80 508003.61
+BRAIN              1363175.03 1083589.25
