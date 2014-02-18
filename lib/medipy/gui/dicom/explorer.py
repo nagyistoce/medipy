@@ -207,7 +207,7 @@ def _load_directory_record(record, queue):
     
     try :
         path = medipy.io.dicom.misc.find_dicomdir_file(
-           os.path.dirname(record.path), tuple(record.referenced_file_id.value))
+           os.path.dirname(record.path), record.referenced_file_id.value)
         dataset = medipy.io.dicom.read(path)
     except :
         result = sys.exc_info()
