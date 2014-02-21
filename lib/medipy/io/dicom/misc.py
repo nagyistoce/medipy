@@ -7,7 +7,7 @@
 ##########################################################################
 
 import datetime
-import os.path
+import os
 import uuid
 
 import medipy.base
@@ -20,19 +20,16 @@ def find_dicomdir_file(base_directory, referenced_file_id):
         Referenced File ID in a DICOMDIR
     """
     
-    if isinstance(referenced_file_id, basestring) :
-        # Only one path component, normalize to a list with one element
-        referenced_file_id = [referenced_file_id]
+    if not isinstance(referenced_file_id, basestring):
+        # Convert list of path elements to path
+        referenced_file_id = os.path.join(*referenced_file_id)
     
-    filenames = [
-        os.path.join(base_directory, *referenced_file_id),
-        os.path.join(base_directory, *[x.lower() for x in referenced_file_id]),
-        os.path.join(base_directory, *[x.upper() for x in referenced_file_id]),
-    ]
-    try :
-        filename = [x for x in filenames if os.path.isfile(x)][0]
-    except IndexError :
-        raise medipy.base.Exception("Missing file : %s"%(os.path.join(base_directory, *referenced_file_id),))
+    filename = os.path.join(base_directory, referenced_file_id)
+    if not os.path.isfile(filename):
+        filename = _case_insensitive_path(filename)
+        if not os.path.isfile(filename):
+            raise medipy.base.Exception("Missing file: {0}".format(
+                os.path.join(base_directory, referenced_file_id)))
     
     return filename
 
@@ -181,3 +178,36 @@ def generate_uid(convert_to_vr=True) :
         uid = UI(uid)
     
     return uid
+
+def _case_insensitive_path(path):
+    """ Return a case-insensitive match of the given path on the filesystem.
+        
+        If no such match exists, the longest existing case-insensitive prefix is
+        used, followed by the original match.
+        
+        >>> case_insensitive_path("/BIN/LS")
+        '/bin/ls'
+        >>> case_insensitive_path("/Bin/Ls")
+        '/bin/ls'
+        >>> case_insensitive_path("/usr/BIN/FOO/nothing_there")
+        '/usr/bin/FOO/nothing_there'
+    """
+    
+    elements = []
+    
+    dirname, basename = path, None
+    while dirname not in ["", os.path.sep]:
+        dirname, basename = os.path.split(dirname)
+        elements.insert(0, basename)
+    
+    new_path = [dirname]
+    for element in elements:
+        root = os.path.join(*new_path)
+        if os.path.isdir(root):
+            items = os.listdir(root)
+            items = dict((x.lower(), x) for x in items)
+            new_path.append(items.get(element.lower(), element))
+        else:
+            new_path.append(element)
+    
+    return os.path.join(*new_path)

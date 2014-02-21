@@ -6,8 +6,8 @@
  * for details.
  ************************************************************************/
 
-#ifndef _c9d282c1_9368_4820_ad56_9922bda995b7
-#define _c9d282c1_9368_4820_ad56_9922bda995b7
+#ifndef _e0569d02_a881_4c6a_ab72_ae5d057aedeb
+#define _e0569d02_a881_4c6a_ab72_ae5d057aedeb
 
 #include <itkUnaryFunctorImageFilter.h>
 
@@ -17,17 +17,17 @@ namespace itk
 {
 
 template<typename TInputImage, typename TOutputImage>
-class MeanDiffusivityImageFilter: public UnaryFunctorImageFilter<
+class AxialDiffusivityImageFilter: public UnaryFunctorImageFilter<
     TInputImage, TOutputImage,
-    MeanDiffusivityCalculator<
+    AxialDiffusivityCalculator<
         typename TInputImage::PixelType, typename TOutputImage::PixelType> >
 {
 public:
   /** Standard class typedefs. */
-  typedef MeanDiffusivityImageFilter  Self;
+  typedef AxialDiffusivityImageFilter  Self;
   typedef UnaryFunctorImageFilter<
     TInputImage, TOutputImage, 
-    MeanDiffusivityCalculator< 
+    AxialDiffusivityCalculator< 
         typename TInputImage::PixelType, typename TOutputImage::PixelType> > Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<Self const> ConstPointer;
@@ -36,16 +36,16 @@ public:
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(MeanDiffusivityImageFilter, UnaryFunctorImageFilter);
+  itkTypeMacro(AxialDiffusivityImageFilter, UnaryFunctorImageFilter);
 protected:
-  MeanDiffusivityImageFilter() {}
-  virtual ~MeanDiffusivityImageFilter() {}
+  AxialDiffusivityImageFilter() {}
+  virtual ~AxialDiffusivityImageFilter() {}
 
 private:
-  MeanDiffusivityImageFilter(const Self&); //purposely not implemented
+  AxialDiffusivityImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 };
 
 }
 
-#endif // _c9d282c1_9368_4820_ad56_9922bda995b7
+#endif // _e0569d02_a881_4c6a_ab72_ae5d057aedeb

@@ -33,7 +33,7 @@ Sous Linux, certaines variables d'environnement doivent être mises à jour
 (``~/.bashrc`` ou ``~/.profile``) : ::
 
     export MEDIPY_HOME=$HOME/src/medipy
-    export PYTHONPATH=$MEDIPY_HOME/lib:${PYTHONPATH}
+    export PYTHONPATH=$MEDIPY_HOME/lib${PYTHONPATH:+:$PYTHONPATH}
     export MEDIPY_PLUGINS_PATH=$MEDIPY_HOME/plugins/
 
 .. important::
