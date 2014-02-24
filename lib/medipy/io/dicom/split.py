@@ -106,7 +106,11 @@ def stacks_dictionary(datasets):
         Tag(0x0018,0x0086) : simple_getter(Tag(0x0018,0x0086), IS),
         # Acquisition Number (0020,0012)
         Tag(0x0020,0x0012) : lambda x:simple_getter(Tag(0x0020,0x0012), IS)(x) 
-                                      if x.get("modality", None) != "CT" 
+                                      if x.get("modality", CS(None)).value != "CT" 
+                                      else None,
+        # Instance Number (0020,0013)
+        Tag(0x0020,0x0013) : lambda x:simple_getter(Tag(0x0020,0x0013), IS)(x) 
+                                      if "MEDIPY_DEMOSAICIZED" in x.get("image_type", CS([])).value
                                       else None,
         # Frame Type (0008,9007)
         Tag(0x0008,0x9007) : lambda x:tuple(sequence_getter("mr_image_frame_type_sequence", 

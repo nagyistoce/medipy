@@ -440,6 +440,7 @@ def mosaic(dataset):
         frame.update(dataset)
         
         image_type = CS([x for x in dataset.image_type.value if x != "MOSAIC"])
+        image_type.value.append("MEDIPY_DEMOSAICIZED")
         frame.image_type = image_type
         
         frame.rows = US(rows)
