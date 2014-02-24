@@ -15,6 +15,7 @@ import medipy.base
 from medipy.diffusion.utils import (spectral_decomposition, compose_spectral, 
     log_transformation, exp_transformation)
 import medipy.medimax.recalage
+import medipy.io
 
 ##########################
 # Transformations fields #
@@ -120,12 +121,38 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
                   role="return" label="Registered tensor image"/>
         </gui>
     """
+    # apply transfo on tensor image
     field_backward = load_trf(ftrf,model_wrap)
     log_model_wrap = log_transformation(model_wrap)
     log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf)
     model_out = exp_transformation(log_model_out)
     model_out = ppd_tensor_trf(model_out,field_backward)
-    return model_out
+    
+    # creation masks
+    
+    # MASK :take into account voxels out of the brain so sometimes initialized at 0
+    mask_t = medipy.base.Image(shape=model_ref.shape, dti="tensor_2", value=0, dtype=model_ref.dtype)
+    mask_t.copy_information(model_ref)
+    
+    mask_out = medipy.base.Image(shape=model_ref.shape, data_type="scalar", image_type="normal", value=0, dtype=model_ref.dtype)
+    mask_out.copy_information(model_ref)
+    
+    mask_t[numpy.nonzero(model_wrap)] = 1
+
+    mask = medipy.base.Image(shape=model_ref.shape, data_type="scalar", image_type="normal", value=0, dtype=model_ref.dtype)
+    mask.copy_information(model_ref)
+    mask[:,:,:] = mask_t[:,:,:,0]
+    
+    medipy.medimax.recalage.recalage_interface.ApplyTransfo3d_GUI(mask, ftrf, mask_out, 'Nearest')
+    indices = numpy.nonzero(mask_out)
+    
+    # apply mask on registered tensor image
+    model_registered = medipy.base.Image(shape=model_ref.shape, dti="tensor_2", value=0, dtype=model_ref.dtype)
+    model_registered.copy_information(model_ref)
+    
+    model_registered[indices] = model_out[indices]
+    
+    return model_registered
 
 def ppd_tensor_trf(model_wrap,F) :
     """ Return the transform of ``model_wrap`` by the field ``F`` using the 
