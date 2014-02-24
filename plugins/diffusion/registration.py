@@ -131,16 +131,15 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
     # creation masks
     
     # MASK :take into account voxels out of the brain so sometimes initialized at 0
-    mask_t = medipy.base.Image(shape=model_ref.shape, dti="tensor_2", value=0, dtype=model_ref.dtype)
-    mask_t.copy_information(model_ref)
+    mask_t = medipy.base.Image(shape=model_wrap.shape, dti="tensor_2", value=0, dtype=model_wrap.dtype)
+    mask_t.copy_information(model_wrap)
+    mask_t[numpy.nonzero(model_wrap)] = 1
     
     mask_out = medipy.base.Image(shape=model_ref.shape, data_type="scalar", image_type="normal", value=0, dtype=model_ref.dtype)
     mask_out.copy_information(model_ref)
     
-    mask_t[numpy.nonzero(model_wrap)] = 1
-
-    mask = medipy.base.Image(shape=model_ref.shape, data_type="scalar", image_type="normal", value=0, dtype=model_ref.dtype)
-    mask.copy_information(model_ref)
+    mask = medipy.base.Image(shape=model_wrap.shape, data_type="scalar", image_type="normal", value=0, dtype=model_wrap.dtype)
+    mask.copy_information(model_wrap)
     mask[:,:,:] = mask_t[:,:,:,0]
     
     medipy.medimax.recalage.recalage_interface.ApplyTransfo3d_GUI(mask, ftrf, mask_out, 'Nearest')
