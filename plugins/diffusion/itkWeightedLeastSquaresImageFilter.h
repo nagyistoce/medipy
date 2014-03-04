@@ -29,17 +29,15 @@ namespace itk
  * All inputs are supposed to have the same Region.
  */
 
-template<typename TInputImage, typename TTensorsImage,
-        typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 class WeightedLeastSquaresImageFilter :
-    public TensorReconstructionImageFilter<TInputImage,
-        TTensorsImage, TBaselineImage, TMaskImage>
+    public TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 {
 public :
     /** Standard class typedefs. */
     typedef WeightedLeastSquaresImageFilter Self;
     typedef TensorReconstructionImageFilter<
-        TInputImage, TTensorsImage, TBaselineImage,TMaskImage> Superclass;
+        TInputImage, TTensorsImage, TBaselineImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
     
@@ -55,8 +53,6 @@ public :
     typedef typename Superclass::TensorsImagePointer TensorsImagePointer;
     typedef typename Superclass::BaselineImageType BaselineImageType;
     typedef typename Superclass::BaselineImagePointer BaselineImagePointer;
-    typedef typename Superclass::MaskImageType MaskImageType;
-    typedef typename Superclass::MaskImagePointer MaskImagePointer;
 
     /** Gradient direction type */
     typedef Point<float,3> DirectionType;

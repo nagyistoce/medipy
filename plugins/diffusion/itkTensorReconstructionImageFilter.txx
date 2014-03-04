@@ -16,52 +16,42 @@
 namespace itk
 {
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 TTensorsImage const * 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetTensorsImage() const
 {
     return dynamic_cast<TTensorsImage const *>(this->ProcessObject::GetOutput(0));
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 TBaselineImage const * 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetBaselineImage() const
 {
     return dynamic_cast<TBaselineImage const *>(this->ProcessObject::GetOutput(1));
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::TensorReconstructionImageFilter()
 {
     this->SetNumberOfRequiredOutputs(2);
     this->SetNthOutput(0,this->MakeOutput(0));
     this->SetNthOutput(1,this->MakeOutput(1));
-    this->SetMaskImage(NULL);
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     this->Superclass::PrintSelf(os, indent);
-    os << indent << "Mask image: \n";
-    if(this->m_MaskImage.IsNull())
-    {
-        os << indent.GetNextIndent() << "None\n";
-    }
-    else
-    {
-        this->m_MaskImage->Print(os, indent.GetNextIndent());
-    }
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 DataObject::Pointer 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::MakeOutput(unsigned int index)
 {
     DataObject::Pointer output;
@@ -83,9 +73,9 @@ TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
     return output.GetPointer();
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::AllocateOutputs()
 {
     TensorsImagePointer TensorsPtr =
@@ -106,17 +96,17 @@ TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
     }
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 TTensorsImage * 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetTensorsImage() 
 {
     return dynamic_cast<TTensorsImage *>(this->ProcessObject::GetOutput(0));
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 TBaselineImage * 
-TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetBaselineImage()
 {
     return dynamic_cast<TBaselineImage *>(this->ProcessObject::GetOutput(1));

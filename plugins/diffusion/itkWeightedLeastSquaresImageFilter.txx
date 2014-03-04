@@ -15,33 +15,33 @@
 namespace itk
 {
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 unsigned int
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetNumberOfGradientDirections() const
 {
     return this->metadata_diffusion.size();
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
-typename WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>::DirectionType const &
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
+typename WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>::DirectionType const &
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetGradientDirection(unsigned int i) const
 {
     return this->metadata_diffusion[i].second;
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
-typename WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>::BValueType
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
+typename WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>::BValueType
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::GetBvalue(unsigned int i) const
 {
     return this->metadata_diffusion[i].first;
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::SetBvalueAndGradientDirection(unsigned int i, BValueType BVal, DirectionType vec)
 {
     if (i>=this->metadata_diffusion.size())
@@ -51,9 +51,9 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
     this->metadata_diffusion[i] = std::make_pair(BVal, vec);
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
     std::locale C("C");
@@ -74,9 +74,9 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
     os.imbue( originalLocale );
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void 
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::BeforeThreadedGenerateData()
 {
     // Fill the b-matrix
@@ -115,9 +115,9 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
     baseline->FillBuffer(0);
 }
 
-template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void 
-WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int)
 {
     // Create an iterator for each input
@@ -134,77 +134,57 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
         !outputIt.IsAtEnd(); ++outputIt)
     {
         typename TensorsImageType::IndexType const & idx = outputIt.GetIndex();
+
+        vnl_vector<float> S(this->GetNumberOfGradientDirections(), 0.0);
         
-        // Skip pixels that are not in mask
-        bool process=true;
-        if(this->GetMaskImage() != 0)
+        for (unsigned int i=0; i<this->GetNumberOfGradientDirections(); ++i) 
         {
-            typename TensorsImageType::PointType point; 
-            this->GetTensorsImage()->TransformIndexToPhysicalPoint(idx, point);
-            
-            typename MaskImageType::IndexType mask_index;
-            this->GetMaskImage()->TransformPhysicalPointToIndex(point, mask_index);
-            
-            if(!this->GetMaskImage()->GetRequestedRegion().IsInside(mask_index) || 
-               this->GetMaskImage()->GetPixel(mask_index) == 0)
-            {
-                process=false;
-            }
+            typename InputImageType::PixelType const min_signal = 5;
+            typename InputImageType::PixelType const Si = std::max(
+                min_signal, inputIterators[i].Get());
+            S(i) = log(Si);
         }
 
-        if(process)
+        vnl_vector<float> X = this->invbmatrix*S;
+        
+        for(unsigned int iter=0; iter<this->m_IterationCount; iter++)
         {
-            vnl_vector<float> S(this->GetNumberOfGradientDirections(), 0.0);
-            
-            for (unsigned int i=0; i<this->GetNumberOfGradientDirections(); ++i) 
+            // Use double instead of float to avoid overflow in the 
+            // exponential
+            vnl_vector<double> W(this->GetNumberOfGradientDirections(), 0.0);
+            for(unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++)
             {
-                typename InputImageType::PixelType const min_signal = 5;
-                typename InputImageType::PixelType const Si = std::max(
-                    min_signal, inputIterators[i].Get());
-                S(i) = log(Si);
-            }
-
-            vnl_vector<float> X = this->invbmatrix*S;
-            
-            for(unsigned int iter=0; iter<this->m_IterationCount; iter++)
-            {
-                // Use double instead of float to avoid overflow in the 
-                // exponential
-                vnl_vector<double> W(this->GetNumberOfGradientDirections(), 0.0);
-                for(unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++)
-                {
-                    W(i) = exp(2.0*inner_product(this->bmatrix.get_row(i), X));
-                }
-                
-                unsigned int const vector_length = 
-                    this->GetTensorsImage()->GetVectorLength();
-                vnl_matrix<double> tmp1(vector_length+1, vector_length+1, 0.);
-                vnl_vector<double> tmp2(vector_length+1, 0.);
-                
-                for(unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++)
-                {
-                    // Copy the row from float to double
-                    vnl_vector<float> const row_float = this->bmatrix.get_row(i);
-                    vnl_vector<double> row(row_float.size());
-                    
-                    std::copy(row_float.begin(), row_float.end(), row.begin());
-                    
-                    tmp1 += W(i) * outer_product(row, row);
-                    tmp2 += W(i) * row * S(i);
-                }
-                
-                // Copy X from double to float
-                vnl_vector<double> const X_double = 
-                    vnl_matrix_inverse<double>(tmp1)*tmp2;
-                std::copy(X_double.begin(), X_double.end(), X.begin());
+                W(i) = exp(2.0*inner_product(this->bmatrix.get_row(i), X));
             }
             
-            typename TensorsImageType::PixelType vec = 
-                this->GetTensorsImage()->GetPixel(idx);
-            std::copy(X.begin()+1, X.end(), &vec[0]);
+            unsigned int const vector_length = 
+                this->GetTensorsImage()->GetVectorLength();
+            vnl_matrix<double> tmp1(vector_length+1, vector_length+1, 0.);
+            vnl_vector<double> tmp2(vector_length+1, 0.);
             
-            this->GetBaselineImage()->SetPixel(idx, exp(X(0)));
+            for(unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++)
+            {
+                // Copy the row from float to double
+                vnl_vector<float> const row_float = this->bmatrix.get_row(i);
+                vnl_vector<double> row(row_float.size());
+                
+                std::copy(row_float.begin(), row_float.end(), row.begin());
+                
+                tmp1 += W(i) * outer_product(row, row);
+                tmp2 += W(i) * row * S(i);
+            }
+            
+            // Copy X from double to float
+            vnl_vector<double> const X_double = 
+                vnl_matrix_inverse<double>(tmp1)*tmp2;
+            std::copy(X_double.begin(), X_double.end(), X.begin());
         }
+        
+        typename TensorsImageType::PixelType vec = 
+            this->GetTensorsImage()->GetPixel(idx);
+        std::copy(X.begin()+1, X.end(), &vec[0]);
+        
+        this->GetBaselineImage()->SetPixel(idx, exp(X(0)));
 
         for(typename std::vector<InputIterator>::iterator inputIteratorsIt=inputIterators.begin();
             inputIteratorsIt!=inputIterators.end(); ++inputIteratorsIt)
