@@ -42,16 +42,6 @@ public :
         TInputImage, TTensorsImage, TBaselineImage,TMaskImage> Superclass;
     typedef SmartPointer<Self> Pointer;
     typedef SmartPointer<Self const> ConstPointer;
-
-    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
-    
-    typedef TMaskImage MaskImageType;
-    typedef typename MaskImageType::Pointer MaskImagePointer;
-    typedef typename MaskImageType::ConstPointer MaskImageConstPointer;
-    /// @brief Return the mask. 
-    itkGetConstObjectMacro(MaskImage, MaskImageType);
-    /// @brief Set the mask, default to NULL (no mask is used). 
-    itkSetObjectMacro(MaskImage, MaskImageType);
     
     /** Method for creation through the object factory. */
     itkNewMacro(Self);
@@ -59,23 +49,19 @@ public :
     /** Run-time type information (and related methods). */
     itkTypeMacro(WeightedLeastSquaresImageFilter, TensorReconstructionImageFilter);
 
-    /** Useful typedefs */
+    /* Typedefs from superclass */
     typedef typename Superclass::InputImageType InputImageType;
-    typedef typename Superclass::InputImagePixelType InputImagePixelType;
+    typedef typename Superclass::TensorsImageType TensorsImageType;
+    typedef typename Superclass::TensorsImagePointer TensorsImagePointer;
+    typedef typename Superclass::BaselineImageType BaselineImageType;
+    typedef typename Superclass::BaselineImagePointer BaselineImagePointer;
+    typedef typename Superclass::MaskImageType MaskImageType;
+    typedef typename Superclass::MaskImagePointer MaskImagePointer;
 
-    typedef typename TTensorsImage::PixelType TensorsPixelType;
-    typedef TTensorsImage TensorsImageType;
-    typedef typename TensorsImageType::Pointer TensorsImagePointer;
-    
-    typedef TBaselineImage BaselineImageType;
-    typedef typename TBaselineImage::PixelType BaselinePixelType;
-    typedef typename BaselineImageType::Pointer BaselineImagePointer;
-
-    /** Intern types */
+    /** Gradient direction type */
     typedef Point<float,3> DirectionType;
+    /** B-value type */
     typedef float BValueType;
-    typedef std::pair<BValueType, DirectionType> MetaDiffusionType;
-    typedef vnl_matrix<float> BMatrixType;
     
     /** Return the nb of iter for WLS estimation. */
     itkGetConstMacro(IterationCount, unsigned int);
@@ -84,30 +70,32 @@ public :
 
     /** Return the number of gradient directions. */
     unsigned int GetNumberOfGradientDirections() const;
-    /** Set the i^th gradient direction. */
-    void SetGradientDirection(unsigned int i, DirectionType bvec);
     /** Return the i^th gradient direction. */
     DirectionType const & GetGradientDirection(unsigned int i) const;
-
+    /** Return the i^th b-value. */
+    BValueType GetBvalue(unsigned int i) const;
+    /** Set the i^th b-value and gradient direction. */
     void SetBvalueAndGradientDirection(unsigned int i, BValueType BVal, DirectionType bvec);
 
 protected :
-    WeightedLeastSquaresImageFilter();
+    typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+    
+    WeightedLeastSquaresImageFilter() {}
     ~WeightedLeastSquaresImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
 
 private :
-    std::vector<DirectionType> directions;
+    typedef vnl_matrix<float> BMatrixType;
+    typedef std::pair<BValueType, DirectionType> MetaDiffusionType;
+    
     std::vector<MetaDiffusionType> metadata_diffusion;
     
     unsigned int m_IterationCount;
     
     BMatrixType bmatrix;
     BMatrixType invbmatrix;
-    
-    MaskImagePointer m_MaskImage;
 
     WeightedLeastSquaresImageFilter(Self const &); // purposely not implemented
     Self const & operator=(Self const &); // purposely not implemented
@@ -121,4 +109,3 @@ private :
 #endif
 
 #endif 
-
