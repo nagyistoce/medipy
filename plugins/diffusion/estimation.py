@@ -127,7 +127,6 @@ def weighted_least_squares(limages, mask=None, nb_iter=5, return_baseline=False)
         
         gradient = image.metadata["mr_diffusion_sequence"][0].\
             diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
-        estimation_filter.SetGradientDirection(cnt, [float(x) for x in gradient])
 
         b_value = image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value
         
