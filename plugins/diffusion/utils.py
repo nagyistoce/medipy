@@ -261,3 +261,17 @@ def compose_spectral(imgEigVec, imgEigVal):
                   + imgEigVec[...,0,1]*imgEigVal[...,0]*imgEigVec[...,0,2]	
 
     return tensor
+
+def apply_mask(input, mask, background, outside):
+    """ Apply the mask to the input image : the value of the output image is :
+          * input(p) if input(p) != background
+          * outside otherwise
+    """
+    
+    background_indices = np.where(mask.data == background)
+    output = medipy.base.Image(data=input.data, 
+        data_type=input.data_type, image_type=input.image_type)
+    output.copy_information(input)
+    output[background_indices] = outside
+    
+    return output
