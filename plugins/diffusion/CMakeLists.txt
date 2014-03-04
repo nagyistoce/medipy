@@ -44,27 +44,14 @@ wrap_library("MediPyDiffusion" python)
         end_wrap_module()
     endforeach()
 
-    # Estimation : Image -> VectorImage for "LeastSquaresImageFilter"
-    foreach(filter "TensorReconstructionImageFilter")
+    # Estimation : Image -> (VectorImage, Image)
+    foreach(filter "TensorReconstructionImageFilter" "WeightedLeastSquaresImageFilter")
         wrap_module("itk${filter}")
             wrap_class("itk::${filter}" POINTER)
                 foreach(instantiation ${instantiations})
                     wrap_template(
-                        "I${instantiation}VI${instantiation}I${instantiation}I${instantiation}" 
-                        "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}, ${ITKT_I${instantiation}}, ${ITKT_I${instantiation}}")
-                endforeach()
-            end_wrap_class()
-        end_wrap_module()
-    endforeach()
-    
-    # Estimation : Image -> VectorImage
-    foreach(filter "WeightedLeastSquaresImageFilter")
-        wrap_module("itk${filter}")
-            wrap_class("itk::${filter}" POINTER)
-                foreach(instantiation ${instantiations})
-                    wrap_template(
-                        "I${instantiation}VI${instantiation}I${instantiation}I${instantiation}" 
-                        "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}, ${ITKT_I${instantiation}}, ${ITKT_I${instantiation}}")
+                        "I${instantiation}VI${instantiation}I${instantiation}" 
+                        "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}, ${ITKT_I${instantiation}}")
                 endforeach()
             end_wrap_class()
         end_wrap_module()

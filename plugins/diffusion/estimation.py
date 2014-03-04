@@ -54,20 +54,11 @@ def weighted_least_squares(limages, mask=None, nb_iter=5, return_baseline=False)
     TensorsImage = itk.VectorImage[PixelType, Dimension]
     BaselineImage = ScalarImage
     
-    mask_itk = None
-    MaskImage = ScalarImage
-    if mask :
-        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
-        MaskImage = mask_itk.__class__
-    
     EstimationFilter = itk.WeightedLeastSquaresImageFilter[
-        InputImage, TensorsImage, BaselineImage, MaskImage]
+        InputImage, TensorsImage, BaselineImage]
     
     estimation_filter = EstimationFilter.New()
     estimation_filter.SetIterationCount(nb_iter)
-    
-    if mask :
-        estimation_filter.SetMaskImage(mask_itk)
     
     for cnt,image in enumerate(images) :
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
@@ -89,6 +80,10 @@ def weighted_least_squares(limages, mask=None, nb_iter=5, return_baseline=False)
     itk_output_baseline = estimation_filter.GetBaselineImage()
     baseline = medipy.itk.itk_image_to_medipy_image(itk_output_baseline,None,True)
     baseline.image_type = "scalar"
+    
+    if mask:
+        tensors = medipy.diffusion.utils.apply_mask(tensors, mask, 0, 6*(0,))
+        baseline = medipy.diffusion.utils.apply_mask(baseline, mask, 0, 0)
     
     if return_baseline:
         return tensors, baseline

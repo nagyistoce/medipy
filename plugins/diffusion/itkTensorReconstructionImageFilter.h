@@ -24,13 +24,8 @@ namespace itk
  * The tensors image is a VectorImage containing an estimation of the mean 
  * second-order tensor at each voxel of the input image; the baseline
  * image is a scalar image.
- * 
- * An optional mask image can be specified to restrict the estimation: only 
- * non-zero voxels in the mask image will be processed. The input image and the
- * mask image must be in the same physical space.
  */
-template<typename TInputImage, typename TTensorsImage,
-        typename TBaselineImage, typename TMaskImage>
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 class TensorReconstructionImageFilter: 
     public ImageToImageFilter<TInputImage, TTensorsImage>
 {
@@ -47,18 +42,8 @@ public:
     typedef TBaselineImage BaselineImageType;
     typedef typename BaselineImageType::Pointer BaselineImagePointer;
     
-    typedef TMaskImage MaskImageType;
-    typedef typename MaskImageType::Pointer MaskImagePointer;
-    typedef typename MaskImageType::ConstPointer MaskImageConstPointer;
-    
     /// @brief Run-time type information (and related methods).
     itkTypeMacro(TensorReconstructionImageFilter, ImageToImageFilter);
-
-    /// @brief Return the mask. 
-    itkGetConstObjectMacro(MaskImage, MaskImageType);
-    
-    /// @brief Set the mask, default to NULL (no mask is used). 
-    itkSetObjectMacro(MaskImage, MaskImageType);
 
     /// @brief Return the tensors image.
     TensorsImageType const * GetTensorsImage() const;
@@ -80,8 +65,6 @@ protected:
     BaselineImageType * GetBaselineImage();
 
 private:
-    MaskImagePointer m_MaskImage;
-    
     TensorReconstructionImageFilter(const Self &); //purposely not implemented
     void operator=(const Self &);  //purposely not implemented
 };
