@@ -106,6 +106,22 @@ TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMas
     }
 }
 
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+TTensorsImage * 
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+::GetTensorsImage() 
+{
+    return dynamic_cast<TTensorsImage *>(this->ProcessObject::GetOutput(0));
+}
+
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage, typename TMaskImage>
+TBaselineImage * 
+TensorReconstructionImageFilter<TInputImage, TTensorsImage, TBaselineImage, TMaskImage>
+::GetBaselineImage()
+{
+    return dynamic_cast<TBaselineImage *>(this->ProcessObject::GetOutput(1));
+}
+
 }
 
 #endif // _itkTensorReconstructionImageFilter_txx

@@ -60,10 +60,10 @@ public:
     /// @brief Set the mask, default to NULL (no mask is used). 
     itkSetObjectMacro(MaskImage, MaskImageType);
 
-    /// @brief Return the mean image.
+    /// @brief Return the tensors image.
     TensorsImageType const * GetTensorsImage() const;
     
-    /// @brief Return the standard deviation image.
+    /// @brief Return the baseline image.
     BaselineImageType const * GetBaselineImage() const;
 
 protected:
@@ -72,6 +72,12 @@ protected:
     void PrintSelf(std::ostream& os, Indent indent) const;
     DataObject::Pointer MakeOutput(unsigned int index);
     void AllocateOutputs();
+    
+    /// @brief Return non-const pointer to the tensors image.
+    TensorsImageType * GetTensorsImage();
+    
+    /// @brief Return non-const pointer to the baseline image.
+    BaselineImageType * GetBaselineImage();
 
 private:
     MaskImagePointer m_MaskImage;
