@@ -8,9 +8,6 @@
 
 import itk
 import medipy.itk
-import medipy.base
-
-import numpy as np
 
 def least_squares(limages, mask=None, return_baseline=False):
     """ Least Square Second Order Symmetric Tensor Estimation.
@@ -23,56 +20,7 @@ def least_squares(limages, mask=None, return_baseline=False):
         </gui>
     """
     
-    images = limages
-    
-    Dimension = images[0].ndim
-    PixelType = medipy.itk.dtype_to_itk[images[0].dtype.type]
-    
-    ScalarImage = itk.Image[itk.F, Dimension]
-    InputImage = itk.Image[PixelType, Dimension]
-    TensorsImage = itk.VectorImage[PixelType, Dimension]
-    BaselineImage = ScalarImage
-    
-    mask_itk = None
-    MaskImage = ScalarImage
-    if mask :
-        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
-        MaskImage = mask_itk.__class__
-    
-    EstimationFilter = itk.LeastSquaresImageFilter[
-        InputImage, TensorsImage, BaselineImage, MaskImage]
-    
-    estimation_filter = EstimationFilter.New()
-    
-    if mask :
-        estimation_filter.SetMaskImage(mask_itk)
-        
-    for cnt,image in enumerate(images) :
-        itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
-        estimation_filter.SetInput(cnt,itk_image)
-        
-        gradient = image.metadata["mr_diffusion_sequence"][0].\
-            diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
-        estimation_filter.SetGradientDirection(cnt, [float(x) for x in gradient])
-        
-        b_value = image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value
-        
-        estimation_filter.SetBvalueAndGradientDirection(cnt, float(b_value), [float(x) for x in gradient])
-        
-    estimation_filter()
-    
-    itk_output_tensors = estimation_filter.GetTensorsImage()
-    tensors = medipy.itk.itk_image_to_medipy_image(itk_output_tensors,None,True)
-    tensors.image_type = "tensor_2"
-
-    itk_output_baseline = estimation_filter.GetBaselineImage()
-    baseline = medipy.itk.itk_image_to_medipy_image(itk_output_baseline,None,True)
-    baseline.image_type = "scalar"
-    
-    if return_baseline:
-        return tensors, baseline
-    else:
-        return tensors
+    return weighted_least_squares(limages, mask, 0, return_baseline)
 
 def weighted_least_squares(limages, mask=None, nb_iter=5, return_baseline=False):
     """ Weighted Least Square Second Order Symmetric Tensor Estimation.
