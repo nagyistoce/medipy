@@ -58,7 +58,8 @@ def load(connection, query, retrieve_method, retrieve_data=None) :
     if len(series_uids) > 1 :
         raise medipy.base.Exception("Only one series must match query")
 
-    stacks = medipy.io.dicom.stacks(datasets)
+    normalized_datasets = medipy.io.dicom.normalize.normalize(datasets)
+    stacks = medipy.io.dicom.stacks(normalized_datasets)
     
     if len(stacks) == 0 :
         raise medipy.base.Exception("No stack matching query")
