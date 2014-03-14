@@ -99,15 +99,21 @@ def stacks_dictionary(datasets):
     def sequence_getter(sequence_tag, item_tag, vr, default_value=None):
         return lambda x: x.get(sequence_tag, SQ([{}])).value[0].get(item_tag, vr(default_value)).value
     
+    def acquisition_number_getter(dataset):
+        if dataset.get("modality", CS(None)) == "CT":
+            return None
+        elif "mr_diffusion_sequence" in dataset:
+            return None
+        else:
+            return dataset.get("acquistion_number", IS(None))
+    
     getters = {
         # Image Orientation (Patient) (0020,0037)
         Tag(0x0020,0x0037) : lambda x:tuple(simple_getter(Tag(0x0020,0x0037), DS, ())(x)),
         # Echo Number(s) (0018,0086)
         Tag(0x0018,0x0086) : simple_getter(Tag(0x0018,0x0086), IS),
         # Acquisition Number (0020,0012)
-        Tag(0x0020,0x0012) : lambda x:simple_getter(Tag(0x0020,0x0012), IS)(x) 
-                                      if x.get("modality", CS(None)).value != "CT" 
-                                      else None,
+        Tag(0x0020,0x0012) : acquisition_number_getter,
         # Instance Number (0020,0013)
         Tag(0x0020,0x0013) : lambda x:simple_getter(Tag(0x0020,0x0013), IS)(x) 
                                       if "MEDIPY_DEMOSAICIZED" in x.get("image_type", CS([])).value
