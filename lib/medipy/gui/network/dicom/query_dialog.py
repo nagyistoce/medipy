@@ -5,9 +5,12 @@
 # http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
 # for details.
 ##########################################################################
+
+import datetime
+import math
 import os
+
 import wx
-from math import ceil
 
 import medipy.gui.base
 import medipy.gui.network.dicom
@@ -16,6 +19,7 @@ import medipy.gui.xrc_wrapper
 from medipy.gui import PeriodicProgressDialog, WorkerThread
 import medipy.base
 import medipy.io.dicom
+import medipy.io.dicom.misc
 import medipy.network.dicom
 
 
@@ -26,9 +30,12 @@ class QueryDialog(medipy.gui.base.Dialog):
     _queries_fields = "network/dicom/queries"
     _hierarchy = "network/dicom/hierarchy"
   
-    tree_headers = ['patients_birth_date','patients_sex',
-    'modalities_in_study','study_date',
-    'study_time','modality','number_of_series_related_instances']
+    tree_headers = [
+        'patients_birth_date','patients_sex',
+        'modalities_in_study','study_date', 'study_time', 
+        "number_of_study_related_series",
+        "series_date", "series_time", 
+        'modality','number_of_series_related_instances']
 
     class UI(medipy.gui.base.UI):
         def __init__(self):
@@ -194,10 +201,16 @@ class QueryDialog(medipy.gui.base.Dialog):
                     child = self.ui.results.AppendItem(item, label)
                     self.ui.results.SetItemPyData(child, (level,key))
                     self.SetInformations(child, level, dataset)
-                    self.ui.results.SortChildren(item)
                 item = child
             
-        self.ui.results.SortChildren(self.root)
+            # Adjust the columns width
+            self.ui.results.ExpandAll(self.root)
+            for i in range(self.ui.results.GetColumnCount()):
+                self.ui.results.SetColumnWidth(i, wx.LIST_AUTOSIZE)
+                width = self.ui.results.GetColumnWidth(i)
+                self.ui.results.SetColumnWidth(i, wx.LIST_AUTOSIZE_USEHEADER)
+                width = max(width, self.ui.results.GetColumnWidth(i))
+                self.ui.results.SetColumnWidth(i, width)
     
     ##########################
     # Tree related functions #
@@ -207,29 +220,41 @@ class QueryDialog(medipy.gui.base.Dialog):
         """ Set informations related to item
             Format into a more readable piece of information (date, hour...)
         """
-        if level == "patient":
-            date = str(dataset['patients_birth_date'].value)
-            date = date[6:]+'/'+date[4:6]+'/'+date[:4]
-            self.ui.results.SetItemText(item,str(dataset['patients_sex'].value),1)
-            self.ui.results.SetItemText(item,date,2)
         
-        elif level == "study":
-            date = str(dataset['study_date'].value)
-            date = date[6:]+'/'+date[4:6]+'/'+date[:4]
-            hour = str(dataset['study_time'].value)
-            hour = hour[:2]+':'+hour[2:4]+':'+hour[4:6]
-            self.ui.results.SetItemText(item,date,1)
-            self.ui.results.SetItemText(item,hour,2)
+        # Gather the informations according to the level
+        informations = []
+        
+        if level == "patient":
+            birth_date = medipy.io.dicom.misc.parse_da(dataset["patients_birth_date"])
             
+            informations.append(dataset["patients_sex"].value)
+            informations.append(birth_date.strftime("%d/%m/%Y"))
+        elif level == "study":
             modalities = dataset['modalities_in_study'].value
             if isinstance(modalities, list) :
                 modalities = ", ".join(sorted(modalities))
-            self.ui.results.SetItemText(item, modalities,3)
-        
+            
+            study_date = medipy.io.dicom.misc.parse_da(dataset["study_date"])
+            study_time = medipy.io.dicom.misc.parse_tm(dataset["study_time"])
+            study_date_time = datetime.datetime.combine(study_date, study_time)
+            
+            informations.append(modalities)
+            informations.append(study_date_time.strftime("%d/%m/%Y %H:%M"))
+            informations.append("{0} series".format(
+                dataset["number_of_study_related_series"].value))
         elif level == "series":
-            self.ui.results.SetItemText(item,
-               str(dataset['number_of_series_related_instances'].value)+' instances',1)
-            self.ui.results.SetItemText(item,str(dataset['modality'].value),2)
+            series_date = medipy.io.dicom.misc.parse_da(dataset["series_date"])
+            series_time = medipy.io.dicom.misc.parse_tm(dataset["series_time"])
+            series_date_time = datetime.datetime.combine(series_date, series_time)
+            
+            informations.append(dataset["modality"].value)
+            informations.append(series_date_time.strftime("%d/%m/%Y %H:%M"))
+            informations.append("{0} instances".format(
+                dataset["number_of_series_related_instances"].value))
+        
+        # Set the informations in the tree
+        for index, value in enumerate(informations):
+            self.ui.results.SetItemText(item, str(value), 1+index)
 
     def ItemQuery(self,item):
         """ Build query (dictionary) based on treectrl item
@@ -352,6 +377,20 @@ class QueryDialog(medipy.gui.base.Dialog):
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
+                # Sort the datasets here, since the Sort function of the tree is
+                # not customizable
+                def datasets_key(dataset):
+                    patient = dataset.get("patients_name", 
+                        dataset.get("patient_id", medipy.io.dicom.CS(""))).value
+                    study = (
+                        dataset.get("study_date", medipy.io.dicom.DA("")).value +
+                        dataset.get("study_time", medipy.io.dicom.DA("")).value)
+                    series = (
+                        dataset.get("series_date", medipy.io.dicom.DA("")).value +
+                        dataset.get("series_time", medipy.io.dicom.DA("")).value)
+                    
+                    return (patient, study, series)
+                datasets.sort(key=datasets_key)
                 self.update_tree(datasets)
 
         connection.disconnect()
@@ -477,7 +516,7 @@ class QueryDialog(medipy.gui.base.Dialog):
                     style=wx.PD_AUTO_HIDE)
 
         for index,query in enumerate(retrieve_query):
-            value = ceil(float(index)/float(len(retrieve_query))*100)
+            value = math.ceil(float(index)/float(len(retrieve_query))*100)
             progress.Update(index,"Retrieving data : {0}%".format(value))
             datasets_wado.append(medipy.network.dicom.wado.get(wado_url,query))
         progress.Destroy()
