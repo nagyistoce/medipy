@@ -113,7 +113,7 @@ def stacks_dictionary(datasets):
         # Echo Number(s) (0018,0086)
         Tag(0x0018,0x0086) : simple_getter(Tag(0x0018,0x0086), IS),
         # Acquisition Number (0020,0012)
-        Tag(0x0020,0x0012) : acquisition_number_getter,
+        #Tag(0x0020,0x0012) : acquisition_number_getter,
         # Instance Number (0020,0013)
         Tag(0x0020,0x0013) : lambda x:simple_getter(Tag(0x0020,0x0013), IS)(x) 
                                       if "MEDIPY_DEMOSAICIZED" in x.get("image_type", CS([])).value
