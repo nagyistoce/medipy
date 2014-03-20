@@ -64,10 +64,15 @@ def weighted_least_squares(limages, mask=None, nb_iter=5, return_baseline=False)
         itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
         estimation_filter.SetInput(cnt,itk_image)
         
-        gradient = image.metadata["mr_diffusion_sequence"][0].\
-            diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation.value
-
+        diffusion = image.metadata["mr_diffusion_sequence"][0]
+        
         b_value = image.metadata["mr_diffusion_sequence"][0].diffusion_bvalue.value
+        
+        if b_value != 0 or "diffusion_gradient_direction_sequence" in diffusion:
+            gradient = diffusion.diffusion_gradient_direction_sequence.value[0].\
+                diffusion_gradient_orientation.value
+        else:
+            gradient = (0, 0, 0)
         
         estimation_filter.SetBvalueAndGradientDirection(cnt, float(b_value), [float(x) for x in gradient])
 
