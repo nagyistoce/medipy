@@ -243,7 +243,8 @@ class Tensor2Layer(medipy.gui.image.Layer) :
 
         numpy_slice_tensors = medipy.vtk.bridge.vtk_image_to_medipy_image(
             self._change_information.GetOutput(), None)
-        if self.display_coordinates in ["physical", "nearest_axis_aligned"] :
+        if (self._display_mode != "principal_direction_voxel" and 
+            self.display_coordinates in ["physical", "nearest_axis_aligned"]) :
             
             matrix = numpy.dot(self.world_to_slice, numpy_slice_tensors.direction)
             if self.display_coordinates == "nearest_axis_aligned" :
