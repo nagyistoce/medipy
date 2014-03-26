@@ -15,6 +15,7 @@
 #include <itkImageFileReader.h>
 #include <itkImageIOFactory.h>
 #include <itkImageRegionConstIterator.h>
+#include <itkImportImageContainer.h>
 #include <itkRGBPixel.h>
 
 namespace itk
@@ -37,35 +38,56 @@ template<typename TComponentType>
 struct ComponentTrait<itk::RGBPixel<TComponentType> > { typedef TComponentType Type; };
 
 /**
- * @brief Functor copying data from an itk pixel to an array.
+ * @brief Functor filling an array from an itk container.
  *
  * Generic class, will be specialized for non-scalar pixels.
  */
-template<typename TPixel>
-class CopyFunctor
+template<typename TElementIdentifier, typename TElement>
+struct FillArray
 {
-public :
-    static void action(TPixel const & source, TPixel * & destination)
+    typedef typename ComponentTrait<TElement>::Type ComponentType;
+    typedef itk::ImportImageContainer<TElementIdentifier, TElement> ContainerType;
+    
+    static void
+    action(ContainerType * container, PyObject * array)
     {
-        *destination = source;
-        ++destination;
+        TElement * source = container->GetBufferPointer();
+        TElement * end = source + container->Size();
+        ComponentType * destination = 
+            reinterpret_cast<ComponentType*>(PyArray_DATA(array));
+        std::copy(source, end, destination);
     }
 };
 
 /**
- * @brief Functor copying data from an itk pixel to an array.
+ * @brief Functor filling an array from an itk container.
  *
  * Specialization for itk::RGBPixel
  */
-template<typename TComponent>
-struct CopyFunctor<itk::RGBPixel<TComponent> >
+template<typename TElementIdentifier, typename TComponent>
+struct FillArray<TElementIdentifier, itk::RGBPixel<TComponent> >
 {
-public :
-    static void action(itk::RGBPixel<TComponent> const & source, TComponent * & destination)
+    typedef itk::RGBPixel<TComponent> TElement;
+    
+    typedef typename ComponentTrait<TElement>::Type ComponentType;
+    typedef itk::ImportImageContainer<TElementIdentifier, TElement> ContainerType;
+    
+    static void
+    action(ContainerType * container, PyObject * array)
     {
-        destination = std::copy(source.Begin(), source.End(), destination);
+        TElement * source = container->GetImportPointer();
+        TElement * end = source + container->Capacity();
+        ComponentType * destination = 
+            reinterpret_cast<ComponentType*>(PyArray_DATA(array));
+        
+        for(/* No initialization */; source != end; ++source)
+        {
+            destination = std::copy(source->Begin(), source->End(), destination);
+            ++source;
+        }
     }
 };
+
 
 template<typename TPixel, unsigned int VImageDimension>
 void
@@ -113,6 +135,42 @@ PyArrayFileReader<TPixel, VImageDimension>
 }
 
 template<typename TPixel, unsigned int VImageDimension>
+PyObject*
+PyArrayFileReader<TPixel, VImageDimension>
+::GetArray() const
+{
+    Py_XINCREF(this->m_Array);
+    return this->m_Array;
+}
+
+template<typename TPixel, unsigned int VImageDimension>
+PyObject*
+PyArrayFileReader<TPixel, VImageDimension>
+::GetOrigin() const
+{
+    Py_XINCREF(this->m_Origin);
+    return this->m_Origin;
+}
+
+template<typename TPixel, unsigned int VImageDimension>
+PyObject*
+PyArrayFileReader<TPixel, VImageDimension>
+::GetSpacing() const
+{
+    Py_XINCREF(this->m_Spacing);
+    return this->m_Spacing;
+}
+
+template<typename TPixel, unsigned int VImageDimension>
+PyObject*
+PyArrayFileReader<TPixel, VImageDimension>
+::GetDirection() const
+{
+    Py_XINCREF(this->m_Direction);
+    return this->m_Direction;
+}
+
+template<typename TPixel, unsigned int VImageDimension>
 PyArrayFileReader<TPixel, VImageDimension>
 ::PyArrayFileReader()
 : m_FileName(""), m_ImageIO(NULL), m_UserSpecifiedImageIO(false),
@@ -125,7 +183,10 @@ template<typename TPixel, unsigned int VImageDimension>
 PyArrayFileReader<TPixel, VImageDimension>
 ::~PyArrayFileReader()
 {
-	// Nothing else
+    Py_XDECREF(this->m_Array);
+    Py_XDECREF(this->m_Origin);
+    Py_XDECREF(this->m_Spacing);
+    Py_XDECREF(this->m_Direction);
 }
 
 template<typename TPixel, unsigned int VImageDimension>
@@ -231,8 +292,6 @@ PyArrayFileReader<TPixel, VImageDimension>
     this->template SetDirection<TImage>(image.GetPointer());
 
     this->template SetArray<TImage>(image.GetPointer());
-    reinterpret_cast<PyArrayObject*>(this->m_Array)->flags |= NPY_OWNDATA;
-    image->GetPixelContainer()->ContainerManageMemoryOff();
 }
 
 template<typename TPixel, unsigned int VImageDimension>
@@ -241,6 +300,8 @@ void
 PyArrayFileReader<TPixel, VImageDimension>
 ::SetArray(TImage * image)
 {
+    Py_XDECREF(this->m_Array);
+    
     // Get the number of dimensions
     unsigned int ndim;
     if(this->m_ImageIO->GetPixelType() == ImageIOBase::SCALAR)
@@ -273,18 +334,16 @@ PyArrayFileReader<TPixel, VImageDimension>
 	PyArrayType const pyArrayType = Self::template GetPyType<ComponentType>();
 
     this->m_Array = PyArray_SimpleNew(ndim, array_size, pyArrayType);
-
     delete[] array_size;
-
-    ComponentType* destination = reinterpret_cast<ComponentType*>(PyArray_DATA(this->m_Array));
-    if(this->m_ImageIO->GetPixelType() == ImageIOBase::SCALAR)
-    {
-        for(ImageRegionConstIterator<TImage> source(image, image->GetRequestedRegion());
-            !source.IsAtEnd(); ++source)
-        {
-            CopyFunctor<PixelType>::action(source.Get(), destination);
-        }
-    }
+    //reinterpret_cast<PyArrayObject*>(this->m_Array)->flags |= NPY_OWNDATA;
+    
+    // Get the data
+    typedef typename TImage::PixelContainer ContainerType;
+    ContainerType * container = image->GetPixelContainer();
+    typedef FillArray<
+        typename ContainerType::ElementIdentifier, 
+        typename TImage::PixelType> FillArrayType;
+    FillArrayType::action(container, this->m_Array);
 }
 
 template<typename TPixel, unsigned int VImageDimension>
@@ -293,6 +352,8 @@ void
 PyArrayFileReader<TPixel, VImageDimension>
 ::SetOrigin(TImage * image)
 {
+    Py_XDECREF(this->m_Origin);
+    
 	typedef typename TImage::PointType::ValueType ValueType;
 
 	// Create the array
@@ -311,6 +372,7 @@ void
 PyArrayFileReader<TPixel, VImageDimension>
 ::SetSpacing(TImage * image)
 {
+    Py_XDECREF(this->m_Spacing);
 	typedef typename TImage::SpacingType::ValueType ValueType;
 
 	// Create the array
@@ -329,6 +391,8 @@ void
 PyArrayFileReader<TPixel, VImageDimension>
 ::SetDirection(TImage * image)
 {
+    Py_XDECREF(this->m_Direction);
+    
 	typedef typename TImage::DirectionType::ValueType ValueType;
 	// Create the array
 	npy_intp size[] = {VImageDimension, VImageDimension};
