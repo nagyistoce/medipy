@@ -120,7 +120,9 @@ class ITK(IOBase) :
         elif self._filter == itk.PyArrayFileReader :
             reader = itk.PyArrayFileReader[PixelType, Dimension].New()
         
-        reader.SetImageIO(self._loader)
+        # Re-using the same ImageIO causes a memory leak !
+        loader_clone = itk.down_cast(self._loader.CreateAnother())
+        reader.SetImageIO(loader_clone)
         reader.SetFileName(self._filename)
         reader.Update()
         
