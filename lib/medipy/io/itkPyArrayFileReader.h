@@ -56,16 +56,16 @@ public :
 	void Update();
 
 	/** Return the image data. */
-	itkGetConstMacro(Array, PyObject*);
+    PyObject* GetArray() const;
 
 	/** Return the image origin. */
-	itkGetConstMacro(Origin, PyObject*);
+	PyObject* GetOrigin() const;
 
 	/** Return the image spacing. */
-	itkGetConstMacro(Spacing, PyObject*);
+	PyObject* GetSpacing() const;
 
 	/** Return the image direction. */
-	itkGetConstMacro(Direction, PyObject*);
+	PyObject* GetDirection() const;
 
 protected:
 	typedef enum PyArray_TYPES PyArrayType;
