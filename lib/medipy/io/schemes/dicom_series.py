@@ -33,15 +33,15 @@ def load(path, fragment) :
     """ Load images.
     """
     
-    scheme_path, scheme_fragment = _get_real_path_and_fragment(path, fragment)
+    scheme, scheme_path, scheme_fragment = _get_real_path_and_fragment(path, fragment)
     return scheme.load(scheme_path, scheme_fragment)
 
 def number_of_images(path, fragment) :
     """ Return the number of images.
     """
     
-    scheme_path, scheme_fragment = _get_real_path_and_fragment(path, fragment)
-    return scheme.number_of_images(url)
+    scheme, scheme_path, scheme_fragment = _get_real_path_and_fragment(path, fragment)
+    return scheme.number_of_images(scheme_path, scheme_fragment)
 
 def _get_real_path_and_fragment(path, fragment):
     if not os.path.isfile(path) :
@@ -80,4 +80,4 @@ def _get_real_path_and_fragment(path, fragment):
     if scheme_fragment is None :
         raise medipy.base.Exception("No serie matching {0} in {1}".format(repr(fragment), repr(path)))
     
-    return scheme_path, scheme_fragment
+    return scheme, scheme_path, scheme_fragment
