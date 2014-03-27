@@ -542,27 +542,14 @@ class MainFrame(medipy.gui.base.Frame):
     ##################    
 
     def OnOpenImage(self, dummy):
-        
         images = medipy.gui.io.load(self, multiple=True)
-        
-        for image in images :
-            # TODO : use force_3d as parameter ?
-            if image.ndim == 2 :
-                image.data = image.data.reshape(1, *image.shape)
-                image.origin = numpy.insert(image.origin, 0, 0)
-                image.direction = numpy.insert(
-                    numpy.insert(image.direction,0, [0,0], 0), 
-                    0, [1,0,0],1)
-                image.spacing = numpy.insert(image.spacing, 0, 1)
-            self.append_image([{"image":image}])
-
-    def OnOpenImageSerie(self, dummy):
-        
-        images = medipy.gui.io.load(self, multiple=True, load_all_images=True)
-        images = [{"image":image} for image in images]
-
-        if isinstance(images, list) and len(images)>0 :
-            self.append_image(images)
+        for image in images:
+            if isinstance(image, medipy.base.Image):
+                layers = [image]
+            elif isinstance(image, list):
+                layers = image
+            self.append_image([{"image": layer} for layer in layers])
+            
             image = self.ui.image_grid[-1]
             for index in range(1, len(image.layers)) :
                 image.set_layer_visibility(index, False)

@@ -22,15 +22,13 @@ from medipy.gui import PeriodicProgressDialog, WorkerThread
 from medipy.gui.dicom import reconstruction
 from medipy.gui.io import ImageFileDialog
 
-def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
-         wildcard="*"):
+def load(parent=None, dtype=numpy.single, multiple=False, wildcard="*"):
     """ Load images with appropriate dialogs (file selector, and DICOM selector
         if needed).
         
         parent : parent wx Window for dialogs
         dtype : type to cast images to, or None to preserve original type
         multiple : allow selection of several images
-        load_all_images : load all images contained in a file or just the first one
         wildcard : dialog wildcard
         
         Return a list of loaded images
@@ -63,61 +61,32 @@ def load(parent=None, dtype=numpy.single, multiple=False, load_all_images=False,
         periodic_progress_dialog.Destroy()
             
         if worker_thread.exception is not None :
-            wx.MessageBox(
-                "Could not load file %s : %s"%(path, worker_thread.exception), 
-                "Could not load DICOMDIR")
+            wx.MessageBox("Could not load file {0} : {1}".format(
+                path, worker_thread.exception), "Could not load DICOMDIR")
         else :
-            if load_all_images :
-                images.extend(reconstruction.images([worker_thread.result], parent, dtype, "all"))
-            elif multiple :
-                images.extend(reconstruction.images([worker_thread.result], parent, dtype, "multiple"))
-            else :
-                images.extend(reconstruction.images([worker_thread.result], parent, dtype, "single"))
+            new_images = reconstruction.images(
+                [worker_thread.result], parent, dtype)
+            images.append(new_images)
+    
     # Load other images
     periodic_progress_dialog = PeriodicProgressDialog(0.2, "Loading image", 
                                                            "Loading ...")
     for path in non_dicomdirs :
-        periodic_progress_dialog.Pulse("Loading %s ..."%path)
+        periodic_progress_dialog.Pulse("Loading {0}...".format(path))
         periodic_progress_dialog.Fit()
         
-        if load_all_images :
-            #indices = range(medipy.io.number_of_images(path))
-            worker_thread = WorkerThread(periodic_progress_dialog,
-                                        target=medipy.io.load_serie, 
-                                        args=(path, dtype))
-            worker_thread.start()
-            periodic_progress_dialog.start()
-            
-            worker_thread.join()
-            
-            if worker_thread.exception is not None :
-                wx.MessageBox(
-                    "Could not load file %s : %s"%(
-                        path, worker_thread.exception), 
-                    "Could not load image")
-            else :
-                images = worker_thread.result
-        else :
-            #indices = [0] 
-            #for index in indices :
-            index = 0
+        worker_thread = WorkerThread(periodic_progress_dialog,
+                                    target=medipy.io.load, args=(path, dtype))
+        worker_thread.start()
+        periodic_progress_dialog.start()
         
-            url = "file:{0}#index={1}".format(path, index)
-            worker_thread = WorkerThread(periodic_progress_dialog,
-                                        target=medipy.io.load, 
-                                        args=(url, dtype))
-            worker_thread.start()
-            periodic_progress_dialog.start()
-            
-            worker_thread.join()
-            
-            if worker_thread.exception is not None :
-                wx.MessageBox(
-                    "Could not load file %s : %s"%(
-                        path, worker_thread.exception), 
-                    "Could not load image")
-            else :
-                images.append(worker_thread.result)
+        worker_thread.join()
+        
+        if worker_thread.exception is not None :
+            wx.MessageBox("Could not load file {0} : {1}".format(
+                path, worker_thread.exception), "Could not load image")
+        else :
+            images.append(worker_thread.result)
             
     periodic_progress_dialog.Destroy()
     
@@ -165,8 +134,7 @@ def import_dicom_directory(parent = None, dtype = numpy.single, recursive=False,
     worker_thread.join()
     periodic_progress_dialog.Destroy()
     
-    images = reconstruction.images(worker_thread.result, parent, dtype, 
-        "all" if load_all_images else "multiple")
+    images = reconstruction.images(worker_thread.result, parent, dtype)
     
     if images :
         preferences.set("IO/load_path", dialog.GetPath())
@@ -190,7 +158,7 @@ def save(image, parent=None):
     path = dialog.GetPath()
 
     if isinstance(image, list) :
-        periodic_progress_dialog = PeriodicProgressDialog(0.2, "Loading files", "Loading ...")
+        periodic_progress_dialog = PeriodicProgressDialog(0.2, "Saving files", "Saving ...")
         worker_thread = WorkerThread(periodic_progress_dialog,target=medipy.io.save_serie, args=(image,path,))
         worker_thread.start()
         periodic_progress_dialog.start()
