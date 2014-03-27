@@ -31,44 +31,30 @@ import urlparse
 import medipy.base
 import medipy.io.dicom
 
-def load_serie(path, fragment=None) :
-    """ Load a serie of images
+def load(path, fragment=None) :
+    """ Load images.
     """
-
+    
     datasets = _get_matching_datasets(path, fragment)
-    datasets = medipy.io.dicom.load_dicomdir_records(datasets)
-
+    
     if not datasets :
         return None
     else :
-        image_datasets = medipy.io.dicom.split.images(datasets)
-        normalized_datasets = medipy.io.dicom.normalize.normalize(image_datasets)
-        stacks = medipy.io.dicom.split.stacks(normalized_datasets)
+        stacks = _get_stacks(datasets)
         images = [medipy.io.dicom.image(stack) for stack in stacks]
         
         # Make sure the images are in their acquisition order 
         images.sort(key = lambda x:x.metadata.get("acquisition_time", ""))
-
+        
         return images
 
-def load(path, fragment=None) :
-    """ Load an image.
-    """
-    
-    datasets = _get_matching_datasets(path, fragment)
-    
-    if not datasets :
-        return None
-    else :
-        datasets = medipy.io.dicom.load_dicomdir_records(datasets)
-        return medipy.io.dicom.image(datasets)
-
 def number_of_images(path, fragment=None) :
-    """ Return the number of series in given DICOMDIR.
+    """ Return the number of stacks in given series.
     """
     
     datasets = _get_matching_datasets(path, fragment)
-    return len(medipy.io.dicom.series(datasets))
+    stacks = _get_stacks(datasets)
+    return len(stacks)
 
 def _get_filters(fragment) :
     """ Return a list of filters from the URL fragment.
@@ -120,3 +106,14 @@ def _get_matching_datasets(path, fragment) :
                     queue.append(child)
     
     return datasets
+
+def _get_stacks(datasets):
+    """ Return the stacks associated with the datasets.
+    """
+    
+    datasets = medipy.io.dicom.load_dicomdir_records(datasets)
+    image_datasets = medipy.io.dicom.split.images(datasets)
+    normalized_datasets = medipy.io.dicom.normalize.normalize(image_datasets)
+    stacks = medipy.io.dicom.split.stacks(normalized_datasets)
+    
+    return stacks
