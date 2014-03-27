@@ -50,35 +50,25 @@ import medipy.io.dicom
 
 import dicomdir
 
-def load_serie(path, fragment=None) :
-    """ Load a serie of images
+def load(path, fragment=None) :
+    """ Load images.
     """
-
+    
     datasets = _get_matching_datasets(path, fragment)
-
+    
     if not datasets :
         return None
     else :
-        datasets = medipy.io.dicom.split.images(datasets)
-        datasets = medipy.io.dicom.normalize.normalize(datasets)
-        stacks = medipy.io.dicom.split.stacks(datasets)
-        limages = [medipy.io.dicom.image(stack) for stack in stacks]
+        image_datasets = medipy.io.dicom.split.images(datasets)
+        normalized_datasets = medipy.io.dicom.normalize.normalize(image_datasets)
+        stacks = medipy.io.dicom.split.stacks(normalized_datasets)
+        
+        images = [medipy.io.dicom.image(stack) for stack in stacks]
         
         # Make sure the images are in their acquisition order 
-        limages.sort(key = lambda x:x.metadata.get("acquisition_time", ""))
-
-        return limages
-
-def load(path, fragment=None) :
-    """ Load an image.
-    """
-    
-    datasets = _get_matching_datasets(path, fragment)
-    
-    if not datasets :
-        return None
-    else :
-        return medipy.io.dicom.image(datasets)
+        images.sort(key = lambda x:x.metadata.get("acquisition_time", ""))
+        
+        return images
 
 def number_of_images(path, fragment=None) :
     """ Return the number of series in given directory.

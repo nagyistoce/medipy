@@ -30,66 +30,20 @@ import medipy.base
 import medipy.io
 
 def load(path, fragment) :
-    """ Load an image.
+    """ Load images.
     """
     
-    return _load(path, fragment, medipy.io.load)
-
-def load_serie(path, fragment) :
-    """ Load an image.
-    """
-    
-    return _load(path, fragment, medipy.io.load_serie)
-
-def _load(path, fragment, load_function) :
-    """ Load a serie of images
-    """
-
-    # Check arguments
-    
-    if not os.path.isfile(path) :
-        raise medipy.base.Exception("No such file : {0}".format(repr(path)))
-    
-    tag, value = fragment.split("=")
-    
-    if tag not in ["uid", "description", "custom_name"] :
-        raise medipy.base.Exception("Unknown tag : {0}".format(repr(tag)))
-    
-    # Read root and series informations
-    
-    fd = open(path)
-    root = fd.readline().strip()
-    
-    reader = csv.reader(fd)
-    series = [x for x in reader]
-    
-    fd.close()
-    
-    # Look for a matching URL
-    
-    url = None
-    for serie in series :
-        uid = serie[0]
-        
-        if tag == "uid" and uid == value :
-            url = "{0}#series_instance_uid={1}".format(root, uid)
-            break
-        elif tag == "description" and len(serie)>1 and serie[1] == value :
-            url = "{0}#series_instance_uid={1}".format(root, uid)
-        elif tag == "custom_name" and len(serie)>2 and serie[2] == value :
-            url = "{0}#series_instance_uid={1}".format(root, uid)
-    
-    if url is None :
-        raise medipy.base.Exception("No serie matching {0} in {1}".format(repr(fragment), repr(path)))
-    
-    return load_function(url)
+    scheme_path, scheme_fragment = _get_real_path_and_fragment(path, fragment)
+    return scheme.load(scheme_path, scheme_fragment)
 
 def number_of_images(path, fragment) :
     """ Return the number of images.
     """
     
-    # Check arguments
-    
+    scheme_path, scheme_fragment = _get_real_path_and_fragment(path, fragment)
+    return scheme.number_of_images(url)
+
+def _get_real_path_and_fragment(path, fragment):
     if not os.path.isfile(path) :
         raise medipy.base.Exception("No such file : {0}".format(repr(path)))
     
@@ -102,27 +56,28 @@ def number_of_images(path, fragment) :
     
     fd = open(path)
     root = fd.readline().strip()
+    scheme, scheme_path = root.split(":", 1)
+    scheme = getattr(medipy.io.schemes, scheme)
     
     reader = csv.reader(fd)
     series = [x for x in reader]
     
     fd.close()
     
-    # Look for a matching URL
-    
-    url = None
+    # Look for a matching fragment
+    scheme_fragment = None
     for serie in series :
         uid = serie[0]
         
         if tag == "uid" and uid == value :
-            url = "{0}#series_instance_uid={1}".format(root, uid)
+            scheme_fragment = "series_instance_uid={0}".format(uid)
             break
         elif tag == "description" and len(serie)>1 and serie[1] == value :
-            url = "{0}#series_instance_uid={1}".format(root, uid)
+            scheme_fragment = "series_instance_uid={0}".format(uid)
         elif tag == "custom_name" and len(serie)>2 and serie[2] == value :
-            url = "{0}#series_instance_uid={1}".format(root, uid)
+            scheme_fragment = "series_instance_uid={0}".format(uid)
     
-    if url is None :
-        return 0
-    else :
-        return 1
+    if scheme_fragment is None :
+        raise medipy.base.Exception("No serie matching {0} in {1}".format(repr(fragment), repr(path)))
+    
+    return scheme_path, scheme_fragment

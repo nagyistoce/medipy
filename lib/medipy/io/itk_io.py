@@ -57,7 +57,12 @@ class ITK(IOBase) :
         return self._loader is not None
     
     def number_of_images(self) :
-        return 1
+        result = 1
+        if self._loader.GetNameOfClass() == "NiftiImageIO":
+            self._update_pixel_type()
+            if self._loader.GetNumberOfDimensions() == 4 and self._data_type == "scalar":
+                result = self._loader.GetDimensions(3)
+        return result
     
     def _update_pixel_type(self):
         if self._pixel_type_up_to_date :
@@ -131,6 +136,11 @@ class ITK(IOBase) :
         else :
             array = reader.GetArray()
         
+        if self._loader.GetNameOfClass() == "NiftiImageIO":
+            if array.ndim == 4 and self._data_type == "scalar":
+                # Make sure to /NOT/ use a view, which uses too much memory
+                array = array[index].copy()
+        
         return array
     
     def load_metadata(self, index=0) :
@@ -154,6 +164,12 @@ class ITK(IOBase) :
                                             for i in range(ndim)])
         metadata["spacing"] = numpy.asarray([self._loader.GetSpacing(ndim-i-1) 
                                              for i in range(ndim)])
+        
+        if self._loader.GetNameOfClass() == "NiftiImageIO":
+            if self._loader.GetNumberOfDimensions() == 4 and self._data_type == "scalar":
+                metadata["direction"] = metadata["direction"][1:,1:]
+                metadata["origin"] = metadata["origin"][1:]
+                metadata["spacing"] = metadata["spacing"][1:]
         
         # TODO : other metadata from dictionary
         

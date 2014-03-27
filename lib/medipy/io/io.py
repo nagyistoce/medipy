@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import logging
 import os
 import re
 import urlparse
@@ -18,27 +19,11 @@ import medipy.base
 import schemes
 
 def load_serie(url, dtype=numpy.single):
-    """ Load a serie of images.
-        
-          * url : url to load from.
-          * dtype : type to which the data will be cast. Passing ``None`` will not cast.
-        
-        See :func:`load` for URL details.
+    """ This function is deprecated. medipy.io.load should be used instead.
     """
-    scheme, path, fragment = _split(url)
-   
-    try :
-        loader = getattr(scheme, "load_serie")
-    except AttributeError :
-        raise medipy.base.Exception("Scheme \"{0}\" cannot load files".format(scheme))
-
-    limages = loader(path, fragment)
     
-    if dtype :
-        for image in limages :
-            image.data = image.data.astype(dtype)
-
-    return limages
+    logging.warning("\"medipy.io.load_serie\" is a deprecated function")
+    return load(url, dtype)
     
 def save_serie(images, url) :
     """ Save a serie of images.
@@ -61,18 +46,18 @@ def save_serie(images, url) :
 def load(url, dtype=numpy.single) :
     """ Load an image.
         
-          * ``url`` : url to load from, uses the usual syntax of 
-            ``[scheme "://"] [authority] path [ "#" fragment]``
-          * ``dtype`` : type to which the data will be cast. Passing ``None`` will not cast.
+        * ``url`` : url to load from, uses the usual syntax of 
+          ``[scheme "://"] [authority] path [ "#" fragment]``
+        * ``dtype`` : type to which the data will be cast. Passing ``None`` will not cast.
         
         The URL ``scheme`` can be one of :
           
-          * :mod:`~medipy.io.schemes.file` : load the image from the filesystem.
-          * :mod:`~medipy.io.schemes.dicomdir` : load an image using a DICOMDIR
-          * :mod:`~medipy.io.schemes.dicom` : load an image using a local 
-            filesystem directory containing DICOM files
-          * :mod:`dicom-series <medipy.io.schemes.dicom_series>` : load an image
-            using a :class:`dicom_series <medipy.io.dicom.DicomSeries>` file
+        * :mod:`~medipy.io.schemes.file` : load the image from the filesystem.
+        * :mod:`~medipy.io.schemes.dicomdir` : load an image using a DICOMDIR
+        * :mod:`~medipy.io.schemes.dicom` : load an image using a local 
+          filesystem directory containing DICOM files
+        * :mod:`dicom-series <medipy.io.schemes.dicom_series>` : load an image
+          using a :class:`dicom_series <medipy.io.dicom.DicomSeries>` file
         
         Refer to the documentation of the different schemes for the details of 
         the URL syntax.
@@ -87,15 +72,21 @@ def load(url, dtype=numpy.single) :
     except AttributeError :
         raise medipy.base.Exception("Scheme \"{0}\" cannot load files".format(scheme))
 
-    image = loader(path, fragment)
+    images = loader(path, fragment)
     
-    if dtype :
-        image.data = image.data.astype(dtype)
+    if not images:
+        raise medipy.base.Exception("No such file or directory: {0}".format(url))
     
-    image.metadata.setdefault("loader", {})["url"] = url
+    for image in images:
+        if dtype :
+            image.data = image.data.astype(dtype)
+        image.metadata.setdefault("loader", {})["url"] = url
     
-    return image    
-
+    if len(images)>1:
+        return images
+    else:
+        return images[0]
+    
 def save(image, url) :
     """ Save an image.
         

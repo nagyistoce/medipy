@@ -10,10 +10,7 @@
     
     The path is interpreted as an usual filesystem path.
     
-    The fragment is of form ``[ tag "=" value { "&" tag "=" value } ]``, where ``tag``
-    is one of :
-      
-      * ``index`` : specifies the index of the image to load. Defaults to 0.
+    The fragment must be empty.
 """
 
 import urlparse
@@ -29,42 +26,6 @@ from medipy.io.itk_io import ITK
 from medipy.io.nmr2D import Nmr2D
 from medipy.io.wx_image import WXImage
 io_classes = [Dicom, ITK, IPB, WXImage, Nmr2D]
-
-def load_serie(path, fragment=None, loader=None) :
-    """ Load a volume as a serie of N 3D images.
-    
-        If specified, the "loader" must be an image loader. If not specified,
-        a suitable loader will be found automatically.
-    """
-
-    image = load(path,fragment,loader)
-
-    # Create serie
-    if image.ndim==3 :
-        image.data = image.data.reshape((1,)+image.shape)
-        norigin = image.origin
-        nspacing = image.spacing
-        ndirection = image.direction
-    elif image.ndim==4 :
-        norigin = image.origin[1:]
-        nspacing = image.spacing[1:]
-        ndirection = image.direction[1:,1:]
-    else :
-        raise medipy.base.Exception("Path does not contain a serie of 3D images.")
-
-    limages = []
-    for index in range(image.shape[0]) :
-        data = image[index,:]
-        
-        metadata = { "loader" : image.metadata["loader"] }
-        if "mr_diffusion_sequence" in image.metadata :
-            diffusion_data = image.metadata["mr_diffusion_sequence"][index]
-            metadata["mr_diffusion_sequence"] = [diffusion_data]
-            
-        limages.append(Image(data=data,origin=norigin,spacing=nspacing,
-                             direction=ndirection,metadata=metadata))
-
-    return limages
 
 def save_serie(limages, path, saver=None) :
     """ Save a serie of N 3D images as a volume.
@@ -99,7 +60,7 @@ def save_serie(limages, path, saver=None) :
     save(composite_image, path, saver)
 
 def load(path, fragment=None, loader=None) :
-    """ Load an image.
+    """ Load images.
     
         If specified, the "loader" must be an image loader. If not specified,
         a suitable loader will be found automatically.
@@ -107,30 +68,33 @@ def load(path, fragment=None, loader=None) :
     
     loader = loader or get_loader(path)
     
-    index = _parse_fragment(fragment) if fragment else 0
+    result = []
     
-    data = loader.load_data(index)
-    metadata = loader.load_metadata(index)
-    metadata["loader"] = {
-        "index" : index,
-        "loader" : loader
-    }
+    for index in range(loader.number_of_images()):
     
-    args = {}
-    names = [
-        "direction", "origin", "spacing", 
-        "data_type", "image_type", 
-        "annotations"
-    ]
-    if not isinstance(loader, Dicom) :
-        names.append("image_type")
-    for name in names :
-        if name in metadata :
-            args[name] = metadata[name]
-            del metadata[name]
-    args["metadata"] = metadata
+        data = loader.load_data(index)
+        metadata = loader.load_metadata(index)
+        metadata["loader"] = {
+            "loader" : loader
+        }
+        
+        args = {}
+        names = [
+            "direction", "origin", "spacing", 
+            "data_type", "image_type", 
+            "annotations"
+        ]
+        if not isinstance(loader, Dicom) :
+            names.append("image_type")
+        for name in names :
+            if name in metadata :
+                args[name] = metadata[name]
+                del metadata[name]
+        args["metadata"] = metadata
+        
+        result.append(Image(data=data, **args))
     
-    return Image(data=data, **args)
+    return result
 
 def save(image, path, saver=None) :
     """ Save an image.
@@ -175,18 +139,3 @@ def get_saver(image, path, report_progress=None) :
     
     # If we get here, no loader was found
     raise medipy.base.Exception("No saver available for {0}".format(path))
-
-def _parse_fragment(fragment) :
-    """ Return the index value in the fragment
-    """
-    
-    for tag, value in urlparse.parse_qsl(fragment) :
-        if tag == "index" :
-            try :
-                index = int(value)
-            except ValueError :
-                raise medipy.base.Exception("Invalid index : \"{0}\"".format(value))
-            else :
-                return index
-        else :
-            raise medipy.base.Exception("Invalid fragment element : \"{0}\"".format(tag))
