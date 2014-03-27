@@ -16,8 +16,7 @@ from stacks_dialog import StacksDialog
 import medipy.io.dicom
 
 def images(datasets, parent, dtype=numpy.single, 
-           select_subseries="multiple", size=(700,700), 
-           style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER) :
+           size=(700,700), style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER) :
     """ Return a list of medipy.base.Image objects from a list of DataSets.
     """
     
@@ -52,21 +51,11 @@ def images(datasets, parent, dtype=numpy.single,
     
     series = worker_thread.result
      
-    # If several stacks are in the series, ask for user input
-    series = medipy.io.dicom.split.images(series) #add
-    series = medipy.io.dicom.normalize.normalize(series) #add
+    # Reconstruct one image per stack
+    series = medipy.io.dicom.split.images(series)
+    series = medipy.io.dicom.normalize.normalize(series)
     stacks = medipy.io.dicom.stacks(series)
-    if len(stacks) > 1 and select_subseries!="all" :
-        if select_subseries=="single" :
-            stacks_dialog = StacksDialog(parent, True)
-        elif select_subseries=="multiple" :
-            stacks_dialog = StacksDialog(parent, False)
-        stacks_dialog.set_stacks(stacks)
-        if stacks_dialog.ShowModal() != wx.ID_OK :
-            return []
-        stacks = stacks_dialog.get_selected_stacks() 
     
-    # Reconstruct all selected stacks
     result = []
     periodic_progress_dialog = PeriodicProgressDialog(
             0.2, "Reconstructing images", 
