@@ -88,6 +88,8 @@ class Frame(medipy.gui.xrc_wrapper.Frame):
                 handler = getattr(self, function_name)
                 self.Bind(wx.EVT_MENU, handler, id=item_id)
             else :
+                item = self.GetMenuBar().FindItemById(item_id)
+                item.Enable(False)
                 logging.debug("No function called %s", function_name)
     
     def bind_tools(self):
