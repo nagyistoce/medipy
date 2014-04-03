@@ -70,6 +70,7 @@
         </object>
         <object class="wxMenuItem" name="close_all_images">
           <label>Close all images</label>
+          <accel>Ctrl+Shift+W</accel>
         </object>
         <object class="separator"/>
         <object class="wxMenuItem" name="quit">
