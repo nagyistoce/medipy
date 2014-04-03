@@ -176,6 +176,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._orientation_visibility = None
         self._convention = None
         self._crosshair = None
+        self._corner_annotations_visibility = None
         
         self._annotations = None
         
@@ -238,6 +239,7 @@ class Image(wx.Panel, PropertySynchronized):
         self._set_orientation_visibility(orientation_visibility)
         self._set_convention(convention)
         self._set_crosshair(crosshair)
+        self._set_corner_annotations_visibility(corner_annotations_visibility)
         for layer in layers or [] :
             self.append_layer(**layer)
         self._set_slice_mode(slice_mode)
@@ -492,8 +494,9 @@ class Image(wx.Panel, PropertySynchronized):
         # display the corner annotations
         if slice_mode == "multiplanar" :
             self._rwi.GetRenderWindow().AddRenderer(self._informations_renderer)
+            self._informations_corner_annotation.SetVisibility(self.corner_annotations_visibility)
         else :
-            self._slices[0].corner_annotations_visibility = True
+            self._slices[0].corner_annotations_visibility = self.corner_annotations_visibility
         
         for button, (class_, args, kwargs) in self._mouse_tools.items() :
             self.set_mouse_button_tool(button, class_, *args, **kwargs)
@@ -585,6 +588,19 @@ class Image(wx.Panel, PropertySynchronized):
             raise medipy.base.Exception("Unknown crosshair mode: {0!r}".format(value))
         
         self._set_slice_property("crosshair", value)
+    
+    def _get_corner_annotations_visibility(self) :
+        """ Visibility of the corner annotations.
+        """
+        
+        return self._corner_annotations_visibility
+    
+    def _set_corner_annotations_visibility(self, value) :
+        self._corner_annotations_visibility = value
+        if self._slice_mode == "multiplanar":
+            self._informations_corner_annotation.SetVisibility(value)
+        else:
+            self._set_slice_property("corner_annotations_visibility", value)
     
     def _get_annotations(self):
         return self._annotations
@@ -688,6 +704,8 @@ class Image(wx.Panel, PropertySynchronized):
     orientation_visibility = property(_get_orientation_visibility, _set_orientation_visibility)
     convention = property(_get_convention, _set_convention)
     crosshair = property(_get_crosshair, _set_crosshair)
+    corner_annotations_visibility = property(_get_corner_annotations_visibility,
+                                             _set_corner_annotations_visibility)
     annotations = property(_get_annotations, _set_annotations)
     cursor_physical_position = property(_get_cursor_physical_position, _set_cursor_physical_position)
     cursor_index_position = property(_get_cursor_index_position, _set_cursor_index_position)
