@@ -38,7 +38,7 @@
         <object class="separator"/>
         <object class="wxMenuItem" name="new_viewer_3d">
           <label>New &amp;3D viewer</label>
-          <accel>Alt+3</accel>
+          <accel>Ctrl+Alt+3</accel>
         </object>
         <object class="wxMenu" name="screenshot_menu">
           <label>Screens&amp;hot</label>
@@ -60,7 +60,7 @@
         </object>
         <object class="wxMenuItem" name="execute_script">
           <label>E&amp;xecute script ...</label>
-          <accel>Alt+X</accel>
+          <accel>Ctrl+Alt+X</accel>
         </object>
         <object class="separator"/>
         <object class="wxMenuItem" name="close_image">
@@ -139,22 +139,22 @@
           <label>Slices</label>
           <object class="wxMenuItem" name="view_axial">
             <label>Axial</label>
-            <accel>Alt+A</accel>
+            <accel>Ctrl+Alt+A</accel>
             <radio>1</radio>
           </object>
           <object class="wxMenuItem" name="view_coronal">
             <label>Coronal</label>
-            <accel>Alt+C</accel>
+            <accel>Ctrl+Alt+C</accel>
             <radio>1</radio>
           </object>
           <object class="wxMenuItem" name="view_sagittal">
             <label>Sagittal</label>
-            <accel>Alt+S</accel>
+            <accel>Ctrl+Alt+S</accel>
             <radio>1</radio>
           </object>
           <object class="wxMenuItem" name="view_multiplanar">
             <label>Multiplanar</label>
-            <accel>Alt+M</accel>
+            <accel>Ctrl+Alt+M</accel>
             <radio>1</radio>
           </object>
         </object>
