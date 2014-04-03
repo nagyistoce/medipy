@@ -9,20 +9,24 @@
           <bitmap stock_id="wxART_FILE_OPEN"/>
           <accel>Ctrl+O</accel>
         </object>
+        <object class="wxMenuItem" name="dicom_query_retrieve">
+          <label>Query &amp;PACS...</label>
+        </object>
+        <object class="wxMenuItem" name="reload_image">
+          <label>&amp;Reload</label>
+          <accel>Ctrl+R</accel>
+        </object>
         <object class="wxMenu" name="import_menu">
           <label>&amp;Import</label>
+          <object class="wxMenuItem" name="from_directory">
+            <label>&amp;DICOM directory ...</label>
+            <accel>Ctrl+D</accel>
+          </object>
           <object class="wxMenuItem" name="open_raw">
-            <label>Open &amp;RAW image</label>
+            <label>&amp;RAW data</label>
           </object>
           <object class="wxMenuItem" name="open_spectro">
             <label>Open &amp;Spectro image</label>
-          </object>
-          <object class="wxMenuItem" name="from_directory">
-            <label>Import &amp;DICOM directory ...</label>
-            <accel>Ctrl+D</accel>
-          </object>
-          <object class="wxMenuItem" name="dicom_query_retrieve">
-            <label>Dicom Query Retrieve</label>
           </object>
         </object>
         <object class="separator"/>
@@ -34,6 +38,11 @@
         <object class="wxMenuItem" name="save_image_serie_as">
           <label>Save image serie as ...</label>
           <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+        </object>
+        <object class="wxMenuItem" name="save_image_as_dicom">
+          <label>Save image as DICOM...</label>
+          <bitmap stock_id="wxART_FILE_SAVE_AS"/>
+          <accel>Ctrl+Shift+S</accel>
         </object>
         <object class="separator"/>
         <object class="wxMenuItem" name="new_viewer_3d">
@@ -54,9 +63,6 @@
             <label>Whole window ...</label>
             <accel>Ctrl+Alt+P</accel>
           </object>
-        </object>
-        <object class="wxMenuItem" name="preferences">
-          <label>Preferences ...</label>
         </object>
         <object class="wxMenuItem" name="execute_script">
           <label>E&amp;xecute script ...</label>
@@ -95,46 +101,13 @@
           <label>&amp;Reset view</label>
           <accel>Ctrl+0</accel>
         </object>
-        <object class="wxMenuItem" name="full_screen">
-          <label>&amp;Full screen</label>
-          <accel>Ctrl+F</accel>
-        </object>
-        <object class="wxMenuItem" name="cine_image">
-          <label>&amp;Cine image</label>
-          <accel>Ctrl+C</accel>
-        </object>
-        <object class="wxMenuItem" name="show_lut">
-          <label>Show LUT</label>
-          <checkable>1</checkable>
-        </object>
-        <object class="separator"/>
         <object class="wxMenuItem" name="metadata">
           <label>&amp;Metadata</label>
-        </object>
-        <object class="wxMenuItem" name="reorient">
-          <label>Re-orient</label>
-        </object>
-        <object class="wxMenuItem" name="informations">
-          <label>Informations</label>
-          <checkable>1</checkable>
-        </object>
-        <object class="separator"/>
-        <object class="wxMenu" name="crosshair">
-          <label>Crosshair</label>
-          <object class="wxMenuItem" name="crosshair_full">
-            <label>Full</label>
-            <radio>1</radio>
-          </object>
-          <object class="wxMenuItem" name="crosshair_partial">
-            <label>Partial</label>
-            <radio>1</radio>
-          </object>
-          <object class="wxMenuItem" name="crosshair_none">
-            <label>None</label>
-            <radio>1</radio>
-          </object>
+          <accel>Ctrl+M</accel>
         </object>
         <label>&amp;Image</label>
+      </object>
+      <object class="wxMenu" name="view_menu">
         <object class="wxMenu" name="slices_menu">
           <label>Slices</label>
           <object class="wxMenuItem" name="view_axial">
@@ -158,8 +131,6 @@
             <radio>1</radio>
           </object>
         </object>
-      </object>
-      <object class="wxMenu" name="view_menu">
         <object class="wxMenu" name="display_coordinates_menu">
           <object class="wxMenuItem" name="display_coordinates_physical">
             <label>Physical</label>
@@ -185,6 +156,36 @@
             <radio>1</radio>
           </object>
           <label>Display convention</label>
+        </object>
+        <object class="wxMenu" name="show">
+          <object class="wxMenuItem" name="show_lut">
+            <label>Show color bar</label>
+            <checkable>1</checkable>
+          </object>
+          <object class="wxMenu" name="crosshair">
+            <label>Crosshair</label>
+            <object class="wxMenuItem" name="crosshair_full">
+              <label>Full</label>
+              <radio>1</radio>
+            </object>
+            <object class="wxMenuItem" name="crosshair_partial">
+              <label>Partial</label>
+              <radio>1</radio>
+            </object>
+            <object class="wxMenuItem" name="crosshair_none">
+              <label>None</label>
+              <radio>1</radio>
+            </object>
+          </object>
+          <object class="wxMenuItem" name="show_orientation">
+            <label>Orientation</label>
+            <checkable>1</checkable>
+          </object>
+          <object class="wxMenuItem" name="show_informations">
+            <label>Informations</label>
+            <checkable>1</checkable>
+          </object>
+          <label>&amp;Show</label>
         </object>
         <object class="wxMenu" name="synchronize_menu">
           <object class="wxMenuItem" name="sync_cursor_position">
@@ -218,12 +219,23 @@
             <label>Ellipsoid</label>
             <radio>1</radio>
           </object>
-          <label>Display tensors</label>
+          <label>Tensor Style</label>
         </object>
-        <label>View</label>
+        <label>&amp;View</label>
+      </object>
+      <object class="wxMenu" name="help_menu">
+        <object class="wxMenuItem" name="help">
+          <label>&amp;Help</label>
+          <accel>F1</accel>
+        </object>
+        <object class="separator"/>
+        <object class="wxMenuItem" name="about">
+          <label>&amp;About</label>
+        </object>
+        <label>&amp;Help</label>
       </object>
     </object>
-    <object class="wxToolBar" name="tools">
+    <object class="wxToolBar" name="tools_bar">
       <object class="tool" name="select">
         <bitmap>select.png</bitmap>
         <radio>1</radio>
