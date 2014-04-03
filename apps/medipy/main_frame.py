@@ -183,7 +183,9 @@ class MainFrame(medipy.gui.base.Frame):
         else :
             tool = locals()[tool]
         self.set_image_tool(tool)
-
+        self.scalar_bar_visibility = self._preferences.get("Display/scalar_bar", False)
+        self.orientation_visibility = self._preferences.get("Display/orientation", True)
+        self.corner_annotations_visibility = self._preferences.get("Display/corner_annotations", True)
 
     ####################
     # Public interface #
@@ -528,6 +530,42 @@ class MainFrame(medipy.gui.base.Frame):
     def _get_history(self):
         return self._history
     
+    def _get_scalar_bar_visibility(self):
+        return self.ui.image_grid.scalar_bar_visibility
+    
+    def _set_scalar_bar_visibility(self, value):
+        self.ui.image_grid.scalar_bar_visibility = value
+        # Update GUI
+        item_id = wx.xrc.XRCID("show_lut")
+        item = self.GetMenuBar().FindItemById(item_id)
+        item.Check(value)
+        # Update preferences
+        self._preferences.set("Display/scalar_bar", value)
+    
+    def _get_orientation_visibility(self):
+        return self.ui.image_grid.orientation_visibility
+    
+    def _set_orientation_visibility(self, value):
+        self.ui.image_grid.orientation_visibility = value
+        # Update GUI
+        item_id = wx.xrc.XRCID("show_orientation")
+        item = self.GetMenuBar().FindItemById(item_id)
+        item.Check(value)
+        # Update preferences
+        self._preferences.set("Display/orientation", value)
+    
+    def _get_corner_annotations_visibility(self):
+        return self.ui.image_grid.corner_annotations_visibility
+        
+    def _set_corner_annotations_visibility(self, value):
+        self.ui.image_grid.corner_annotations_visibility = value
+        # Update GUI
+        item_id = wx.xrc.XRCID("show_informations")
+        item = self.GetMenuBar().FindItemById(item_id)
+        item.Check(value)
+        # Update preferences
+        self._preferences.set("Display/corner_annotations", value)
+    
     display_coordinates = property(_get_display_coordinates, 
                                    _set_display_coordinates)
     display_convention = property(_get_display_convention,
@@ -537,6 +575,12 @@ class MainFrame(medipy.gui.base.Frame):
     crosshair = property(_get_crosshair, _set_crosshair)
     current_ui = property(_get_current_ui)
     history = property(_get_history)
+    scalar_bar_visibility = property(_get_scalar_bar_visibility, 
+                                     _set_scalar_bar_visibility)
+    orientation_visibility = property(_get_orientation_visibility, 
+                                      _set_orientation_visibility)
+    corner_annotations_visibility = property(_get_corner_annotations_visibility,
+                                             _set_corner_annotations_visibility)
     
     ##################
     # Event handlers #
@@ -560,7 +604,8 @@ class MainFrame(medipy.gui.base.Frame):
         if raw_dialog.ShowModal() == wx.ID_OK :
             self.append_image([{"image" : raw_dialog.image}])
         
-    def OnOpenSpectro(self, dummy):
+    # Disabled
+    def _OnOpenSpectro(self, dummy):
         from medipy.gui.image.spectro_dialog import SpectroDialog
         spectro_dialog = SpectroDialog(None, size = (500,220))
         spectro_dialog.ShowModal()
@@ -707,6 +752,15 @@ class MainFrame(medipy.gui.base.Frame):
         viewer_3d = Viewer3DFrame(None, medipy.base.ObservableList())
         viewer_3d.Show()
         wx.GetApp().append_viewer_3d(viewer_3d)
+    
+    def OnShowLut(self, event):
+        self.scalar_bar_visibility = event.IsChecked()
+    
+    def OnShowOrientation(self, event):
+        self.orientation_visibility = event.IsChecked()
+    
+    def OnShowInformations(self, event):
+        self.corner_annotations_visibility = event.IsChecked()
     
     def on_function_gui_builder_new_image(self, event):
         self.append_image([{"image" : event.image}])
