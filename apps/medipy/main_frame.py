@@ -112,7 +112,8 @@ class MainFrame(medipy.gui.base.Frame):
         self._full_screen_image_index = None
         self._full_screen_image = None
         self._menus_active_when_image_loaded = [
-            "save_image_as", "save_image_serie_as", "close_image",
+            "save_image_as", "save_image_serie_as", "close_image", 
+            "close_all_images", 
             "current_image_screenshot", "all_images_screenshot",
             "whole_window_screenshot"
         ]
