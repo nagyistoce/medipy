@@ -81,8 +81,7 @@ def load(path, fragment=None, loader=None) :
         args = {}
         names = [
             "direction", "origin", "spacing", 
-            "data_type", "image_type", 
-            "annotations"
+            "data_type", "annotations"
         ]
         if not isinstance(loader, Dicom) :
             names.append("image_type")
