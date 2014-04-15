@@ -15,6 +15,7 @@ import medipy.base
 from medipy.diffusion.utils import (spectral_decomposition, compose_spectral, 
     log_transformation, exp_transformation)
 import medipy.medimax.recalage
+import medipy.io
 
 ##########################
 # Transformations fields #
@@ -108,7 +109,7 @@ def register_fibers(fibers,ftrf,model1,model2):
 # Voxel
 #############
 
-def apply_tensor_trf(model_ref,model_wrap,ftrf) :
+def apply_tensor_trf(model_ref,model_wrap,ftrf,inter_type) :
     """ Apply the deformation field stored in file ``ftrf`` to ``model_wrap``,
         using the grid of ``model_ref``.
     
@@ -116,16 +117,44 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
             <item name="model_ref" type="Image" label="Reference tensor image" />
             <item name="model_wrap" type="Image" label="Tensor image to wrap" />
             <item name="ftrf" type="File" label="Deformation field file" />
+            <item name="inter_type" type="Enum" initializer="('Nearest','Linear',
+                'SinCard','QuickSinCard2','QuickSinCard3','Bspline2','Bspline3',
+                'Bspline4','Bspline5','Label')" label="Interpolation method"/>
             <item name="registered" type="Image" initializer="output=True" 
                   role="return" label="Registered tensor image"/>
         </gui>
     """
+    # apply transfo on tensor image
     field_backward = load_trf(ftrf,model_wrap)
     log_model_wrap = log_transformation(model_wrap)
-    log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf)
+    log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf,inter_type)
     model_out = exp_transformation(log_model_out)
     model_out = ppd_tensor_trf(model_out,field_backward)
-    return model_out
+    
+    # creation masks
+    
+    # MASK :take into account voxels out of the brain so sometimes initialized at 0
+    mask_t = medipy.base.Image(shape=model_wrap.shape, dti="tensor_2", value=0, dtype=model_wrap.dtype)
+    mask_t.copy_information(model_wrap)
+    mask_t[numpy.nonzero(model_wrap)] = 1
+    
+    mask_out = medipy.base.Image(shape=model_ref.shape, data_type="scalar", image_type="normal", value=0, dtype=model_ref.dtype)
+    mask_out.copy_information(model_ref)
+    
+    mask = medipy.base.Image(shape=model_wrap.shape, data_type="scalar", image_type="normal", value=0, dtype=model_wrap.dtype)
+    mask.copy_information(model_wrap)
+    mask[:,:,:] = mask_t[:,:,:,0]
+    
+    medipy.medimax.recalage.recalage_interface.ApplyTransfo3d_GUI(mask, ftrf, mask_out, 'Nearest')
+    indices = numpy.nonzero(mask_out)
+    
+    # apply mask on registered tensor image
+    model_registered = medipy.base.Image(shape=model_ref.shape, dti="tensor_2", value=0, dtype=model_ref.dtype)
+    model_registered.copy_information(model_ref)
+    
+    model_registered[indices] = model_out[indices]
+    
+    return model_registered
 
 def ppd_tensor_trf(model_wrap,F) :
     """ Return the transform of ``model_wrap`` by the field ``F`` using the 
@@ -210,8 +239,10 @@ def ppd(dt6,F):
         spacing=dt6.spacing, origin=dt6.origin, direction=dt6.direction, 
         data_type="vector", image_type="tensor_2")
 
-def interpolation_tensor_trf(model,model_ref,ftrf):
+def interpolation_tensor_trf(model,model_ref,ftrf,inter_type):
     """ Linear interpolation of tensor model
+    INPUT:
+        inter_type: an str interpolation type ("Nearest","Linear","SinCard","QuickSinCard2","QuickSinCard3","Bspline2","Bspline3","Bspline4","Bspline5", "Label")
     """
     nb_of_components = model._get_number_of_components()
     output = medipy.base.Image(model_ref.shape+(nb_of_components,), numpy.single,
@@ -222,8 +253,10 @@ def interpolation_tensor_trf(model,model_ref,ftrf):
         array_in = medipy.base.Image(data=numpy.ascontiguousarray(model[...,i]),
             spacing=model.spacing, origin=model.origin, direction=model.direction,
             data_type="scalar")
-        array_out = medipy.base.Image((1), numpy.single, data_type="scalar")	
-        medipy.medimax.recalage.recalage.ApplyTransfo3d(array_in,str(ftrf),array_out,1)
+        array_out = medipy.base.Image((1), numpy.single, data_type="scalar")
+        
+        interpolation_nb = medipy.medimax.recalage.recalage_interface.InterpolationNumberInMedimax(inter_type)
+        medipy.medimax.recalage.recalage.ApplyTransfo3d(array_in,str(ftrf),array_out,int(interpolation_nb))
         output[...,i] = array_out.data
 
     return output
