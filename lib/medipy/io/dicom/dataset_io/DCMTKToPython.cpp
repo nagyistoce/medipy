@@ -532,9 +532,9 @@ DCMTKToPython
     
     if(last != std::string::npos)
     {
-        if(vr != "LT" && vr != "ST" && vr != "UT")
+        if(vr != "LT" && vr != "PN" && vr != "ST" && vr != "UT")
         {
-            // Leading spaces are significant for LT, ST, and UT
+            // Leading spaces are significant for LT, PN, ST, and UT
             first = value.find_first_not_of(whitespace);
             if(first == std::string::npos)
             {
