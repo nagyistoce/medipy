@@ -215,20 +215,14 @@ class ITK(IOBase) :
                 if bvalues.ndim == 0 :
                     bvalues = numpy.asarray([bvalues])
                 
-                mr_diffusion_sequence = []
-                for index, gradient in enumerate(gradients) :
-                    dataset = medipy.io.dicom.DataSet()
-                    dataset.diffusion_directionality = medipy.io.dicom.CS("DIRECTIONAL")
-                    
-                    dataset.diffusion_bvalue = medipy.io.dicom.FD(bvalues[index])
-                    
-                    gradient_dataset = medipy.io.dicom.DataSet()
-                    gradient_dataset.diffusion_gradient_orientation = medipy.io.dicom.FD(gradient)
-                    dataset.diffusion_gradient_direction_sequence = medipy.io.dicom.SQ([gradient_dataset])
-                    
-                    mr_diffusion_sequence.append(dataset)
+                mr_diffusion = medipy.io.dicom.DataSet(
+                    diffusion_directionality="DIRECTIONAL",
+                    diffusion_bvalue=bvalues[index],
+                    diffusion_gradient_direction_sequence=[medipy.io.dicom.DataSet(
+                        diffusion_gradient_orientation=gradients[index])]
+                )
                 
-                metadata["mr_diffusion_sequence"] = mr_diffusion_sequence
+                metadata["mr_diffusion_sequence"] = [mr_diffusion]
         
         return metadata
     
