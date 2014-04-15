@@ -109,7 +109,7 @@ def register_fibers(fibers,ftrf,model1,model2):
 # Voxel
 #############
 
-def apply_tensor_trf(model_ref,model_wrap,ftrf) :
+def apply_tensor_trf(model_ref,model_wrap,ftrf,inter_type) :
     """ Apply the deformation field stored in file ``ftrf`` to ``model_wrap``,
         using the grid of ``model_ref``.
     
@@ -117,6 +117,9 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
             <item name="model_ref" type="Image" label="Reference tensor image" />
             <item name="model_wrap" type="Image" label="Tensor image to wrap" />
             <item name="ftrf" type="File" label="Deformation field file" />
+            <item name="inter_type" type="Enum" initializer="('Nearest','Linear',
+                'SinCard','QuickSinCard2','QuickSinCard3','Bspline2','Bspline3',
+                'Bspline4','Bspline5','Label')" label="Interpolation method"/>
             <item name="registered" type="Image" initializer="output=True" 
                   role="return" label="Registered tensor image"/>
         </gui>
@@ -124,7 +127,7 @@ def apply_tensor_trf(model_ref,model_wrap,ftrf) :
     # apply transfo on tensor image
     field_backward = load_trf(ftrf,model_wrap)
     log_model_wrap = log_transformation(model_wrap)
-    log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf)
+    log_model_out = interpolation_tensor_trf(log_model_wrap,model_ref,ftrf,inter_type)
     model_out = exp_transformation(log_model_out)
     model_out = ppd_tensor_trf(model_out,field_backward)
     
@@ -236,8 +239,10 @@ def ppd(dt6,F):
         spacing=dt6.spacing, origin=dt6.origin, direction=dt6.direction, 
         data_type="vector", image_type="tensor_2")
 
-def interpolation_tensor_trf(model,model_ref,ftrf):
+def interpolation_tensor_trf(model,model_ref,ftrf,inter_type):
     """ Linear interpolation of tensor model
+    INPUT:
+        inter_type: an str interpolation type ("Nearest","Linear","SinCard","QuickSinCard2","QuickSinCard3","Bspline2","Bspline3","Bspline4","Bspline5", "Label")
     """
     nb_of_components = model._get_number_of_components()
     output = medipy.base.Image(model_ref.shape+(nb_of_components,), numpy.single,
@@ -248,8 +253,10 @@ def interpolation_tensor_trf(model,model_ref,ftrf):
         array_in = medipy.base.Image(data=numpy.ascontiguousarray(model[...,i]),
             spacing=model.spacing, origin=model.origin, direction=model.direction,
             data_type="scalar")
-        array_out = medipy.base.Image((1), numpy.single, data_type="scalar")	
-        medipy.medimax.recalage.recalage.ApplyTransfo3d(array_in,str(ftrf),array_out,1)
+        array_out = medipy.base.Image((1), numpy.single, data_type="scalar")
+        
+        interpolation_nb = medipy.medimax.recalage.recalage_interface.InterpolationNumberInMedimax(inter_type)
+        medipy.medimax.recalage.recalage.ApplyTransfo3d(array_in,str(ftrf),array_out,int(interpolation_nb))
         output[...,i] = array_out.data
 
     return output
