@@ -15,7 +15,6 @@ import medipy.base
 from medipy.diffusion.utils import (spectral_decomposition, compose_spectral, 
     log_transformation, exp_transformation)
 import medipy.medimax.recalage
-import medipy.io
 
 ##########################
 # Transformations fields #
