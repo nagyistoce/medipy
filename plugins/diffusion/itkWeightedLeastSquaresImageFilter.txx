@@ -87,7 +87,13 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
     for (unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++) 
     {
         BValueType const BVal = this->metadata_diffusion[i].first;
-        DirectionType const bvec = this->metadata_diffusion[i].second;
+        
+        DirectionType bvec = this->metadata_diffusion[i].second;
+        // Make sure bvec is normalized
+        if(bvec.GetNorm() > 0.0)
+        {
+            bvec.Normalize();
+        }
         
         this->bmatrix(i,0) = (float) 1.0;                              //log(S0)
         this->bmatrix(i,1) = (float) -1.0*BVal*bvec[0]*bvec[0];        //Dxx
