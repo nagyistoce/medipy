@@ -14,7 +14,7 @@
 #include <vector>
 
 #include <itkTensorReconstructionImageFilter.h>
-#include <itkPoint.h>
+#include <itkVector.h>
 
 #include <vnl/vnl_matrix.h>
 
@@ -55,7 +55,7 @@ public :
     typedef typename Superclass::BaselineImagePointer BaselineImagePointer;
 
     /** Gradient direction type */
-    typedef Point<float,3> DirectionType;
+    typedef Vector<float,3> DirectionType;
     /** B-value type */
     typedef float BValueType;
     
