@@ -18,9 +18,10 @@ import medipy.vtk
 from ..utils import rotation33todt6, spectral_decomposition
 
 def get_fa(eigenvalues, eigenvectors):
-    ev1 = eigenvalues[...,0]
-    ev2 = eigenvalues[...,1]
-    ev3 = eigenvalues[...,2]
+    # Consider negative eigenvalues as null
+    ev1 = numpy.maximum(0, eigenvalues[...,0])
+    ev2 = numpy.maximum(0, eigenvalues[...,1])
+    ev3 = numpy.maximum(0, eigenvalues[...,2])
     
     fa_numerator = 0.5*(
         numpy.square(ev1-ev2)+numpy.square(ev2-ev3)+numpy.square(ev3-ev1))
@@ -44,10 +45,6 @@ class PrincipalDirectionVoxelPipeline(object):
         eigenvalues, eigenvectors = spectral_decomposition(image)
         
         fa = get_fa(eigenvalues, eigenvectors)
-        # Normalize the FA to 1
-        nfa = fa.max()
-        if nfa!=0 :
-            fa /= fa.max()
         
         principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
         principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])
@@ -84,8 +81,6 @@ class PrincipalDirectionLinePipeline(object):
     def update(self, image):
         eigenvalues, eigenvectors = spectral_decomposition(image)
         fa = get_fa(eigenvalues, eigenvectors)
-        # Normalize the FA to 1
-        fa /= fa.max()
         
         principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
         principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])
