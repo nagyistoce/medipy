@@ -14,6 +14,9 @@
 namespace itk
 {
 
+/**
+ * @brief Base class for functors that compute scalar values from diffusion tensors.
+ */
 template<typename TInput, typename TOutput>
 class DTIScalarCalculator
 {
@@ -32,8 +35,33 @@ protected:
 
     itk::SymmetricEigenAnalysis<MatrixType, VectorType> m_Calculator;
     
-    virtual double ComputeScalar(MatrixType const & eigenVectors,
-                                   VectorType const & eigenValues) const=0;
+    /**
+     * @brief Compute the eigensystem of diffusion tensor.
+     */
+    void ComputeEigensystem(TInput const & input, 
+                            MatrixType & eigenVectors, VectorType & eigenValues) const;
+    
+    /**
+     * @brief Compute the norm of the diffusion tensor.
+     * 
+     * The norm is defined as the square root of the sum of the squared elements
+     * of the tensor, which equals the square root of the sum of the squared
+     * eigenvalues (Processing and visualization for diffusion tensor MRI; 
+     * Westin et al.; Medical Image Analysis vol. 6 pp.93-108; 2002).
+     */
+    double ComputeNorm(TInput const & input) const;
+    
+    /**
+     * @brief Compute the trace of the diffusion tensor.
+     * 
+     * The norm is defined as the sum of the diagonal elements of the tensor, 
+     * which equals the square root of the sum of the eigenvalues (Processing 
+     * and visualization for diffusion tensor MRI; Westin et al.; Medical Image 
+     * Analysis vol. 6 pp.93-108; 2002).
+     */
+    double ComputeTrace(TInput const & input) const;
+    
+    virtual TOutput ComputeScalar(TInput const & input) const=0;
 };
 
 template<typename TInput, typename TOutput>
@@ -45,8 +73,7 @@ public:
 protected:
     typedef typename DTIScalarCalculator<TInput, TOutput>::MatrixType MatrixType;
     typedef typename DTIScalarCalculator<TInput, TOutput>::VectorType VectorType;
-    virtual double ComputeScalar(MatrixType const & eigenVectors, 
-                                   VectorType const & eigenValues) const;
+    virtual TOutput ComputeScalar(TInput const & input) const;
 };
 
 template<typename TInput, typename TOutput>
@@ -58,8 +85,7 @@ public:
 protected:
     typedef typename DTIScalarCalculator<TInput, TOutput>::MatrixType MatrixType;
     typedef typename DTIScalarCalculator<TInput, TOutput>::VectorType VectorType;
-    virtual double ComputeScalar(MatrixType const & eigenVectors, 
-                                   VectorType const & eigenValues) const;
+    virtual TOutput ComputeScalar(TInput const & input) const;
 };
 
 template<typename TInput, typename TOutput>
@@ -71,8 +97,7 @@ public:
 protected:
     typedef typename DTIScalarCalculator<TInput, TOutput>::MatrixType MatrixType;
     typedef typename DTIScalarCalculator<TInput, TOutput>::VectorType VectorType;
-    virtual double ComputeScalar(MatrixType const & eigenVectors, 
-                                   VectorType const & eigenValues) const;
+    virtual TOutput ComputeScalar(TInput const & input) const;
 };
 
 template<typename TInput, typename TOutput>
@@ -84,8 +109,7 @@ public:
 protected:
     typedef typename DTIScalarCalculator<TInput, TOutput>::MatrixType MatrixType;
     typedef typename DTIScalarCalculator<TInput, TOutput>::VectorType VectorType;
-    virtual double ComputeScalar(MatrixType const & eigenVectors, 
-                                   VectorType const & eigenValues) const;
+    virtual TOutput ComputeScalar(TInput const & input) const;
 };
 
 }
