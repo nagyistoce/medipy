@@ -114,6 +114,8 @@ GDCMToPython
 
 #undef ADD_VR_TO_MAP
 
+    this->_medipy_io_dicom_vr[gdcm::VR::US_SS_OW] = PyObject_GetAttrString(medipy_io_dicom, "OW");
+
     Py_DECREF(medipy_io_dicom);
     Py_DECREF(medipy_io);
     Py_DECREF(medipy);
