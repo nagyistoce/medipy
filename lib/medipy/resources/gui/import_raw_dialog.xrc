@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource>
+  
+  <object class="wxDialog" name="import_raw_dialog">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>File: </label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.File" name="filename"/>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText" name="filesize">
+                  <label>xx bytes</label>
+                </object>
+              </object>
+              <orient>wxHORIZONTAL</orient>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <orient>wxVERTICAL</orient>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Dimensions: </label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Int" name="ndim"/>
+              </object>
+              <object class="sizeritem">
+                <object class="wxPanel" name="sizes"/>
+                <option>1</option>
+              </object>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Data type: </label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Enum" name="dtype"/>
+                <option>1</option>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Endianness:</label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Enum" name="endianness"/>
+                <option>1</option>
+              </object>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Offset: </label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Int" name="offset"/>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>Skip end:</label>
+                </object>
+              </object>
+              <object class="sizeritem">
+                <object class="medipy.gui.control.Bool" name="skip_end"/>
+              </object>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticText" name="message">
+                  <label>Parameters are OK</label>
+                </object>
+              </object>
+            </object>
+            <flag>wxEXPAND</flag>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <object class="spacer">
+            <option>1</option>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="import_">
+              <label>Import</label>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="cancel">
+              <label>Cancel</label>
+            </object>
+          </object>
+          <orient>wxHORIZONTAL</orient>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+    </object>
+    <title>Import from raw data</title>
+    <style>wxRESIZE_BORDER</style>
+  </object>
+</resource>
