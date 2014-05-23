@@ -614,13 +614,17 @@ GDCMToPython
         double const d = OFStandard::atof(buffer, &success);
         delete[] buffer;
         
-        if(!success)
+        PyObject* result;
+        if(success)
         {
-            PyErr_SetString(PyExc_Exception, "Cannot parse DS");
-            return NULL;
+            result = PyFloat_FromDouble(d);
+        }
+        else
+        {
+            result = PyFloat_FromDouble(NAN);
         }
 
-        return PyFloat_FromDouble(d);
+        return result;
     }
     else if(vr == gdcm::VR::FD)
     {
