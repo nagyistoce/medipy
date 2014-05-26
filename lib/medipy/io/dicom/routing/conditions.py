@@ -72,3 +72,18 @@ class ElementMatch(Condition):
             return False
         else :
             return dataset[self.tag].value == self.value
+
+class HeaderElementMatch(Condition):
+    """ Test if an element in a header of dataset matches a value. 
+    """
+    
+    def __init__(self, tag, value):
+        self.tag = tag
+        self.value = value
+    
+    def __call__(self, dataset):
+        # TODO : matching in the DICOM sense (cf. query)
+        if hasattr(dataset, "header") or self.tag not in dataset.header :
+            return False
+        else :
+            return dataset.header[self.tag].value == self.value
