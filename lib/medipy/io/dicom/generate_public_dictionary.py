@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 ##########################################################################
 # MediPy - Copyright (C) Universite de Strasbourg
 # Distributed under the terms of the CeCILL-B license, as published by
@@ -65,9 +67,13 @@ def normalize_name(inputName):
 def normalize_Keyword(inputKeyword):
     """ Rules
         1- Delete non alpha char
+        2- Replace µ by u
         2- Add '_' between words
         3- Character => lower
     """
+    
+    outputKeyword = normalize_name(inputKeyword)
+    outputKeyword = outputKeyword.replace(u"µ", "u")
     
     # Delete space
     outputKeyword = re.split(r"\s", inputKeyword)
