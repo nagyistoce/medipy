@@ -137,6 +137,17 @@ def get_tr_values(trNode):
         
     return returnValues
 
+def process_table(table):
+    dictionary = {}
+    
+    tbody = table.getElementsByTagName("tbody")[0]
+    # Read each row (TR)
+    for child in tbody.getElementsByTagName("tr"):
+        # Get information from columns (TD)
+        dictionary.update(get_tr_values(child))
+    
+    return dictionary
+
 def main():
 
     fd = urllib.urlopen(sys.argv[1])
@@ -146,8 +157,17 @@ def main():
     data_dictionary = {}
     
     tables = input.getElementsByTagName("table")
+    
+    # Registry of DICOM Data Elements
     table = [node for node in tables 
              if node.getAttribute("xml:id") == "table_6-1"][0]
+    data_dictionary.update(process_table(table))
+    
+    # Registry of DICOM File Meta Elements
+    table = [node for node in tables 
+             if node.getAttribute("xml:id") == "table_7-1"][0]
+    data_dictionary.update(process_table(table))
+    
     tbody = table.getElementsByTagName("tbody")[0]
     # Read each row (TR)
     for child in tbody.getElementsByTagName("tr"):
