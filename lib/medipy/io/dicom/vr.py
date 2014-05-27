@@ -48,3 +48,8 @@ class UL(VR): pass
 class UN(VR): pass
 class US(VR): pass
 class UT(VR): pass
+
+class OB_or_OW(VR): pass
+class US_or_OW(VR): pass
+class US_or_SS(VR): pass
+class US_or_SS_or_OW(VR): pass
