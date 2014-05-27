@@ -11,18 +11,33 @@ import sys
 import urllib
 import xml.dom.minidom
     
-def normalize_VR(inputVR):
+def normalize_VR(inputVR, tag):
     """ Rules :
         1- Type1 or Type2 => Type1/Type2
         2- See Note => UN
         3- Can't be null => UN
     """
     
-    outputVR = inputVR.replace(" or ", "/")
-    outputVR = outputVR.replace("See Note", "UN")
+    all_vr = ["AE", "AS", "AT", "CS", "DA", "DS", "DT", "FL", "FD", "IS", "LO",
+              "LT", "OB", "OD", "OF", "OW", "PN", "SH", "SL", "SQ", "SS", "ST",
+              "TM", "UI", "UL", "UN", "US", "UT",
+              "OB_or_OW", "US_or_OW", "US_or_SS", "US_or_SS_or_OW",
+              None]
     
-    if outputVR == "":
-        return "UN"
+    if tag in [0xfffee000, 0xfffee00d, 0xfffee0dd]:
+        # Item, Item Delimitation Item, Sequence Delimitation Item
+        outputVR = None
+    elif tag in [0x00189445, 0x00280020]:
+        # See PS 3.6, note 6.3
+        # For some Data Elements, no Name or Keyword or VR or VM is specified; 
+        # these are "placeholders" that are not assigned but will not be reused.
+        outputVR = None
+    else:
+        outputVR = inputVR.replace(" ", "_")
+    
+    if outputVR not in all_vr:
+        raise Exception("Unknown VR for tag {0}: {1!r}".format(
+            "{0:08x}".format(tag) if isinstance(tag, int) else tag, inputVR))
     
     return outputVR
     
@@ -121,7 +136,7 @@ def get_tr_values(trNode):
         tag = int(tag, 16)
         
     # Formatting VR
-    vr = normalize_VR(vr)
+    vr = normalize_VR(vr, tag)
     
     # Formatting VM
     vm = normalize_VM(vm)
