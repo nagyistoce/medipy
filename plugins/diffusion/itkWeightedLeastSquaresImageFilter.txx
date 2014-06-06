@@ -7,10 +7,14 @@
 
 #include <vector>
 
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkImageRegionIteratorWithIndex.h>
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_matlab_print.h>
+
+#include "itkComposeSpectralImageFilter.h"
+#include "itkSymmetricSpectralAnalysisImageFilter.h"
 
 namespace itk
 {
@@ -119,6 +123,97 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
     BaselineImagePointer baseline = 
         dynamic_cast<TBaselineImage*>(this->ProcessObject::GetOutput(1));
     baseline->FillBuffer(0);
+}
+
+template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
+void 
+WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
+::AfterThreadedGenerateData()
+{
+    // Output after the ThreadedGenerateData()
+    TensorsImageType * tensors = this->GetTensorsImage();
+    
+    typedef ImageRegionIterator<TensorsImageType> OutputIterator;
+    OutputIterator outputIt(tensors, tensors->GetRequestedRegion());
+    outputIt.GoToBegin();
+    
+    // Copy the Output to avoid to modify it in the filter
+    // SymmetricSpectralAnalysisImageFilter
+    TensorsImagePointer tensors_new = TensorsImageType::New();
+    tensors_new->SetRegions( tensors->GetRequestedRegion() );
+    tensors_new->SetVectorLength(6);
+    tensors_new->Allocate();
+    typename TensorsImageType::PixelType zero(6);
+    zero.Fill(0);
+    tensors_new->FillBuffer(zero);
+    
+    OutputIterator outputNewIt(tensors_new, tensors_new->GetRequestedRegion());
+    outputNewIt.GoToBegin();
+
+    while(!outputIt.IsAtEnd())
+    {
+        typename TensorsImageType::PixelType vec = outputIt.Get();
+        typename TensorsImageType::PixelType vec_new = outputNewIt.Get();
+        
+        std::copy(&vec[0], &vec[vec.Size()-1], &vec_new[0]);
+        
+        ++outputIt;
+        ++outputNewIt;
+    }
+    
+    // Spectral decomposition of the tensors image
+    typedef SymmetricSpectralAnalysisImageFilter<TensorsImageType, TensorsImageType> FilterType;
+    typename FilterType::Pointer filter;
+    filter = FilterType::New();
+    filter->SetInput(0, tensors_new);
+    filter->Update();
+    
+    TensorsImageType * eigval = filter->GetEigenValuesImage();
+    TensorsImageType * eigvec = filter->GetEigenVectorsImage();
+    
+    typedef ImageRegionIterator<TensorsImageType> EigenValueIterator;
+    EigenValueIterator eigenValueIt(eigval, eigval->GetRequestedRegion());
+    eigenValueIt.GoToBegin();
+    
+    while( !eigenValueIt.IsAtEnd() )
+    {
+        // Verify if the eigen value are positive
+        typename TensorsImageType::PixelType eigenValue = eigenValueIt.Get();
+        for( unsigned int i=0; i<eigenValue.Size(); i++ )
+        {
+            if( eigenValue[i] < 0.0 )
+            {
+                eigenValue[i] = 0.0;
+            }
+        }
+        ++eigenValueIt;
+    }
+    
+    // Reconstruct the tensor from the eigen vectors
+    // and the NEW eigen values
+    typedef ComposeSpectralImageFilter<TensorsImageType, TensorsImageType> FilterTypeReconstruction;
+    typename FilterTypeReconstruction::Pointer filter_reconstruction;
+    filter_reconstruction = FilterTypeReconstruction::New();
+    filter_reconstruction->SetEigenValues(eigval);
+    filter_reconstruction->SetEigenVectors(eigvec);
+    filter_reconstruction->Update();
+    
+    TensorsImageType * tensors_reconstructed = filter_reconstruction->GetOutput();
+    
+    OutputIterator outputReconstructIt(tensors_reconstructed, tensors_reconstructed->GetRequestedRegion());
+    outputReconstructIt.GoToBegin();
+    outputIt.GoToBegin();
+
+    while( !outputIt.IsAtEnd() )
+    {
+        typename TensorsImageType::PixelType vec = outputIt.Get();
+        typename TensorsImageType::PixelType vec_new = outputReconstructIt.Get();
+        
+        std::copy(&vec_new[0], &vec_new[vec_new.Size()-1], &vec[0]);
+        
+        ++outputIt;
+        ++outputReconstructIt;
+    }
 }
 
 template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
