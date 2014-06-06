@@ -125,7 +125,7 @@ def spectral_decomposition(image):
     
     itk_tensors = medipy.itk.medipy_image_to_itk_image(image, False)
     spectral_analysis.spectral_analysis(itk_tensors,imgEigVal_itk,imgEigVec_itk)
-
+    
     return imgEigVal,imgEigVec
 
 def dti6to33(dt6):
