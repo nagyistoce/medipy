@@ -6,9 +6,12 @@
 # for details.
 ##########################################################################
 
+import itk
 import numpy
+
 import medipy.base
 import medipy.base.exception
+import medipy.itk
 import medipy.logic
 
 def mean_stdev_normalization(reference, image, mask_ref=None, mask_image=None):
@@ -69,5 +72,42 @@ def one_parameter_linear_regression_normalization(src,ref):
     data=alpha*src.data
     output = medipy.base.Image(data=data)
     output.copy_information(src)
+    
+    return output
+
+def joint_histogram(
+        image1, image2, mask=None, mask_value=1, 
+        bins_count1=100, bins_count2=100, method=0):
+    
+    """ Intensity normalization based on joint histogram.
+    """
+    
+    image1_itk = medipy.itk.medipy_image_to_itk_image(image1, False)
+    image2_itk = medipy.itk.medipy_image_to_itk_image(image2, False)    
+    
+    mask_itk = None
+    if mask:
+        mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
+
+    if mask:
+        FilterType = itk.JointHistogramNormalizationFilter[image1_itk, mask_itk, image2_itk]
+    else:
+        FilterType = itk.JointHistogramNormalizationFilter[image1_itk, image1_itk, image2_itk]
+    
+    filter_ = FilterType.New(image1_itk, image2_itk,
+        MaskValue=mask_value, BinsCount1=bins_count1, BinsCount2=bins_count2)
+    if mask:
+        filter_.SetMask(mask_itk)
+    
+    # FIXME: should be in ctor
+    if method == 0:
+        filter_.SetMethodToNearestNeighbor() 
+    elif method == 1:
+        filter_.SetMethodToLinearInterpolation()
+    else:
+        raise medipy.base.Exception("Invalid estimation method: {0}".format(method))
+    
+    output_itk = filter_()[0]
+    output = medipy.itk.itk_image_to_medipy_image(output_itk, None, True)
     
     return output
