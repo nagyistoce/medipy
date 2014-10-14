@@ -173,12 +173,13 @@ def best_fitting_axes_aligned_matrix(direction):
         matrix while being aligned to the axes.
     """
         
-    transformation_matrix = numpy.zeros((3,3))
+    transformation_matrix = numpy.zeros(numpy.shape(direction))
     for index, v in enumerate(direction) :
         max_alignment = None
         best_model = None
-        for model in [(1,0,0), (0,1,0), (0,0,1)] :
-            model = numpy.asarray(model)
+        for model_index in range(len(v)):
+            model = numpy.zeros(len(v))
+            model[model_index] = 1
             
             alignment = numpy.dot(v, model)
             
