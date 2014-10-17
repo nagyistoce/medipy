@@ -73,8 +73,6 @@ JointHistogramNormalizationFilter<TInputImage, TMask, TOutputImage>
 
     jh_calculator->Compute();
 
-    //write(filter->GetHistogram(), "before.png");
-    
     typedef typename JointHistogramCalculatorType::HistogramType HistogramType;
     
     typedef itk::JointHistogramTransferFunctionCalculator<HistogramType>
