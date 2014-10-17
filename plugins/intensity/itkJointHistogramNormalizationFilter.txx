@@ -89,25 +89,10 @@ JointHistogramNormalizationFilter<TInputImage, TMask, TOutputImage>
     
     typedef typename JointHistogramTransferFunctionCalculatorType::TransferFunctionType
         TransferFunctionType;
-    typedef typename TransferFunctionType::Pointer TransferFunctionPointer;
     
-    TransferFunctionPointer transfer_function = tf_calculator->GetTransferFunction();
-    /*
-    {
-        typedef typename JointHistogramTransferFunctionCalculatorType::TransferFunctionType
-            TransferFunctionType;
-        std::ofstream stream("data.txt");
-        typedef itk::ImageRegionConstIteratorWithIndex<TransferFunctionType> InputIteratorType;
-        for(InputIteratorType it(transfer_function, transfer_function->GetRequestedRegion());
-            !it.IsAtEnd(); ++it)
-        {
-            typename TransferFunctionType::PointType point;
-            transfer_function->TransformIndexToPhysicalPoint(it.GetIndex(), point);
-            stream << point[0] << " " << it.Get() << "\n";
-        }
-        stream << "\n";
-    }
-    */
+    // vtkPiecewiseFunction::GetValue is not const...
+    TransferFunctionType * transfer_function = 
+        const_cast<TransferFunctionType *>(tf_calculator->GetTransferFunction());
     
     this->AllocateOutputs();
     typename OutputImageType::Pointer output = this->GetOutput();
@@ -120,17 +105,7 @@ JointHistogramNormalizationFilter<TInputImage, TMask, TOutputImage>
     OutputIteratorType output_it(output, output->GetRequestedRegion());
     while(!output_it.IsAtEnd())
     {
-        typename TransferFunctionType::PointType point;
-		point.Fill(input_it.Get());
-		
-		typename TransferFunctionType::IndexType index;
-		transfer_function->TransformPhysicalPointToIndex(point, index);
-        // Clamp inside of transfer function
-        index[0] = std::min<typename TransferFunctionType::IndexValueType>(
-            std::max<typename TransferFunctionType::IndexValueType>(index[0], 0),
-            transfer_function->GetRequestedRegion().GetSize()[0]-1);
-        
-        output_it.Set(transfer_function->GetPixel(index));
+        output_it.Set(transfer_function->GetValue(input_it.Get()));
         
         ++input_it;
         ++output_it;
