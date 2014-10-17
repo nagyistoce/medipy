@@ -12,6 +12,7 @@
 #include "itkJointHistogramTransferFunctionCalculator.h"
 
 #include <algorithm>
+#include <iterator>
 
 #include <itkIdentityTransform.h>
 #include <itkImageDuplicator.h>
@@ -29,8 +30,6 @@ JointHistogramTransferFunctionCalculator<THistogram>
 ::Compute()
 {
     TransferFunctionPointer max_prob = this->MaximumProbabilityTransferFunction();
-    this->m_TransferFunction = max_prob;
-
     std::vector<MeasurementType> const weights = this->ConfidenceWeights();
     
     float const smooth_sigma = this->m_Histogram->GetSize(0)/50.0;
@@ -39,11 +38,8 @@ JointHistogramTransferFunctionCalculator<THistogram>
         this->m_Histogram->GetBinMin(0,0)
     )/25.0;
     
-    typedef ImageDuplicator<TransferFunctionType> ImageDuplicatorType;
-    typename ImageDuplicatorType::Pointer duplicator = ImageDuplicatorType::New();
-    duplicator->SetInputImage(max_prob); 
-    duplicator->Update(); 
-    TransferFunctionPointer result = duplicator->GetOutput();
+    TransferFunctionPointer result = TransferFunctionPointer::New();
+    result->DeepCopy(max_prob);
     
     // first compute reliable but imprecise curve
 	// then refine curve, using  outlier downweighting 
@@ -58,25 +54,29 @@ JointHistogramTransferFunctionCalculator<THistogram>
         { 
             sigma = smooth_sigma;
         }
-		
+        
 		// predicts values from neighboring tangents, using weights
 		// and using gaussian smoothing
-        unsigned int const size = result->GetRequestedRegion().GetSize(0);
-		typename TransferFunctionType::IndexType x; 
-        for(x[0]=0; x[0]<size; ++x[0])
+        for(int x=0; x<result->GetSize(); ++x)
 		{
 			double s=0;
 			double totcoef=0;
             
-            typename TransferFunctionType::IndexType x0; 
-			for(x0[0]=0; x0[0]<size-1; ++x0[0])
+            for(int x0=0; x0<result->GetSize()-1; ++x0)
 			{
-                typename TransferFunctionType::IndexType x1;
-                x1[0] = x0[0]+1;
+                int const x1 = x0+1;
+                
+                double node_value[4];
+                
+                max_prob->GetNodeValue(x0, node_value);
+                double const y0 = node_value[1];
+                
+                max_prob->GetNodeValue(x1, node_value);
+                double const y1 = node_value[1];
                 
 				// tangent
-				double const dx = x[0] - 0.5*(x0[0]+x1[0]);
-				double const dy = max_prob->GetPixel(x1)-max_prob->GetPixel(x0);
+				double const dx = x - 0.5*(x0+x1);
+				double const dy = y1-y0;
 				
                 /*
                 if(dy<0)
@@ -86,17 +86,20 @@ JointHistogramTransferFunctionCalculator<THistogram>
                 */
                 
 				// confidence weights
-				double const w=std::min(weights[x0[0]], weights[x1[0]]);
+				double const w=std::min(weights[x0], weights[x1]);
                 
 				// gaussian smoothing
 				double const coef=exp(-dx*dx/(2*sigma*sigma));
-				double const predictedValue=dy*(float)(x[0]-x0[0])/(float)(x1[0]-x0[0]) + max_prob->GetPixel(x0);
+                double const predictedValue=dy*(float)(x-x0)/(float)(x1-x0) + y0;
                 
 				// outlier downweighting
 				double reweight=1;
 				if(iter>0)
 				{
-					double const error = predictedValue-result->GetPixel(x);
+                    result->GetNodeValue(x0, node_value);
+                    double const value = node_value[1];
+                    
+					double const error = predictedValue-value;
 					reweight = exp(-error*error/(2*outliers_sigma*outliers_sigma));
 				}
 				double const finalCoef = w*reweight*coef;
@@ -104,7 +107,12 @@ JointHistogramTransferFunctionCalculator<THistogram>
 				s += finalCoef*predictedValue;
 				totcoef += finalCoef;
 			}
-			result->SetPixel(x, totcoef>0 ? s/totcoef : 0);
+            
+            double node_value[4];                
+            result->GetNodeValue(x, node_value);
+            
+            node_value[1] = totcoef>0 ? s/totcoef : 0;
+            result->SetNodeValue(x, node_value);
 		}
 	}
     
@@ -137,6 +145,14 @@ JointHistogramTransferFunctionCalculator<THistogram>
 }
 
 template<typename THistogram>
+typename JointHistogramTransferFunctionCalculator<THistogram>::TransferFunctionType const * 
+JointHistogramTransferFunctionCalculator<THistogram>
+::GetTransferFunction() const
+{
+    return this->m_TransferFunction;
+}
+
+template<typename THistogram>
 JointHistogramTransferFunctionCalculator<THistogram>
 ::JointHistogramTransferFunctionCalculator()
 {
@@ -160,44 +176,32 @@ JointHistogramTransferFunctionCalculator<THistogram>
 {
     TransferFunctionPointer result = TransferFunctionType::New();
     
-    // Region
-    typename TransferFunctionType::IndexType index; index.Fill(0);
-    typename TransferFunctionType::SizeType size; size.Fill(this->m_Histogram->GetSize(0));
-    result->SetRegions(typename TransferFunctionType::RegionType(index, size));
-    result->Allocate();
-    
-    // Origin
-    typename TransferFunctionType::PointType origin;
-    origin.Fill(this->m_Histogram->GetBinMin(0,0));
-    result->SetOrigin(origin);
-    
-    // Spacing
-    typename TransferFunctionType::SpacingType spacing;
-    spacing.Fill(this->m_Histogram->GetBinMax(0,0)-this->m_Histogram->GetBinMin(0,0));
-    result->SetSpacing(spacing);
-    
-    typedef ImageRegionIteratorWithIndex<TransferFunctionType> IteratorType;
-    for(IteratorType it(result, result->GetRequestedRegion()); !it.IsAtEnd(); ++it)
+    for(unsigned int i=0; i<this->m_Histogram->GetSize(0); ++i)
     {
-        int const x = it.GetIndex()[0];
+        float const x = 0.5*(
+            this->m_Histogram->GetBinMin(0, i)+
+            this->m_Histogram->GetBinMax(0, i));
         
-        TransferFunctionPointer column = this->Column(x);
-        TransferFunctionPointer resampled = this->Resample(column);
-        
-        TransferFunctionPointer smoothed = this->Smooth(resampled, 2*this->m_ResampleFactor);
+        std::vector<MeasurementType> const column = this->Column(i);
+        std::vector<MeasurementType> const resampled = this->Resample(column);
+        std::vector<MeasurementType> smoothed = 
+            this->Smooth(resampled, 2*this->m_ResampleFactor);
         smoothed = this->Smooth(smoothed, 2*this->m_ResampleFactor);
         smoothed = this->Smooth(smoothed, 2*this->m_ResampleFactor);
         
-        typedef MinimumMaximumImageCalculator<TransferFunctionType>
-            MinimumMaximumImageCalculatorType;
-        typename MinimumMaximumImageCalculatorType::Pointer max_calculator = 
-            MinimumMaximumImageCalculatorType::New();
-        max_calculator->SetImage(smoothed);
-        max_calculator->ComputeMaximum();
+        unsigned int const index_of_maximum = std::distance(smoothed.begin(),
+            std::max_element(smoothed.begin(), smoothed.end()));
         
-        typename TransferFunctionType::PointType point;
-        smoothed->TransformIndexToPhysicalPoint(max_calculator->GetIndexOfMaximum(), point);
-        it.Set(point[0]);
+        float const index_of_maximum_original = 
+            float(index_of_maximum)/float(this->m_ResampleFactor);
+        
+        float const alpha = index_of_maximum_original-int(index_of_maximum_original);
+        
+        float const y = 
+            (1-alpha)*this->m_Histogram->GetBinMin(1, int(index_of_maximum_original))+
+            alpha*this->m_Histogram->GetBinMax(1, int(index_of_maximum_original));
+        
+        result->AddPoint(x, y);
     }
     
     return result;
@@ -209,6 +213,7 @@ JointHistogramTransferFunctionCalculator<THistogram>
 ::ConfidenceWeights() const
 {
     std::vector<MeasurementType> result;
+    
     result.reserve(this->m_Histogram->GetSize(0));
     
     typename HistogramType::IndexType index;
@@ -230,91 +235,94 @@ JointHistogramTransferFunctionCalculator<THistogram>
 }
 
 template<typename THistogram>
-typename JointHistogramTransferFunctionCalculator<THistogram>::TransferFunctionPointer
+std::vector<typename JointHistogramTransferFunctionCalculator<THistogram>::MeasurementType>
 JointHistogramTransferFunctionCalculator<THistogram>
 ::Column(int const x) const
 {
-    TransferFunctionPointer column = TransferFunctionType::New();
-        
-    // Region
-    typename TransferFunctionType::IndexType index; index.Fill(0);
-    typename TransferFunctionType::SizeType size; size.Fill(this->m_Histogram->GetSize(1));
-    column->SetRegions(typename TransferFunctionType::RegionType(index, size));
-    column->Allocate();
+    std::vector<MeasurementType> column(this->m_Histogram->GetSize(1));
     
-    // Origin
-    typename TransferFunctionType::PointType origin;
-    origin.Fill(this->m_Histogram->GetBinMin(1, 0));
-    column->SetOrigin(origin);
-    
-    // Spacing
-    typename TransferFunctionType::SpacingType spacing;
-    spacing.Fill(this->m_Histogram->GetBinMax(1, 0)-this->m_Histogram->GetBinMin(1, 0));
-    column->SetSpacing(spacing);
-    
-    typedef ImageRegionIteratorWithIndex<TransferFunctionType> IteratorType;
-    for(IteratorType column_it(column, column->GetRequestedRegion()); 
-        !column_it.IsAtEnd(); ++column_it)
+    for(unsigned int y=0; y<this->m_Histogram->GetSize(1); ++y)
     {
-        int const y = column_it.GetIndex()[0];
         typename HistogramType::IndexType index; index[0] = x; index[1] = y;
-        column_it.Set(this->m_Histogram->GetFrequency(index));
+        column[y] = this->m_Histogram->GetFrequency(index);
     }
     
     return column;
 }
 
 template<typename THistogram>
-typename JointHistogramTransferFunctionCalculator<THistogram>::TransferFunctionPointer
+std::vector<typename JointHistogramTransferFunctionCalculator<THistogram>::MeasurementType>
 JointHistogramTransferFunctionCalculator<THistogram>
-::Resample(TransferFunctionPointer function) const
+::Resample(std::vector<MeasurementType> const & function) const
 {
-    typedef ResampleImageFilter<TransferFunctionType, TransferFunctionType>
-        ResampleFilterType;
+    std::vector<MeasurementType> resampled(this->m_ResampleFactor*function.size());
     
-    typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
+    for(unsigned int i=0; i<resampled.size(); ++i)
+    {
+        float p = float(i)/float(this->m_ResampleFactor);
+        
+        MeasurementType const before = function[
+            std::min<int>(function.size()-1, int(p))];
+        MeasurementType const after = function[
+            std::min<int>(function.size()-1, 1+int(p))];
+        
+        float const alpha = p-int(p);
+        float const value = (1-alpha)*before + alpha*after;
+        resampled[i] = static_cast<MeasurementType>(value);
+    }
     
-    resample->SetInput(function);
+    return resampled;
+}
+
+template<typename THistogram>
+std::vector<typename JointHistogramTransferFunctionCalculator<THistogram>::MeasurementType>
+JointHistogramTransferFunctionCalculator<THistogram>
+::Smooth(std::vector<MeasurementType> const & function, int factor) const
+{
+    std::vector<MeasurementType> smoothed(function.size());
+    for(unsigned int i=0; i<smoothed.size(); ++i)
+    {
+        float value=0;
+        unsigned int count=0;
+        for(int j=std::max<int>(0, i-factor); 
+            j < std::min<int>(function.size()-1, i+factor); ++j)
+        {
+            value += function[j];
+            ++count;
+        }
+        value /= count;
+        
+        smoothed[i] = value;
+    }
     
-    // Since we only wish to supersample, the transform is set to identity, and
-    // the origin is unchanged while the spacing and the size are changed
-    resample->SetTransform(IdentityTransform<double, 1>::New());
-    
-    typename TransferFunctionType::SizeType size = 
-        function->GetRequestedRegion().GetSize();
-    size[0] *= this->m_ResampleFactor;
-    resample->SetSize(size);
-    
-    resample->SetOutputOrigin(function->GetOrigin());
-    resample->SetOutputDirection(function->GetDirection());
-    
-    typename TransferFunctionType::SpacingType spacing = function->GetSpacing();
-    spacing /= this->m_ResampleFactor;
-    resample->SetOutputSpacing(spacing);
-    
-    resample->SetDefaultPixelValue(-1);
-    resample->Update();
-    return resample->GetOutput();
+    return smoothed;
 }
 
 template<typename THistogram>
 typename JointHistogramTransferFunctionCalculator<THistogram>::TransferFunctionPointer
 JointHistogramTransferFunctionCalculator<THistogram>
 ::Smooth(TransferFunctionPointer function, int factor) const
-
 {
-    typedef MeanImageFilter<TransferFunctionType, TransferFunctionType>
-        MeanImageFilterType;
+    std::vector<MeasurementType> vector(function->GetSize());
+    for(int i=0; i<function->GetSize(); ++i)
+    {
+        double node_value[4];
+        function->GetNodeValue(i, node_value);
+        vector[i] = node_value[1];
+    }
     
-    typename MeanImageFilterType::InputSizeType radius;
-    radius.Fill(factor);
+    vector = this->Smooth(vector, factor);
     
-    typename MeanImageFilterType::Pointer mean = MeanImageFilterType::New();
-    mean->SetRadius(radius);
-    mean->SetInput(function);
-    mean->Update();
+    TransferFunctionPointer smoothed = TransferFunctionPointer::New();
+    for(int i=0; i<function->GetSize(); ++i)
+    {
+        double node_value[4];
+        function->GetNodeValue(i, node_value);
+        
+        smoothed->AddPoint(node_value[0], vector[i]);
+    }
     
-    return mean->GetOutput();
+    return smoothed;
 }
 
 }

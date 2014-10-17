@@ -15,6 +15,8 @@
 #include <itkIndent.h>
 #include <itkMacro.h>
 #include <itkObject.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkSmartPointer.h>
 
 namespace itk
 {
@@ -23,7 +25,6 @@ template<typename THistogram>
 class JointHistogramTransferFunctionCalculator: public Object
 {
 public:
-    
     /** Standard typedefs */
     typedef JointHistogramTransferFunctionCalculator Self;
     typedef Object Superclass;
@@ -40,8 +41,8 @@ public:
     typedef typename HistogramType::Pointer HistogramPointer;
     typedef typename HistogramType::MeasurementType MeasurementType;
     
-    typedef itk::Image<MeasurementType, 1> TransferFunctionType;
-    typedef typename TransferFunctionType::Pointer TransferFunctionPointer;
+    typedef vtkPiecewiseFunction TransferFunctionType;
+    typedef vtkSmartPointer<TransferFunctionType> TransferFunctionPointer;
     
     itkGetObjectMacro(Histogram, HistogramType);
     itkGetConstObjectMacro(Histogram, HistogramType);
@@ -51,11 +52,8 @@ public:
     itkSetMacro(ResampleFactor, unsigned long);
     
     void Compute();
-    TransferFunctionPointer MaximumProbabilityTransferFunction() const;
-    std::vector<MeasurementType> ConfidenceWeights() const;
     
-    itkGetObjectMacro(TransferFunction, TransferFunctionType);
-    itkGetConstObjectMacro(TransferFunction, TransferFunctionType);
+    TransferFunctionType const * GetTransferFunction() const;
 
 protected:
     JointHistogramTransferFunctionCalculator();
@@ -70,11 +68,12 @@ private:
     JointHistogramTransferFunctionCalculator(Self const &); //purposely not implemented
     void operator=(Self const &); //purposely not implemented
     
-    //TransferFunctionPointer MaximumProbabilityTransferFunction() const;
-    //std::vector<MeasurementType> ConfidenceWeights() const;
+    TransferFunctionPointer MaximumProbabilityTransferFunction() const;
+    std::vector<MeasurementType> ConfidenceWeights() const;
     
-    TransferFunctionPointer Column(int const x) const;
-    TransferFunctionPointer Resample(TransferFunctionPointer function) const;
+    std::vector<MeasurementType> Column(int const x) const;
+    std::vector<MeasurementType> Resample(std::vector<MeasurementType> const & function) const;
+    std::vector<MeasurementType> Smooth(std::vector<MeasurementType> const & function, int factor) const;
     TransferFunctionPointer Smooth(TransferFunctionPointer function, int factor) const;
 };
 
