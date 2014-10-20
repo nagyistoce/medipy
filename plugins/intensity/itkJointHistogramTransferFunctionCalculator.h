@@ -73,7 +73,7 @@ private:
     
     std::vector<MeasurementType> Column(int const x) const;
     std::vector<MeasurementType> Resample(std::vector<MeasurementType> const & function) const;
-    std::vector<MeasurementType> Smooth(std::vector<MeasurementType> const & function, int factor) const;
+    std::vector<MeasurementType> Smooth(std::vector<MeasurementType> const & function, int radius) const;
     TransferFunctionPointer Smooth(TransferFunctionPointer function, int factor) const;
 };
 
