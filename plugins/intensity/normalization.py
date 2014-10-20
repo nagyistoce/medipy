@@ -76,26 +76,27 @@ def one_parameter_linear_regression_normalization(src,ref):
     return output
 
 def joint_histogram(
-        image1, image2, mask=None, mask_value=1, 
-        bins_count1=100, bins_count2=100, method=0):
+        fixed, moving, mask=None, mask_value=1, 
+        bins_count_fixed=100, bins_count_moving=100, method=0):
     
     """ Intensity normalization based on joint histogram.
     """
     
-    image1_itk = medipy.itk.medipy_image_to_itk_image(image1, False)
-    image2_itk = medipy.itk.medipy_image_to_itk_image(image2, False)    
+    fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
+    moving_itk = medipy.itk.medipy_image_to_itk_image(moving, False)    
     
     mask_itk = None
     if mask:
         mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
 
     if mask:
-        FilterType = itk.JointHistogramNormalizationFilter[image1_itk, mask_itk, image2_itk]
+        FilterType = itk.JointHistogramNormalizationFilter[fixed_itk, mask_itk, moving_itk]
     else:
-        FilterType = itk.JointHistogramNormalizationFilter[image1_itk, image1_itk, image2_itk]
+        FilterType = itk.JointHistogramNormalizationFilter[fixed_itk, fixed_itk, moving_itk]
     
-    filter_ = FilterType.New(image1_itk, image2_itk,
-        MaskValue=mask_value, BinsCount1=bins_count1, BinsCount2=bins_count2)
+    filter_ = FilterType.New(FixedImage=fixed_itk, MovingImage=moving_itk,
+        MaskValue=mask_value, 
+        BinsCountFixed=bins_count_fixed, BinsCountMoving=bins_count_moving)
     if mask:
         filter_.SetMask(mask_itk)
     
