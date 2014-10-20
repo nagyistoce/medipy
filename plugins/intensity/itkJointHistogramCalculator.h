@@ -70,10 +70,10 @@ public:
     };
     
     itkGetConstObjectMacro(Image1, ImageType);
-    itkSetObjectMacro(Image1, ImageType);
+    itkSetConstObjectMacro(Image1, ImageType);
     
     itkGetConstObjectMacro(Image2, ImageType);
-    itkSetObjectMacro(Image2, ImageType);
+    itkSetConstObjectMacro(Image2, ImageType);
 
     itkGetMacro(BinsCount1, unsigned int);
     itkSetMacro(BinsCount1, unsigned int);
@@ -82,7 +82,7 @@ public:
     itkSetMacro(BinsCount2, unsigned int);
     
     itkGetConstObjectMacro(Mask, MaskType);
-    itkSetObjectMacro(Mask, MaskType);
+    itkSetConstObjectMacro(Mask, MaskType);
     
     itkGetMacro(MaskValue, MaskPixelType);
     itkSetMacro(MaskValue, MaskPixelType);
@@ -103,12 +103,12 @@ protected:
     void PrintSelf(std::ostream & os, Indent indent) const;
     
 private:
-    typename ImageType::Pointer m_Image1;
-    typename ImageType::Pointer m_Image2;
+    typename ImageType::ConstPointer m_Image1;
+    typename ImageType::ConstPointer m_Image2;
     
     unsigned int m_BinsCount1;
     unsigned int m_BinsCount2;
-    typename MaskType::Pointer m_Mask;
+    typename MaskType::ConstPointer m_Mask;
     MaskPixelType m_MaskValue;
     typename Method::Type m_Method;
     
