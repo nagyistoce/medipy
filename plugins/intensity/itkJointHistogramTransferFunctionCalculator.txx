@@ -96,7 +96,7 @@ JointHistogramTransferFunctionCalculator<THistogram>
 				double reweight=1;
 				if(iter>0)
 				{
-                    result->GetNodeValue(x0, node_value);
+                    result->GetNodeValue(x, node_value);
                     double const value = node_value[1];
                     
 					double const error = predictedValue-value;
@@ -277,20 +277,23 @@ JointHistogramTransferFunctionCalculator<THistogram>
 template<typename THistogram>
 std::vector<typename JointHistogramTransferFunctionCalculator<THistogram>::MeasurementType>
 JointHistogramTransferFunctionCalculator<THistogram>
-::Smooth(std::vector<MeasurementType> const & function, int factor) const
+::Smooth(std::vector<MeasurementType> const & function, int radius) const
 {
     std::vector<MeasurementType> smoothed(function.size());
     for(unsigned int i=0; i<smoothed.size(); ++i)
     {
         float value=0;
         unsigned int count=0;
-        for(int j=std::max<int>(0, i-factor); 
-            j < std::min<int>(function.size()-1, i+factor); ++j)
+        for(int j=std::max<int>(0, i-radius); 
+            j < std::min<int>(function.size()-1, i+radius); ++j)
         {
             value += function[j];
             ++count;
         }
-        value /= count;
+        if(count != 0)
+        {
+            value /= count;
+        }
         
         smoothed[i] = value;
     }
