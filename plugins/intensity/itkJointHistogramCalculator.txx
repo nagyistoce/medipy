@@ -131,11 +131,6 @@ JointHistogramCalculator<TImage, TMask>
     typename HistogramType::SizeType size;
     size[0] = this->m_BinsCount1; size[1] = this->m_BinsCount2;
     
-    std::vector<PixelType> image1_values; 
-    image1_values.reserve(this->m_Image1->GetPixelContainer()->Capacity());
-    std::vector<PixelType> image2_values;
-    image2_values.reserve(this->m_Image2->GetPixelContainer()->Capacity());
-    
     typedef itk::ImageRegionConstIterator<ImageType> ImageIteratorType;
     typedef itk::ImageRegionConstIterator<MaskType> MaskIteratorType;
     
