@@ -20,7 +20,7 @@ wrap_library("MediPyIntensity" python)
     
     wrap_module("itkJointHistogramTransferFunctionCalculator")
         wrap_class("itk::JointHistogramTransferFunctionCalculator" "POINTER")
-            wrap_template("HD2" ${ITKT_HD2})
+            wrap_template("HD2" ${ITKT_HF2})
         end_wrap_class()
     end_wrap_module()
     
