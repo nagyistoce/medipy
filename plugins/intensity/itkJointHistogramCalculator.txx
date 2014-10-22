@@ -147,12 +147,24 @@ JointHistogramCalculator<TImage, TMask>
         mask_it = MaskIteratorType(this->m_Mask, this->m_Mask->GetRequestedRegion());
     }
     
+    typedef typename HistogramType::MeasurementType MeasurementType;
+    typedef typename HistogramType::MeasurementVectorType MeasurementVectorType;
+    
+    MeasurementVectorType lower_bound;
+    lower_bound[0] = it1.Get(); lower_bound[1] = it2.Get();
+    
+    MeasurementVectorType upper_bound;
+    upper_bound[0] = it1.Get(); upper_bound[1] = it2.Get();
+    
     while(!it1.IsAtEnd())
     {
         if(this->m_Mask.IsNull() || mask_it.Get() == this->m_MaskValue)
         {
-            image1_values.push_back(it1.Get());
-            image2_values.push_back(it2.Get());
+            lower_bound[0] = std::min<MeasurementType>(lower_bound[0], it1.Get());
+            lower_bound[1] = std::min<MeasurementType>(lower_bound[1], it2.Get());
+            
+            upper_bound[0] = std::max<MeasurementType>(upper_bound[0], it1.Get());
+            upper_bound[1] = std::max<MeasurementType>(upper_bound[1], it2.Get());
         }
         // Otherwise do nothing: we are not in the mask
         
@@ -164,29 +176,6 @@ JointHistogramCalculator<TImage, TMask>
             ++mask_it;
         }
     }
-    
-    std::sort(image1_values.begin(), image1_values.end());
-    std::sort(image2_values.begin(), image2_values.end());
-    
-    typename HistogramType::MeasurementVectorType lower_bound;
-    lower_bound[0] = image1_values[int(floor(0.005*image1_values.size()))];
-    lower_bound[1] = image2_values[int(floor(0.005*image2_values.size()))];
-    
-    typename HistogramType::MeasurementVectorType upper_bound;
-    upper_bound[0] = image1_values[int(ceil(0.995*image1_values.size()))];
-    upper_bound[1] = image2_values[int(ceil(0.995*image2_values.size()))];
-    
-    /*
-    typename HistogramType::MeasurementType const image1_range = 
-        upper_bound[0]-lower_bound[0];
-    lower_bound[0] -= image1_range*0.3;
-    upper_bound[0] += image1_range*0.3;
-    
-    typename HistogramType::MeasurementType const image2_range = 
-        upper_bound[1]-lower_bound[1];
-    lower_bound[1] -= image2_range*0.6;
-    upper_bound[1] += image2_range*0.6;
-    */
     
     this->m_Histogram->Initialize(size, lower_bound, upper_bound);
     this->m_Histogram->SetClipBinsAtEnds(false);
@@ -254,7 +243,7 @@ JointHistogramCalculator<TImage, TMask>
             ++line_size;
         }
         
-        float const increase = 1.0/(line_size*ImageType::GetImageDimension());
+        float const increase = 1.0/(line_size);
         
         for(itk::ContinuousIndex<float, 2> p(begin); 
             increment ? p[direction]<=end[direction] : p[direction]>=end[direction]; 
