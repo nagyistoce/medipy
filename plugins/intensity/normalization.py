@@ -88,27 +88,43 @@ def joint_histogram(
     mask_itk = None
     if mask:
         mask_itk = medipy.itk.medipy_image_to_itk_image(mask, False)
-
-    if mask:
-        FilterType = itk.JointHistogramNormalizationFilter[fixed_itk, mask_itk, moving_itk]
-    else:
-        FilterType = itk.JointHistogramNormalizationFilter[fixed_itk, fixed_itk, moving_itk]
     
-    filter_ = FilterType.New(FixedImage=fixed_itk, MovingImage=moving_itk,
-        MaskValue=mask_value, 
-        BinsCountFixed=bins_count_fixed, BinsCountMoving=bins_count_moving)
+    ##################################
+    # 1. Compute the joint histogram #
+    ##################################
+    histogram_calculator = itk.JointHistogramCalculator[
+        moving_itk, mask_itk or moving_itk].New(
+        Image1=moving_itk, Image2=fixed_itk,
+        BinsCount1=bins_count_moving, BinsCount2=bins_count_fixed)
     if mask:
-        filter_.SetMask(mask_itk)
+        histogram_calculator.SetMask(mask_itk)
     
     # FIXME: should be in ctor
     if method == 0:
-        filter_.SetMethodToNearestNeighbor() 
+        histogram_calculator.SetMethodToNearestNeighbor() 
     elif method == 1:
-        filter_.SetMethodToLinearInterpolation()
-    else:
-        raise medipy.base.Exception("Invalid estimation method: {0}".format(method))
+        histogram_calculator.SetMethodToLinearInterpolation()
     
-    output_itk = filter_()[0]
+    histogram_calculator.Compute()
+    histogram = histogram_calculator.GetHistogram()
+
+    ####################################
+    # 2. Compute the transfer function #
+    ####################################
+    transfer_function_calculator = itk.JointHistogramTransferFunctionCalculator[
+        histogram].New(
+        Histogram=histogram, ResampleFactor=10
+    )
+    transfer_function_calculator.Compute()
+    transfer_function = transfer_function_calculator.GetTransferFunction()
+    
+    ########################################
+    # 3. Adjust the moving image intensity #
+    ########################################
+    transform_intensity = itk.TransformIntensityImageFilter[
+        moving_itk, moving_itk].New(
+        Input=moving_itk, TransferFunction=transfer_function)
+    output_itk = transform_intensity()[0]
     output = medipy.itk.itk_image_to_medipy_image(output_itk, None, True)
     
     return output

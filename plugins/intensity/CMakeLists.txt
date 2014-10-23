@@ -30,11 +30,5 @@ wrap_library("MediPyIntensity" python)
         end_wrap_class()
     end_wrap_module()
     
-    wrap_module("itkJointHistogramNormalizationFilter")
-        wrap_class("itk::JointHistogramNormalizationFilter" "POINTER")
-            wrap_image_filter("${WRAP_ITK_SCALAR}" 3)
-        end_wrap_class()
-    end_wrap_module()
-    
 end_wrap_library()
 wrap_ikt_post_install("MediPyIntensity")
