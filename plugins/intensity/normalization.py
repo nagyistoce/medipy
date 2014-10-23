@@ -77,9 +77,27 @@ def one_parameter_linear_regression_normalization(src,ref):
 
 def joint_histogram(
         fixed, moving, mask=None, mask_value=1, 
-        bins_count_fixed=100, bins_count_moving=100, method=0):
+        bins_count_fixed=200, bins_count_moving=200, method="Nearest Neighbor"):
     
     """ Intensity normalization based on joint histogram.
+    
+        <gui>
+            <item name="fixed" type="Image" label="Fixed"/>
+            <item name="moving" type="Image" label="Moving"/>
+            <item name="mask" type="Image" initializer="may_be_empty=True" 
+                  label="Mask" />
+            <item name="mask_value" type="Float" initializer="1" 
+                  label="Mask value" />
+            <item name="bins_count_fixed" type="Int" initializer="200"
+                  label="Bins count (fixed)" />
+            <item name="bins_count_moving" type="Int" initializer="200"
+                  label="Bins count (moving)" />
+            <item name="method" type="Enum" 
+                  initializer='["Nearest Neighbor", "Linear"]'
+                  label="Histogram interpolation" />
+            <item name="output" type="Image" initializer="output=True"
+                  role="return" label="Output"/>
+        </gui>
     """
     
     fixed_itk = medipy.itk.medipy_image_to_itk_image(fixed, False)
@@ -100,9 +118,9 @@ def joint_histogram(
         histogram_calculator.SetMask(mask_itk)
     
     # FIXME: should be in ctor
-    if method == 0:
+    if method == "Nearest Neighbor":
         histogram_calculator.SetMethodToNearestNeighbor() 
-    elif method == 1:
+    elif method == "Linear":
         histogram_calculator.SetMethodToLinearInterpolation()
     
     histogram_calculator.Compute()
