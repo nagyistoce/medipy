@@ -16,6 +16,9 @@
 namespace itk
 {
 
+/**
+ * @brief Transform the intensity of an image according to a transfer function.
+ */
 template<typename TInputImage, typename TOutputImage>
 class TransformIntensityImageFilter: 
     public ImageToImageFilter<TInputImage, TOutputImage>

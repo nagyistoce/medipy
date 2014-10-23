@@ -21,6 +21,9 @@
 namespace itk
 {
 
+/**
+ * @brief Compute a transfer function approximating a joint histogram.
+ */
 template<typename THistogram>
 class JointHistogramTransferFunctionCalculator: public Object
 {
