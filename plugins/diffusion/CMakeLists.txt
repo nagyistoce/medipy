@@ -87,6 +87,14 @@ wrap_library("MediPyDiffusion" python)
         end_wrap_module()
     endforeach()
     
+    # Decomposition Spectrale : VectorImage -> VectorImage, (float,3) only
+    wrap_module("itkComposeSpectralImageFilter")
+        wrap_class("itk::ComposeSpectralImageFilter" POINTER)
+            wrap_template("VIF3VIF3" "${ITKT_VIF3}, ${ITKT_VIF3}")
+        end_wrap_class()
+    end_wrap_module()
+    
+    
     # DWIStatistics : Vector -> (VectorImage, Image) (float,3) for Spatial
     # and Image -> ( VectorImage, Image)(float,3) only for Bootstrap
     wrap_module("itkDWIStatisticsImageFilter")

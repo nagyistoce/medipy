@@ -22,7 +22,3 @@ void spectral_analysis(itk::VectorImage<float, 3>::Pointer dt6,
     filter->SetInput(0,dt6);
     filter->Update();
 }
-
-
-
-	  		

@@ -10,11 +10,9 @@
 #ifndef _itkSymmetricSpectralAnalysisImageFilter_h
 #define _itkSymmetricSpectralAnalysisImageFilter_h
 
-
 #include <itkImageToImageFilter.h>
-#include <itkSymmetricEigenAnalysis.h>
 #include <itkSmartPointer.h>
-
+#include <itkSymmetricEigenAnalysis.h>
 
 namespace itk
 {
@@ -67,6 +65,11 @@ public :
     itkGetMacro(SortOrder, EigenValueOrderType);
     itkSetMacro(SortOrder, EigenValueOrderType);
     itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+    
+    /// @brief Return the eigenvalues image.
+    TOutputImage * GetEigenValuesImage();
+    /// @brief Return the eigenvectors image.
+    TOutputImage * GetEigenVectorsImage();
 
 protected :
     SymmetricSpectralAnalysisImageFilter();
@@ -75,12 +78,11 @@ protected :
     void AllocateOutputs();
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
+    
 
 private :
     EigenValueOrderType m_SortOrder;
     CalculatorType m_Calculator;
-
-
 };
 
 }

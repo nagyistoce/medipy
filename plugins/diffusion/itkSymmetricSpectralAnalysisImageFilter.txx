@@ -11,12 +11,28 @@
 
 #include "itkSymmetricSpectralAnalysisImageFilter.h"
 
-#include "itkVectorImage.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIterator.h>
+#include <itkVectorImage.h>
 
 namespace itk
 {
 
+template<typename TInputImage, typename TOutputImage>
+TOutputImage * 
+SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
+::GetEigenValuesImage() 
+{
+    return dynamic_cast<TOutputImage *>(this->ProcessObject::GetOutput(0));
+}
+
+template<typename TInputImage, typename TOutputImage>
+TOutputImage * 
+SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
+::GetEigenVectorsImage() 
+{
+    return dynamic_cast<TOutputImage *>(this->ProcessObject::GetOutput(1));
+}
 
 template<typename TInputImage, typename TOutputImage>
 SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
@@ -27,7 +43,7 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
     this->SetNthOutput(1,this->MakeOutput(1));
 
     this->m_Calculator.SetDimension(3);
-
+    
     this->m_SortOrder = OrderByValue;
 }
 
@@ -39,8 +55,8 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
     typename OutputImageType::Pointer outputPtr_val;
     typename OutputImageType::Pointer outputPtr_vec;
 
-    outputPtr_val = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput(0) );
-    outputPtr_vec = dynamic_cast< OutputImageType *>( this->ProcessObject::GetOutput(1) );
+    outputPtr_val = this->GetEigenValuesImage();
+    outputPtr_vec = this->GetEigenVectorsImage();
 
     if ( outputPtr_val ) {
         outputPtr_val->SetBufferedRegion( outputPtr_val->GetRequestedRegion() );
@@ -80,14 +96,26 @@ void
 SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
 {
-    typename OutputImageType::Pointer output_val = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
-    typename OutputImageType::Pointer output_vec = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(1));
-
-    ImageRegionConstIteratorWithIndex< OutputImageType > it(output_val, outputRegionForThread);
-    it.GoToBegin();
-
-    while( !it.IsAtEnd() ) {
-        InputPixelType dt6 = this->GetInput(0)->GetPixel(it.GetIndex());
+    //Const Iterator on Input 
+    InputImageType const * tensors = this->GetInput(0);
+    
+    typedef ImageRegionConstIterator<InputImageType> InputIterator;
+    InputIterator inputIt(tensors, outputRegionForThread);
+    inputIt.GoToBegin();
+    
+    //Iterator on the two Output
+    typename OutputImageType::Pointer output_val = this->GetEigenValuesImage();
+    typename OutputImageType::Pointer output_vec = this->GetEigenVectorsImage();
+    
+    typedef ImageRegionIterator< OutputImageType > OutputIterator;
+    OutputIterator outputValIt(output_val, outputRegionForThread);
+    outputValIt.GoToBegin();
+    OutputIterator outputVecIt(output_vec, outputRegionForThread);
+    outputVecIt.GoToBegin();
+    
+    while( !inputIt.IsAtEnd() )
+    {
+        InputPixelType dt6 = inputIt.Get();
         InputMatrixType dt33(3,3);
         dt33[0][0] =  (double) dt6[0];
         dt33[1][1] =  (double) dt6[3];
@@ -104,16 +132,24 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 
         this->m_Calculator.ComputeEigenValuesAndVectors(dt33,eigenvalues,eigenvectors);
 
-        OutputPixelType val = output_val->GetPixel(it.GetIndex());
-        for (unsigned int i=0; i<3; i++) { val[i] = (OutputValueType) eigenvalues[i]; }
-        OutputPixelType vec = output_vec->GetPixel(it.GetIndex());
-        for (unsigned int i=0; i<3; i++) {
-            for (unsigned int j=0; j<3; j++) { 
+        OutputPixelType val = outputValIt.Get();
+        for (unsigned int i=0; i<3; i++)
+        {
+            val[i] = (OutputValueType) eigenvalues[i];
+        }
+        
+        OutputPixelType vec = outputVecIt.Get();
+        for (unsigned int i=0; i<3; i++)
+        {
+            for (unsigned int j=0; j<3; j++)
+            {
                 vec[3*i+j] = (OutputValueType) eigenvectors[i][j]; 
             }
         }
-
-        ++it;
+        
+        ++inputIt;
+        ++outputValIt;
+        ++outputVecIt;
     }
 
 }
@@ -121,5 +157,3 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 }
 
 #endif
-
-							
