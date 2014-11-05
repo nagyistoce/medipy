@@ -36,7 +36,7 @@ void dtiInvMatrix( itk::VectorImage<float, 3>::Pointer im )
 	    matrix[2][1] =  vec[7];
 	    matrix[2][2] =  vec[8];			  			
 	
-	    matrix = vnl_inverse<double>( matrix );
+	    matrix = vnl_matrix_inverse<double>( matrix );
 
     	vec[0] = matrix(0,0);
     	vec[1] = matrix(0,1);
