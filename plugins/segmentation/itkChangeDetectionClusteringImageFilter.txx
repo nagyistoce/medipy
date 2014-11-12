@@ -1,5 +1,5 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -13,14 +13,15 @@
 
 #include <map>
 #include <set>
+#include <utility>
 
+#include <itkCastImageFilter.h>
 #include <itkConstNeighborhoodIterator.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkImageRegionIterator.h>
 #include <itkHistogram.h>
 #include <itkMinimumMaximumImageCalculator.h>
-#include <itkRelabelComponentImageFilter.h>
 #include <itkThresholdImageFilter.h>
 
 namespace itk
@@ -87,16 +88,21 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
 
     // Use an unsigned long image to avoid problems with float during relabeling.
     typedef Image<unsigned long, InputImageType::ImageDimension> ClustersImageType;
-    typename ClustersImageType::Pointer clusters_image = ClustersImageType::New();
+    typedef typename ClustersImageType::Pointer ClustersImagePointer;
+    typedef typename ClustersImageType::PixelType ClustersImagePixelType;
+    ClustersImagePointer clusters_image = ClustersImageType::New();
     clusters_image->CopyInformation(input);
     clusters_image->SetRegions(input->GetRequestedRegion());
     clusters_image->Allocate();
     clusters_image->FillBuffer(0);
-    typename ClustersImageType::PixelType clusters_count=0;
+    ClustersImagePixelType clusters_count=0;
 
     // For each voxel, starting with the highest intensity :
-    // If it has a neighbor in a cluster, add it to this cluster
-    // Otherwise, create a new cluster
+    // * If it has a neighbor in a cluster, add it to this cluster
+    // * Otherwise, create a new cluster
+    // With this scheme, the label of clusters will be ordered according to the
+    // point with the highest likelihood in the cluster.
+    
     typedef ConstNeighborhoodIterator<ClustersImageType> NeighborhoodIteratorType;
     typename NeighborhoodIteratorType::RadiusType radius;
     radius.Fill(1);
@@ -129,20 +135,16 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
     itkDebugMacro(<< clusters_count << " clusters");
 
     this->discard_clusters_close_to_mask_boundary<ClustersImageType>(clusters_image);
-
-    // Relabel base on size, discard small clusters
-    typename RelabelComponentImageFilter<ClustersImageType, OutputImageType>::Pointer
-        relabel_filter = RelabelComponentImageFilter<ClustersImageType, OutputImageType>::New();
-    relabel_filter->SetInput(clusters_image);
-    relabel_filter->SetMinimumObjectSize(this->m_MinimumClusterSize);
-    relabel_filter->Update();
+    this->discard_small_clusters<ClustersImageType>(clusters_image);
 
     // Only keep a given number of clusters
+    typename CastImageFilter<ClustersImageType, OutputImageType>::Pointer
+        cast_filter = CastImageFilter<ClustersImageType, OutputImageType>::New();
+    cast_filter->SetInput(clusters_image);
     typename ThresholdImageFilter<OutputImageType>::Pointer
         threshold_filter = ThresholdImageFilter<OutputImageType>::New();
-    threshold_filter->SetInput(relabel_filter->GetOutput());
+    threshold_filter->SetInput(cast_filter->GetOutput());
     threshold_filter->ThresholdAbove(this->m_MaximumNumberOfClusters);
-    threshold_filter->InPlaceOn();
 
     threshold_filter->GraftOutput(this->GetOutput());
     threshold_filter->Update();
@@ -262,6 +264,68 @@ ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
         {
             it.Set(0);
         }
+    }
+}
+
+template<typename TInputImage, typename TMaskImage, typename TOutputImage>
+template<typename TImage>
+void
+ChangeDetectionClusteringImageFilter<TInputImage, TMaskImage, TOutputImage>
+::discard_small_clusters(TImage * image)
+{
+    //////////////////////////////////////////
+    // Compute the pixel count of all clusters
+    //////////////////////////////////////////
+    
+    typedef typename TImage::PixelType PixelType;
+    typedef std::map<PixelType, unsigned long> ClusterSizeMap;
+    ClusterSizeMap cluster_size;
+    
+    typedef itk::ImageRegionConstIterator<TImage> ConstIterator;
+    for(ConstIterator it(image, image->GetRequestedRegion()); !it.IsAtEnd(); ++it)
+    {
+        if(it.Get() == 0)
+        {
+            continue;
+        }
+        
+        typedef typename ClusterSizeMap::iterator ClusterSizeMapIterator;
+        typedef typename ClusterSizeMap::value_type ClusterSizeMapValueType;
+        
+        std::pair<ClusterSizeMapIterator, bool> const insertion =
+            cluster_size.insert(ClusterSizeMapValueType(it.Get(), 0));
+        ++insertion.first->second;
+    }
+    
+    //////////////////////////////////////////////////////////////
+    // Compute the relabel map:
+    // * Small clusters are mapped to background
+    // * Large clusters keep their order and get continuous labels
+    //////////////////////////////////////////////////////////////
+    typedef std::map<PixelType, PixelType> RelabelMap;
+    RelabelMap relabel_map;
+    PixelType available_label=1;
+    for(typename ClusterSizeMap::const_iterator it=cluster_size.begin();
+         it != cluster_size.end(); ++it)
+    {
+        if(it->second < this->m_MinimumClusterSize)
+        {
+            relabel_map[it->first] = 0;
+        }
+        else
+        {
+            relabel_map[it->first] = available_label;
+            ++available_label;
+        }
+    }
+    
+    ////////////////////
+    // Relabel the image
+    ////////////////////
+    typedef itk::ImageRegionIterator<TImage> Iterator;
+    for(Iterator it(image, image->GetRequestedRegion()); !it.IsAtEnd(); ++it)
+    {
+        it.Set(relabel_map[it.Get()]);
     }
 }
 
