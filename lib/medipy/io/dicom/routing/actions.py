@@ -9,7 +9,6 @@
 import datetime
 import os
 import threading
-import zlib
 
 import medipy.base
 import medipy.io.dicom
@@ -321,12 +320,13 @@ class SaveDataSet(Action):
         instance = dataset.get("sop_instance_uid", medipy.io.dicom.UI("")).value
         
         if self.mode == "flat" :
-            filename = "{0:X}".format(zlib.crc32(patient+study+series+instance)&0xffffffff)
+            filename = "{0:08X}".format(self._hash_code(patient+study+series+instance))
         elif self.mode == "hierarchical" :
-            filename = os.path.join("{0:X}".format(zlib.crc32(patient)&0xffffffff),
-                                    "{0:X}".format(zlib.crc32(study)&0xffffffff),
-                                    "{0:X}".format(zlib.crc32(series)&0xffffffff),
-                                    "{0:X}".format(zlib.crc32(instance)&0xffffffff))
+
+            filename = os.path.join("{0:08X}".format(self._hash_code(patient)),
+                                    "{0:08X}".format(self._hash_code(study)),
+                                    "{0:08X}".format(self._hash_code(series)),
+                                    "{0:08X}".format(self._hash_code(instance)))
         
         destination = os.path.join(self.root, filename)
         
@@ -339,6 +339,12 @@ class SaveDataSet(Action):
         self._lock.release()
         
         medipy.io.dicom.write(dataset, destination)
+
+    def _hash_code(self, string):
+        hash_ = 0
+        for character in string:
+            hash_ = (31*hash_+ord(character))%(2**32)
+        return hash_
 
 # TODO StoreDataset(connection)
 # TODO stop_rule_processing
