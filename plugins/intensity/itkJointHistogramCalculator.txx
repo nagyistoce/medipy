@@ -218,11 +218,11 @@ JointHistogramCalculator<TImage, TMask>
         
         itk::ContinuousIndex<float, 2> begin;
         index = this->m_Histogram->GetIndex(m1);
-        std::copy(index.m_Index, index.m_Index+index.GetIndexDimension(), begin.Begin());
+        std::copy(index.begin(), index.end(), begin.Begin());
         
         itk::ContinuousIndex<float, 2> end;
         index = this->m_Histogram->GetIndex(m2);
-        std::copy(index.m_Index, index.m_Index+index.GetIndexDimension(), end.Begin());
+        std::copy(index.begin(), index.end(), end.Begin());
         
         itk::Vector<float, 2> step = end-begin;
         int const direction = (std::abs(step[0])>std::abs(step[1]))?0:1;

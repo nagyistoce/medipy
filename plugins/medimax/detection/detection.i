@@ -9,10 +9,14 @@
 %module detection
 %{
 #include "detection_fonctions_wrappees.h"
+#include <numpy/arrayobject.h>
 %}
 
 %include ../wrapping/grphic3d.i
 
+%init %{
+import_array();
+%}
 
 #-------------------------------------------------------------
 #   ComputeRocCurve
