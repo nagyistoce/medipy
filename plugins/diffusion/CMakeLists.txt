@@ -7,7 +7,7 @@ install_py_files(${files})
 set(swig_modules itkutils spectral_analysis)
 foreach(swig_module ${swig_modules})
     swig_python_module(${swig_module} ${swig_module}.i ${swig_module}.cpp)
-    swig_link_libraries(${swig_module} ${ITK_LIBS})
+    swig_link_libraries(${swig_module} ${ITK_LIBRARIES})
     install_swig_python_module(${swig_module})
 endforeach()
 
