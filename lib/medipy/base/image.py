@@ -174,7 +174,8 @@ class Image(Observable):
     def astype(self, dtype):
         """ Copy of the image, cast to a specified type.
         """
-        other_image = Image(data = self.data.astype(dtype))
+        other_image = Image(data = self.data.astype(dtype),
+            data_type=self.data_type, image_type=self.image_type)
         other_image.copy_information(self)
         return other_image
     
