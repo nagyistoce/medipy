@@ -11,11 +11,14 @@
 #include "correction.h"
 #include "fonctions_wrappees_traitement.h"
 #include "trai_3d.h"
-
+#include <numpy/arrayobject.h>
 %}
 
 %include ../wrapping/grphic3d.i
 
+%init %{
+import_array();
+%}
 
 
 //-------------------------------------------------------------

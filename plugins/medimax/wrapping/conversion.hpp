@@ -1,5 +1,5 @@
 /*************************************************************************
- * MediPy - Copyright (C) Universite de Strasbourg, 2011
+ * MediPy - Copyright (C) Universite de Strasbourg
  * Distributed under the terms of the CeCILL-B license, as published by
  * the CEA-CNRS-INRIA. Refer to the LICENSE file or to
  * http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
@@ -21,33 +21,14 @@
 #include <noyau/imx_3d.h>
 #include <noyau/imx_types.h>
 
-//#include "components/felder/change_detection.hpp"
-
 #define IS_SAME_TYPE_MACRO(t1, t2) \
 	(typeid(t1) == typeid(t2))
 
 #define TYPE_MATCH_MACRO(c_type, reference_c_type, array_type, reference_array_type) \
 	(IS_SAME_TYPE_MACRO(c_type, reference_c_type) && (array_type==reference_array_type))
 
-
-
-
-
-
-
-
 namespace MedimaxWrapper
 {
-
-/**
- * Simple function calling import_array.
- */
-DllExport bool initialize();
-
-/**
- * Dummy variable to make sure initialize() is called
- */
-static const bool initialized=initialize();
 
 /**
  * Execute a functor on the array, passing the correct element type to the

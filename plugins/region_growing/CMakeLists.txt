@@ -1,18 +1,13 @@
-find_package(WrapITK REQUIRED)
-
 file(GLOB_RECURSE files "*.py")
 install_py_files(${files})
 
-prepare_wrap_library()
-wrap_library("MediPyRegionGrowing" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base)
-    set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
+itk_wrap_module("MediPyRegionGrowing")
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon)
     
-    wrap_module("itkConnectedThresholdWithRadiusImageFilter")
-        wrap_class("itk::ConnectedThresholdWithRadiusImageFilter" "POINTER")
-            wrap_image_filter("${WRAP_ITK_SCALAR}" 2)
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkConnectedThresholdWithRadiusImageFilter")
+        itk_wrap_class("itk::ConnectedThresholdWithRadiusImageFilter" "POINTER")
+            itk_wrap_image_filter("${WRAP_ITK_SCALAR}" 2)
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
     
-end_wrap_library()
-wrap_ikt_post_install("MediPyRegionGrowing")
+itk_end_wrap_module()

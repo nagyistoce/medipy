@@ -1,35 +1,28 @@
 add_subdirectory("dicom")
 add_subdirectory("schemes")
 
-find_package(WrapITK REQUIRED)
-
 file(GLOB files "*.py")
 install_py_files(${files})
 
-prepare_wrap_library()
-wrap_library("PyArrayIO" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base IO)
-    set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
+itk_wrap_module("PyArrayIO")
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon)
     
     set(modules "PyArrayFileReader;PyArrayFileWriter")
     
     find_swig_library_files("PyArrayFileReader" "PyArrayFileWriter")
     
     foreach(module ${modules})
-        find_swig_library_files(${module})
-        
-        wrap_module("itk${module}")
-            wrap_class("itk::${module}" POINTER)
+        itk_wrap_submodule("itk${module}")
+            itk_wrap_class("itk::${module}" POINTER)
                 set(dimensions "2;3;4")
                 foreach(type ${WRAP_ITK_SCALAR})
                     foreach(dimension ${dimensions})
                         set(parameters "${ITKT_${type}},${dimension}")
                         set(mangled_parameters "${type}${dimension}")
-                        wrap_template("${mangled_parameters}" "${parameters}")
+                        itk_wrap_template("${mangled_parameters}" "${parameters}")
                     endforeach()
                 endforeach()
-            end_wrap_class()
-        end_wrap_module()
+            itk_end_wrap_class()
+        itk_end_wrap_submodule()
     endforeach()
-end_wrap_library()
-wrap_ikt_post_install("PyArrayIO")
+itk_end_wrap_module()
