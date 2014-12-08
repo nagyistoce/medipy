@@ -22,7 +22,7 @@ namespace itk
 template<typename TOutputImage>
 void
 Tensor2ImageFileReader<TOutputImage>
-::SetFileName(char const* filename)
+::SetFileName(std::string const & filename)
 {
     if(this->m_TensorReader->GetFileName() != filename)
     {
@@ -32,15 +32,7 @@ Tensor2ImageFileReader<TOutputImage>
 }
 
 template<typename TOutputImage>
-void
-Tensor2ImageFileReader<TOutputImage>
-::SetFileName(std::string const & filename)
-{
-    this->SetFileName(filename.c_str());
-}
-
-template<typename TOutputImage>
-const char*
+std::string const &
 Tensor2ImageFileReader<TOutputImage>
 ::GetFileName() const
 {
