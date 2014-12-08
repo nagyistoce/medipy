@@ -45,9 +45,8 @@ public :
     typedef typename TOutputImage::PixelType OutputImagePixelType;
 
     /** Specify the file to read. This is forwarded to the IO instance. */
-    virtual void SetFileName(char const* filename);
     virtual void SetFileName(std::string const & filename);
-    virtual const char* GetFileName() const;
+    virtual std::string const & GetFileName() const;
 
     /** Set/Get the ImageIO helper class. Often this is created via the object
      * factory mechanism that determines whether a particular ImageIO can
