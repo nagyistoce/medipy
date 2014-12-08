@@ -19,7 +19,7 @@ endif()
 
 set(instantiations )
 foreach(type ${WRAP_ITK_REAL})
-    foreach(dimension ${WRAP_ITK_DIMS})
+    foreach(dimension ${ITK_WRAP_DIMS})
         set(instantiations ${instantiations} "${type}${dimension}")
     endforeach()
 endforeach()
