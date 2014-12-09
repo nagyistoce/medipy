@@ -5,7 +5,7 @@ file(GLOB files "*.py")
 install_py_files(${files})
 
 itk_wrap_module("PyArrayIO")
-    set(WRAPPER_LIBRARY_DEPENDS ITKCommon)
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon ITKIOImageBase)
     
     set(modules "PyArrayFileReader;PyArrayFileWriter")
     
