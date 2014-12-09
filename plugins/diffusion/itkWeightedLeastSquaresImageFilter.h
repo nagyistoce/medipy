@@ -80,7 +80,7 @@ protected :
     ~WeightedLeastSquaresImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
     void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, ThreadIdType);
 
 private :
     typedef vnl_matrix<float> BMatrixType;

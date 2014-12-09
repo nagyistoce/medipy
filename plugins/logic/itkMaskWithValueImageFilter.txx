@@ -46,7 +46,7 @@ MaskWithValueImageFilter<TInputImage, TMaskImage, TOutputImage>
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 MaskWithValueImageFilter<TInputImage, TMaskImage, TOutputImage>
-::ThreadedGenerateData(typename InputImageType::RegionType const & region, int thread_id)
+::ThreadedGenerateData(typename InputImageType::RegionType const & region, ThreadIdType)
 {
     typedef itk::ImageRegionConstIterator<InputImageType> SourceIteratorType;
     typedef itk::ImageRegionConstIterator<MaskImageType> MaskIteratorType;

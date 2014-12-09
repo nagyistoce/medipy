@@ -78,7 +78,7 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void 
 SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
+::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType )
 {
     typename OutputImageType::Pointer output_val = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(0));
     typename OutputImageType::Pointer output_vec = static_cast< OutputImageType * >(this->ProcessObject::GetOutput(1));

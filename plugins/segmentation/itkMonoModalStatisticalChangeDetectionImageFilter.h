@@ -64,7 +64,7 @@ protected :
     void PrintSelf(std::ostream& os, itk::Indent indent) const;
 
     void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(typename InputImageType::RegionType const & region, int thread_id);
+    void ThreadedGenerateData(typename InputImageType::RegionType const & region, ThreadIdType);
 
 private :
 

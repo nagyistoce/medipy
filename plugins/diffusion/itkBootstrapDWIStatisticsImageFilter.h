@@ -104,7 +104,7 @@ protected :
     void PrintSelf(std::ostream& os, Indent indent) const;
     void BeforeThreadedGenerateData();
     void ThreadedGenerateData(
-        OutputImageRegionType const & outputRegionForThread, int threadId);
+        OutputImageRegionType const & outputRegionForThread, ThreadIdType);
     
     std::vector<unsigned int> Random(unsigned int size, unsigned int max_value) const;
     

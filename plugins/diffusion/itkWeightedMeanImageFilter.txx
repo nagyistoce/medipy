@@ -74,7 +74,7 @@ void WeightedMeanImageFilter<TInputImage, TOutputImage, TTensorImage>
 
 template<typename TInputImage, typename TOutputImage, typename TTensorImage>
 void WeightedMeanImageFilter<TInputImage, TOutputImage, TTensorImage>
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, int)
+::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType)
 {
     typedef typename TensorImageType::PixelType TensorImagePixelType;
     typedef typename TTensorImage::ConstPointer TensorImageConstPointer;
