@@ -57,7 +57,7 @@ template<typename TInputImage, typename TOutputImage>
 void
 TransformIntensityImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(
-    OutputImageRegionType const & outputRegionForThread, int)
+    OutputImageRegionType const & outputRegionForThread, ThreadIdType)
 {
     typedef itk::ImageRegionConstIterator<InputImageType> InputIteratorType;
     InputIteratorType input_iterator(this->GetInput(), outputRegionForThread);

@@ -124,7 +124,7 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
 template<typename TInputImage, typename TTensorsImage, typename TBaselineImage>
 void 
 WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int)
+::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType)
 {
     // Create an iterator for each input
     typedef ImageRegionConstIterator<InputImageType> InputIterator;
