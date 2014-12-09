@@ -1,13 +1,14 @@
 %module spectral_analysis
 %{
 #include "spectral_analysis.h"
+#include "itkVectorImageSwigInterface.h"
 %}
 
 %include "../../lib/medipy/itk/function_wrapper.i"
 
-void spectral_analysis(itk::VectorImage<float, 3>* dt6, 
-                       itk::VectorImage<float, 3>* eigval, 
-                       itk::VectorImage<float, 3>* eigvec);
+void spectral_analysis(itkVectorImageF3* dt6, 
+                       itkVectorImageF3* eigval, 
+                       itkVectorImageF3* eigvec);
 
 ITK_FUNCTION_MACRO(spectral_analysis, 
     """ Spectral decomposition of a DTI image. ``eigval`` and ``eigvec`` are
