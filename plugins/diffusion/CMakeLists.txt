@@ -25,7 +25,7 @@ foreach(type ${WRAP_ITK_REAL})
 endforeach()
 
 itk_wrap_module("MediPyDiffusion")
-    set(WRAPPER_LIBRARY_DEPENDS ITKCommon)
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon ITKIOImageBase)
     
     find_swig_library_files("TractographyAlgorithm")
     
