@@ -128,7 +128,7 @@ class ITK(medipy.io.IOBase):
         
         VectorImageType = itk.VectorImage[PixelType, Dimension]
         
-        return VectorImageType in itk.Tensor2ImageFileWriter.__template__
+        return (VectorImageType,) in itk.Tensor2ImageFileWriter.__template__
     
     def save(self, image) :
         BridgedTypes = set([itk.template(x[0])[1][0] for x in itk.NumpyBridge])
