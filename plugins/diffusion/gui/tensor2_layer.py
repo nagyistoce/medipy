@@ -47,7 +47,7 @@ class PrincipalDirectionVoxelPipeline(object):
         fa = get_fa(eigenvalues, eigenvectors)
         
         principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
-        principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])
+        principal_direction[...,:3] = eigenvectors[...,6:]
         principal_direction[...,0] *= fa
         principal_direction[...,1] *= fa
         principal_direction[...,2] *= fa
@@ -83,7 +83,7 @@ class PrincipalDirectionLinePipeline(object):
         fa = get_fa(eigenvalues, eigenvectors)
         
         principal_direction = numpy.ndarray(fa.shape+(3,), dtype=fa.dtype)
-        principal_direction[...,:3] = numpy.abs(eigenvectors[...,6:])
+        principal_direction[...,:3] = eigenvectors[...,6:]
         principal_direction[...,0] *= fa
         principal_direction[...,1] *= fa
         principal_direction[...,2] *= fa
