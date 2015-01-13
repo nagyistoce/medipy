@@ -66,7 +66,8 @@ def load(parent=None, dtype=numpy.single, multiple=False, wildcard="*"):
         else :
             new_images = reconstruction.images(
                 [worker_thread.result], parent, dtype)
-            images.append(new_images)
+            if new_images:
+                images.append(new_images)
     
     # Load other images
     periodic_progress_dialog = PeriodicProgressDialog(0.2, "Loading image", 
@@ -86,7 +87,8 @@ def load(parent=None, dtype=numpy.single, multiple=False, wildcard="*"):
             wx.MessageBox("Could not load file {0} : {1}".format(
                 path, worker_thread.exception), "Could not load image")
         else :
-            images.append(worker_thread.result)
+            if new_images:
+                images.append(worker_thread.result)
             
     periodic_progress_dialog.Destroy()
     
