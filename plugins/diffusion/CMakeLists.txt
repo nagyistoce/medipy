@@ -1,5 +1,3 @@
-find_package(WrapITK REQUIRED)
-
 file(GLOB files "*.py" "gui/*.py")
 install_py_files(${files})
 
@@ -9,7 +7,7 @@ install_py_files(${files})
 set(swig_modules itkutils spectral_analysis)
 foreach(swig_module ${swig_modules})
     swig_python_module(${swig_module} ${swig_module}.i ${swig_module}.cpp)
-    swig_link_libraries(${swig_module} ${ITK_LIBS})
+    swig_link_libraries(${swig_module} ${ITK_LIBRARIES})
     install_swig_python_module(${swig_module})
 endforeach()
 
@@ -21,102 +19,99 @@ endif()
 
 set(instantiations )
 foreach(type ${WRAP_ITK_REAL})
-    foreach(dimension ${WRAP_ITK_DIMS})
+    foreach(dimension ${ITK_WRAP_DIMS})
         set(instantiations ${instantiations} "${type}${dimension}")
     endforeach()
 endforeach()
 
-prepare_wrap_library()
-wrap_library("MediPyDiffusion" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base IO)
-    set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
+itk_wrap_module("MediPyDiffusion")
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon ITKIOImageBase)
     
     find_swig_library_files("TractographyAlgorithm")
     
     # IO : (no input) -> VectorImage
     foreach(filter "Tensor2ImageFileReader" "Tensor2ImageFileWriter")
-        wrap_module("itk${filter}")
-            wrap_class("itk::${filter}" POINTER)
+        itk_wrap_submodule("itk${filter}")
+            itk_wrap_class("itk::${filter}" POINTER)
                 foreach(instantiation ${instantiations})
-                    wrap_template("VI${instantiation}" ${ITKT_VI${instantiation}})
+                    itk_wrap_template("VI${instantiation}" ${ITKT_VI${instantiation}})
                 endforeach()
-            end_wrap_class()
-        end_wrap_module()
+            itk_end_wrap_class()
+        itk_end_wrap_submodule()
     endforeach()
 
     # Estimation : Image -> (VectorImage, Image)
     foreach(filter "TensorReconstructionImageFilter" "WeightedLeastSquaresImageFilter")
-        wrap_module("itk${filter}")
-            wrap_class("itk::${filter}" POINTER)
+        itk_wrap_submodule("itk${filter}")
+            itk_wrap_class("itk::${filter}" POINTER)
                 foreach(instantiation ${instantiations})
-                    wrap_template(
+                    itk_wrap_template(
                         "I${instantiation}VI${instantiation}I${instantiation}" 
                         "${ITKT_I${instantiation}}, ${ITKT_VI${instantiation}}, ${ITKT_I${instantiation}}")
                 endforeach()
-            end_wrap_class()
-        end_wrap_module()
+            itk_end_wrap_class()
+        itk_end_wrap_submodule()
     endforeach()
     
     # WeightedMeanImageFilter : Image -> VectorImage (float,3) only
-    wrap_module("itkWeightedMeanImageFilter")
-        wrap_class("itk::WeightedMeanImageFilter" POINTER)
-            wrap_template("IF3VIF3VIF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_VIF3}")
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkWeightedMeanImageFilter")
+        itk_wrap_class("itk::WeightedMeanImageFilter" POINTER)
+            itk_wrap_template("IF3VIF3VIF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_VIF3}")
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
     
     # Scalars : VectorImage -> Image
     foreach(scalar "AxialDiffusivity" "FractionalAnisotropy" "MeanDiffusivity" "RadialDiffusivity")
         set(filter "${scalar}ImageFilter")
-        wrap_module("itk${filter}")
-            wrap_class("itk::${filter}" POINTER_WITH_SUPERCLASS)
+        itk_wrap_submodule("itk${filter}")
+            itk_wrap_class("itk::${filter}" POINTER_WITH_SUPERCLASS)
                 foreach(instantiation ${instantiations})
-                    wrap_template(
+                    itk_wrap_template(
                         "VI${instantiation}I${instantiation}" 
                         "${ITKT_VI${instantiation}}, ${ITKT_I${instantiation}}")
                 endforeach()
-            end_wrap_class()
-        end_wrap_module()
+            itk_end_wrap_class()
+        itk_end_wrap_submodule()
     endforeach()
     
     # Tractography : VectorImage -> Image, (float,3) only
     foreach(filter "TractographyAlgorithm" "StreamlineTractographyAlgorithm")
-        wrap_module("itk${filter}")
-            wrap_class("itk::${filter}" POINTER)
-                wrap_template("VIF3IF3" "${ITKT_VIF3}, ${ITKT_IF3}")
-            end_wrap_class()
-        end_wrap_module()
+        itk_wrap_submodule("itk${filter}")
+            itk_wrap_class("itk::${filter}" POINTER)
+                itk_wrap_template("VIF3IF3" "${ITKT_VIF3}, ${ITKT_IF3}")
+            itk_end_wrap_class()
+        itk_end_wrap_submodule()
     endforeach()
     
     # Decomposition Spectrale : VectorImage -> VectorImage, (float,3) only
-    wrap_module("itkComposeSpectralImageFilter")
-        wrap_class("itk::ComposeSpectralImageFilter" POINTER)
-            wrap_template("VIF3VIF3" "${ITKT_VIF3}, ${ITKT_VIF3}")
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkComposeSpectralImageFilter")
+        itk_wrap_class("itk::ComposeSpectralImageFilter" POINTER)
+            itk_wrap_template("VIF3VIF3" "${ITKT_VIF3}, ${ITKT_VIF3}")
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
     
     
     # DWIStatistics : Vector -> (VectorImage, Image) (float,3) for Spatial
     # and Image -> ( VectorImage, Image)(float,3) only for Bootstrap
-    wrap_module("itkDWIStatisticsImageFilter")
-        wrap_class("itk::DWIStatisticsImageFilter" POINTER)
-            wrap_template("VIF3VIF3IF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
-            wrap_template("IF3VIF3IF3IF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkDWIStatisticsImageFilter")
+        itk_wrap_class("itk::DWIStatisticsImageFilter" POINTER)
+            itk_wrap_template("VIF3VIF3IF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+            itk_wrap_template("IF3VIF3IF3IF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
     
     # SpatialDWIStatistics : Vector -> (VectorImage, Image) (float,3) only
-    wrap_module("itkSpatialDWIStatisticsImageFilter")
-        wrap_class("itk::SpatialDWIStatisticsImageFilter" POINTER)
-            wrap_template("VIF3VIF3IF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkSpatialDWIStatisticsImageFilter")
+        itk_wrap_class("itk::SpatialDWIStatisticsImageFilter" POINTER)
+            itk_wrap_template("VIF3VIF3IF3IF3" "${ITKT_VIF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
     
     # BootstrapDWIStatistics : Image -> (VectorImage, Image) (float,3) only
-    wrap_module("itkBootstrapDWIStatisticsImageFilter")
-        wrap_class("itk::BootstrapDWIStatisticsImageFilter" POINTER)
-            wrap_template("IF3VIF3IF3IF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkBootstrapDWIStatisticsImageFilter")
+        itk_wrap_class("itk::BootstrapDWIStatisticsImageFilter" POINTER)
+            itk_wrap_template("IF3VIF3IF3IF3" "${ITKT_IF3}, ${ITKT_VIF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
     
-end_wrap_library()
-wrap_ikt_post_install("MediPyDiffusion")
+itk_end_wrap_module()

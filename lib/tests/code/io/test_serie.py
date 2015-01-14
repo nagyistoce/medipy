@@ -34,7 +34,7 @@ class TestSerie(unittest.TestCase):
         series_instance_uid = "1.3.12.2.1107.5.2.32.35389.2010072309200364977723827.0.0.0"
         url = "dicom:{0}#series_instance_uid={1}".format(
             tempdir, series_instance_uid)
-        images = medipy.io.load_serie(url, numpy.uint32)
+        images = medipy.io.load(url, numpy.uint32)
         
         self.cleanup(tempdir)
         
@@ -43,7 +43,7 @@ class TestSerie(unittest.TestCase):
     def test_load_nifti(self):
         filename = os.path.join(self.data_directory, "input",
                                 "ep2d_DTI_20_dir_RL_pitch_yaw_22.nii.gz")
-        images = medipy.io.load_serie(filename)
+        images = medipy.io.load(filename)
         self._test_dti_serie(images)
     
     def test_save_nifti(self):
@@ -54,13 +54,13 @@ class TestSerie(unittest.TestCase):
         series_instance_uid = "1.3.12.2.1107.5.2.32.35389.2010072309200364977723827.0.0.0"
         url = "dicom:{0}#series_instance_uid={1}".format(
             tempdir, series_instance_uid)
-        dicom_images = medipy.io.load_serie(url, None)
+        dicom_images = medipy.io.load(url, None)
         
         self.cleanup(tempdir)
         
         tempdir = tempfile.mkdtemp()
         medipy.io.save_serie(dicom_images, os.path.join(tempdir, "foo.nii.gz"))
-        nifti_images = medipy.io.load_serie(os.path.join(tempdir, "foo.nii.gz"))
+        nifti_images = medipy.io.load(os.path.join(tempdir, "foo.nii.gz"))
         self.cleanup(tempdir)
         
         self._test_dti_serie(nifti_images)

@@ -143,7 +143,7 @@ MonoModalStatisticalChangeDetectionImageFilter<TInputImage, TMaskImage, TOutputI
 template<typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 MonoModalStatisticalChangeDetectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::ThreadedGenerateData(typename InputImageType::RegionType const & region, int thread_id)
+::ThreadedGenerateData(typename InputImageType::RegionType const & region, ThreadIdType)
 {
     typedef ConstNeighborhoodIterator<DifferenceImageType> SourceIterator;
     typedef ImageRegionConstIterator<MaskImageType> MaskIterator;

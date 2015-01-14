@@ -52,13 +52,13 @@ class TestEstimation(unittest.TestCase):
             
             images.append(image)
         
-        tensors = medipy.diffusion.estimation.least_squares(images, "First")
+        tensors = medipy.diffusion.estimation.least_squares(images)
         
         self.assertEqual(tensors.shape, images[0].shape)
         self.assertEqual(tensors.dtype, images[0].dtype)
         numpy.testing.assert_almost_equal(tensors[0,0,0],
-            [ 6.06370799e-04, -4.86828321e-05, -5.83471810e-05,
-              4.17223084e-04,  1.12409536e-04,  7.96857639e-04])
+            [ 6.02921471e-04, -4.88040969e-05, -5.85064990e-05,
+              4.13964211e-04,  1.12694514e-04,  7.93865882e-04])
 
 if __name__ == "__main__" :
     unittest.main()

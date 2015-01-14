@@ -1,20 +1,18 @@
-find_package(WrapITK REQUIRED)
-
 file(GLOB_RECURSE files "*.py")
 install_py_files(${files})
 
 add_library(medipy_hmc SHARED EM.cpp HMCInitializer.cpp)
 
-prepare_wrap_library()
-wrap_library("MediPyHMC" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base Numerics)
-    set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon medipy_hmc)
+itk_wrap_module("MediPyHMC")
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon)
     
-    wrap_module("itkHMCSegmentationImageFilter")
-        wrap_class("itk::HMCSegmentationImageFilter" POINTER)
-            wrap_template("IF3IF3IF3" "${ITKT_IF3}, ${ITKT_IF3}, ${ITKT_IF3}")
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkHMCSegmentationImageFilter")
+        itk_wrap_class("itk::HMCSegmentationImageFilter" POINTER)
+            itk_wrap_template("IF3IF3IF3" "${ITKT_IF3}, ${ITKT_IF3}, ${ITKT_IF3}")
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
 
-end_wrap_library()
-wrap_ikt_post_install("MediPyHMC")
+itk_end_wrap_module()
+
+add_dependencies(${lib} medipy_hmc)
+    

@@ -63,7 +63,7 @@ protected :
     ~SpatialDWIStatisticsImageFilter() {}
     void PrintSelf(std::ostream& os, Indent indent) const;
     void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, int);
+    void ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, ThreadIdType);
 
 private :
     unsigned int m_SizePlane;

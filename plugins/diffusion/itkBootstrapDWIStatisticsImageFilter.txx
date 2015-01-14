@@ -113,7 +113,7 @@ template<typename TInputImage, typename TMeanImage,
 void 
 BootstrapDWIStatisticsImageFilter<TInputImage, TMeanImage,
                                   TStandardDeviationImage, TMaskImage>
-::ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, int threadId)
+::ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, ThreadIdType)
 {
     MaskImageConstPointer mask_image = this->GetMaskImage();
     MeanImagePointer mean_image = 

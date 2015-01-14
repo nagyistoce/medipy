@@ -18,6 +18,11 @@ import xml.parsers.expat
 import ConfigParser
 import os
 import sys
+import warnings
+
+# Hide some WrapITK warnings
+warnings.filterwarnings(
+    "ignore", ".*Unknown parameter.* in template", module="itkTemplate")
 
 def configure_plugins_path() :
     plugins_path = []
