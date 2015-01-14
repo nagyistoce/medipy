@@ -82,7 +82,7 @@ protected :
     void PrintSelf(std::ostream& os, Indent indent) const;
     void AllocateOutputs();
     void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, threadId);
 
 private :
     std::vector<DirectionType> directions;

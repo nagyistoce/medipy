@@ -1,12 +1,13 @@
 %module itkutils
 %{
-#include "Base.includes"
 #include "itkutils.h"
+#include "itkImageSwigInterface.h"
+#include "itkVectorImageSwigInterface.h"
 %}
 
 %include "../../lib/medipy/itk/function_wrapper.i"
 
-void dtiInvMatrix( itkVectorImageF3* im );
+void dtiInvMatrix(itkVectorImageF3* im );
 void gradient(itkImageF3* im, itkVectorImageF3* grad);
 
 ITK_FUNCTION_MACRO(dtiInvMatrix, """ Invert matrix """, im)

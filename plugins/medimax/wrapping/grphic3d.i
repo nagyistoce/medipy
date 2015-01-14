@@ -8,11 +8,6 @@
 
 #ifdef SWIGPYTHON
 
-%init
-%{
-import_array();
-%}
-
 %{
 #include <cmath>
 #include <numpy/arrayobject.h>

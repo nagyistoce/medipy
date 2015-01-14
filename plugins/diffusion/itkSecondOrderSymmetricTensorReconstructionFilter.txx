@@ -134,7 +134,7 @@ SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskI
 template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void 
 SecondOrderSymmetricTensorReconstructionFilter<TInputImage, TOutputImage, TMaskImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
+::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType)
 {
     const InputImagePixelType min_signal = 5;
     const unsigned int VectorLength = 6;

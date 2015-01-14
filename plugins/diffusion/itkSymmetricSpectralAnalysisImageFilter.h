@@ -65,7 +65,7 @@ public :
     itkGetMacro(SortOrder, EigenValueOrderType);
     itkSetMacro(SortOrder, EigenValueOrderType);
     itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
-    
+
     /// @brief Return the eigenvalues image.
     TOutputImage * GetEigenValuesImage();
     /// @brief Return the eigenvectors image.
@@ -77,8 +77,8 @@ protected :
     void PrintSelf(std::ostream& os, Indent indent) const;
     void AllocateOutputs();
     void BeforeThreadedGenerateData();
-    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, int);
-    
+    void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, ThreadIdType);
+
 
 private :
     EigenValueOrderType m_SortOrder;

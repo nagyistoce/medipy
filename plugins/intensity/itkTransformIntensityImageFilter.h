@@ -58,7 +58,7 @@ protected:
     TransformIntensityImageFilter();
     void PrintSelf(std::ostream & os, Indent indent);
     void ThreadedGenerateData(
-        OutputImageRegionType const & outputRegionForThread, int);
+        OutputImageRegionType const & outputRegionForThread, ThreadIdType);
     
     TransferFunctionPointer m_TransferFunction;
 

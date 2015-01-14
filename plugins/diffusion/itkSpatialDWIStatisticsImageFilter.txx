@@ -63,7 +63,7 @@ template<typename TInputImage, typename TMeanImage,
 void 
 SpatialDWIStatisticsImageFilter<TInputImage, TMeanImage, 
                                 TStandardDeviationImage, TMaskImage>
-::ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, int)
+::ThreadedGenerateData(OutputImageRegionType const & outputRegionForThread, ThreadIdType)
 {
     typedef typename TInputImage::PixelType InputTensorType;
     typedef typename TMeanImage::PixelType OutputTensorType;

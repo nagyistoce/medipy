@@ -94,7 +94,7 @@ SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void 
 SymmetricSpectralAnalysisImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int )
+::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType )
 {
     //Const Iterator on Input 
     InputImageType const * tensors = this->GetInput(0);

@@ -57,7 +57,7 @@ public:
     typedef TMask MaskType;
     typedef typename MaskType::PixelType MaskPixelType;
 
-    typedef Statistics::Histogram<float, 2> HistogramType;
+    typedef Statistics::Histogram<float> HistogramType;
     
     struct Method
     {

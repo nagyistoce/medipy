@@ -1,7 +1,7 @@
 %module spectral_analysis
 %{
-#include "Base.includes"
 #include "spectral_analysis.h"
+#include "itkVectorImageSwigInterface.h"
 %}
 
 %include "../../lib/medipy/itk/function_wrapper.i"

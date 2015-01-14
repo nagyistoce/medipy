@@ -1,18 +1,13 @@
-find_package(WrapITK REQUIRED)
-
 file(GLOB_RECURSE files "*.py")
 install_py_files(${files})
 
-prepare_wrap_library()
-wrap_library("MediPyLogic" python)
-    set(WRAPPER_LIBRARY_DEPENDS Base)
-    set(WRAPPER_LIBRARY_LINK_LIBRARIES ITKCommon)
+itk_wrap_module("MediPyLogic")
+    set(WRAPPER_LIBRARY_DEPENDS ITKCommon)
     
-    wrap_module("itkMaskWithValueImageFilter")
-        wrap_class("itk::MaskWithValueImageFilter" "POINTER")
-            wrap_image_filter("${WRAP_ITK_SCALAR}" 3)
-        end_wrap_class()
-    end_wrap_module()
+    itk_wrap_submodule("itkMaskWithValueImageFilter")
+        itk_wrap_class("itk::MaskWithValueImageFilter" "POINTER")
+            itk_wrap_image_filter("${WRAP_ITK_SCALAR}" 3)
+        itk_end_wrap_class()
+    itk_end_wrap_submodule()
 
-end_wrap_library()
-wrap_ikt_post_install("MediPyLogic")
+itk_end_wrap_module()

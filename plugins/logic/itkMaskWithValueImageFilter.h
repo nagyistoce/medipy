@@ -75,7 +75,7 @@ protected:
     MaskWithValueImageFilter();
     virtual ~MaskWithValueImageFilter();
     void PrintSelf(std::ostream &os, Indent indent) const;
-    void ThreadedGenerateData(typename InputImageType::RegionType const & region, int thread_id);
+    void ThreadedGenerateData(typename InputImageType::RegionType const & region, ThreadIdType);
 
 private:
     MaskWithValueImageFilter(const Self&); //purposely not implemented

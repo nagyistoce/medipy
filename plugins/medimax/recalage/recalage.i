@@ -1,10 +1,14 @@
 %module recalage
 %{
 #include "fonctions_wrappees.h"
+#include <numpy/arrayobject.h>
 %}
 
 %include ../wrapping/grphic3d.i
 
+%init %{
+import_array();
+%}
 
 #-------------------------------------------------------------
 #   Linear registration
