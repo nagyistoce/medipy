@@ -28,35 +28,34 @@ cmake_install.cmake
 *PYTHON_wrap.cxx
 
 # VTK/Python files
+vtk*Python.cxx
+*Init.cxx
 *Init.data
 
 # WrapITK files
-Languages
+lib/*.py
+Generators
+ITKIOFactoryRegistration
 Typedefs
 gcc_xml.inc
 install_wrapitk_compatibility.cmake
-wrap_*_ext.i
-wrap_*Python.cpp
-wrap_*.cxx
-wrap_*.xml
 *.mdx
-*.includes
-*Python.py
 *Config.py
+*Python.cpp
+*Python.py
+itk*.cxx
+itk*.xml
+itk*Python.cpp
+itk*SwigInterface.h.in
+MediPy*.py
 
 # Module-specific files
-MediPy*Python.cpp
+lib/medipy/gui/image/helpers.py
 lib/medipy/io/dicom/dataset_io/dataset_io.py
 lib/medipy/io/dicom/generate_dicomdir.py
-{lib/medipy/vtk,plugins/visualization_3d}/vtk*Python.cxx
-{lib/medipy/vtk,plugins/visualization_3d}/*Init.cxx
-lib/medipy/gui/image/helpers.py
-lib/medipy/io/PyArrayIOPython.cpp
-lib/medipy/io/dicom/AssembleTilesImageFilterPython.cpp
-lib/medipy/io/dicom/dataset_io.py
+lib/medipy/network/dicom/scu/scu.py
 plugins/diffusion/fiber_clustering.c
 plugins/diffusion/itkutils.py
-plugins/diffusion/parameter_estimation.py
 plugins/diffusion/spectral_analysis.py
 plugins/medimax/detection/detection.py
 plugins/medimax/recalage/recalage.py
