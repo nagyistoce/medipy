@@ -1,9 +1,9 @@
 ##########################################################################
-# MediPy - Copyright (C) Universite de Strasbourg, 2011             
-# Distributed under the terms of the CeCILL-B license, as published by 
-# the CEA-CNRS-INRIA. Refer to the LICENSE file or to            
-# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html       
-# for details.                                                      
+# MediPy - Copyright (C) Universite de Strasbourg
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
 ##########################################################################
 
 import itk
@@ -20,7 +20,7 @@ def addition(image, constant):
         </gui>
     """
     
-    return constant_operation(image, constant, itk.AddConstantToImageFilter)
+    return constant_operation(image, constant, itk.AddImageFilter)
 
 def subtraction(image, constant):
     """ Subtract constant from each input image voxel and return the result.
@@ -33,7 +33,7 @@ def subtraction(image, constant):
         </gui>
     """
     
-    return constant_operation(image, constant, itk.SubtractConstantFromImageFilter)
+    return constant_operation(image, constant, itk.SubtractImageFilter)
 
 def multiplication(image, constant):
     """ Multiply by constant each input image voxel and return the result.
@@ -46,7 +46,7 @@ def multiplication(image, constant):
         </gui>
     """
     
-    return constant_operation(image, constant, itk.MultiplyByConstantImageFilter)
+    return constant_operation(image, constant, itk.MultiplyImageFilter)
 
 def division(image, constant):
     """ Divide by constant each input image voxel and return the result.
@@ -59,7 +59,7 @@ def division(image, constant):
         </gui>
     """
     
-    return constant_operation(image, constant, itk.DivideByConstantImageFilter)
+    return constant_operation(image, constant, itk.DivideImageFilter)
 
 def constant_operation(image, constant, filter_class) :
     """ Perform a pixelwise operation using an ITK filter on the images,
@@ -67,9 +67,9 @@ def constant_operation(image, constant, filter_class) :
     """ 
     
     itk_image = medipy.itk.medipy_image_to_itk_image(image, False)
-    filter = filter_class[itk_image, itk.template(itk_image)[1][0], itk_image].New(
+    filter_ = filter_class[itk_image, itk_image, itk_image].New(
         Input = itk_image, Constant = constant)
-    itk_output = filter()[0]
+    itk_output = filter_()[0]
     
     output = medipy.itk.itk_image_to_medipy_image(itk_output, None, True)
     
