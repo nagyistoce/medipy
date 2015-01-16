@@ -87,7 +87,7 @@ def load(parent=None, dtype=numpy.single, multiple=False, wildcard="*"):
             wx.MessageBox("Could not load file {0} : {1}".format(
                 path, worker_thread.exception), "Could not load image")
         else :
-            if new_images:
+            if worker_thread.result:
                 images.append(worker_thread.result)
             
     periodic_progress_dialog.Destroy()
