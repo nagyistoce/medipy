@@ -10,21 +10,24 @@ Les outils suivants sont nécessaires pour installer MediPy depuis les sources :
 * `CMake <www.cmake.org/>`_
 * `SWIG <http://www.swig.org/>`_
 * `GCC-XML <http://www.gccxml.org/HTML/Index.html>`_
-* `CableSwig <http://www.itk.org/ITK/resources/CableSwig.html>`_
 
 Les bibliothèques suivantes sont nécessaires à la compilation et à l'exécution :
 
 * `wxPython <http://www.wxpython.org/>`_
 * `NumPy <http://numpy.scipy.org/>`_ et `SciPy <http://www.scipy.org/>`_
-* `PyNIfTI <http://niftilib.sourceforge.net/pynifti/>`_
-* :doc:`ITK et WrapITK <itk>` (seule la version 3.14 d'ITK a été testée)
+* :doc:`ITK <itk>` (seule la version 4.6 d'ITK a été testée)
 * `VTK  <http://www.vtk.org/>`_ (seules les versions 5.0, 5.2 et 5.8 de VTK ont
   été testées)
 
-Des listes de paquets sont disponibles pour certaines distributions de Linux :
+Pour Debian 7.0 (Wheezy), Ubuntu 12.04 LTS (Precise Pangolin) et Ubuntu 14.04 
+LTS (Trusty Tahr), il suffit d'installer les paquets suivants: ::
 
-* :doc:`Paquets pour Ubuntu <paquets_ubuntu>`
-* :doc:`Paquets pour Debian <paquets_debian>`
+    apt-get install mercurial python-setuptools swig ipython python-tk \
+        cmake doxygen gccxml g++ cython python-vtk libvtk5-dev python-wxgtk2.8 \
+        python-scipy python-docutils python-wxtools uuid-dev dcmtk \
+        libdcmtk2-dev libwrap0-dev libgdcm2-dev
+
+ITK est également nécessaire : voir :doc:`la page à ce sujet <itk>`.
 
 Préparation de l'environnement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
