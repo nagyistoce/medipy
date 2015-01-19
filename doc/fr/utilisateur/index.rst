@@ -6,5 +6,3 @@ Guide de l'utilisateur
     
     installation
     itk
-    paquets_ubuntu
-    paquets_debian
