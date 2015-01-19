@@ -360,7 +360,11 @@ class ITK(IOBase) :
         loader = None
         for load_class in self._io_classes :
             l = load_class.New()
-            if l.CanReadFile(self._filename) :
+            try:
+                can_read = l.CanReadFile(self._filename)
+            except:
+                continue
+            if can_read:
                 l.SetFileName(self._filename)
                 l.ReadImageInformation()
                 
