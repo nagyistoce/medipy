@@ -6,6 +6,7 @@
 # for details.
 ##########################################################################
 
+import itertools
 import logging
 import os
 
@@ -23,6 +24,7 @@ class ITK(IOBase) :
     _io_classes = [itk.BMPImageIO, itk.JPEGImageIO, 
                    itk.MetaImageIO, itk.NiftiImageIO, itk.NrrdImageIO, 
                    itk.PNGImageIO, itk.TIFFImageIO, itk.VTKImageIO]
+    _maxdim = 4
     
     # Merge all supported read extensions, add a "*" before each of them       
     filenames = ["*"+str(x) for x in 
@@ -32,17 +34,6 @@ class ITK(IOBase) :
                         [])]
     
     def __init__(self, filename=None, report_progress=None):
-        
-        self._filter = None
-        self._loader = None
-        self._saver = None
-
-        # Loader informations        
-        self._data_type = None
-        self._image_type = None
-        self._pixel_type_up_to_date = False
-        self._image_informations_read = False
-        
         IOBase.__init__(self, filename, report_progress)
         
         if filename is not None :
@@ -54,90 +45,37 @@ class ITK(IOBase) :
         return new_object
     
     def can_load(self):
-        return self._loader is not None
+        return all(self._find_loader())
     
     def number_of_images(self) :
+        _, image_io = self._find_loader()
+        
         result = 1
-        if self._loader.GetNameOfClass() == "NiftiImageIO":
-            self._update_pixel_type()
-            if self._loader.GetNumberOfDimensions() == 4 and self._data_type == "scalar":
-                result = self._loader.GetDimensions(3)
+        if image_io.GetNameOfClass() == "NiftiImageIO":
+            pixel_type = image_io.GetPixelTypeAsString(image_io.GetPixelType())
+            if image_io.GetNumberOfDimensions() == 4 and pixel_type == "scalar":
+                result = image_io.GetDimensions(3)
         return result
     
-    def _update_pixel_type(self):
-        if self._pixel_type_up_to_date :
-            # Nothing to do
-            return
-        
-        # Update the loader
-        if not self._image_informations_read :
-            self._loader.SetFileName(self._filename)
-            self._loader.ReadImageInformation()
-            self._image_informations_read = True
-        
-        # Get the component type
-        ComponentType = medipy.itk.types.io_component_type_to_type[
-            self._loader.GetComponentType()]
-        # Get the pixel type
-        pixel_type = self._loader.GetPixelTypeAsString(self._loader.GetPixelType())
-        if pixel_type == "scalar" :
-            self._data_type = "scalar"
-            self._image_type = "normal"
-        elif pixel_type == "rgb" :
-            self._data_type = "vector"
-            self._image_type = "rgb"
-        else :
-            raise NotImplementedError(pixel_type)
-        
-        self._pixel_type_up_to_date = True
-    
     def load_data(self, index=0) :
-        self._update_pixel_type()
+        ReaderClass, image_io = self._find_loader()
         
-        InstantiatedTypes = set([itk.template(x[0])[1][0] 
-                                 for x in itk.NumpyBridge.__template__.keys()])
-        OriginalPixelType = medipy.itk.types.io_component_type_to_type[self._loader.GetComponentType()]
-        PixelType = OriginalPixelType
-        try_smaller_types = False
-        while PixelType not in InstantiatedTypes :
-            if PixelType not in medipy.itk.types.larger_type :
-                # No instantiated pixel type larger that the pixel type in the
-                # file ; try smaller types
-                try_smaller_types = True
-                break
-            PixelType = medipy.itk.types.larger_type[PixelType]
-        if try_smaller_types :
-            PixelType = OriginalPixelType
-            while PixelType not in InstantiatedTypes :
-                if PixelType not in medipy.itk.types.smaller_type :
-                    raise medipy.base.Exception(
-                        "Cannot find an instantiated pixel type for {0}".format(
-                            OriginalPixelType))
-                PixelType = medipy.itk.types.smaller_type[PixelType]
-            logging.warn("No instantiated type larger than {0}, using {1}".format(
-                OriginalPixelType, PixelType))
-
-        Dimension = self._loader.GetNumberOfDimensions()
-
-        if self._filter == itk.ImageFileReader :
-            ImageType = itk.Image[PixelType, Dimension]
-            reader = itk.ImageFileReader[ImageType].New()
-        elif self._filter == itk.PyArrayFileReader :
-            reader = itk.PyArrayFileReader[PixelType, Dimension].New()
+        reader = ReaderClass.New()
         
         # Re-using the same ImageIO causes a memory leak !
-        loader_clone = itk.down_cast(self._loader.CreateAnother())
-        reader.SetImageIO(loader_clone)
+        image_io_clone = itk.down_cast(image_io.CreateAnother())
+        reader.SetImageIO(image_io_clone)
         reader.SetFileName(self._filename)
         reader.Update()
         
-        if self._filter == itk.ImageFileReader :
+        if reader.GetNameOfClass() == "ImageFileReader":
             array = itk_image_to_array(reader.GetOutput(), True)
         else :
             array = reader.GetArray()
         
-        if self._loader.GetNameOfClass() == "NiftiImageIO":
-            if array.ndim == 4 and self._data_type == "scalar":
+        if image_io.GetNameOfClass() == "NiftiImageIO":
+            data_type = image_io.GetPixelTypeAsString(image_io.GetPixelType())
+            if array.ndim == 4 and data_type == "scalar":
                 # Make sure to /NOT/ use a view, which uses too much memory
                 array = array[index].copy()
         
@@ -145,28 +83,38 @@ class ITK(IOBase) :
     
     def load_metadata(self, index=0) :
         
-        self._update_pixel_type()
+        _, image_io = self._find_loader()
+        
+        pixel_type = image_io.GetPixelTypeAsString(image_io.GetPixelType())
+        if pixel_type == "scalar" :
+            data_type = "scalar"
+            image_type = "normal"
+        elif pixel_type == "rgb" :
+            data_type = "vector"
+            image_type = "rgb"
+        else :
+            raise NotImplementedError(pixel_type)
         
         metadata = {}
 
-        metadata["data_type"] = self._data_type
-        metadata["image_type"] = self._image_type
+        metadata["data_type"] = data_type
+        metadata["image_type"] = image_type
     
-        ndim = self._loader.GetNumberOfDimensions()
+        ndim = image_io.GetNumberOfDimensions()
         # GetDirection returns columns of the direction matrix 
         # (cf. itkImageFileReader.txx), so we need to transpose the numpy array.
         # We then need to change the axes order from ITK to numpy
-        metadata["direction"] = numpy.asarray([self._loader.GetDirection(i) 
+        metadata["direction"] = numpy.asarray([image_io.GetDirection(i) 
                                                for i in range(ndim)]).T
         metadata["direction"] = numpy.fliplr(numpy.flipud(metadata["direction"]))
         
-        metadata["origin"] = numpy.asarray([self._loader.GetOrigin(ndim-i-1) 
+        metadata["origin"] = numpy.asarray([image_io.GetOrigin(ndim-i-1) 
                                             for i in range(ndim)])
-        metadata["spacing"] = numpy.asarray([self._loader.GetSpacing(ndim-i-1) 
+        metadata["spacing"] = numpy.asarray([image_io.GetSpacing(ndim-i-1) 
                                              for i in range(ndim)])
         
-        if self._loader.GetNameOfClass() == "NiftiImageIO":
-            if self._loader.GetNumberOfDimensions() == 4 and self._data_type == "scalar":
+        if image_io.GetNameOfClass() == "NiftiImageIO":
+            if image_io.GetNumberOfDimensions() == 4 and data_type == "scalar":
                 metadata["direction"] = metadata["direction"][1:,1:]
                 metadata["origin"] = metadata["origin"][1:]
                 metadata["spacing"] = metadata["spacing"][1:]
@@ -174,7 +122,7 @@ class ITK(IOBase) :
         # TODO : other metadata from dictionary
         
         # Load gradient direction file if loading NIfTI
-        if isinstance(self._loader, itk.NiftiImageIO) :
+        if image_io.GetNameOfClass() == "NiftiImageIO":
             base_name = os.path.splitext(self._filename)[0]
             if base_name.endswith(".nii") :
                 base_name = os.path.splitext(base_name)[0]
@@ -218,8 +166,9 @@ class ITK(IOBase) :
                 mr_diffusion = medipy.io.dicom.DataSet(
                     diffusion_directionality="DIRECTIONAL",
                     diffusion_bvalue=bvalues[index],
-                    diffusion_gradient_direction_sequence=[medipy.io.dicom.DataSet(
-                        diffusion_gradient_orientation=gradients[index])]
+                    diffusion_gradient_direction_sequence=[
+                        medipy.io.dicom.DataSet(
+                            diffusion_gradient_orientation=gradients[index])]
                 )
                 
                 metadata["mr_diffusion_sequence"] = [mr_diffusion]
@@ -227,94 +176,39 @@ class ITK(IOBase) :
         return metadata
     
     def can_save(self, image):
-        if not self._saver :
-            # No ImageIO is available for the given filename
-            return False
-        
-        # Check the instantiations
-        InstantiatedTypes = set([itk.template(x[0])[1][0] 
-                                 for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = dtype_to_itk[image.dtype.type]
-        try_smaller_types = False
-        while PixelType not in InstantiatedTypes :
-            if PixelType not in medipy.itk.types.larger_type :
-                # No instantiated pixel type larger that the pixel type in the
-                # file ; try smaller types
-                try_smaller_types = True
-                break
-            PixelType = medipy.itk.types.larger_type[PixelType]
-        if try_smaller_types :
-            PixelType = dtype_to_itk[image.dtype.type]
-            while PixelType not in InstantiatedTypes :
-                if PixelType not in medipy.itk.types.smaller_type :
-                    raise medipy.base.Exception(
-                        "Cannot find an instantiated pixel type for {0}".format(
-                            dtype_to_itk[image.dtype.type]))
-                PixelType = medipy.itk.types.smaller_type[PixelType]
-            logging.warn("No instantiated type larger than {0}, using {1}".format(
-                dtype_to_itk[image.dtype.type], PixelType))
-        
-        Dimension = image.ndim
-        
-        return ((PixelType, Dimension) in itk.Image.__template__ or
-                (PixelType, Dimension) in itk.PyArrayFileWriter.__template__)
+        return all(self._find_saver(image))
     
     def save(self, image) :
-        # Check the instantiations
-        InstantiatedTypes = set([itk.template(x[0])[1][0] 
-                                 for x in itk.NumpyBridge.__template__.keys()])
-        PixelType = dtype_to_itk[image.dtype.type]
-        try_smaller_types = False
-        while PixelType not in InstantiatedTypes :
-            if PixelType not in medipy.itk.types.larger_type :
-                # No instantiated pixel type larger that the pixel type in the
-                # file ; try smaller types
-                try_smaller_types = True
-                break
-            PixelType = medipy.itk.types.larger_type[PixelType]
-        if try_smaller_types :
-            PixelType = dtype_to_itk[image.dtype.type]
-            while PixelType not in InstantiatedTypes :
-                if PixelType not in medipy.itk.types.smaller_type :
-                    raise medipy.base.Exception(
-                        "Cannot find an instantiated pixel type for {0}".format(
-                            dtype_to_itk[image.dtype.type]))
-                PixelType = medipy.itk.types.smaller_type[PixelType]
-            logging.warn("No instantiated type larger than {0}, using {1}".format(
-                dtype_to_itk[image.dtype.type], PixelType))
-        Dimension = image.ndim
+        WriterClass, image_io = self._find_saver(image)
         
-        if (PixelType, Dimension) in itk.Image.__template__ :
+        writer = WriterClass.New(FileName=self._filename)
+        if writer.GetNameOfClass() == "ImageFileWriter":
             itk_image = medipy_image_to_itk_image(image, False)
-            writer = itk.ImageFileWriter[itk_image].New(
-                ImageIO = self._saver, Input = itk_image)
-        else :
-            writer = itk.PyArrayFileWriter[PixelType, Dimension].New()
+            writer.SetImageIO(image_io)
+            writer.SetInput(itk_image)
+        elif writer.GetNameOfClass() == "PyArrayFileWriter":
             writer.SetArray(image.data)
             writer.SetOrigin(image.origin)
             writer.SetSpacing(image.spacing)
             writer.SetDirection(image.direction)
+        else:
+            raise medipy.base.Exception(
+                "Unknown writer class: {}".format(writer.GetNameOfClass()))
         
-        writer.SetFileName(self._filename)
         writer.Update()
         
         # Save gradient direction file if saving NIfTI
-        if isinstance(self._saver, itk.NiftiImageIO) and "mr_diffusion_sequence" in image.metadata :
+        if (image_io.GetNameOfClass() == "NiftiImageIO" and 
+                "mr_diffusion_sequence" in image.metadata):
             gradients = [[], [], []]
             b_values = []
             for diffusion in image.metadata["mr_diffusion_sequence"] :
                 # Make sure we have all the required elements
-                if "diffusion_gradient_direction_sequence" not in diffusion :
+                try:
+                    gradient = diffusion.diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation
+                    b_value = diffusion.diffusion_bvalue.value
+                except:
                     continue
-                elif not diffusion.diffusion_gradient_direction_sequence.value :
-                    continue
-                elif "diffusion_gradient_orientation" not in diffusion.diffusion_gradient_direction_sequence.value[0] :
-                    continue
-                elif "diffusion_bvalue" not in diffusion :
-                    continue
-                
-                gradient = diffusion.diffusion_gradient_direction_sequence.value[0].diffusion_gradient_orientation
-                b_value = diffusion.diffusion_bvalue.value
                 
                 for index, value in enumerate(gradient.value) :
                     gradients[index].append(str(value))
@@ -335,67 +229,123 @@ class ITK(IOBase) :
                 bvalues_file = open("{0}.bval".format(base_name), "w")
                 bvalues_file.write(b_values)
                 bvalues_file.close()
-    
+
     ##############
     # Properties #
     ##############
     
     def _set_filename(self, filename):
         self._filename = str(filename)
-        if os.path.isfile(self._filename) :
-            self._pixel_type_up_to_date = False
-            self._filter, self._loader = self._find_loader()
-        self._saver = self._find_saver()
     
     #####################
     # Private interface #
     #####################
-    
-    def _find_loader(self) :
+
+    def _find_image_io(self, mode):
         """ Return an instance of a subclass of itk.ImageIOBase that can read
-            the current filename.
+            or write the current filename. The mode parameters decides whether
+            reading ("Read") or writing ("Write") is required. If no ImageIO can
+            be found, an exception is raised.
         """
         
-        filter = None
-        loader = None
-        for load_class in self._io_classes :
-            l = load_class.New()
+        image_io = None
+        
+        for image_io_class in self._io_classes:
+            candidate = image_io_class.New()
+            
+            can_read = False
             try:
-                can_read = l.CanReadFile(self._filename)
+                function = getattr(candidate, "Can{}File".format(mode))
+                is_able = function(self._filename)
             except:
-                continue
-            if can_read:
-                l.SetFileName(self._filename)
-                l.ReadImageInformation()
-                
-                filter = None
-                
-                if l.GetPixelTypeAsString(l.GetPixelType()) in ["vector", "rgb"] :
-                    if 1+l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
-                        filter = itk.PyArrayFileReader
-                elif l.GetPixelTypeAsString(l.GetPixelType()) == "scalar" :
-                    if l.GetNumberOfDimensions() in [x[1] for x in itk.Image] :
-                        filter = itk.ImageFileReader
-                    elif l.GetNumberOfDimensions() in [x[1] for x in itk.PyArrayFileReader] :
-                        filter = itk.PyArrayFileReader
-                    # Otherwise no filter can load this data
-                    
-                if filter is not None :
-                    self._image_informations_read = True
-                    loader = l
+                # Do nothing, just avoid propagating the error
+                pass
+            
+            if is_able:
+                image_io = candidate
+                break
+        
+        if image_io is None:
+            raise medipy.base.Exception(
+                "No ImageIO can {} file {}".format(mode, self._filename))
+        
+        return image_io
+
+    def _find_filter(self, mode, data_type, component_type, dimensions_count):
+        if data_type == "scalar":
+            # Nothing to adjust
+            pass
+        elif data_type in ["vector", "rgb"]:
+            dimensions_count += 1
+        else:
+            raise medipy.base.Exception(
+                "Unknown pixel type {} in file {}".format(
+                    pixel_type, self._filename))
+        
+        larger_types = medipy.itk.types.get_larger_types(component_type)
+        
+        filter_ = None
+        
+        dimensions = range(dimensions_count, 1+self._maxdim)
+        
+        if mode == "Read":
+            ImageFilter = itk.ImageFileReader
+            PyArrayFilter = itk.PyArrayFileReader
+        elif mode == "Write":
+            ImageFilter = itk.ImageFileWriter
+            PyArrayFilter = itk.PyArrayFileWriter
+        else:
+            raise medipy.base.Exception("Unknown mode: {}".format(mode))
+        
+        filter_ = None
+        for p in itertools.product([component_type]+larger_types, dimensions):
+            filter_ = (
+                ImageFilter.get(itk.Image.get(p)) or PyArrayFilter.get(p))
+            if filter_:
+                break
+        
+        if not filter_:
+            # Try smaller types, with a warning
+            smaller_types = medipy.itk.types.get_smaller_types(component_type)
+            for p in itertools.product(smaller_types, dimensions):
+                filter_ = (
+                    ImageFilter.get(itk.Image.get(p)) or PyArrayFilter.get(p))
+                if filter_:
+                    logging.warn(
+                        "No instantiated type larger than {}, using {}".format(
+                            component_type.name, p[0].name))
                     break
         
-        return filter, loader
+        if not filter_:
+            raise medipy.base.Exception(
+                "No {}er for ({},{})".format(
+                    mode, component_type.name, dimensions_count))
+        
+        return filter_
     
-    def _find_saver(self) :
-        """ Return an instance of a subclass of itk.ImageIOBase that can read
+    def _find_loader(self) :
+        """ Return an ITK filter class and an instance of a subclass of 
+            itk.ImageIOBase that can read the current filename.
+        """
+        
+        image_io = self._find_image_io("Read")
+        image_io.SetFileName(self._filename)
+        image_io.ReadImageInformation()
+        
+        reader = self._find_filter(
+            "Read", image_io.GetPixelTypeAsString(image_io.GetPixelType()), 
+            medipy.itk.types.io_component_type_to_type[
+                image_io.GetComponentType()], image_io.GetNumberOfDimensions())
+        
+        return reader, image_io
+    
+    def _find_saver(self, image) :
+        """ Return an instance of a subclass of itk.ImageIOBase that can write
             the current filename.
         """
         
-        saver = None
-        for save_class in self._io_classes :
-            s = save_class.New()
-            if s.CanWriteFile(self._filename) :
-                saver = s
-                break
-        return saver
+        image_io = self._find_image_io("Write")
+        writer = self._find_filter("Write", 
+            image.data_type, medipy.itk.dtype_to_itk[image.dtype.type], 
+            image.data.ndim)
+        return writer, image_io
