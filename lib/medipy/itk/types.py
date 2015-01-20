@@ -49,6 +49,28 @@ larger_type = {
     itk.F : itk.D
 }
 
+def get_smaller_types(type_):
+    """ Return the list of ITK types smaller than given type.
+    """
+    
+    smaller_types = []
+    while type_ in medipy.itk.types.smaller_type:
+        type_ = medipy.itk.types.smaller_type[type_]
+        smaller_types.append(type_)
+    
+    return smaller_types
+
+def get_larger_types(type_):
+    """ Return the list of ITK types larger than given type.
+    """
+    
+    larger_types = []
+    while type_ in medipy.itk.types.larger_type:
+        type_ = medipy.itk.types.larger_type[type_]
+        larger_types.append(type_)
+    
+    return larger_types
+
 def get_numpy_type(c_type):
     """ Return the numpy type associated with the given C type, given as a
         string. For example:
