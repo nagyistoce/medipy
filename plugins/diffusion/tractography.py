@@ -52,6 +52,7 @@ def streamline(model, step=0.5, minimum_fa=0.2, maximum_angle=numpy.pi/3,
     tractography_filter.SetUseRungeKuttaOrder4(propagation_type=="RungeKuttaOrder4")
     tractography_filter.SetMaximumAngle(maximum_angle)
     tractography_filter.SetMinimumFA(minimum_fa)
+    tractography_filter.SetMinimumLength(minimum_length)
     
     mask_itk = None
     if mask :
