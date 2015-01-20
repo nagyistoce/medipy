@@ -64,7 +64,6 @@ class TestTractography(unittest.TestCase) :
 
     
     def test_streamline(self) :
-        medipy.io.save(self.tensors, "/home/lamy/tmp/tensors.nii.gz")
         fibers = medipy.diffusion.tractography.streamline(self.tensors,
             0.5, 0.2, numpy.pi/3, 2, "Euler", self.tensors.spacing, None)
         
