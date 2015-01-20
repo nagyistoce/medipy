@@ -57,8 +57,8 @@ class TestEstimation(unittest.TestCase):
         self.assertEqual(tensors.shape, images[0].shape)
         self.assertEqual(tensors.dtype, images[0].dtype)
         numpy.testing.assert_almost_equal(tensors[0,0,0],
-            [ 6.02921471e-04, -4.88040969e-05, -5.85064990e-05,
-              4.13964211e-04,  1.12694514e-04,  7.93865882e-04])
+            [6.03082415e-04, -4.93411935e-05, -5.63119102e-05,
+             4.15756309e-04,  1.05372004e-04,  7.93865882e-04])
 
 if __name__ == "__main__" :
     unittest.main()
