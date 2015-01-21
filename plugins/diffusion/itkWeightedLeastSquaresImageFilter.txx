@@ -99,18 +99,18 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
             bvec.Normalize();
         }
         
-        this->bmatrix(i,0) = (float) 1.0;                              //log(S0)
-        this->bmatrix(i,1) = (float) -1.0*BVal*bvec[0]*bvec[0];        //Dxx
-        this->bmatrix(i,2) = (float) -1.0*BVal*2.0*bvec[0]*bvec[1];    //Dxy
-        this->bmatrix(i,3) = (float) -1.0*BVal*2.0*bvec[0]*bvec[2];    //Dxz
-        this->bmatrix(i,4) = (float) -1.0*BVal*bvec[1]*bvec[1];        //Dyy
-        this->bmatrix(i,5) = (float) -1.0*BVal*2.0*bvec[1]*bvec[2];    //Dyz
-        this->bmatrix(i,6) = (float) -1.0*BVal*bvec[2]*bvec[2];        //Dzz
+        this->bmatrix(i,0) = 1.0;                              //log(S0)
+        this->bmatrix(i,1) = -1.0*BVal*bvec[0]*bvec[0];        //Dxx
+        this->bmatrix(i,2) = -1.0*BVal*2.0*bvec[0]*bvec[1];    //Dxy
+        this->bmatrix(i,3) = -1.0*BVal*2.0*bvec[0]*bvec[2];    //Dxz
+        this->bmatrix(i,4) = -1.0*BVal*bvec[1]*bvec[1];        //Dyy
+        this->bmatrix(i,5) = -1.0*BVal*2.0*bvec[1]*bvec[2];    //Dyz
+        this->bmatrix(i,6) = -1.0*BVal*bvec[2]*bvec[2];        //Dzz
     }
     
     // Compute the pseudo-inverse of the b-matrix
     BMatrixType const b1 = this->bmatrix.transpose();
-    BMatrixType const b2 = vnl_matrix_inverse<float>(b1*this->bmatrix);
+    BMatrixType const b2 = vnl_matrix_inverse<double>(b1*this->bmatrix);
     this->invbmatrix = b2*b1;
     
     // Zero-initialize the outputs of the filter
@@ -236,22 +236,19 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
     {
         typename TensorsImageType::IndexType const & idx = outputIt.GetIndex();
 
-        vnl_vector<float> S(this->GetNumberOfGradientDirections(), 0.0);
+        vnl_vector<double> S(this->GetNumberOfGradientDirections(), 0.0);
         
         for (unsigned int i=0; i<this->GetNumberOfGradientDirections(); ++i) 
         {
             typename InputImageType::PixelType const min_signal = 5;
-            typename InputImageType::PixelType const Si = std::max(
-                min_signal, inputIterators[i].Get());
+            double const Si = std::max(min_signal, inputIterators[i].Get());
             S(i) = log(Si);
         }
 
-        vnl_vector<float> X = this->invbmatrix*S;
+        vnl_vector<double> X = this->invbmatrix*S;
         
         for(unsigned int iter=0; iter<this->m_IterationCount; iter++)
         {
-            // Use double instead of float to avoid overflow in the 
-            // exponential
             vnl_vector<double> W(this->GetNumberOfGradientDirections(), 0.0);
             for(unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++)
             {
@@ -265,20 +262,13 @@ WeightedLeastSquaresImageFilter<TInputImage, TTensorsImage, TBaselineImage>
             
             for(unsigned int i=0; i<this->GetNumberOfGradientDirections(); i++)
             {
-                // Copy the row from float to double
-                vnl_vector<float> const row_float = this->bmatrix.get_row(i);
-                vnl_vector<double> row(row_float.size());
-                
-                std::copy(row_float.begin(), row_float.end(), row.begin());
+                vnl_vector<double> const row = this->bmatrix.get_row(i);
                 
                 tmp1 += W(i) * outer_product(row, row);
                 tmp2 += W(i) * row * S(i);
             }
             
-            // Copy X from double to float
-            vnl_vector<double> const X_double = 
-                vnl_matrix_inverse<double>(tmp1)*tmp2;
-            std::copy(X_double.begin(), X_double.end(), X.begin());
+            vnl_vector<double> const X = vnl_matrix_inverse<double>(tmp1)*tmp2;
         }
         
         typename TensorsImageType::PixelType vec = 
