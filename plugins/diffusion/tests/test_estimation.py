@@ -14,10 +14,10 @@ class TestEstimation(unittest.TestCase):
                   624.0, 534.0, 654.0, 502.0, 703.0, 637.0, 491.0, 478.0, 637.0,
                   557.0, 521.0, 433.0, 469.0, 666.0, 554.0, 482.0, 585.0]
 
-        b_values = [
-            0, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
-            1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 
-            1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
+        # Use a b-value of 1 for more stable computation across 32-bits and 
+        # 64-bits computers
+        b_values = [0.] + 33*[1]
+        
         directions = [
             [0.0, 0.0, 0.0], [0.875, -0.48, 0.062], [-0.281, -0.814, -0.508], 
             [0.83, -0.325, 0.454], [-0.601, 0.678, -0.423], 
@@ -36,17 +36,15 @@ class TestEstimation(unittest.TestCase):
             [0.314, 0.493, 0.811], [0.699, -0.113, -0.706], 
             [-0.566, 0.822, 0.063]]
         
-        self.assertTrue(len(signal) == len(b_values) == len(directions))
-        
         images = []
-        for index in xrange(len(signal)) :
-            image = medipy.base.Image(shape = (1,1,1), dtype=numpy.single)
-            image[0,0,0] = signal[index]
+        for s, d, b in zip(signal, directions, b_values):
+            image = medipy.base.Image(data=numpy.asarray([[[s]]], numpy.single))
             
             diffusion_dataset = medipy.io.dicom.DataSet(
-                diffusion_bvalue=b_values[index],
-                diffusion_gradient_direction_sequence = [medipy.io.dicom.DataSet(
-                    diffusion_gradient_orientation = directions[index])])
+                diffusion_bvalue=b,
+                diffusion_gradient_direction_sequence = [
+                    medipy.io.dicom.DataSet(diffusion_gradient_orientation=d)]
+            )
             
             image.metadata["mr_diffusion_sequence"] = [diffusion_dataset]
             
@@ -57,8 +55,8 @@ class TestEstimation(unittest.TestCase):
         self.assertEqual(tensors.shape, images[0].shape)
         self.assertEqual(tensors.dtype, images[0].dtype)
         numpy.testing.assert_almost_equal(tensors[0,0,0],
-            [6.03082415e-04, -4.93411935e-05, -5.63119102e-05,
-             4.15756309e-04,  1.05372004e-04,  7.93865882e-04])
+            [0.60645288, -0.04935496, -0.05629922, 
+             0.41899708, 0.10537824, 0.79697168], decimal=5)
 
 if __name__ == "__main__" :
     unittest.main()
