@@ -55,9 +55,9 @@ public :
     typedef typename Superclass::BaselineImagePointer BaselineImagePointer;
 
     /** Gradient direction type */
-    typedef Vector<float,3> DirectionType;
+    typedef Vector<double, 3> DirectionType;
     /** B-value type */
-    typedef float BValueType;
+    typedef double BValueType;
     
     /** Return the nb of iter for WLS estimation. */
     itkGetConstMacro(IterationCount, unsigned int);
@@ -85,7 +85,7 @@ protected :
     void AfterThreadedGenerateData();
 
 private :
-    typedef vnl_matrix<float> BMatrixType;
+    typedef vnl_matrix<double> BMatrixType;
     typedef std::pair<BValueType, DirectionType> MetaDiffusionType;
     
     std::vector<MetaDiffusionType> metadata_diffusion;
