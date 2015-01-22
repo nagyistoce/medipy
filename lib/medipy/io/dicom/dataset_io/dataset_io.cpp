@@ -14,14 +14,17 @@
 
 #include <dcmtk/config/osconfig.h>
 #include <dcmtk/dcmdata/dctk.h>
+#include <dcmtk/dcmdata/dcistrmb.h>
 #include <dcmtk/ofstd/ofcond.h>
 
+#include <gdcmAttribute.h>
+#include <gdcmUIDGenerator.h>
 #include <gdcmReader.h>
+#include <gdcmWriter.h>
 
 #include <Python.h>
 
 #include "DCMTKToPython.h"
-#include "GDCMToPython.h"
 #include "PythonToDCMTK.h"
 
 bool can_read(std::string const & filename)
@@ -51,15 +54,81 @@ bool can_read(std::string const & filename)
     return result;
 }
 
+PyObject* get_medipy_base_exception()
+{
+    PyObject * base = PyImport_ImportModule("medipy.base"); // New reference
+    PyObject * exception = PyObject_GetAttrString(base, "Exception"); // New reference
+    Py_DECREF(base);
+    return exception;
+}
+
 PyObject* read(std::string const & filename)
 {
+    // GDCM is more robust when reading weird files. Use it to "convert" the
+    // file so that DCMTK can read it.
+    
+    static PyObject * medipy_base_exception = get_medipy_base_exception();
+    
+    gdcm::Trace::DebugOn();
+    gdcm::Trace::WarningOn();
+    gdcm::Trace::ErrorOn();
+    
     gdcm::Reader reader;
     reader.SetFileName(filename.c_str());
-    reader.Read();
+    bool const gdcm_read_ok = reader.Read();
+    if(!gdcm_read_ok)
+    {
+        PyErr_SetString(medipy_base_exception, "Could not read file");
+        return NULL;
+    }
     
-    GDCMToPython converter;
-    PyObject * header = converter(reader.GetFile().GetHeader());
-    PyObject * dataset = converter(reader.GetFile().GetDataSet());
+    gdcm::DataSet & gdcm_dataset = reader.GetFile().GetDataSet();
+    
+    // If SOP Instance UID is not in the dataset, then the Writer fails
+    // silently
+    if(!gdcm_dataset.FindDataElement(gdcm::Tag(0x0008,0x0018)))
+    {
+        gdcm::UIDGenerator generator;
+        gdcm::Attribute<0x0008,0x0018> attribute = {generator.Generate()};
+        gdcm_dataset.Insert(attribute.GetAsDataElement());
+    }
+    
+    gdcm::Writer writer;
+    std::ostringstream gdcm_stream;
+    writer.SetFile(reader.GetFile());
+    writer.SetStream(gdcm_stream);
+    bool const write_ok = writer.Write();
+    if(!write_ok)
+    {
+        PyErr_SetString(medipy_base_exception, "Could not write to stream");
+        return NULL;
+    }
+    
+    std::string const data = gdcm_stream.str();
+    
+    // Read the data with DCMTK
+    DcmInputBufferStream dcmtk_stream;
+    dcmtk_stream.setBuffer(&data[0], data.size());
+    dcmtk_stream.setEos();
+    
+    DcmFileFormat format;
+    format.transferInit();
+    OFCondition const dcmtk_read_ok = format.read(dcmtk_stream);
+    format.transferEnd();
+    dcmtk_stream.releaseBuffer();
+    
+    if(!dcmtk_read_ok.good())
+    {
+        PyErr_SetString(medipy_base_exception, "Could not read from stream");
+        return NULL;
+    }
+    
+    format.loadAllDataIntoMemory();
+    
+    // Convert header and dataset
+    DCMTKToPython converter;
+    PyObject * header = converter(format.getMetaInfo());
+    PyObject * dataset = converter(format.getDataset());
     
     PyObject_SetAttrString(dataset, "header", header);
     Py_DECREF(header);
