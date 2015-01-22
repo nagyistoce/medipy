@@ -5,8 +5,7 @@ endif()
 
 add_definitions(-DHAVE_CONFIG_H)
 swig_python_module(dataset_io 
-    dataset_io.i dataset_io.cpp DCMTKToPython.cpp PythonToDCMTK.cpp
-    GDCMToPython.cpp)
+    dataset_io.i dataset_io.cpp DCMTKToPython.cpp PythonToDCMTK.cpp)
 
 set_directory_properties(PROPERTIES
     INCLUDE_DIRECTORIES "${DCMTK_INCLUDE_DIRS};${GDCM_INCLUDE_DIRS};${PYTHON_INCLUDE_DIRS}"
