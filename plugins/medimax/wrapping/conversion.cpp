@@ -22,6 +22,20 @@
 namespace MedimaxWrapper
 {
 
+void inner_initialize()
+{
+    // import_array is a macro expanding to the body of a void function
+    import_array();
+}
+
+bool initialize()
+{
+    inner_initialize();
+    return true;
+}
+
+bool const numpy_initialized = initialize();
+
 grphic3d* allocateGrphic3d(PyArrayObject* array)
 {
     unsigned int const nd = array->nd;
